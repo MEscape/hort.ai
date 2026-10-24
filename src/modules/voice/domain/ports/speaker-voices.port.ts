@@ -8,9 +8,4 @@ import type { SpeakerId } from '../models/ids';
 export interface SpeakerVoices {
   /** The provider's voice id, or `null` when the id names no speaker with a voice. */
   voiceFor(speakerId: SpeakerId): string | null;
-  /**
-   * Whether the text is one of the speaker's fixed lines from trusted configuration (the owl's
-   * greetings). Those are spoken as they are; any other text must pass the spoken-text guard.
-   */
-  isFixedLine(speakerId: SpeakerId, text: string): boolean;
 }

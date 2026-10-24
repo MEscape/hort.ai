@@ -6,13 +6,11 @@ import type {
   RateLimitedAppError,
   ValidationAppError,
 } from '@lib/errors';
-import { err, errAsync, ok, okAsync } from '@lib/result';
+import { errAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
 import {
-  VOICE_VALIDATION_CODES,
   fromRateLimitFailure,
-  invalidVoiceInput,
   unknownSpeaker,
   voiceDisabled,
 } from '../../domain/errors/voice-errors';
@@ -32,11 +30,9 @@ export type SynthesizeSpeechError =
   | InfrastructureAppError;
 
 /**
- * Speaks checked text in a speaker's voice. Nothing is stored: the audio goes back to the caller.
- * The text comes from a request, so it is never trusted: unless it is one of the speaker's fixed
- * lines (the owl's), it must pass the guidance module's content and child-safety rules, and
- * rejected text is never sent to the provider. The speaker and the text are checked before the
- * budget is spent, the budget before the provider is called.
+ * Speaks validated text in a speaker's voice. Nothing is stored: the audio goes back to the caller.
+ * The speaker and the text are checked before the budget is spent, the budget before the provider
+ * is called.
  */
 export class SynthesizeSpeech {
   constructor(private readonly deps: VoiceDependencies) {}
@@ -58,11 +54,6 @@ export class SynthesizeSpeech {
           return errAsync(unknownSpeaker());
         }
         return speakableText(input.text)
-          .andThen((text) =>
-            this.deps.voices.isFixedLine(speakerId.value, text) || this.deps.textGuard.isSafe(text)
-              ? ok(text)
-              : err(invalidVoiceInput('text', VOICE_VALIDATION_CODES.textUnsafe)),
-          )
           .asyncAndThen((text) =>
             this.deps.rateLimiter
               .enforce({

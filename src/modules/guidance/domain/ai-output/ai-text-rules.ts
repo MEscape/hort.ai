@@ -43,11 +43,17 @@ const CODE_PATTERNS = [
 const QUESTION_MARK = '?';
 
 /**
- * The content rules every text a child sees or hears must meet, whatever its kind: no control
- * characters, links, markup or code. Returns every violation; emptiness and length are the caller's.
+ * Checks the text of an output against the content rules of its kind. Returns every violation (none
+ * when the text is acceptable). The solution-leak check (#31) runs after this one, with the task.
  */
-export function checkAiTextContent(text: string): AiOutputValidationCode[] {
+export function checkAiText(text: string, kind: AiOutputKind): AiOutputValidationCode[] {
+  if (text.length === 0) {
+    return [AI_OUTPUT_VALIDATION_CODES.textEmpty];
+  }
   const codes: AiOutputValidationCode[] = [];
+  if (Array.from(text).length > AI_TEXT_MAX_LENGTH[kind]) {
+    codes.push(AI_OUTPUT_VALIDATION_CODES.textTooLong);
+  }
   if (CONTROL_CHARACTER.test(text)) {
     codes.push(AI_OUTPUT_VALIDATION_CODES.containsControlCharacter);
   }
@@ -60,22 +66,6 @@ export function checkAiTextContent(text: string): AiOutputValidationCode[] {
   if (CODE_PATTERNS.some((pattern) => pattern.test(text))) {
     codes.push(AI_OUTPUT_VALIDATION_CODES.containsCode);
   }
-  return codes;
-}
-
-/**
- * Checks the text of an output against the content rules of its kind. Returns every violation (none
- * when the text is acceptable). The solution-leak check (#31) runs after this one, with the task.
- */
-export function checkAiText(text: string, kind: AiOutputKind): AiOutputValidationCode[] {
-  if (text.length === 0) {
-    return [AI_OUTPUT_VALIDATION_CODES.textEmpty];
-  }
-  const codes: AiOutputValidationCode[] = [];
-  if (Array.from(text).length > AI_TEXT_MAX_LENGTH[kind]) {
-    codes.push(AI_OUTPUT_VALIDATION_CODES.textTooLong);
-  }
-  codes.push(...checkAiTextContent(text));
   if (kind === 'comprehension_question' && !text.endsWith(QUESTION_MARK)) {
     codes.push(AI_OUTPUT_VALIDATION_CODES.notAQuestion);
   }

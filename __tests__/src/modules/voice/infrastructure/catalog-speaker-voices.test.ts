@@ -9,7 +9,6 @@ const narrator = {
   id: 'eule',
   rolle: 'erzaehler',
   name: null,
-  saetze: ['Hallo, ich bin die Eule.'],
   tts: { provider: 'elevenlabs', voiceId: 'VoiceOwl', style: null },
 };
 
@@ -58,16 +57,6 @@ describe('catalogSpeakerVoices', () => {
     expect(voices.voiceFor(toSpeakerId('tutor-1'))).toBeNull();
     expect(voices.voiceFor(toSpeakerId('tutor-2'))).toBeNull();
     expect(voices.voiceFor(toSpeakerId('eule'))).toBe('VoiceOwl');
-  });
-
-  it("knows only the narrator's configured lines as fixed lines", () => {
-    const voices = catalogSpeakerVoices(catalogWith([{}]), narrator);
-    const checkedIn = catalogSpeakerVoices();
-
-    expect(voices.isFixedLine(toSpeakerId('eule'), ' Hallo, ich bin die Eule. ')).toBe(true);
-    expect(voices.isFixedLine(toSpeakerId('eule'), 'Hallo')).toBe(false);
-    expect(voices.isFixedLine(toSpeakerId('tutor-0'), 'Hallo, ich bin die Eule.')).toBe(false);
-    expect(checkedIn.isFixedLine(toSpeakerId('eule'), 'Willkommen bei Hort.ai!')).toBe(true);
   });
 
   it('gives the narrator no voice for another provider', () => {

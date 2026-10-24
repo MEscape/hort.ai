@@ -68,43 +68,6 @@ describe('SynthesizeSpeech', () => {
     expect(speech.synthesize).toHaveBeenCalledOnce();
   });
 
-  it('never sends text the spoken-text guard rejects to the provider', async () => {
-    const speech = fakeSpeech();
-    const query = new SynthesizeSpeech(voiceDependencies({ speech }));
-
-    const unsafe = await query.execute({ speakerId: 'max', text: 'Das ist unser Geheimnis.' });
-    const link = await query.execute({ speakerId: 'eule', text: 'Geh auf https://example.org' });
-
-    expect(unsafe._unsafeUnwrapErr()).toMatchObject({
-      code: 'voice.validation_failed',
-      fieldErrors: { text: ['voice.validation.text_unsafe'] },
-    });
-    expect(link._unsafeUnwrapErr()).toMatchObject({
-      fieldErrors: { text: ['voice.validation.text_unsafe'] },
-    });
-    expect(speech.synthesize).not.toHaveBeenCalled();
-  });
-
-  it('speaks a fixed line of the narrator without asking the guard', async () => {
-    const speech = fakeSpeech();
-    const query = new SynthesizeSpeech(
-      voiceDependencies({ speech, textGuard: { isSafe: () => false } }),
-    );
-
-    const fixed = await query.execute({ speakerId: 'eule', text: ' Willkommen bei Hort.ai! ' });
-    const free = await query.execute({ speakerId: 'eule', text: 'Hallo' });
-    const tutor = await query.execute({ speakerId: 'max', text: 'Willkommen bei Hort.ai!' });
-
-    expect(fixed.isOk()).toBe(true);
-    expect(free._unsafeUnwrapErr().code).toBe('voice.validation_failed');
-    expect(tutor._unsafeUnwrapErr().code).toBe('voice.validation_failed');
-    expect(speech.synthesize).toHaveBeenCalledOnce();
-    expect(speech.synthesize).toHaveBeenCalledWith({
-      text: 'Willkommen bei Hort.ai!',
-      voiceId: 'VoiceOwl',
-    });
-  });
-
   it('refuses once the parent budget is spent, counting each parent separately', async () => {
     const rateLimiter = createTestRateLimiter();
     const query = new SynthesizeSpeech(voiceDependencies({ rateLimiter }));

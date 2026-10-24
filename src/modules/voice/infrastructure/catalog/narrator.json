@@ -2,13 +2,5 @@
   "id": "eule",
   "rolle": "erzaehler",
   "name": null,
-  "saetze": [
-    "Willkommen bei Hort.ai!",
-    "Schön, dass du da bist.",
-    "Wähle deinen Lernbegleiter.",
-    "Lass uns zusammen anfangen.",
-    "Mach eine kleine Pause und komm gleich wieder.",
-    "Toll gemacht! Bis zum nächsten Mal."
-  ],
   "tts": { "provider": "elevenlabs", "voiceId": "YyYOpSknZlewhHezK5bv", "style": null }
 }
