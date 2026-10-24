@@ -1,3 +1,5 @@
+import type { Role } from '../../domain/models/role';
+
 import type { BetterAuthInstance } from './create-auth';
 
 /**
@@ -17,6 +19,7 @@ export interface AuthenticationApi {
     name: string;
     email: string;
     password: string;
+    role: Role;
     callbackURL: string;
     headers: Headers;
   }): Promise<unknown>;
