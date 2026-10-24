@@ -46,7 +46,7 @@ Avoid all-caps paragraphs, narrow text columns of tiny text and decorative lette
 - `rounded-token-xl`: feature panels and a learning stage.
 - `shadow-soft`: resting surface; `shadow-lift`: subtle interactive elevation.
 
-Default buttons in v1 have a **56 CSS-pixel minimum height** (`min-h-14`), small buttons have 48 (`min-h-12`) and large buttons have 64 (`min-h-16`). These are starting specifications, not substitutes for real tablet testing. Use space around adjacent targets as well.
+Default buttons have a **48 CSS-pixel height** (`h-12`), small buttons 40 (`h-10`, parent area and toolbars only) and large buttons 56 (`h-14`); child-facing main actions use `lg`. These are starting specifications, not substitutes for real tablet testing. Use space around adjacent targets as well.
 
 ## Layout and motion
 

@@ -8,43 +8,11 @@ import { Card } from '@components/ui/card';
 
 import { useTranslations } from '@i18n/client';
 
-const APPLE_COUNT = 3;
-const APPLE_IDS = Array.from({ length: APPLE_COUNT }, (_, index) => index + 1);
-
-/** A deliberately simple, original vector placeholder: not final character or lesson artwork. */
-function AppleIllustration({ isSmall = false }: { readonly isSmall?: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 64 72"
-      className={isSmall ? 'h-10 w-10' : 'h-11 w-11'}
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        d="M34 20C34 10 38 8 40 7"
-        fill="none"
-        stroke="currentColor"
-        className="text-primary-copy"
-        strokeWidth="4"
-        strokeLinecap="round"
-      />
-      <path d="M36 17C42 5 56 6 57 7C55 20 43 25 36 17Z" className="fill-secondary" />
-      <path
-        d="M32 26C16 15 5 28 8 45C11 63 24 67 32 62C41 67 55 63 57 44C59 28 47 16 32 26Z"
-        className="fill-bloom stroke-primary-copy"
-        strokeWidth="2.5"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M18 35C15 39 14 43 15 47"
-        fill="none"
-        className="stroke-bloom-foreground"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
+const HINT_KEYS = [
+  'designSystem.lesson.hint1',
+  'designSystem.lesson.hint2',
+  'designSystem.lesson.hint3',
+] as const;
 
 function CompanionSketch() {
   return (
@@ -66,17 +34,15 @@ interface LessonSpecimenProps {
   readonly showHeading?: boolean;
 }
 
-/** Tap-to-move is a gallery-only interaction; it does not evaluate or persist learning answers. */
+/**
+ * A hint card for a task the child brought along. Hort.ai never sets its own exercises: the task
+ * text is the child's, and the companion only gives step-by-step hints, never the solution and
+ * never points or stars. Gallery-only: nothing is evaluated, sent or stored.
+ */
 export function LessonSpecimen({ showHeading = true }: LessonSpecimenProps) {
   const t = useTranslations('app');
-  const [selectedApples, setSelectedApples] = useState<readonly number[]>([]);
-  const isComplete = selectedApples.length === APPLE_COUNT;
-  const handlePick = (id: number) => {
-    setSelectedApples((current) => (current.includes(id) ? current : [...current, id]));
-  };
-  const handleReset = () => {
-    setSelectedApples([]);
-  };
+  const [shownHints, setShownHints] = useState(1);
+  const hasMoreHints = shownHints < HINT_KEYS.length;
 
   return (
     <section aria-labelledby="lesson-title" className="space-y-5">
@@ -95,75 +61,54 @@ export function LessonSpecimen({ showHeading = true }: LessonSpecimenProps) {
 
       <div
         data-world="meadow"
-        className="rounded-token-xl border-2 border-border-strong bg-world p-4 shadow-lift sm:p-6 xl:aspect-16/10"
+        className="rounded-token-xl border-2 border-border-strong bg-world p-4 shadow-lift sm:p-6"
       >
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-          <p className="font-heading text-xl font-semibold text-primary-copy">
-            {t('designSystem.lesson.taskTitle')}
-          </p>
-          <span className="rounded-token-lg bg-surface px-4 py-2 font-heading text-sm font-semibold text-copy shadow-soft">
-            {t('designSystem.lesson.progress')}
-          </span>
-        </header>
-
-        <div className="mt-5 grid gap-4 lg:grid-cols-3">
-          <Card className="space-y-5 lg:col-span-2">
-            <h3 className="font-heading text-xl text-copy">{t('designSystem.lesson.prompt')}</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <fieldset className="min-w-0 rounded-token-lg border-2 border-dashed border-highlight-border bg-highlight p-3">
-                <legend className="px-2 font-heading text-sm font-semibold text-primary-copy">
-                  {t('designSystem.lesson.tray')}
-                </legend>
-                <div className="flex min-h-32 flex-wrap items-center justify-center gap-2">
-                  {APPLE_IDS.map((id) => (
-                    <Button
-                      key={id}
-                      size="icon"
-                      variant="outline"
-                      disabled={selectedApples.includes(id)}
-                      aria-label={t('designSystem.lesson.selectApple', { number: id })}
-                      onClick={() => {
-                        handlePick(id);
-                      }}
-                      className="rounded-token-lg disabled:opacity-25"
-                    >
-                      <AppleIllustration />
-                    </Button>
-                  ))}
-                </div>
-              </fieldset>
-              <div className="min-w-0 space-y-3">
-                <p className="font-heading text-sm font-semibold text-primary-copy">
-                  {t('designSystem.lesson.basket')}
-                </p>
-                <div
-                  aria-hidden="true"
-                  className="flex min-h-32 flex-wrap items-center justify-center gap-1 rounded-b-token-xl rounded-t-token-sm border-4 border-secondary-copy bg-secondary p-3 shadow-soft"
-                >
-                  {selectedApples.map((id) => (
-                    <AppleIllustration key={id} isSmall />
-                  ))}
-                </div>
-                <output
-                  aria-live="polite"
-                  className="block text-center font-heading font-semibold text-copy"
-                >
-                  {t('designSystem.lesson.count', { count: selectedApples.length })}
-                </output>
-              </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Card className="gap-5 p-5 lg:col-span-2">
+            <div className="rounded-token-lg border-2 border-dashed border-highlight-border bg-highlight p-4">
+              <p className="font-heading text-sm font-semibold text-primary-copy">
+                {t('designSystem.lesson.taskLabel')}
+              </p>
+              <p className="mt-2 font-heading text-xl text-copy">
+                {t('designSystem.lesson.taskText')}
+              </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={selectedApples.length === 0}
-              onClick={handleReset}
-            >
-              {t('designSystem.lesson.reset')}
-            </Button>
-            {isComplete && (
-              <FeedbackPanel announce tone="success" title={t('designSystem.lesson.completeTitle')}>
-                {t('designSystem.lesson.completeBody')}
-              </FeedbackPanel>
+            <ol aria-live="polite" className="space-y-3">
+              {HINT_KEYS.slice(0, shownHints).map((key, index) => (
+                <li key={key}>
+                  <FeedbackPanel
+                    tone="hint"
+                    title={t('designSystem.lesson.hintTitle', { number: index + 1 })}
+                  >
+                    {t(key)}
+                  </FeedbackPanel>
+                </li>
+              ))}
+            </ol>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={!hasMoreHints}
+                onClick={() => {
+                  setShownHints((current) => Math.min(current + 1, HINT_KEYS.length));
+                }}
+              >
+                {t('designSystem.lesson.nextHint')}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={shownHints === 1}
+                onClick={() => {
+                  setShownHints(1);
+                }}
+              >
+                {t('designSystem.lesson.reset')}
+              </Button>
+            </div>
+            {!hasMoreHints && (
+              <p className="text-base text-copy-muted">{t('designSystem.lesson.lastHint')}</p>
             )}
           </Card>
 

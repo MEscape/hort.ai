@@ -46,7 +46,7 @@ export function renderPreheader(text: string, styles: Styles): string {
  * `width` and `height` are the image's own attributes (they reserve the space before it loads), not
  * layout.
  */
-const LOGO_PATH = '/email/hortai.png';
+const LOGO_PATH = APP_IDENTITY.assets.emailLogo;
 
 export function renderLogo(styles: Styles): string {
   const src = escapeHtml(`${publicEnv.NEXT_PUBLIC_APP_URL}${LOGO_PATH}`);

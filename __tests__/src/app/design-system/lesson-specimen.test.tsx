@@ -15,26 +15,27 @@ function renderScene() {
 }
 
 describe('LessonSpecimen', () => {
-  it('moves named objects one by one and allows a full reset', () => {
+  it("shows the child's own task with one hint at a time, never a solution or a score", () => {
     renderScene();
 
-    expect(screen.getByText('0 of 3 apples')).toBeVisible();
-    const first = screen.getByRole('button', { name: 'Put apple 1 in the basket' });
-    first.focus();
-    expect(first).toHaveFocus();
+    expect(screen.getByText('Your task from school')).toBeVisible();
+    expect(screen.getByText('Hint 1')).toBeVisible();
+    expect(screen.queryByText('Hint 2')).not.toBeInTheDocument();
+    const reset = screen.getByRole('button', { name: 'Start again' });
+    expect(reset).toBeDisabled();
 
-    fireEvent.click(first);
-    fireEvent.click(screen.getByRole('button', { name: 'Put apple 2 in the basket' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Put apple 3 in the basket' }));
+    const next = screen.getByRole('button', { name: 'Another hint' });
+    fireEvent.click(next);
+    fireEvent.click(next);
 
-    expect(first).toBeDisabled();
-    expect(screen.getByText('3 of 3 apples')).toBeVisible();
-    expect(screen.getByText('All three apples!').closest('[role="status"]')).not.toBeNull();
+    expect(screen.getByText('Hint 3')).toBeVisible();
+    expect(next).toBeDisabled();
+    expect(screen.getByText(/That was the last hint/)).toBeVisible();
+    expect(screen.queryByText(/\b12\b|\bstars?\b|\bpoints?\b|\bXP\b/i)).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Start again' }));
+    fireEvent.click(reset);
 
-    expect(screen.getByText('0 of 3 apples')).toBeVisible();
-    expect(first).toBeEnabled();
-    expect(screen.queryByText('All three apples!')).not.toBeInTheDocument();
+    expect(screen.queryByText('Hint 2')).not.toBeInTheDocument();
+    expect(next).toBeEnabled();
   });
 });

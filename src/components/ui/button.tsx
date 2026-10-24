@@ -1,54 +1,73 @@
-import type { ComponentProps } from 'react';
+import * as React from 'react';
+
+import { cva, type VariantProps } from 'class-variance-authority';
+import { Slot } from 'radix-ui';
 
 import { cn } from '@lib/utils';
 
-type ButtonVariant = 'primary' | 'secondary' | 'accent' | 'outline' | 'ghost';
-type ButtonSize = 'sm' | 'default' | 'lg' | 'icon';
+/**
+ * shadcn's Button, dressed in Hortai's tokens. Sizes start at 48px high: a button must be easy to
+ * hit for a parent holding a toddler and for a child's finger. The focus ring is the global
+ * `:focus-visible` rule, so none is added here.
+ *
+ * - `default`: the one main action of a screen (chestnut brown).
+ * - `accent`: a moment of discovery or arrival (owl amber), used at most once per screen.
+ * - `secondary`: calm, reassuring actions (book blue).
+ * - `outline`: the second choice next to a main action.
+ * - `ghost` / `link`: quiet actions inside text and toolbars.
+ * - `danger`: destructive actions in the parent area, never for a child's mistake.
+ */
+const buttonVariants = cva(
+  [
+    'inline-flex shrink-0 items-center justify-center gap-2 font-heading font-semibold whitespace-nowrap',
+    'rounded-token transition-[background-color,box-shadow,transform] duration-150 ease-soft',
+    'active:translate-y-px disabled:pointer-events-none disabled:opacity-60',
+    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
+  ],
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary text-primary-foreground shadow-soft hover:bg-primary/90',
+        accent: 'bg-accent text-accent-foreground shadow-soft hover:bg-accent/90',
+        secondary: 'bg-secondary text-secondary-foreground shadow-soft hover:bg-secondary/90',
+        outline: 'border-2 border-border-strong bg-surface text-copy hover:bg-highlight',
+        ghost: 'text-primary-copy hover:bg-highlight',
+        link: 'h-auto rounded-token-sm px-0 text-primary-copy underline underline-offset-4 hover:text-copy',
+        danger: 'bg-danger text-status-foreground shadow-soft hover:bg-danger/90',
+      },
+      size: {
+        default: 'h-12 px-5 text-base',
+        sm: 'h-10 px-4 text-sm',
+        lg: 'h-14 px-7 text-lg',
+        icon: 'size-12',
+        'icon-sm': 'size-10',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  },
+);
 
-const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  primary: 'bg-primary text-primary-foreground border-primary hover:shadow-lift active:shadow-soft',
-  secondary:
-    'bg-secondary text-secondary-foreground border-secondary hover:shadow-lift active:shadow-soft',
-  accent: 'bg-accent text-accent-foreground border-accent hover:shadow-lift active:shadow-soft',
-  outline: 'bg-surface text-primary-copy border-border-strong hover:bg-highlight active:bg-sunken',
-  ghost: 'bg-transparent text-primary-copy border-transparent hover:bg-highlight active:bg-sunken',
-};
+type ButtonProps = React.ComponentProps<'button'> &
+  VariantProps<typeof buttonVariants> & {
+    /** Render the child element (a `Link`) with the button's look instead of a `<button>`. */
+    readonly asChild?: boolean;
+  };
 
-const SIZE_CLASSES: Record<ButtonSize, string> = {
-  sm: 'min-h-12 px-4 text-sm',
-  default: 'min-h-14 px-6 text-base',
-  lg: 'min-h-16 px-8 text-lg',
-  icon: 'h-14 w-14 shrink-0 p-3',
-};
+function Button({ className, variant, size, asChild = false, ...props }: ButtonProps) {
+  const Component = asChild ? Slot.Root : 'button';
 
-interface ButtonProps extends ComponentProps<'button'> {
-  readonly variant?: ButtonVariant;
-  readonly size?: ButtonSize;
-}
-
-/** A small app-owned, shadcn-style primitive using Hort.ai's approved semantic tokens. */
-export function Button({
-  className,
-  variant = 'primary',
-  size = 'default',
-  type = 'button',
-  ...props
-}: ButtonProps) {
   return (
-    <button
-      type={type}
+    <Component
       data-slot="button"
-      data-variant={variant}
-      className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-token border-2 font-heading font-semibold',
-        'whitespace-normal text-center leading-tight shadow-soft transition-transform duration-200',
-        'ease-soft hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed',
-        'disabled:opacity-60 disabled:shadow-none disabled:hover:translate-y-0',
-        VARIANT_CLASSES[variant],
-        SIZE_CLASSES[size],
-        className,
-      )}
+      data-variant={variant ?? 'default'}
+      data-size={size ?? 'default'}
+      className={cn(buttonVariants({ variant, size }), className)}
       {...props}
     />
   );
 }
+
+export { Button, buttonVariants };
