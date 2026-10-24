@@ -92,3 +92,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+
+# Rewritten by `vercel build` before format:check runs, so it always fails there.
+vercel.json

@@ -1,0 +1,1 @@
+export { handleAlexaRequest } from './composition';
