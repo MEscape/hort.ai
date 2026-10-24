@@ -136,7 +136,10 @@ export function createVoiceRouteHandlers(options: {
       }
       const parsed = synthesizeSpeechSchema.safeParse(body);
       if (!parsed.success) {
-        return refuse(UNPROCESSABLE, 'The body must be { speakerId, phrase } or { speakerId, ticket }.');
+        return refuse(
+          UNPROCESSABLE,
+          'The body must be { speakerId, phrase } or { speakerId, ticket }.',
+        );
       }
       const { speakerId } = parsed.data;
       const result = await synthesize(

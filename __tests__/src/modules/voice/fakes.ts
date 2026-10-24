@@ -47,6 +47,14 @@ export function voiceDependencies(overrides: Partial<VoiceDependencies> = {}): V
     rateLimiter: createTestRateLimiter(),
     speech: fakeSpeech(),
     voices: { voiceFor: (id) => (id === 'max' ? 'VoiceMax' : null) },
+    phrases: {
+      phraseFor: (id, phrase) => (id === 'max' && phrase === 'greeting' ? 'Wuff, hallo!' : null),
+    },
+    tickets: {
+      issue: vi.fn((text: string) => `ticket:${text}`),
+      redeem: vi.fn((ticket: string) => (ticket.startsWith('ticket:') ? ticket.slice(7) : null)),
+    },
+    consent: { voiceConsentOf: vi.fn(() => okAsync(true)) },
     ...overrides,
   };
 }

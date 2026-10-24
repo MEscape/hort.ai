@@ -1,15 +1,20 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { SPEECH_LIMITS } from '@modules/voice/application/contracts/voice-constraints';
 import { TranscribeSpeech } from '@modules/voice/application/queries/transcribe-speech';
 
-import { errAsync } from '@lib/result';
+import { forbiddenError } from '@lib/errors';
+import { errAsync, okAsync } from '@lib/result';
 import { speechQuotaExceeded } from '@lib/speech';
 
 import { createBrokenRateLimiter } from '../../../support/rate-limiting';
 import { denying, fakeSpeech, voiceDependencies } from '../fakes';
 
-const recording = { audio: new Uint8Array([1, 2, 3]), contentType: 'audio/webm' };
+const recording = {
+  childProfileId: 'child-1',
+  audio: new Uint8Array([1, 2, 3]),
+  contentType: 'audio/webm',
+};
 
 describe('TranscribeSpeech', () => {
   it('turns a German recording into text', async () => {
@@ -19,7 +24,37 @@ describe('TranscribeSpeech', () => {
     const result = await query.execute(recording);
 
     expect(result._unsafeUnwrap()).toEqual({ text: 'Was ist drei mal vier?' });
-    expect(speech.transcribe).toHaveBeenCalledWith({ ...recording, languageCode: 'deu' });
+    expect(speech.transcribe).toHaveBeenCalledWith({
+      audio: recording.audio,
+      contentType: 'audio/webm',
+      languageCode: 'deu',
+    });
+  });
+
+  it('sends nothing to the provider without the parent consent on this child', async () => {
+    const speech = fakeSpeech();
+    const voiceConsentOf = vi.fn(() => okAsync(false));
+    const query = new TranscribeSpeech(voiceDependencies({ speech, consent: { voiceConsentOf } }));
+
+    const result = await query.execute(recording);
+
+    expect(result._unsafeUnwrapErr()).toMatchObject({
+      kind: 'forbidden',
+      code: 'voice.consent_required',
+    });
+    expect(voiceConsentOf).toHaveBeenCalledWith('child-1');
+    expect(speech.transcribe).not.toHaveBeenCalled();
+  });
+
+  it("refuses another parent's child and sends nothing", async () => {
+    const speech = fakeSpeech();
+    const foreign = forbiddenError('auth.permission_denied', 'Not yours.');
+    const query = new TranscribeSpeech(
+      voiceDependencies({ speech, consent: { voiceConsentOf: () => errAsync(foreign) } }),
+    );
+
+    expect((await query.execute(recording))._unsafeUnwrapErr()).toBe(foreign);
+    expect(speech.transcribe).not.toHaveBeenCalled();
   });
 
   it('requires the voice.use permission', async () => {

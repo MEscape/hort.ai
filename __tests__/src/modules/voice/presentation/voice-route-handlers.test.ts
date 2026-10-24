@@ -5,7 +5,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { createVoiceRouteHandlers } from '@modules/voice/presentation/http/voice-route-handlers';
 import type { Synthesize, Transcribe } from '@modules/voice/presentation/http/voice-route-handlers';
 
-import { infrastructureError, rateLimitedError, validationError } from '@lib/errors';
+import {
+  forbiddenError,
+  infrastructureError,
+  rateLimitedError,
+  validationError,
+} from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 
 function handlersWith(overrides: { synthesize?: Synthesize; transcribe?: Transcribe } = {}) {
@@ -53,14 +58,17 @@ describe('voice route handlers: speech', () => {
     const { handlers, options } = handlersWith();
 
     const response = await handlers.speech(
-      jsonRequest(JSON.stringify({ speakerId: 'max', text: 'Hallo' })),
+      jsonRequest(JSON.stringify({ speakerId: 'max', phrase: 'greeting' })),
     );
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toBe('audio/mpeg');
     expect(response.headers.get('cache-control')).toBe('no-store');
     expect(new Uint8Array(await response.arrayBuffer())).toEqual(new Uint8Array([0xff, 0xfb]));
-    expect(options.synthesize).toHaveBeenCalledWith({ speakerId: 'max', text: 'Hallo' });
+    expect(options.synthesize).toHaveBeenCalledWith({
+      speakerId: 'max',
+      source: { kind: 'phrase', phrase: 'greeting' },
+    });
   });
 
   it('refuses a body without length or too large before reading it', async () => {
@@ -74,24 +82,63 @@ describe('voice route handlers: speech', () => {
     expect(options.synthesize).not.toHaveBeenCalled();
   });
 
-  it.each(['not json', '{"speakerId":"Max!","text":"Hallo"}', '{"speakerId":"max"}'])(
-    'refuses a malformed body (%s)',
-    async (body) => {
-      const { handlers } = handlersWith();
+  it.each([
+    'not json',
+    '{"speakerId":"Max!","phrase":"greeting"}',
+    '{"speakerId":"max"}',
+    '{"speakerId":"max","phrase":"solution"}',
+    '{"speakerId":"max","phrase":"greeting","ticket":"t"}',
+  ])('refuses a malformed body (%s)', async (body) => {
+    const { handlers } = handlersWith();
 
-      const response = await handlers.speech(jsonRequest(body));
+    const response = await handlers.speech(jsonRequest(body));
 
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({ code: 'voice.validation_failed' });
+  });
+
+  it('refuses words from the client with their own code and never calls the use case', async () => {
+    const { handlers, options } = handlersWith();
+
+    const free = await handlers.speech(
+      jsonRequest(JSON.stringify({ speakerId: 'max', text: 'Die Lösung ist 12.' })),
+    );
+    const smuggled = await handlers.speech(
+      jsonRequest(
+        JSON.stringify({ speakerId: 'max', phrase: 'greeting', text: 'Die Lösung ist 12.' }),
+      ),
+    );
+
+    for (const response of [free, smuggled]) {
       expect(response.status).toBe(422);
-      expect(await response.json()).toMatchObject({ code: 'voice.validation_failed' });
-    },
-  );
+      expect(await response.json()).toMatchObject({
+        code: 'voice.validation_failed',
+        fieldErrors: { text: ['voice.validation.free_text_refused'] },
+      });
+    }
+    expect(options.synthesize).not.toHaveBeenCalled();
+  });
+
+  it('passes a ticket on for the use case to redeem', async () => {
+    const { handlers, options } = handlersWith();
+
+    const response = await handlers.speech(
+      jsonRequest(JSON.stringify({ speakerId: 'max', ticket: 'body.signature' })),
+    );
+
+    expect(response.status).toBe(200);
+    expect(options.synthesize).toHaveBeenCalledWith({
+      speakerId: 'max',
+      source: { kind: 'ticket', ticket: 'body.signature' },
+    });
+  });
 
   it('maps a failed result to its status, headers and body, and reports it', async () => {
     const limited = rateLimitedError('voice.rate_limited', 'Too many.', 42);
     const { handlers, options } = handlersWith({ synthesize: () => errAsync(limited) });
 
     const response = await handlers.speech(
-      jsonRequest(JSON.stringify({ speakerId: 'max', text: 'Hallo' })),
+      jsonRequest(JSON.stringify({ speakerId: 'max', phrase: 'greeting' })),
     );
 
     expect(response.status).toBe(429);
@@ -109,6 +156,7 @@ describe('voice route handlers: transcription', () => {
   it('passes the recording with its bare type and returns the text', async () => {
     const { handlers, options } = handlersWith();
     const form = new FormData();
+    form.set('childProfileId', 'child-1');
     form.set('audio', new Blob([new Uint8Array([1, 2, 3])], { type: 'audio/webm;codecs=opus' }));
 
     const response = await handlers.transcription(await multipartRequest(form));
@@ -117,9 +165,37 @@ describe('voice route handlers: transcription', () => {
     expect(response.headers.get('cache-control')).toBe('no-store');
     expect(await response.json()).toEqual({ text: 'Hallo Max' });
     expect(options.transcribe).toHaveBeenCalledWith({
+      childProfileId: 'child-1',
       audio: new Uint8Array([1, 2, 3]),
       contentType: 'audio/webm',
     });
+  });
+
+  it('refuses a recording that names no child, before the use case runs', async () => {
+    const { handlers, options } = handlersWith();
+    const form = new FormData();
+    form.set('audio', new Blob([new Uint8Array([1])], { type: 'audio/webm' }));
+
+    const response = await handlers.transcription(await multipartRequest(form));
+
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({
+      fieldErrors: { childProfileId: ['voice.validation.child_profile_required'] },
+    });
+    expect(options.transcribe).not.toHaveBeenCalled();
+  });
+
+  it('answers a missing consent with its stable code, so the interface falls back to text', async () => {
+    const consent = forbiddenError('voice.consent_required', 'Please type instead.');
+    const { handlers } = handlersWith({ transcribe: () => errAsync(consent) });
+    const form = new FormData();
+    form.set('childProfileId', 'child-1');
+    form.set('audio', new Blob([new Uint8Array([1])], { type: 'audio/webm' }));
+
+    const response = await handlers.transcription(await multipartRequest(form));
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ code: 'voice.consent_required' });
   });
 
   it('refuses an oversized declaration, a missing field and a body that is not multipart', async () => {
@@ -145,6 +221,7 @@ describe('voice route handlers: transcription', () => {
     });
     const quota = infrastructureError('speech.quota_exceeded', 'Quota.', new Error('status 401'));
     const form = new FormData();
+    form.set('childProfileId', 'child-1');
     form.set('audio', new Blob([new Uint8Array([1])], { type: 'video/mp4' }));
     const first = handlersWith({ transcribe: () => errAsync(invalid) });
     const second = handlersWith({ transcribe: () => errAsync(quota) });
