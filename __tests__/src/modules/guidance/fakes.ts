@@ -1,11 +1,10 @@
 import type { HintRequest } from '@modules/guidance/domain/models/hint-request';
-import type { HintOutputValidator } from '@modules/guidance/domain/ports/hint-output-validator.port';
 import type {
   HintProvider,
   HintProviderFailure,
 } from '@modules/guidance/domain/ports/hint-provider.port';
 
-import { err, errAsync, ok, okAsync } from '@lib/result';
+import { errAsync, okAsync } from '@lib/result';
 
 export const REQUEST: HintRequest = {
   task: 'Lisa hat 3 Äpfel und bekommt 4 dazu. Wie viele Äpfel hat sie?',
@@ -32,14 +31,4 @@ export function fakeHintProvider(script: ProviderScript) {
     },
   };
   return { provider, requests };
-}
-
-/** Stands in for the contract (#6) and leak guard (#31): rejects any answer `rejects` matches. */
-export function rejectingValidator(
-  rejects: (raw: unknown) => boolean,
-  code = 'guidance.test.rejected',
-): HintOutputValidator {
-  return {
-    validate: (raw, { level }) => (rejects(raw) ? err({ code }) : ok({ level, text: String(raw) })),
-  };
 }
