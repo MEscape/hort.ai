@@ -19,6 +19,7 @@ import type { ChildProfile, ChildProfileChanges } from '../../domain/models/chil
 import type { ChildProfileId } from '../../domain/models/ids';
 import type {
   NewChildProfile,
+  ChildProfileOwner,
   ChildProfileRepository,
 } from '../../domain/ports/child-profile.repository';
 
@@ -28,6 +29,7 @@ const failures = createPersistenceFailures({
   subject: 'ChildProfile',
 });
 
+/** @owner-scope builder Every method below pins ownerId, except `findById`, whose caller checks the stored owner. */
 const childProfiles = () => db.orm.public.ChildProfile.select(...CHILD_PROFILE_SELECT);
 
 /**
@@ -43,6 +45,10 @@ const childProfiles = () => db.orm.public.ChildProfile.select(...CHILD_PROFILE_S
 export class PrismaChildProfileRepository implements ChildProfileRepository {
   constructor(private readonly clock: Clock) {}
 
+  /**
+   * @owner-scope builder The use case compares the stored owner with the actor (`requireOnResource`), so
+   * another parent is refused with `auth.permission_denied` rather than told the profile does not exist.
+   */
   findById(
     id: ChildProfileId,
     tenantId: TenantId,
@@ -80,13 +86,13 @@ export class PrismaChildProfileRepository implements ChildProfileRepository {
 
   update(
     id: ChildProfileId,
-    tenantId: TenantId,
+    { tenantId, ownerId }: ChildProfileOwner,
     changes: ChildProfileChanges,
   ): AppResultAsync<ChildProfile, NotFoundAppError | InfrastructureAppError> {
     return fromThrowableAsync(
       async () =>
         childProfiles()
-          .where({ id, tenantId })
+          .where({ id, tenantId, ownerId })
           .update(toChildProfileUpdateData(changes, this.clock.now())),
       failures.infraOnly('update'),
     )
@@ -94,9 +100,13 @@ export class PrismaChildProfileRepository implements ChildProfileRepository {
       .map(toChildProfile);
   }
 
-  deleteById(id: ChildProfileId, tenantId: TenantId): AppResultAsync<void, InfrastructureAppError> {
+  deleteById(
+    id: ChildProfileId,
+    tenantId: TenantId,
+    ownerId: ActorId,
+  ): AppResultAsync<void, InfrastructureAppError> {
     return fromThrowableAsync(
-      async () => db.orm.public.ChildProfile.where({ id, tenantId }).deleteAndCount(),
+      async () => db.orm.public.ChildProfile.where({ id, tenantId, ownerId }).deleteAndCount(),
       failures.infraOnly('deleteById'),
     ).map(() => undefined);
   }

@@ -15,7 +15,7 @@ export class DeleteChildProfile {
 
     return loadAuthorizedChildProfile(this.deps, input.id, 'learner.delete').andThen(
       ({ actor, childProfile }) =>
-        childProfiles.deleteById(childProfile.id, actor.tenantId).map(() => {
+        childProfiles.deleteById(childProfile.id, actor.tenantId, actor.id).map(() => {
           audit.record({
             type: 'child_profile.deleted',
             actorId: actor.id,
