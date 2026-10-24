@@ -81,6 +81,7 @@ function CurrentStage({ context, tutors }: StageProps) {
         <ControlsStep
           {...common}
           profile={profile}
+          tutor={tutor}
           onBack={back}
           onSaved={context.savedThen('review')}
         />
@@ -112,7 +113,11 @@ export function OnboardingFlow({ initial, tutors }: OnboardingFlowProps) {
   const context = useStageContext(flow, tutors);
 
   return (
-    <OnboardingLayout stage={flow.stage} stepNumber={flow.stepNumber}>
+    <OnboardingLayout
+      stage={flow.stage}
+      stepNumber={flow.stepNumber}
+      reachedNumber={flow.reachedNumber}
+    >
       <div
         key={flow.stage}
         className="motion-safe:animate-in motion-safe:duration-300 motion-safe:fade-in motion-safe:slide-in-from-bottom-2"

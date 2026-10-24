@@ -55,7 +55,7 @@ export function TutorPicker({
     <fieldset className="flex min-w-0 flex-col gap-6">
       <legend className="sr-only">{t('tutor.groupLabel', { name })}</legend>
       <p className="text-sm text-copy-muted">{t('tutor.languageNote')}</p>
-      <div className="mt-14 flex items-end justify-center gap-2 rounded-token-xl border border-border bg-highlight/70 px-3 pb-5 sm:mt-24 sm:gap-8 sm:px-8">
+      <div className="mt-14 flex items-end justify-center gap-2 rounded-token-xl border border-border bg-surface px-3 pb-5 sm:mt-24 sm:gap-8 sm:px-8">
         {tutors.map((tutor) => (
           <TutorFigure
             key={tutor.id}

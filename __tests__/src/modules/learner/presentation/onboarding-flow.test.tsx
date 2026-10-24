@@ -285,7 +285,7 @@ describe('onboarding flow', () => {
     ).toBeVisible();
     expect(saveControlsAction).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole('switch', { name: 'Talking to Hort' }));
+    fireEvent.click(screen.getByRole('switch', { name: 'Talking to Max' }));
     fireEvent.click(screen.getByRole('checkbox', { name: /I am the parent or legal guardian/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
     expect(await screen.findByRole('heading', { name: 'Is everything right?' })).toBeVisible();
@@ -330,6 +330,18 @@ describe('onboarding flow', () => {
     expect(await screen.findByRole('heading', { name: 'Lisa M is ready!' })).toBeVisible();
     expect(screen.getByText('Wuff, hallo! Ich bin Max.')).toBeVisible();
     expect(completeSetupAction).toHaveBeenLastCalledWith({ profileId: 'p1' });
+  });
+
+  it('keeps the screens that are done marked as done while one of them is being changed', () => {
+    const stored = { ...PROFILE, tutorId: 'max', guardianConfirmed: true, interests: ['sports'] };
+    renderFlow({ step: 'review', profile: stored });
+    const doneCount = () => screen.queryAllByText('Done').length;
+    expect(doneCount()).toBe(6);
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Change' })[0]!);
+    // Changing the child: every other finished step stays done; only the review and the end are open.
+    expect(doneCount()).toBe(5);
+    expect(document.querySelector('[aria-current="step"]')).toHaveTextContent('Your child');
   });
 
   it('sends a parent who is already set up to the home instead of showing an error', async () => {

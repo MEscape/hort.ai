@@ -159,8 +159,8 @@
       "title": "Safety and settings",
       "description": "You decide what {name} may do. The safest choice is already selected.",
       "voice": {
-        "title": "Talking to Hort",
-        "description": "{name} may speak to Hort and hear Hort answer. Typing always works. Alexa cannot be connected yet.",
+        "title": "Talking to {tutor}",
+        "description": "{name} may speak to {tutor} and hear the answer. Typing always works. Alexa cannot be connected yet.",
         "on": "Voice is on",
         "off": "Voice is off"
       },

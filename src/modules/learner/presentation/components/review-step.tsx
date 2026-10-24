@@ -135,7 +135,7 @@ export function ReviewStep({
             <Character
               imageUrl={tutor.imageUrl}
               alt={t('tutor.imageAlt', { name: tutor.name, animal: tutor.animal })}
-              className="size-16 overflow-hidden rounded-token bg-surface shadow-soft"
+              className="size-16"
             />
             <span>
               <span className="font-heading text-lg font-semibold">{tutor.name}</span>{' '}

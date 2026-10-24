@@ -159,8 +159,8 @@
       "title": "Sicherheit und Einstellungen",
       "description": "Du bestimmst, was {name} darf. Die sicherste Wahl ist schon ausgewählt.",
       "voice": {
-        "title": "Mit Hort sprechen",
-        "description": "{name} darf mit Hort sprechen und Horts Antwort hören. Tippen geht immer. Alexa lässt sich noch nicht verbinden.",
+        "title": "Mit {tutor} sprechen",
+        "description": "{name} darf mit {tutor} sprechen und die Antwort hören. Tippen geht immer. Alexa lässt sich noch nicht verbinden.",
         "on": "Sprache ist an",
         "off": "Sprache ist aus"
       },

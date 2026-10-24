@@ -281,7 +281,6 @@
   --animate-float: float 5s ease-in-out infinite;
   --animate-orb: orb-breathe 1.8s ease-in-out infinite;
   --animate-hop: hop 520ms cubic-bezier(0.34, 1.4, 0.64, 1) 1;
-  --animate-wiggle: wiggle 600ms ease-in-out 1;
   --animate-bars: bars 900ms ease-in-out infinite;
   --animate-accordion-down: accordion-down 200ms ease-out;
   --animate-accordion-up: accordion-up 200ms ease-out;
@@ -463,20 +462,6 @@ body {
   }
   100% {
     transform: translateY(0) scale(1, 1);
-  }
-}
-
-/* A friendly shake for a hover. Plays once. */
-@keyframes wiggle {
-  0%,
-  100% {
-    transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(-4deg);
-  }
-  75% {
-    transform: rotate(4deg);
   }
 }
 

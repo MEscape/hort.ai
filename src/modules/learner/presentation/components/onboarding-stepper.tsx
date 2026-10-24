@@ -15,6 +15,8 @@ export interface OnboardingStepperProps {
   readonly stage: OnboardingStage;
   /** 1-based position of the screen in front of the parent. */
   readonly stepNumber: number;
+  /** The furthest screen reached; screens before it count as done even while an earlier one is open. */
+  readonly reachedNumber?: number;
 }
 
 const PERCENT = 100;
@@ -50,7 +52,11 @@ function CompactProgress({ stage, stepNumber }: OnboardingStepperProps) {
  * item is marked for screen readers, and filled dots. A finished step shows a tick, so colour is
  * never the only signal. Wide screens get the list beside the card; phones get the compact bar.
  */
-export function OnboardingStepper({ stage, stepNumber }: OnboardingStepperProps) {
+export function OnboardingStepper({
+  stage,
+  stepNumber,
+  reachedNumber = stepNumber,
+}: OnboardingStepperProps) {
   const t = useTranslations('learner');
 
   return (
@@ -63,8 +69,8 @@ export function OnboardingStepper({ stage, stepNumber }: OnboardingStepperProps)
         <ol className="flex flex-col">
           {ONBOARDING_STAGES.map((item, index) => {
             const position = index + 1;
-            const isDone = position < stepNumber;
             const isCurrent = position === stepNumber;
+            const isDone = !isCurrent && position < reachedNumber;
             return (
               <li
                 key={item}

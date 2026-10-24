@@ -13,12 +13,15 @@ import {
 import { StepFrame } from './step-frame';
 import { TimeSettings } from './time-settings';
 
+import type { TutorOption } from './tutor-option';
 import type { ChildProfileDto } from '../dto/learner-dto';
 
 export interface ControlsStepProps {
   readonly stepNumber: number;
   readonly shouldTakeFocus: boolean;
   readonly profile: ChildProfileDto;
+  /** The companion the parent chose: the one the child will talk to. */
+  readonly tutor: TutorOption | null;
   readonly onBack: () => void;
   readonly onSaved: (saved: ChildProfileDto) => void;
 }
@@ -32,6 +35,7 @@ export function ControlsStep({
   stepNumber,
   shouldTakeFocus,
   profile,
+  tutor,
   onBack,
   onSaved,
 }: ControlsStepProps) {
@@ -42,6 +46,7 @@ export function ControlsStep({
     errors: form.formState.errors,
     errorText,
     name: profile.displayName,
+    tutorName: tutor?.name ?? 'Hort',
   };
 
   return (
@@ -56,7 +61,7 @@ export function ControlsStep({
       submitLabel={t('controls.submit')}
       onBack={onBack}
     >
-      <VoiceSetting control={section.control} name={section.name} />
+      <VoiceSetting control={section.control} name={section.name} tutorName={section.tutorName} />
       <TimeSettings {...section} />
       <InsightsSetting control={section.control} name={section.name} />
       <AlwaysOnNote />

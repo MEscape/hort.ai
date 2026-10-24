@@ -26,7 +26,7 @@ export interface TutorFigureProps {
 /**
  * One companion standing in the stage. The picture is bigger than its spot and rises above the
  * box on purpose, so the companions feel like they are standing in front of it. A tap makes the
- * companion hop, the chosen one grows a little, and a hover lifts and wiggles the others. Only
+ * companion hop once, the chosen one grows a little, and a hover only enlarges the others slightly. Only
  * transforms and opacity animate, and calm mode turns all of it off. A native radio keeps arrow
  * keys and screen-reader grouping; the whole figure is the target; the chosen one is marked by size,
  * a filled name AND a tick, never by colour alone.
@@ -54,19 +54,17 @@ export function TutorFigure({ tutor, isSelected, isSpeaking, fits, radioProps }:
       <span
         className={cn(
           '-mt-9 block origin-bottom transition-transform duration-300 ease-spring sm:-mt-14',
-          isSelected
-            ? 'z-10 scale-110 sm:scale-125'
-            : 'scale-100 group-hover:-translate-y-1 group-hover:scale-105',
+          isSelected ? 'z-10 scale-110 sm:scale-125' : 'scale-100 group-hover:scale-105',
         )}
       >
         <span key={hops} className={cn('block origin-bottom', hops > 0 && 'animate-hop')}>
-          <span className="block origin-bottom group-hover:motion-safe:animate-wiggle">
+          <span className="block origin-bottom">
             <Character
               imageUrl={tutor.imageUrl}
               openImageUrl={isSelected ? tutor.imageOpenUrl : undefined}
               isSpeaking={isSelected && isSpeaking}
               alt=""
-              className="size-20 overflow-hidden rounded-token-lg bg-surface shadow-soft sm:size-36"
+              className="size-20 sm:size-36"
             />
           </span>
         </span>
@@ -82,7 +80,9 @@ export function TutorFigure({ tutor, isSelected, isSpeaking, fits, radioProps }:
       <span
         className={cn(
           'mt-2 flex items-center gap-1.5 rounded-full px-3 py-1 font-heading text-base font-semibold transition-colors duration-150 peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-copy',
-          isSelected ? 'bg-primary text-primary-foreground' : 'bg-surface text-copy shadow-soft',
+          isSelected
+            ? 'bg-primary text-primary-foreground'
+            : 'border border-border bg-surface text-copy',
         )}
       >
         {isSelected && <Check className="size-4" strokeWidth={3} aria-hidden="true" />}

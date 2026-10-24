@@ -71,13 +71,13 @@ export function DoneStep({ stepNumber, shouldTakeFocus, profile, tutor }: DoneSt
           <Sparkles className="size-6 text-accent-copy" />
         </div>
       ) : (
-        <div className="relative mt-10 rounded-token-xl border border-border bg-highlight/70 px-5 pb-5">
+        <div className="relative mt-10 rounded-token-xl border border-border bg-surface px-5 pb-5">
           <div className="-mt-12 flex flex-col items-center gap-3 sm:flex-row sm:items-end sm:gap-5">
             <span className="block origin-bottom animate-hop">
               <Character
                 imageUrl={tutor.imageUrl}
                 alt={t('tutor.imageAlt', { name: tutor.name, animal: tutor.animal })}
-                className="size-32 overflow-hidden rounded-token-lg bg-surface shadow-soft sm:size-36"
+                className="size-32 sm:size-36"
               />
             </span>
             <p

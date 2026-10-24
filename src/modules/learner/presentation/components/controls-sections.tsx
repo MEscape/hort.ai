@@ -27,8 +27,12 @@ export interface ControlsSectionProps {
   readonly name: string;
 }
 
-/** Whether the child may speak to Hort and hear it speak. Off until the parent says otherwise. */
-export function VoiceSetting({ control, name }: Pick<ControlsSectionProps, 'control' | 'name'>) {
+/** Whether the child may speak to the chosen companion and hear it speak. Off until the parent says otherwise. */
+export function VoiceSetting({
+  control,
+  name,
+  tutorName,
+}: Pick<ControlsSectionProps, 'control' | 'name'> & { readonly tutorName: string }) {
   const t = useTranslations('learner');
   const id = useId();
 
@@ -41,8 +45,8 @@ export function VoiceSetting({ control, name }: Pick<ControlsSectionProps, 'cont
           <SettingRow
             titleId={`${id}-title`}
             descriptionId={`${id}-description`}
-            title={t('controls.voice.title')}
-            description={t('controls.voice.description', { name })}
+            title={t('controls.voice.title', { tutor: tutorName })}
+            description={t('controls.voice.description', { name, tutor: tutorName })}
             stateText={field.value ? t('controls.voice.on') : t('controls.voice.off')}
           >
             <Switch

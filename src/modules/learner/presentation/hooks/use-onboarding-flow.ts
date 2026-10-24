@@ -31,6 +31,11 @@ export interface OnboardingFlowState {
   readonly stepNumber: number;
   /** True once the parent moved between screens: only then does a screen take focus. */
   readonly hasNavigated: boolean;
+  /**
+   * The furthest screen the parent has reached (1-based). Screens before it stay done while one of them
+   * is being changed: changing the name from the review must not make the later steps look open.
+   */
+  readonly reachedNumber: number;
   readonly profile: ChildProfileDto | null;
   readonly goTo: (stage: OnboardingStage) => void;
   /** One screen back; from an edit started on the review screen it leads back to the review. */
@@ -51,10 +56,14 @@ export function useOnboardingFlow(initial: OnboardingStateDto): OnboardingFlowSt
   const [stage, setStage] = useState<OnboardingStage>(initialStage(initial));
   const [profile, setProfile] = useState<ChildProfileDto | null>(initial.profile);
   const [hasNavigated, setHasNavigated] = useState(false);
+  const [reachedNumber, setReachedNumber] = useState(
+    ONBOARDING_STAGES.indexOf(initialStage(initial)) + 1,
+  );
   const [isEditing, setIsEditing] = useState(false);
 
   const move = (next: OnboardingStage) => {
     setHasNavigated(true);
+    setReachedNumber((reached) => Math.max(reached, ONBOARDING_STAGES.indexOf(next) + 1));
     setStage(next);
   };
 
@@ -62,6 +71,7 @@ export function useOnboardingFlow(initial: OnboardingStateDto): OnboardingFlowSt
     stage,
     stepNumber: ONBOARDING_STAGES.indexOf(stage) + 1,
     hasNavigated,
+    reachedNumber,
     profile,
     goTo: move,
     back: () => {

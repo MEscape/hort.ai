@@ -27,9 +27,9 @@ export interface CharacterProps {
 /**
  * A talking character (Max, Lili, Fina, ...) for any screen: one picture at rest and the same
  * picture with an open mouth over it while `isSpeaking`. The pictures are stacked, so changing the
- * mouth never loads or re-lays-out anything and costs only an opacity change. The pictures come with an opaque
- * white background (until transparent ones exist), so give the character a rounded, clipped card
- * (`overflow-hidden rounded-token-lg bg-surface shadow-soft` through `className`) or stand it on white.
+ * mouth never loads or re-lays-out anything and costs only an opacity change. The pictures are meant to be
+ * transparent, so a character stands on whatever is behind it and may overflow its box. Until every
+ * uploaded picture is transparent, one with a white background is only invisible on a white surface.
  * The closed picture hides while the open one shows, so the two never overlap. The mouth moves in an
  * uneven rhythm (`useLipSync`) and stays still with reduced motion. A missing picture (not uploaded,
  * offline) shows a calm paw instead of a broken-image icon. The component knows nothing about who

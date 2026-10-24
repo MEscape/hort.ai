@@ -10,6 +10,8 @@ import type { OnboardingStage } from '../hooks/use-onboarding-flow';
 export interface OnboardingLayoutProps {
   readonly stage: OnboardingStage;
   readonly stepNumber: number;
+  /** The furthest screen reached: the ones before it stay marked as done while an earlier one is changed. */
+  readonly reachedNumber: number;
   readonly children: ReactNode;
 }
 
@@ -17,14 +19,19 @@ export interface OnboardingLayoutProps {
  * The journey: on a wide screen Hort and the list of steps stay on the left while the current step
  * is in front on the right; on a phone the steps shrink to one progress bar above the card.
  */
-export function OnboardingLayout({ stage, stepNumber, children }: OnboardingLayoutProps) {
+export function OnboardingLayout({
+  stage,
+  stepNumber,
+  reachedNumber,
+  children,
+}: OnboardingLayoutProps) {
   return (
     <div className="flex w-full flex-col gap-5 lg:flex-row lg:items-start lg:gap-10">
       <aside className="flex flex-col gap-5 lg:sticky lg:top-8 lg:w-80 lg:shrink-0">
         <div className="hidden lg:block">
           <HortGuide stage={stage} />
         </div>
-        <OnboardingStepper stage={stage} stepNumber={stepNumber} />
+        <OnboardingStepper stage={stage} stepNumber={stepNumber} reachedNumber={reachedNumber} />
       </aside>
       <div className="min-w-0 flex-1">{children}</div>
     </div>
