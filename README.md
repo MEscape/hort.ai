@@ -1,6 +1,6 @@
 # HortAi
 
-HortAi is an AI companion that helps primary-school children with their homework and test preparation when their parents do not have the time. The child works on a real task from school; HortAi gives thinking prompts and graduated hints grounded in the curriculum, and never solves the task for the child. Teachers can take part and post their own assignments. HortAi offers no exercises of its own. Read [`docs/product/vision.md`](docs/product/vision.md) before planning features.
+HortAi is an AI companion that helps primary-school children with their homework and test preparation when their parents do not have the time. The child works on a real task from school; HortAi gives thinking prompts and graduated hints grounded in the curriculum, and never solves the task for the child. Teachers can take part and post their own assignments. HortAi offers no exercises of its own. Read [`docs/product/vision.md`](docs/product/vision.md) before planning features. The [concept overview](docs/product/flows.md) illustrates it with Mermaid diagrams and is not binding.
 
 A [Next.js](https://nextjs.org) App Router application with TypeScript, PostgreSQL ([Prisma](https://www.prisma.io)) and [Better Auth](https://www.better-auth.com). Production runs on Vercel.
 
@@ -95,7 +95,7 @@ migrations/auth/  authentication migrations (applied by npm run db:migrate:auth)
 docker/           init scripts for the local containers
 eslint/           repository-specific lint rules
 scripts/          code generators (npm run gen) and maintenance scripts
-docs/             rules/, conventions/, architecture/, agents/
+docs/             product/, rules/, conventions/, architecture/, agents/
 public/           static assets
 __tests__/        tests mirroring src/, plus architecture/, eslint/ and scripts/
 ```
