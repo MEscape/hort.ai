@@ -25,10 +25,61 @@ concurrency:
 
 jobs:
   # ----------------------------------------------------------------------------
+  # Migrate the Preview databases
+  # Uses DEDICATED preview databases (never production). Runs in its own job so the
+  # PR-level cancel-in-progress above can never kill a migration halfway, and so
+  # migrations from different PRs run one at a time.
+  # ----------------------------------------------------------------------------
+  migrate-preview:
+    name: Migrate preview databases
+
+    # Same guard as the deploy job: no secrets for fork or Dependabot PRs.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
+
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    concurrency:
+      group: preview-database
+      cancel-in-progress: false
+
+    environment: preview
+
+    permissions:
+      contents: read
+
+    env:
+      DATABASE_URL: ${{ secrets.PREVIEW_DATABASE_URL }}
+      AUTH_DATABASE_URL: ${{ secrets.PREVIEW_AUTH_DATABASE_URL }}
+
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      # Ensure Prisma client & contracts exist since `--ignore-scripts` skips postinstall.
+      - name: Generate Prisma client & contracts
+        run: npm run db:generate
+
+      - name: Check migration files
+        run: npm run db:migrate:check
+
+      - name: Apply application migrations
+        run: npm run db:migrate:app
+
+      - name: Apply auth migrations
+        run: npm run db:migrate:auth
+
+  # ----------------------------------------------------------------------------
   # Deploy Vercel Preview (remote build)
   # ----------------------------------------------------------------------------
   deploy-preview:
     name: Vercel preview
+    needs: migrate-preview
 
     # Fork PRs and Dependabot PRs do not receive repository secrets,
     # so skip them rather than failing the deployment.
