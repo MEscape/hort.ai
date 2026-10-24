@@ -1,0 +1,28 @@
+# Next.js Rules
+
+- Use the App Router exclusively.
+- Prefer Server Components. See [react.md](react.md).
+- Add 'use client' only when client-side capabilities are required; keep Client Component boundaries small and deep.
+- Pages and layouts compose application capabilities; they contain no business logic.
+- Server Components call application queries directly. Do not create internal API endpoints for their data fetching.
+- Use Server Actions as mutation adapters that call application use cases.
+- Server Actions must independently authenticate and authorize requests. See [security.md](security.md).
+- Validate Server Action inputs before calling use cases. See [validation.md](validation.md).
+- Return typed results from Server Actions: success data, or field-level errors plus an optional form-level error code. Never return localized messages. See [i18n.md](i18n.md).
+- Submit forms through Server Actions unless a real HTTP consumer requires a Route Handler.
+- During submission, show pending state, prevent duplicate submissions, and preserve input after validation failures.
+- Create Route Handlers only for real HTTP consumers. See [api.md](api.md).
+- Use proxy.ts only for request-level concerns, never business authorization. See [security.md](security.md).
+- Use loading.tsx for meaningful route loading states.
+- For pages streaming per-request data, place loading.tsx in their own segment or use an inline Suspense boundary.
+- Use error.tsx for unexpected route failures with generic translated text; use global-error.tsx for root-layout failures.
+- Use not-found.tsx or notFound() for missing resources.
+- Use Suspense for independently streamable UI. See [performance.md](performance.md).
+- Use async request APIs for params, searchParams, cookies, and headers.
+- Prefer Next.js navigation primitives over raw browser equivalents.
+- Use @lib/seo for route metadata. Mark private pages noindex.
+- Use robots.ts, sitemap.ts, and manifest.ts for public metadata; exclude private areas.
+- With cacheComponents, use connection() to make a route per-request instead of dynamic segment options.
+- Keep Node-only dependencies out of Edge-compatible code.
+- All routes run on Node.js; do not set the runtime segment option when using cacheComponents.
+- Use 'use server' only in presentation/actions; pages and layouts remain Server Components.
