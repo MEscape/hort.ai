@@ -3,38 +3,38 @@ import { describe, expect, it } from 'vitest';
 import { createHintOrchestrator } from '@modules/guidance';
 import { HintOrchestrator } from '@modules/guidance/application/services/hint-orchestrator';
 import { HINT_LEVELS } from '@modules/guidance/domain/models/hint-level';
-import type { HintOutputValidator } from '@modules/guidance/domain/ports/hint-output-validator.port';
-import { interimHintOutputValidator } from '@modules/guidance/infrastructure/interim/interim-hint-output-validator';
 
-import { ok } from '@lib/result';
-
-import { REQUEST, fakeHintProvider, rejectingValidator } from '../fakes';
+import { REQUEST, fakeHintProvider } from '../fakes';
 
 import type { ProviderScript } from '../fakes';
 
-const VALID_HINT = 'Was passiert mit der Zahl der Äpfel, wenn Lisa welche dazubekommt?';
+const VALID_TEXT = 'Was passiert mit der Zahl der Äpfel, wenn Lisa welche dazubekommt?';
 
-function build(
-  script: ProviderScript,
-  validator: HintOutputValidator = interimHintOutputValidator,
-) {
-  const { provider, requests } = fakeHintProvider(script);
-  return { orchestrator: new HintOrchestrator({ provider, validator }), requests };
+/** A contract-conforming hint (#6) for the level the test requests. */
+function hint(overrides: Record<string, unknown> = {}) {
+  return { version: 1, kind: 'hint', hintLevel: 'next_step', text: VALID_TEXT, ...overrides };
 }
 
+function build(script: ProviderScript) {
+  const { provider, requests } = fakeHintProvider(script);
+  return { orchestrator: new HintOrchestrator({ provider }), requests };
+}
+
+const INVALID_OUTPUT = { kind: 'fallback', level: 'next_step', reason: 'invalid_output' };
+
 describe('HintOrchestrator', () => {
-  it('passes a valid answer through for the requested level', async () => {
-    const { orchestrator } = build({ answer: `  ${VALID_HINT}  ` });
+  it('passes a valid hint through for the requested level', async () => {
+    const { orchestrator } = build({ answer: hint({ text: `  ${VALID_TEXT}  ` }) });
 
     expect(await orchestrator.suggest(REQUEST)).toEqual({
       kind: 'generated',
       level: 'next_step',
-      text: VALID_HINT,
+      text: VALID_TEXT,
     });
   });
 
   it('hands the provider the task, level and competencies as one data request', async () => {
-    const { orchestrator, requests } = build({ answer: VALID_HINT });
+    const { orchestrator, requests } = build({ answer: hint() });
 
     await orchestrator.suggest(REQUEST);
 
@@ -44,52 +44,26 @@ describe('HintOrchestrator', () => {
   it.each([
     ['missing', undefined],
     ['null', null],
-    ['blank', '   '],
-    ['not text', { kind: 'hint', text: 42 }],
-    ['too long', 'a'.repeat(501)],
+    ['plain text instead of the contract', VALID_TEXT],
+    ['without text', hint({ text: undefined })],
+    ['blank', hint({ text: '   ' })],
+    ['too long', hint({ text: 'a'.repeat(281) })],
+    ['of an unknown kind', hint({ kind: 'solution' })],
+    ['of another allowed kind', hint({ kind: 'praise' })],
+    ['with an unknown field', hint({ answer: 7 })],
+    ['of another contract version', hint({ version: 2 })],
+    ['markup', hint({ text: '<b>Denk nach</b>' })],
+    ['a link', hint({ text: 'Schau auf https://example.com nach.' })],
   ])('falls back when the answer is %s', async (_case, answer) => {
     const { orchestrator } = build({ answer });
 
-    expect(await orchestrator.suggest(REQUEST)).toEqual({
-      kind: 'fallback',
-      level: 'next_step',
-      reason: 'invalid_output',
-    });
+    expect(await orchestrator.suggest(REQUEST)).toEqual(INVALID_OUTPUT);
   });
 
-  it('falls back on any answer the validator rejects, such as an unknown kind', async () => {
-    const unknownKind = { kind: 'solution', text: 'Lisa hat 7 Äpfel.' };
-    const validator = rejectingValidator((raw) => raw === unknownKind);
-    const { orchestrator } = build({ answer: unknownKind }, validator);
+  it('rejects a hint for another level, because only the backend picks the level', async () => {
+    const { orchestrator } = build({ answer: hint({ hintLevel: 'similar_example' }) });
 
-    expect(await orchestrator.suggest(REQUEST)).toMatchObject({
-      kind: 'fallback',
-      reason: 'invalid_output',
-    });
-  });
-
-  it('never shows an answer the leak guard rejects', async () => {
-    const leak = 'Rechne 3 + 4, das Ergebnis ist 7.';
-    const validator = rejectingValidator((raw) => typeof raw === 'string' && raw.includes('7'));
-    const { orchestrator } = build({ answer: leak }, validator);
-
-    const outcome = await orchestrator.suggest(REQUEST);
-
-    expect(outcome).toEqual({ kind: 'fallback', level: 'next_step', reason: 'invalid_output' });
-    expect(JSON.stringify(outcome)).not.toContain('7');
-  });
-
-  it('rejects an answer for another level, because only the backend picks the level', async () => {
-    const otherLevel: HintOutputValidator = {
-      validate: (raw) => ok({ level: 'similar_example', text: String(raw) }),
-    };
-    const { orchestrator } = build({ answer: VALID_HINT }, otherLevel);
-
-    expect(await orchestrator.suggest(REQUEST)).toEqual({
-      kind: 'fallback',
-      level: 'next_step',
-      reason: 'invalid_output',
-    });
+    expect(await orchestrator.suggest(REQUEST)).toEqual(INVALID_OUTPUT);
   });
 
   it('falls back on a timeout', async () => {
@@ -126,11 +100,8 @@ describe('HintOrchestrator', () => {
 
 describe('createHintOrchestrator', () => {
   it('always validates, whatever provider it is handed', async () => {
-    const { provider } = fakeHintProvider({ answer: 'a'.repeat(501) });
+    const { provider } = fakeHintProvider({ answer: hint({ kind: 'solution' }) });
 
-    expect(await createHintOrchestrator(provider).suggest(REQUEST)).toMatchObject({
-      kind: 'fallback',
-      reason: 'invalid_output',
-    });
+    expect(await createHintOrchestrator(provider).suggest(REQUEST)).toEqual(INVALID_OUTPUT);
   });
 });

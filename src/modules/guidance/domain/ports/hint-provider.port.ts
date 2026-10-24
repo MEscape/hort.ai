@@ -8,7 +8,7 @@ export type HintProviderFailure =
 
 /**
  * The AI model that words a hint. Its answer is untrusted, so it is returned
- * as `unknown` and is only used after `HintOutputValidator` has accepted it.
+ * as `unknown` and is only used after it passed the AI output contract (`validateAiOutput`).
  *
  * An adapter MUST settle within its configured timeout and report a missed
  * deadline as `timeout`, instead of leaving the caller waiting. It MUST tell
