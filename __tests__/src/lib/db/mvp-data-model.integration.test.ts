@@ -136,16 +136,15 @@ describe.skipIf(!isEnabled)('MVP data model constraints against Postgres', () =>
 
   it('refuses an assessment that points at an answer of another session', async () => {
     const child = await childProfile();
-    const [own, foreign] = await Promise.all(
-      [1, 2].map(() =>
-        db.orm.public.HelpSession.create({
-          tenantId,
-          ownerId: 'parent-1',
-          childProfileId: child.id,
-          taskText: 'Rechne 23 + 19.',
-        }),
-      ),
-    );
+    const newSession = () =>
+      db.orm.public.HelpSession.create({
+        tenantId,
+        ownerId: 'parent-1',
+        childProfileId: child.id,
+        taskText: 'Rechne 23 + 19.',
+      });
+    const own = await newSession();
+    const foreign = await newSession();
     const answer = await db.orm.public.ChildAnswer.create({
       sessionId: foreign.id,
       idempotencyKey: 'answer-x',
