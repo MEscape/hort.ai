@@ -13,6 +13,7 @@ import { parseLearnerInput } from '../schemas/parse-learner-input';
 
 import type { ChildProfileDto } from '../dto/child-profile-dto';
 
+/** @keep Server Action for the parent child-profile screens; the UI lands with the parent dashboard (#12). */
 export async function createChildProfileAction(
   input: unknown,
 ): Promise<ActionResult<ChildProfileDto>> {
