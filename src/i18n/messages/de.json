@@ -104,5 +104,35 @@
       "completeBody": "Du hast sie einzeln gezählt. Toll gemacht!"
     },
     "footer": "Der nächste Schritt soll klar sein – und ein neuer Versuch immer willkommen."
+  },
+  "start": {
+    "metaTitle": "Hilfe bei deinen Hausaufgaben",
+    "greeting": "Hallo!",
+    "question": "Brauchst du Hilfe?",
+    "back": "Zurück",
+    "actions": {
+      "task": "Meine Aufgabe",
+      "school": "Schulaufgaben",
+      "continue": "Weiter"
+    },
+    "entry": {
+      "title": "Was ist deine Aufgabe?",
+      "label": "Deine Aufgabe",
+      "placeholder": "Schreibe deine Hausaufgabe hier …",
+      "note": "Bis zu {limit} Zeichen. Dein Text bleibt auf dieser Seite und wird nicht gespeichert.",
+      "empty": "Schreibe zuerst deine Aufgabe auf.",
+      "review": "Fertig",
+      "clear": "Text löschen",
+      "unavailableTitle": "Hilfe kommt bald",
+      "unavailableBody": "Deine Aufgabe wurde nicht gesendet oder gespeichert. Du kannst sie hier weiter bearbeiten."
+    },
+    "school": {
+      "title": "Schulaufgaben",
+      "body": "Aufgaben von deiner Lehrkraft sind hier noch nicht verfügbar."
+    },
+    "resume": {
+      "title": "Weiter",
+      "body": "Gespeicherte Aufgaben sind hier noch nicht verfügbar."
+    }
   }
 }

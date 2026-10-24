@@ -104,5 +104,35 @@
       "completeBody": "You counted them one by one. Nicely done!"
     },
     "footer": "Make the next interaction easy to understand, and make trying again feel safe."
+  },
+  "start": {
+    "metaTitle": "Homework help",
+    "greeting": "Hello!",
+    "question": "Need some help?",
+    "back": "Back",
+    "actions": {
+      "task": "My task",
+      "school": "School tasks",
+      "continue": "Continue"
+    },
+    "entry": {
+      "title": "What's your task?",
+      "label": "Your task",
+      "placeholder": "Write your homework task here …",
+      "note": "Up to {limit} characters. Your text stays on this page and is not saved.",
+      "empty": "Write your task here first.",
+      "review": "Done",
+      "clear": "Clear text",
+      "unavailableTitle": "Help is coming soon",
+      "unavailableBody": "Your task was not sent or saved. You can keep editing it here."
+    },
+    "school": {
+      "title": "School tasks",
+      "body": "Tasks from your teacher aren't available here yet."
+    },
+    "resume": {
+      "title": "Continue",
+      "body": "Saved tasks aren't available here yet."
+    }
   }
 }
