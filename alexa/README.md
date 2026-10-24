@@ -106,11 +106,17 @@ The skill id is not a secret, but it is environment-specific and therefore not c
 
 ## Hosting
 
-- Today: a cloudflared Quick Tunnel to a small Node host on the Hermes VM. Its URL is **ephemeral**: a restart of
-  the tunnel yields a new URL that must be entered in the console (step 3). `skill.json` records the current one.
-- Target: the Vercel deployment (`https://<project>.vercel.app/api/alexa`) with `ALEXA_SKILL_ID` set there.
-  Switch the console endpoint only after the simulator answers through Vercel. Preview deployments are behind
-  Vercel Authentication (401 "Protected deployment"), so Alexa cannot reach them; only an unprotected deployment works.
+- **Current: Vercel Production** `https://hort-ai.vercel.app/api/alexa` (console endpoint and `skill.json`), certificate
+  type "sub-domain of a domain that has a wildcard certificate" (Vercel serves `*.vercel.app`). `ALEXA_SKILL_ID` is
+  set in the Vercel project's Production environment. The production domain is not behind Vercel Authentication;
+  it must stay that way, because Alexa cannot send bypass headers. Preview deployments are protected (401) and
+  therefore unusable for Alexa. Quick check: an unsigned `POST` must answer **400** `invalid_alexa_request`;
+  **503** `alexa_not_configured` means the skill id is missing in that environment.
+- **Fallback: tunnel on the Hermes VM.** User units `hort-alexa-runner` (Node host on `127.0.0.1:3077`, bundles
+  `src/modules/alexa` from this repository via `runner/build.mjs`) and `hort-alexa-tunnel` (cloudflared Quick
+  Tunnel). The tunnel URL is **ephemeral**: every restart or VM reboot yields a new one
+  (`journalctl --user -u hort-alexa-tunnel | grep trycloudflare`), which must be entered in the console (step 3).
+  Use it only if Vercel fails; switch back afterwards.
 
 ## Known limits
 

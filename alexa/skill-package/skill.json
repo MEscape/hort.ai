@@ -20,7 +20,7 @@
     "apis": {
       "custom": {
         "endpoint": {
-          "uri": "https://implies-cio-ciao-solving.trycloudflare.com/api/alexa",
+          "uri": "https://hort-ai.vercel.app/api/alexa",
           "sslCertificateType": "Wildcard"
         }
       }
