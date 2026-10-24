@@ -360,7 +360,7 @@ export const RATE_LIMIT_POLICIES = {
  * - `contractFile`: the Prisma contract the tables are read from.
  */
 export const OWNERSHIP = {
-  columns: /** @type {string[]} */ ([]),
+  columns: /** @type {string[]} */ (['ownerId']),
   tag: 'owner-scope',
   contractFile: 'src/lib/db/contract.json',
 };

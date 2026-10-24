@@ -23,7 +23,9 @@ export class CreateChildProfile {
 
     return authorization.requireInTenant('learner.create').andThen((actor) =>
       createChildProfileDraft(input)
-        .asyncAndThen((draft) => childProfiles.create({ tenantId: actor.tenantId, ownerId: actor.id, draft }))
+        .asyncAndThen((draft) =>
+          childProfiles.create({ tenantId: actor.tenantId, ownerId: actor.id, draft }),
+        )
         .map((childProfile) => {
           audit.record({
             type: 'child_profile.created',

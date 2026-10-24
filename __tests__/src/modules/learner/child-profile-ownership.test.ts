@@ -47,7 +47,7 @@ function memoryRepository(): ChildProfileRepository & { readonly rows: ChildProf
       rows.push(row);
       return okAsync(row);
     },
-    update: (id, _tenantId, changes) => {
+    update: (id, _owner, changes) => {
       const index = rows.findIndex((row) => row.id === id);
       const updated = { ...rows[index], ...changes } as ChildProfile;
       rows[index] = updated;
@@ -119,13 +119,13 @@ describe('learner use cases: ownership', () => {
     async (operation) => {
       const { repository, id } = await marasChild();
       const other = build(OTHER_PARENT, repository);
+      const run = {
+        get: () => other.get.execute(id),
+        update: () => other.update.execute({ id, grade: 4 }),
+        remove: () => other.remove.execute({ id }),
+      }[operation];
 
-      const result =
-        operation === 'get'
-          ? await other.get.execute(id)
-          : operation === 'update'
-            ? await other.update.execute({ id, grade: 4 })
-            : await other.remove.execute({ id });
+      const result = await run();
 
       expect(result.isErr() && result.error.code).toBe('auth.permission_denied');
       expect(repository.rows[0]?.grade).toBe(2);

@@ -23,6 +23,12 @@ export interface NewChildProfile {
  * the use case's job. Adapters translate every driver failure into our own
  * error kinds before returning (errors.md).
  */
+/** The tenant and parent a write is pinned to. */
+export interface ChildProfileOwner {
+  readonly tenantId: TenantId;
+  readonly ownerId: ActorId;
+}
+
 export interface ChildProfileRepository {
   findById(
     id: ChildProfileId,
@@ -38,12 +44,17 @@ export interface ChildProfileRepository {
 
   create(input: NewChildProfile): AppResultAsync<ChildProfile, InfrastructureAppError>;
 
+  /** Pinned to the owner: a write never reaches another parent's profile. */
   update(
     id: ChildProfileId,
-    tenantId: TenantId,
+    owner: ChildProfileOwner,
     changes: ChildProfileChanges,
   ): AppResultAsync<ChildProfile, NotFoundAppError | InfrastructureAppError>;
 
   /** Idempotent: deleting a child profile that is already gone succeeds. */
-  deleteById(id: ChildProfileId, tenantId: TenantId): AppResultAsync<void, InfrastructureAppError>;
+  deleteById(
+    id: ChildProfileId,
+    tenantId: TenantId,
+    ownerId: ActorId,
+  ): AppResultAsync<void, InfrastructureAppError>;
 }
