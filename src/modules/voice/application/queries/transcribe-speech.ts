@@ -1,10 +1,20 @@
 import type { AuthorizationError } from '@modules/auth';
 
-import type { InfrastructureAppError, RateLimitedAppError, ValidationAppError } from '@lib/errors';
+import type {
+  ForbiddenAppError,
+  InfrastructureAppError,
+  NotFoundAppError,
+  RateLimitedAppError,
+  ValidationAppError,
+} from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
-import { fromRateLimitFailure, voiceDisabled } from '../../domain/errors/voice-errors';
+import {
+  fromRateLimitFailure,
+  voiceConsentRequired,
+  voiceDisabled,
+} from '../../domain/errors/voice-errors';
 import { SPEECH_LIMITS } from '../../domain/models/speech-limits';
 import { transcribableRecording } from '../../domain/models/utterance';
 import { VOICE_RATE_LIMITS } from '../rate-limits';
@@ -14,11 +24,21 @@ import type { TranscriptView } from '../contracts/voice-views';
 import type { VoiceDependencies } from '../voice-dependencies';
 
 export type TranscribeSpeechError =
-  AuthorizationError | ValidationAppError | RateLimitedAppError | InfrastructureAppError;
+  | AuthorizationError
+  | ForbiddenAppError
+  | NotFoundAppError
+  | ValidationAppError
+  | RateLimitedAppError
+  | InfrastructureAppError;
 
 /**
- * Turns a child's German recording into text. The recording is sent once and never stored; the
- * text is only a suggestion the child corrects before sending it like typed text.
+ * Turns a child's German recording into text. Sending the recording to the provider takes it out of
+ * the session, so it happens only for the signed-in parent's own child and only while that child's
+ * profile has `voiceConsent` (set and withdrawn by the parent on the profile, `UpdateChildProfile`
+ * in the learner module); otherwise `voice.consent_required` and the interface stays with text.
+ * The recording is sent once and never stored. The transcript is only returned, as a suggestion
+ * the child corrects; nothing is sent on, and the sent text goes through the same input validation
+ * as typed text (`parseChildTaskText`, guidance module, #11) wherever it is submitted.
  */
 export class TranscribeSpeech {
   constructor(private readonly deps: VoiceDependencies) {}
@@ -31,8 +51,11 @@ export class TranscribeSpeech {
         if (speech === null) {
           return errAsync(voiceDisabled());
         }
-        return transcribableRecording(input)
-          .asyncAndThen((recording) =>
+        return this.deps.consent
+          .voiceConsentOf(input.childProfileId)
+          .andThen((consented) => (consented ? okAsync(input) : errAsync(voiceConsentRequired())))
+          .andThen((consented) => transcribableRecording(consented))
+          .andThen((recording) =>
             this.deps.rateLimiter
               .enforce({
                 policy: VOICE_RATE_LIMITS.transcribe,

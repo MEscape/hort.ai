@@ -1,5 +1,12 @@
-import { infrastructureError, notFoundError, rateLimitedError, validationError } from '@lib/errors';
+import {
+  forbiddenError,
+  infrastructureError,
+  notFoundError,
+  rateLimitedError,
+  validationError,
+} from '@lib/errors';
 import type {
+  ForbiddenAppError,
   InfrastructureAppError,
   NotFoundAppError,
   RateLimitedAppError,
@@ -16,6 +23,10 @@ export const VOICE_ERROR_CODES = {
   /** No speech provider is configured (`ELEVENLABS_API_KEY` unset): the interface falls back to text. */
   disabled: 'voice.disabled',
   unknownSpeaker: 'voice.unknown_speaker',
+  /** The speaker has no such fixed line in the catalog. */
+  unknownPhrase: 'voice.unknown_phrase',
+  /** The parent has not allowed this child's recordings to be transcribed: the interface uses text. */
+  consentRequired: 'voice.consent_required',
   validationFailed: 'voice.validation_failed',
   rateLimited: 'voice.rate_limited',
   rateLimiterFailed: 'voice.rate_limiter_failed',
@@ -29,6 +40,11 @@ export const VOICE_VALIDATION_CODES = {
   recordingRequired: 'voice.validation.recording_required',
   recordingTooLarge: 'voice.validation.recording_too_large',
   recordingTypeUnsupported: 'voice.validation.recording_type_unsupported',
+  /** The request carried words to speak; only catalog lines and validated hints are spoken. */
+  freeTextRefused: 'voice.validation.free_text_refused',
+  /** The ticket is forged, expired or was issued to another parent. */
+  ticketInvalid: 'voice.validation.ticket_invalid',
+  childProfileRequired: 'voice.validation.child_profile_required',
 } as const;
 
 export type VoiceErrorCode = (typeof VOICE_ERROR_CODES)[keyof typeof VOICE_ERROR_CODES];
@@ -42,6 +58,19 @@ export function voiceDisabled(): InfrastructureAppError {
 /** The id names no tutor that is ready to speak and is not the narrator. */
 export function unknownSpeaker(): NotFoundAppError {
   return notFoundError(VOICE_ERROR_CODES.unknownSpeaker, 'This speaker has no voice.');
+}
+
+/** The speaker exists but has no such fixed line. */
+export function unknownPhrase(): NotFoundAppError {
+  return notFoundError(VOICE_ERROR_CODES.unknownPhrase, 'This speaker has no such line.');
+}
+
+/** Sending a recording to the provider leaves the session, so it needs the parent's consent. */
+export function voiceConsentRequired(): ForbiddenAppError {
+  return forbiddenError(
+    VOICE_ERROR_CODES.consentRequired,
+    'Speaking is not switched on for this child. Please type instead.',
+  );
 }
 
 export function invalidVoiceInput(field: string, code: VoiceValidationCode): ValidationAppError {

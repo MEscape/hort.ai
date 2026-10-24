@@ -11,3 +11,11 @@ export interface SpeechAudioView {
 export interface TranscriptView {
   readonly text: string;
 }
+
+/**
+ * Lets the holder's session have one validated text read aloud: pass it to `/api/voice/speech` as
+ * `ticket`. Signed and short-lived; it says nothing the holder cannot already read.
+ */
+export interface SpeechTicketView {
+  readonly ticket: string;
+}

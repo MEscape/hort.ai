@@ -1,15 +1,24 @@
 import 'server-only';
 
-import { getAccessControl } from '@modules/auth';
+import { randomBytes } from 'node:crypto';
 
+import { getAccessControl } from '@modules/auth';
+import { learnerQueries } from '@modules/learner';
+
+import { systemClock } from '@lib/clock';
+import { serverEnv } from '@lib/config/server';
 import { logger } from '@lib/logger';
 import { getRateLimiter } from '@lib/rate-limit';
 import { getSpeechProvider } from '@lib/speech/server';
 import { once } from '@lib/utils';
 
+import { IssueSpeechTicket } from './application/queries/issue-speech-ticket';
 import { SynthesizeSpeech } from './application/queries/synthesize-speech';
 import { TranscribeSpeech } from './application/queries/transcribe-speech';
 import { catalogSpeakerVoices } from './infrastructure/catalog/catalog-speaker-voices';
+import { catalogSystemPhrases } from './infrastructure/catalog/catalog-system-phrases';
+import { learnerChildVoiceConsent } from './infrastructure/learner/learner-child-voice-consent';
+import { hmacSpokenTextTickets } from './infrastructure/tickets/hmac-spoken-text-tickets';
 import { createVoiceRouteHandlers } from './presentation/http/voice-route-handlers';
 
 import type { VoiceRouteHandlers } from './presentation/http/voice-route-handlers';
@@ -21,17 +30,32 @@ const log = logger.withContext({ module: 'voice' });
  * no speech configuration; without `ELEVENLABS_API_KEY` the use cases answer `voice.disabled`.
  */
 export const getVoiceQueries = once(() => {
+  const authorization = getAccessControl();
   const dependencies = {
-    authorization: getAccessControl(),
+    authorization,
     rateLimiter: getRateLimiter(),
     speech: getSpeechProvider(),
     voices: catalogSpeakerVoices(),
+    phrases: catalogSystemPhrases(),
+    tickets: hmacSpokenTextTickets({ secret: ticketSecret(), clock: systemClock }),
+    consent: learnerChildVoiceConsent((id) => learnerQueries.getChildProfileById.execute(id)),
   };
   return {
     synthesizeSpeech: new SynthesizeSpeech(dependencies),
     transcribeSpeech: new TranscribeSpeech(dependencies),
+    issueSpeechTicket: new IssueSpeechTicket(dependencies),
   } as const;
 });
+
+/**
+ * Speech tickets are signed with a key derived from `AUTH_SECRET`, which every deployment with
+ * sign-in already has. Without it (auth switched off in development) a random per-process key is
+ * used: tickets then only work on the instance that issued them, which is all local work needs.
+ */
+function ticketSecret(): string {
+  const secret = serverEnv.AUTH_SECRET;
+  return secret !== undefined && secret !== '' ? secret : randomBytes(32).toString('hex');
+}
 
 /**
  * Handlers for `app/api/voice/*`; each route passes in the use case it calls. A provider or

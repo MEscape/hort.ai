@@ -6,19 +6,24 @@ import type {
   RateLimitedAppError,
   ValidationAppError,
 } from '@lib/errors';
-import { errAsync, okAsync } from '@lib/result';
-import type { AppResultAsync } from '@lib/result';
+import { err, errAsync, ok, okAsync } from '@lib/result';
+import type { AppResult, AppResultAsync } from '@lib/result';
 
 import {
   fromRateLimitFailure,
+  invalidVoiceInput,
+  unknownPhrase,
   unknownSpeaker,
+  VOICE_VALIDATION_CODES,
   voiceDisabled,
 } from '../../domain/errors/voice-errors';
 import { parseSpeakerId } from '../../domain/models/ids';
 import { speakableText } from '../../domain/models/utterance';
 import { VOICE_RATE_LIMITS } from '../rate-limits';
 
-import type { SynthesizeSpeechInput } from '../contracts/voice-inputs';
+import type { SpeakerId } from '../../domain/models/ids';
+import type { TicketHolder } from '../../domain/ports/spoken-text-tickets.port';
+import type { SpeechSource, SynthesizeSpeechInput } from '../contracts/voice-inputs';
 import type { SpeechAudioView } from '../contracts/voice-views';
 import type { VoiceDependencies } from '../voice-dependencies';
 
@@ -30,9 +35,11 @@ export type SynthesizeSpeechError =
   | InfrastructureAppError;
 
 /**
- * Speaks validated text in a speaker's voice. Nothing is stored: the audio goes back to the caller.
- * The speaker and the text are checked before the budget is spent, the budget before the provider
- * is called.
+ * Speaks validated text in a speaker's voice. The words never come from the request: they are a
+ * fixed line of the tutor catalog or the text of a ticket the server issued for a hint the guidance
+ * orchestrator validated (`IssueSpeechTicket`). Nothing is stored: the audio goes back to the
+ * caller. The speaker and the text are checked before the budget is spent, the budget before the
+ * provider is called.
  */
 export class SynthesizeSpeech {
   constructor(private readonly deps: VoiceDependencies) {}
@@ -53,7 +60,9 @@ export class SynthesizeSpeech {
         if (voiceId === null) {
           return errAsync(unknownSpeaker());
         }
-        return speakableText(input.text)
+        const holder = { tenantId: actor.tenantId, actorId: actor.id };
+        return this.wordsOf(input.source, speakerId.value, holder)
+          .andThen(speakableText)
           .asyncAndThen((text) =>
             this.deps.rateLimiter
               .enforce({
@@ -66,5 +75,21 @@ export class SynthesizeSpeech {
           .andThen((text) => speech.synthesize({ text, voiceId }));
       })
       .map((spoken) => ({ audio: spoken.audio, contentType: spoken.contentType }));
+  }
+
+  /** The words to say, from trusted configuration or a ticket only this parent can redeem. */
+  private wordsOf(
+    source: SpeechSource,
+    speakerId: SpeakerId,
+    holder: TicketHolder,
+  ): AppResult<string, NotFoundAppError | ValidationAppError> {
+    if (source.kind === 'phrase') {
+      const line = this.deps.phrases.phraseFor(speakerId, source.phrase);
+      return line === null ? err(unknownPhrase()) : ok(line);
+    }
+    const text = this.deps.tickets.redeem(source.ticket, holder);
+    return text === null
+      ? err(invalidVoiceInput('ticket', VOICE_VALIDATION_CODES.ticketInvalid))
+      : ok(text);
   }
 }
