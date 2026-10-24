@@ -1,7 +1,9 @@
 # ==============================================================================
-# HORTAI - VERCEL PREVIEW DEPLOYMENT PIPELINE
-# Deploys an isolated preview environment for internal pull requests and
-# maintains a single updated PR comment with the deployment URL.
+# HORTAI - PREVIEW DEPLOYMENT PIPELINE
+# Applies database migrations (`app` & `auth`) to the DEDICATED preview
+# databases (never production), deploys an isolated preview environment for
+# internal pull requests on Vercel, and maintains a single updated PR comment
+# with the deployment URL. Mirrors production.yml.
 #
 # The build runs REMOTELY on Vercel (no `vercel pull` / `vercel build` here),
 # so sensitive Preview environment variables are available to the build.
@@ -18,19 +20,19 @@ permissions:
   contents: read
 
 # Older previews of the same PR are obsolete.
-# Cancel them when a new commit arrives.
+# Cancel them when a new commit arrives. The migration job opts out of this
+# (see its own concurrency group) so a migration is never cancelled halfway.
 concurrency:
   group: preview-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   # ----------------------------------------------------------------------------
-  # Migrate the Preview databases
-  # Uses DEDICATED preview databases (never production). Runs in its own job so the
-  # PR-level cancel-in-progress above can never kill a migration halfway, and so
-  # migrations from different PRs run one at a time.
+  # 1. Migrate Preview Databases
+  # Runs in its own job so the PR-level cancel-in-progress above can never kill
+  # a migration halfway, and so migrations from different PRs run one at a time.
   # ----------------------------------------------------------------------------
-  migrate-preview:
+  migrate:
     name: Migrate preview databases
 
     # Same guard as the deploy job: no secrets for fork or Dependabot PRs.
@@ -51,6 +53,9 @@ jobs:
       contents: read
 
     env:
+      # Direct preview connections used by migrations.
+      # These are separate from the runtime connections configured in Vercel
+      # (which the remote build and runtime use).
       DATABASE_URL: ${{ secrets.PREVIEW_DATABASE_URL }}
       AUTH_DATABASE_URL: ${{ secrets.PREVIEW_AUTH_DATABASE_URL }}
 
@@ -65,21 +70,24 @@ jobs:
       - name: Generate Prisma client & contracts
         run: npm run db:generate
 
+      # Make sure the migrations being deployed are the reviewed migrations.
       - name: Check migration files
         run: npm run db:migrate:check
 
+      # MIGRATE APPLICATION DATABASE.
       - name: Apply application migrations
         run: npm run db:migrate:app
 
+      # MIGRATE AUTH DATABASE.
       - name: Apply auth migrations
         run: npm run db:migrate:auth
 
   # ----------------------------------------------------------------------------
-  # Deploy Vercel Preview (remote build)
+  # 2. Build & Deploy Preview
   # ----------------------------------------------------------------------------
-  deploy-preview:
-    name: Vercel preview
-    needs: migrate-preview
+  deploy:
+    name: Deploy preview
+    needs: migrate
 
     # Fork PRs and Dependabot PRs do not receive repository secrets,
     # so skip them rather than failing the deployment.
@@ -111,9 +119,11 @@ jobs:
         with:
           persist-credentials: false
 
-      # A failed remote build fails this step (non-zero exit).
-      # Only the deployment URL is printed to stdout; build logs are in Vercel.
-      - name: Deploy preview (remote build)
+      # Vercel builds remotely with the real Preview env vars.
+      # A failed build fails this step (non-zero exit); the databases were already
+      # migrated by the previous job. Only the deployment URL is printed to stdout;
+      # build logs are in Vercel.
+      - name: Build & deploy preview
         id: deploy
         run: |
           url="$(npx --yes "vercel@${VERCEL_CLI_VERSION}" deploy --yes --token="$VERCEL_TOKEN")"
