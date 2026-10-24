@@ -1,38 +1,47 @@
-name: Feature Request
-description: Suggest an idea for Lumio
+name: Feature
+description: Neue Funktion oder Produktfähigkeit für Hort.ai vorschlagen
 title: "[Feature]: "
-labels: ["enhancement", "triage"]
+labels: ["type:feature", "status:triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for sharing your ideas to improve the Lumio project!
+        Danke für deinen Vorschlag für Hort.ai! Bitte halte das Issue klein: eine Funktion, die sich in wenigen Tagen umsetzen und testen lässt.
   - type: textarea
     id: problem
     attributes:
-      label: Is your feature request related to a problem?
-      description: A clear and concise description of what the problem is.
-      placeholder: I'm always frustrated when [...]
+      label: Problem / Ausgangslage
+      description: Welches Problem löst die Funktion, und für wen (Kind, Eltern, Team)?
+      placeholder: Ein Kind kann aktuell nicht ...
     validations:
       required: true
   - type: textarea
     id: solution
     attributes:
-      label: Describe the solution you'd like
-      description: A clear and concise description of what you want to happen.
+      label: Gewünschte Lösung
+      description: Was soll passieren? Beschreibe das Verhalten, nicht die Implementierung.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Akzeptanzkriterien
+      description: Überprüfbare Bedingungen, wann das Issue fertig ist.
+      value: |
+        - [ ] 
     validations:
       required: true
   - type: textarea
     id: alternatives
     attributes:
-      label: Describe alternatives you've considered
-      description: A clear and concise description of any alternative solutions or features you've considered.
+      label: Betrachtete Alternativen
+      description: Welche anderen Lösungen hast du erwogen, und warum nicht?
     validations:
       required: false
   - type: textarea
     id: additional
     attributes:
-      label: Additional Context
-      description: Add any other context or screenshots about the feature request here.
+      label: Zusätzlicher Kontext
+      description: Abhängigkeiten, relevante Regeln aus docs/rules, Skizzen oder Links.
     validations:
       required: false
