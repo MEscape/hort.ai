@@ -5,12 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createVoiceRouteHandlers } from '@modules/voice/presentation/http/voice-route-handlers';
 import type { Synthesize, Transcribe } from '@modules/voice/presentation/http/voice-route-handlers';
 
-import {
-  forbiddenError,
-  infrastructureError,
-  rateLimitedError,
-  validationError,
-} from '@lib/errors';
+import { infrastructureError, rateLimitedError, validationError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 
 function handlersWith(overrides: { synthesize?: Synthesize; transcribe?: Transcribe } = {}) {
@@ -164,41 +159,5 @@ describe('voice route handlers: transcription', () => {
     expect(failed.status).toBe(502);
     expect(await failed.json()).toEqual({ code: 'speech.quota_exceeded', message: 'Quota.' });
     expect(second.options.onFailure).toHaveBeenCalledWith('transcribe', quota);
-  });
-
-  describe('consent', () => {
-    const routes = () => {
-      const onFailure = vi.fn();
-      return { onFailure, consent: createVoiceRouteHandlers({ onFailure }).consent };
-    };
-
-    it('returns the consent view uncached', async () => {
-      const { consent } = routes();
-      const view = { given: true, grantedAt: '2026-10-24T10:00:00.000Z', revokedAt: null };
-
-      const response = await consent(() => okAsync(view));
-
-      expect(response.status).toBe(200);
-      expect(response.headers.get('Cache-Control')).toBe('no-store');
-      expect(await response.json()).toEqual(view);
-    });
-
-    it('maps a refusal and a store failure, reporting both', async () => {
-      const { consent, onFailure } = routes();
-
-      const denied = await consent(() =>
-        errAsync(forbiddenError('auth.permission_denied', 'Denied.')),
-      );
-      const broken = await consent(() =>
-        errAsync(infrastructureError('voice.persistence_failed', 'Down.')),
-      );
-
-      expect(denied.status).toBe(403);
-      expect(broken.status).toBe(502);
-      expect(onFailure).toHaveBeenCalledWith(
-        'consent',
-        expect.objectContaining({ kind: 'forbidden' }),
-      );
-    });
   });
 });

@@ -9,27 +9,18 @@ import type {
   SynthesizeSpeechInput,
   TranscribeSpeechInput,
 } from '../../application/contracts/voice-inputs';
-import type {
-  SpeechAudioView,
-  TranscriptView,
-  VoiceConsentView,
-} from '../../application/contracts/voice-views';
+import type { SpeechAudioView, TranscriptView } from '../../application/contracts/voice-views';
 
 /** The `SynthesizeSpeech` use case, called by the Route Handler itself. */
 export type Synthesize = (input: SynthesizeSpeechInput) => AppResultAsync<SpeechAudioView>;
 /** The `TranscribeSpeech` use case, called by the Route Handler itself. */
 export type Transcribe = (input: TranscribeSpeechInput) => AppResultAsync<TranscriptView>;
 
-/** A consent use case (read, grant or revoke), called by the Route Handler itself. */
-export type ConsentOperation = () => AppResultAsync<VoiceConsentView>;
-
 export interface VoiceRouteHandlers {
   /** `POST /api/voice/speech`: JSON `{ speakerId, text }` in, `audio/mpeg` out. */
   readonly speech: (request: Request, synthesize: Synthesize) => Promise<Response>;
   /** `POST /api/voice/transcription`: multipart field `audio` in, JSON `{ text }` out. */
   readonly transcription: (request: Request, transcribe: Transcribe) => Promise<Response>;
-  /** `GET` / `PUT` / `DELETE /api/voice/consent`: no body; JSON `VoiceConsentView` out. */
-  readonly consent: (operation: ConsentOperation) => Promise<Response>;
 }
 
 const PAYLOAD_TOO_LARGE = 413;
@@ -89,12 +80,10 @@ async function readRecording(request: Request): Promise<TranscribeSpeechInput | 
  * recording rules are the use cases'. The recording is read into memory for this request and never
  * written anywhere. `onFailure` sees every failed `Result` (for the log).
  */
-type Operation = 'synthesize' | 'transcribe' | 'consent';
-
 export function createVoiceRouteHandlers(options: {
-  readonly onFailure: (operation: Operation, error: AppError) => void;
+  readonly onFailure: (operation: 'synthesize' | 'transcribe', error: AppError) => void;
 }): VoiceRouteHandlers {
-  const failed = (operation: Operation, error: AppError) => {
+  const failed = (operation: 'synthesize' | 'transcribe', error: AppError) => {
     options.onFailure(operation, error);
     return Response.json(toErrorResponseBody(error), {
       status: httpStatusForError(error),
@@ -133,14 +122,6 @@ export function createVoiceRouteHandlers(options: {
       return result.match(
         (transcript) => Response.json({ text: transcript.text }, { headers: NO_STORE }),
         (error) => failed('transcribe', error),
-      );
-    },
-
-    async consent(operation) {
-      const result = await operation();
-      return result.match(
-        (consent) => Response.json(consent, { headers: NO_STORE }),
-        (error) => failed('consent', error),
       );
     },
   };
