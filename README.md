@@ -45,7 +45,7 @@ The application runs on your machine. Docker Compose runs only its local depende
 ## Environment variables
 
 - `.env.example` documents every application variable, in numbered sections. Variables are validated at startup; a bad or missing value stops the app and names the variable.
-- Rate limiting always uses the Upstash store (no in-memory mode; unit tests use a double that lives only under `__tests__`). Production requires `https` for Upstash, the storage endpoint and the public storage URL.
+- Rate limiting always uses the Upstash store (no in-memory mode; unit tests use a double that lives only under `__tests__`). For development it can be switched off with `RATE_LIMIT_ENABLED=false`, like authentication with `AUTH_ENABLED=false`; production refuses both. Production requires `https` for Upstash, the storage endpoint and the public storage URL.
 - Add a variable with `npm run gen -- env <NAME>` ([guide](docs/conventions/adding-an-environment-variable.md)).
 - Integration tests read the same variables (`.env` locally, the job environment in CI) and skip a service that is not configured.
 

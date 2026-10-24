@@ -21,6 +21,10 @@ const cell: LazyCell<ClientSubjectResolver> = createLazyCell();
 const UNRESOLVED: ClientSubject = { kind: 'unresolved-client' };
 
 function resolver(): ClientSubjectResolver | null {
+  // Limiting is switched off: no address is needed, and nothing is misconfigured.
+  if (!serverEnv.RATE_LIMIT_ENABLED) {
+    return null;
+  }
   const built = resolveLazy({
     cell,
     build: () =>

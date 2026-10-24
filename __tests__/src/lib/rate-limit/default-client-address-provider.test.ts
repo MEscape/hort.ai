@@ -10,6 +10,7 @@ interface Written {
 }
 
 const world = vi.hoisted(() => ({
+  env: { RATE_LIMIT_ENABLED: true },
   nowMs: 0,
   settingsReads: 0,
   settings: undefined as ClientAddressSettings | Error | undefined,
@@ -18,7 +19,7 @@ const world = vi.hoisted(() => ({
 
 vi.mock('@lib/clock', () => ({ systemClock: { now: () => new Date(world.nowMs) } }));
 vi.mock('@lib/config/server', () => ({
-  serverEnv: {},
+  serverEnv: world.env,
   resolveRateLimitSettings: () => {
     world.settingsReads += 1;
     if (world.settings instanceof Error) {
@@ -57,6 +58,7 @@ async function load() {
 }
 
 beforeEach(() => {
+  world.env.RATE_LIMIT_ENABLED = true;
   world.nowMs = Date.UTC(2026, 9, 24, 10, 0, 0);
   world.settingsReads = 0;
   world.settings = vercel;
@@ -88,6 +90,16 @@ describe('getClientAddressProvider', () => {
     await getClientAddressProvider(() => Promise.reject(new Error('no request'))).current();
 
     expect(world.settingsReads).toBe(1);
+  });
+
+  it('needs no address and logs nothing while RATE_LIMIT_ENABLED=false', async () => {
+    world.env.RATE_LIMIT_ENABLED = false;
+    const getClientAddressProvider = await load();
+    const provider = getClientAddressProvider(() => Promise.resolve(withAddress('203.0.113.7')));
+
+    expect(await provider.current()).toEqual({ kind: 'unresolved-client' });
+    expect(world.settingsReads).toBe(0);
+    expect(world.written).toEqual([]);
   });
 
   it('gives an unresolved client outside a request', async () => {

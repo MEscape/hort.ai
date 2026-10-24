@@ -26,8 +26,18 @@ function messages(changes: Partial<RateLimitEnvInput>): string[] {
 }
 
 describe('rateLimitEnvSchema', () => {
-  it('defaults the timeout and leaves the rest unset', () => {
-    expect(rateLimitEnvSchema.parse({})).toEqual({ RATE_LIMIT_TIMEOUT_MS: 1500 });
+  it('is on by default, defaults the timeout and leaves the rest unset', () => {
+    expect(rateLimitEnvSchema.parse({})).toEqual({
+      RATE_LIMIT_ENABLED: true,
+      RATE_LIMIT_TIMEOUT_MS: 1500,
+    });
+  });
+
+  it('can be switched off, and only with exactly "false"', () => {
+    expect(rateLimitEnvSchema.parse({ RATE_LIMIT_ENABLED: 'false' }).RATE_LIMIT_ENABLED).toBe(
+      false,
+    );
+    expect(rateLimitEnvSchema.safeParse({ RATE_LIMIT_ENABLED: 'off' }).success).toBe(false);
   });
 
   it('bounds the timeout to 100..10000 ms', () => {

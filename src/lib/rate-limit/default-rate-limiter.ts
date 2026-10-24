@@ -5,10 +5,11 @@ import { resolveRateLimitSettings, serverEnv } from '@lib/config/server';
 import { infrastructureError } from '@lib/errors';
 import { errAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
-import { resolveLazy } from '@lib/utils';
+import { once, resolveLazy } from '@lib/utils';
 import type { LazyCell, LazyFailure } from '@lib/utils';
 
 import { createRateLimiter } from './create-rate-limiter';
+import { createDisabledRateLimiter } from './disabled-rate-limiter';
 import { createRateLimitLog } from './rate-limit-logger';
 import { UpstashRateLimitStore } from './upstash-rate-limit-store';
 
@@ -37,6 +38,9 @@ function buildLimiter(): RateLimiter {
 
 let failureState: LazyFailure | undefined;
 
+/** Built on first use and kept, so the "rate limiting is off" warning is written once per process. */
+const disabledLimiter = once(() => createDisabledRateLimiter(createRateLimitLog()));
+
 /** The limiter lives on `globalThis` so hot reload keeps its counters; a remembered failure need not. */
 const cell: LazyCell<RateLimiter> = {
   get: () => globalForRateLimit.rateLimiter,
@@ -54,6 +58,8 @@ const cell: LazyCell<RateLimiter> = {
  * The application's rate limiter. Only `composition.ts` files call this and hand the result to use
  * cases as a `RateLimiter`.
  *
+ * With `RATE_LIMIT_ENABLED=false` (development only) it counts nothing and allows every attempt.
+ *
  * Nothing is built until the first `enforce`: importing a composition root (during `next build`, or
  * at module load) reads no configuration and opens no connection. If building the real limiter then
  * fails, the attempt is refused with an infrastructure error, which is what every policy that denies
@@ -65,6 +71,9 @@ export function getRateLimiter(): RateLimiter {
   function guarded<T>(
     run: (built: RateLimiter) => AppResultAsync<T, RateLimitFailure>,
   ): AppResultAsync<T, RateLimitFailure> {
+    if (!serverEnv.RATE_LIMIT_ENABLED) {
+      return run(disabledLimiter());
+    }
     const built = resolveLazy({
       cell,
       build: buildLimiter,

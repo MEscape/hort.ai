@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { httpUrl, integerSetting } from './env-primitives';
+import { booleanFlag, httpUrl, integerSetting } from './env-primitives';
 
 import type { EnvRule } from './env-rules';
 import type { ClientAddressSettings, ClientAddressSourceName } from './rate-limit-settings';
@@ -14,7 +14,9 @@ const MIN_RATE_LIMIT_SECRET_LENGTH = 32;
  * Rate-limit configuration.
  *
  * Counters always live in Upstash Redis, reached over HTTP: there is no per-process fallback that
- * could quietly stand in for the shared store. Locally and in CI, `docker compose` runs a
+ * could quietly stand in for the shared store. Limiting can be switched off as a whole
+ * (`RATE_LIMIT_ENABLED=false`), like authentication, and then none of the settings below matter;
+ * production refuses it (`env-schema.ts`). Locally and in CI, `docker compose` runs a
  * compatible REST endpoint, so every environment exercises the code that production runs.
  *
  * The REST variables carry the names Upstash and its Vercel integration already
@@ -25,6 +27,9 @@ const MIN_RATE_LIMIT_SECRET_LENGTH = 32;
  * hold across the variables. How they become the limiter's settings is `rate-limit-settings.ts`.
  */
 export const rateLimitEnvSchema = z.object({
+  /** `false` counts nothing and lets every attempt through. Refused in production (see `env-schema.ts`). */
+  RATE_LIMIT_ENABLED: booleanFlag(true),
+
   /**
    * Where the client address of a request comes from (see `@lib/rate-limit`):
    * `vercel` trusts the platform's own `x-vercel-forwarded-for`, `proxies` strips
@@ -120,7 +125,13 @@ function malformedProxies(env: RateLimitEnvInput): string[] {
  * What must hold for the rate limiter to start. Reported through the server schema, so a bad
  * deployment fails at startup, not on the first request.
  */
-export const rateLimitEnvRules: ReadonlyArray<EnvRule<RateLimitEnvInput>> = [
+/** Limiting is off in development only, and then none of its settings matter. */
+const whileEnabled = (rule: EnvRule<RateLimitEnvInput>): EnvRule<RateLimitEnvInput> => ({
+  ...rule,
+  violated: (env) => env.RATE_LIMIT_ENABLED && rule.violated(env),
+});
+
+const rules: ReadonlyArray<EnvRule<RateLimitEnvInput>> = [
   {
     path: 'UPSTASH_REDIS_REST_URL',
     violated: (env) => restUrl(env) === undefined,
@@ -176,3 +187,5 @@ export const rateLimitEnvRules: ReadonlyArray<EnvRule<RateLimitEnvInput>> = [
       `AUTH_TRUSTED_PROXIES contains entries that are not an IP or CIDR range: ${malformedProxies(env).join(', ')}.`,
   },
 ];
+
+export const rateLimitEnvRules = rules.map(whileEnabled);

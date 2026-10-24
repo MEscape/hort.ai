@@ -47,6 +47,11 @@ const productionRules: ReadonlyArray<EnvRule<ServerEnvShape>> = [
     message: 'AUTH_ENABLED=false is not allowed when NODE_ENV=production.',
   },
   {
+    path: 'RATE_LIMIT_ENABLED',
+    violated: (env) => isProduction(env) && !env.RATE_LIMIT_ENABLED,
+    message: 'RATE_LIMIT_ENABLED=false is not allowed when NODE_ENV=production.',
+  },
+  {
     path: 'MAIL_PROVIDER',
     violated: (env) => isProduction(env) && env.MAIL_PROVIDER === 'none',
     message: 'MAIL_PROVIDER must be "smtp" or "resend" in production: sign-in sends e-mail.',

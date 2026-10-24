@@ -27,6 +27,6 @@ body:
       label: Completion criteria
       value: |
         - [ ] All sub-issues are closed
-        - [ ] 
+        - [ ]
     validations:
       required: true

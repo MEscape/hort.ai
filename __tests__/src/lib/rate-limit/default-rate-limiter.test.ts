@@ -9,6 +9,7 @@ interface Written {
 }
 
 const world = vi.hoisted(() => ({
+  env: { RATE_LIMIT_ENABLED: true },
   nowMs: 0,
   settingsReads: 0,
   settingsError: undefined as Error | undefined,
@@ -17,7 +18,7 @@ const world = vi.hoisted(() => ({
 
 vi.mock('@lib/clock', () => ({ systemClock: { now: () => new Date(world.nowMs) } }));
 vi.mock('@lib/config/server', () => ({
-  serverEnv: {},
+  serverEnv: world.env,
   resolveRateLimitSettings: () => {
     world.settingsReads += 1;
     if (world.settingsError !== undefined) {
@@ -82,6 +83,7 @@ async function load() {
 }
 
 beforeEach(() => {
+  world.env.RATE_LIMIT_ENABLED = true;
   world.nowMs = Date.UTC(2026, 9, 24, 10, 0, 0);
   world.settingsReads = 0;
   world.settingsError = undefined;
@@ -100,6 +102,25 @@ describe('getRateLimiter', () => {
     getRateLimiter();
 
     expect(world.settingsReads).toBe(0);
+  });
+
+  it('counts nothing and allows everything while RATE_LIMIT_ENABLED=false, saying so once', async () => {
+    world.env.RATE_LIMIT_ENABLED = false;
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
+    const limiter = (await load())();
+
+    for (let attempt = 0; attempt < policy.limit + 3; attempt += 1) {
+      const allowed = await limiter.enforce(request);
+      expect(allowed._unsafeUnwrap()).toMatchObject({ limit: policy.limit, remaining: null });
+    }
+    expect((await limiter.enforceAll([request, request]))._unsafeUnwrap()).toHaveLength(2);
+
+    expect(world.settingsReads).toBe(0);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(world.written.filter((entry) => entry.message === 'rate_limit.disabled')).toHaveLength(
+      1,
+    );
   });
 
   it('counts attempts in the shared store and refuses those over the limit', async () => {

@@ -23,6 +23,10 @@ Fixed window, counted by the store in one atomic step. Attempts `1..limit` pass;
 - **The client address cannot be trusted** (`unresolved-client`): the policy's `onUnresolvedClient` decides, `skip` (another budget still protects the operation) or `deny`. Addresses come from `x-vercel-forwarded-for` or the trusted proxy chain of `x-forwarded-for`, selected by `RATE_LIMIT_CLIENT_ADDRESS_SOURCE`; an address is never guessed.
 - **A policy or subject is invalid**: always denied, whatever the failure mode says. A broken configuration must not switch protection off.
 
+## Switching it off
+
+`RATE_LIMIT_ENABLED=false` (development only, like `AUTH_ENABLED=false`) makes `getRateLimiter()` return a limiter that counts nothing and allows every attempt; the Upstash and secret settings are then not required, no client address is resolved, and one `warn` (`rate_limit.disabled`) says so per process. Production refuses it at startup.
+
 ## Configuration
 
 `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` and `RATE_LIMIT_SECRET` (at least 32 characters in production) are required in every environment; production also requires `https` for the URL. See `src/lib/config/rate-limit-env-schema.ts`.

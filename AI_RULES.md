@@ -294,7 +294,7 @@ Allowed direction:
 - Environment variables are infrastructure/configuration concerns.
 - Validate environment variables at startup.
 - Separate server-only and public configuration: `@lib/config/server` imports `server-only` and holds everything secret; `@lib/config` holds only values safe for the browser.
-- A subsystem's variables are required only while that subsystem is on (authentication variables only when `AUTH_ENABLED=true`). Database configuration is always required. Production never allows authentication to be off. Production requires a shared rate-limit store (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`) and a secret of at least 32 characters for it. There is no in-memory backend: development and CI use the Docker Upstash-compatible emulator.
+- A subsystem's variables are required only while that subsystem is on (authentication variables only when `AUTH_ENABLED=true`, rate-limit variables only when `RATE_LIMIT_ENABLED=true`). Database configuration is always required. Production never allows authentication or rate limiting to be off. Production requires a shared rate-limit store (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`) and a secret of at least 32 characters for it. There is no in-memory backend: development and CI use the Docker Upstash-compatible emulator.
 - Object storage is off by default (`STORAGE_PROVIDER=none`). Choosing `azure` requires the storage account name and key and its containers; settings for a provider that is not chosen are an error, and production requires `https` for the storage endpoint and the public origin.
 - Use `NEXT_PUBLIC_*` only for intentionally public values; secrets must never use this prefix.
 - Do not access `process.env` throughout application code.
