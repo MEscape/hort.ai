@@ -3,6 +3,10 @@ import { configDefaults, defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'happy-dom',
+    // Vercel restores node_modules (and the cache inside it) from the previous build, so a cached transform of a
+    // test that uses `import.meta.glob` keeps the module list of that build and a new module is "not covered".
+    // The suite is small enough to transform on every run; a stale glob is a harder failure than a slower start.
+    fsModuleCache: false,
     globals: true,
     // Needs a database; run by `npm run test:integration` with its own configuration.
     exclude: [...configDefaults.exclude, '**/*.integration.test.ts'],
