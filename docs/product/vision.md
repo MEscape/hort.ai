@@ -12,11 +12,11 @@ Hort.ai is not an exercise app. It does not offer its own exercises, lessons or 
 
 ## Who it is for
 
-| Role    | What they do                                                                                                                            |
-| ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Child   | Primary school, grades 1 to 4, in any German federal state. Talks to Hort.ai by text and, preferably, by voice while working on a task. |
-| Parent  | Creates the child's profile, links it to a class, and sees a short summary of where the child needed help.                              |
-| Teacher | Creates a class and invites children with a code. May upload curriculum material and may post work assignments for the class.           |
+| Role    | What they do                                                                                                                                |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Child   | Primary school, grades 1 to 4, in any German federal state. Talks to Hort.ai by text and, preferably, by voice while working on a task.     |
+| Parent  | Creates the child's profile (interests, companion, controls), links it to a class, and sees a short summary of where the child needed help. |
+| Teacher | Creates a class and invites children with a code. May upload curriculum material and may post work assignments for the class.               |
 
 ## How a help session works
 
@@ -40,7 +40,7 @@ Hort.ai is not an exercise app. It does not offer its own exercises, lessons or 
 - **AI output is untrusted** until it is validated against a fixed data contract. Invalid, unsafe or solution-revealing output is replaced with a safe fallback.
 - **Child-safe and never punishing.** Mistakes are part of learning. No pressure, no ranking, no comparison with other children.
 - **No gamification.** No XP, streaks or rewards. Motivation comes from specific praise and from the child understanding their task.
-- **Privacy.** Child profiles store a display name, federal state and grade only. Teachers see only the children in their own classes.
+- **Privacy.** Child profiles store a display name, federal state, grade, up to four interests from a fixed list, the chosen companion and the parent's controls (voice, learning window, daily limit, opt-in notes), and nothing else: no surname, age, photo or free text. Extended for the onboarding in [#53](https://github.com/MEscape/hort.ai/issues/53); the team must confirm. Teachers see only the children in their own classes.
 - **MVP focus.** One subject and grade range end to end before anything else. No overengineering.
 
 ## Out of scope for the MVP
