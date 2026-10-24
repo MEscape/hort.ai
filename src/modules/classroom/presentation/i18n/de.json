@@ -1,0 +1,21 @@
+{
+  "classroom": {
+    "errors": {
+      "notFound": "Die Klasse wurde nicht gefunden.",
+      "validation": "Bitte überprüfen Sie Ihre Eingaben.",
+      "infrastructure": "Ein Dienstfehler ist aufgetreten. Bitte versuchen Sie es später erneut.",
+      "archived": "Die Klasse ist archiviert und kann nicht mehr geändert werden.",
+      "inviteCodeInvalid": "Dieser Code ist nicht gültig. Bitte prüfen Sie ihn oder fragen Sie die Lehrkraft nach dem aktuellen Code.",
+      "childAlreadyInClassroom": "Ihr Kind ist bereits in einer Klasse. Entfernen Sie es zuerst aus der bisherigen Klasse.",
+      "rateLimited": "Zu viele Versuche. Bitte versuchen Sie es später erneut.",
+      "unexpected": "Ein unerwarteter Fehler ist aufgetreten."
+    },
+    "validation": {
+      "idInvalid": "Die Kennung ist ungültig.",
+      "required": "Dieses Feld ist erforderlich.",
+      "tooLong": "Dieser Wert ist zu lang.",
+      "numberInvalid": "Geben Sie eine Klassenstufe von 1 bis 4 ein.",
+      "optionUnknown": "Wählen Sie eine der verfügbaren Optionen."
+    }
+  }
+}

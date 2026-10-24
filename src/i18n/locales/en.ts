@@ -1,5 +1,6 @@
 import { enAssignments as assignments } from '@modules/assignments';
 import { enAuth as auth } from '@modules/auth';
+import { enClassroom as classroom } from '@modules/classroom';
 import { enLearner as learner } from '@modules/learner';
 
 import enApp from '../messages/en.json';
@@ -14,6 +15,7 @@ const messages = {
   app: enApp,
   assignments: assignments.assignments,
   auth: auth.auth,
+  classroom: classroom.classroom,
   learner: learner.learner,
 } as const;
 

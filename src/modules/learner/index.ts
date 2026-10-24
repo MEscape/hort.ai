@@ -8,6 +8,13 @@
 /** Server-only queries for Server Components. Mutations are reachable through Server Actions only. */
 export { learnerQueries } from './composition';
 
+/**
+ * Server-only commands for cross-module orchestration through an adapter (the classroom module
+ * copies a class's federal state and grade into the profile, #32). They authorize the signed-in
+ * parent themselves.
+ */
+export { learnerCommands } from './composition';
+
 export { learnerRoutes } from './presentation/routes';
 
 export { default as enLearner } from './presentation/i18n/en.json';

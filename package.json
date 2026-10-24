@@ -33,7 +33,8 @@
     "gen": "tsx scripts/gen.ts",
     "brand:generate": "tsx scripts/generate-brand-assets.ts",
     "dead-code": "tsx scripts/dead-code.ts",
-    "tutors:sync": "tsx scripts/sync-tutors.ts"
+    "tutors:sync": "tsx scripts/sync-tutors.ts",
+    "curriculum:ingest": "tsx --conditions=react-server scripts/ingest-curriculum.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
