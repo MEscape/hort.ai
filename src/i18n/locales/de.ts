@@ -1,3 +1,4 @@
+import { deAssignments as assignments } from '@modules/assignments';
 import { deAuth as auth } from '@modules/auth';
 import { deClassroom as classroom } from '@modules/classroom';
 import { deLearner as learner } from '@modules/learner';
@@ -14,6 +15,7 @@ import type { MessageCatalog, TranslationSchema } from '../config';
  */
 const messages = {
   app: deApp,
+  assignments: assignments.assignments,
   auth: auth.auth,
   classroom: classroom.classroom,
   learner: learner.learner,
