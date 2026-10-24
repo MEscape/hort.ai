@@ -1,5 +1,7 @@
 # HortAi
 
+HortAi is an AI companion that helps primary-school children with their homework and test preparation when their parents do not have the time. The child works on a real task from school; HortAi gives thinking prompts and graduated hints grounded in the curriculum, and never solves the task for the child. Teachers can take part and post their own assignments. HortAi offers no exercises of its own. Read [`docs/product/vision.md`](docs/product/vision.md) before planning features.
+
 A [Next.js](https://nextjs.org) App Router application with TypeScript, PostgreSQL ([Prisma](https://www.prisma.io)) and [Better Auth](https://www.better-auth.com). Production runs on Vercel.
 
 Before changing code, read [`AI_RULES.md`](AI_RULES.md), [`docs/rules/`](docs/rules/README.md) and [`docs/conventions/`](docs/conventions/README.md).
