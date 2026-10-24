@@ -40,6 +40,8 @@ function isLearnerCode(code: string): code is LearnerCode {
 /**
  * Codes from other modules (authorization, for instance) or from Zod's own
  * structural messages are unknown here and get the generic message.
+ *
+ * @keep Maps learner error codes to copy for the parent child-profile screens (#12).
  */
 export function messageKeyForCode(code: string): MessageKey {
   return isLearnerCode(code) ? MESSAGE_KEY_BY_CODE[code] : GENERIC_ERROR_MESSAGE_KEY;
