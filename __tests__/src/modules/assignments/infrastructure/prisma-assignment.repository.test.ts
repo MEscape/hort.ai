@@ -67,4 +67,25 @@ describe('PrismaAssignmentRepository ownership', () => {
     expect(result.isErr() && result.error.kind).toBe('infrastructure');
     expect(result.isErr() && result.error.message).not.toContain('private driver detail');
   });
+
+  it('loads within the tenant only, for the owner check of the use case', async () => {
+    expect(
+      (await repository.findInTenant(toAssignmentId('assignment'), scope.tenantId)).isOk(),
+    ).toBe(true);
+    expect(query.where).toHaveBeenCalledWith({ id: 'assignment', tenantId: scope.tenantId });
+  });
+
+  it('reads a class for a child without ever selecting the solution key', async () => {
+    query.all.mockResolvedValue([
+      { id: 'a1', classroomId: 'class', title: 'T', taskText: 'Text', dueDate: null },
+    ]);
+    const result = await repository.listForChild(toClassroomId('class'), scope.tenantId, 50);
+    expect(result._unsafeUnwrap()).toEqual([
+      { id: 'a1', classroomId: 'class', title: 'T', text: 'Text', dueDate: null },
+    ]);
+    expect(query.select).toHaveBeenCalledWith('id', 'classroomId', 'title', 'taskText', 'dueDate');
+    expect(query.select.mock.calls.flat()).not.toContain('solutionKey');
+    expect(query.where).toHaveBeenCalledWith({ classroomId: 'class', tenantId: scope.tenantId });
+    expect(query.limit).toHaveBeenCalledWith(50);
+  });
 });

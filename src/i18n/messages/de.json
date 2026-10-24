@@ -1,7 +1,9 @@
 {
   "home": {
     "title": "Du bist angemeldet!",
-    "description": "Dein Elternkonto ist bereit. Hier startet bald das Lernabenteuer für deine Familie."
+    "description": "Dein Elternkonto ist bereit. Hier startet bald das Lernabenteuer für deine Familie.",
+    "teacherDescription": "Dein Lehrkraft-Konto ist bereit. Hier stellst du Aufgaben für deine Klasse ein.",
+    "teacherAssignments": "Zu den Aufgaben"
   },
   "metadata": {
     "description": "Ein KI-gestützter, kindgerechter Lernbegleiter, der Lernen zu einer interaktiven Reise macht."

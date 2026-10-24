@@ -1,11 +1,39 @@
-# Assignment UI foundation — issue #33
+# Assignments (#33)
 
-Development preview: `/de/dev/teacher-assignments` and `/en/dev/teacher-assignments`. The page and its metadata return `notFound()` outside development. No navigation, authentication grants, network operations or persistence are added.
+A teacher posts work assignments for their class; the children of that class see them on their start screen. Only the teacher authors the content: no AI generates or changes an assignment.
 
-This module currently needs only presentation code. The full module generator creates CRUD use cases, repositories and migrations, so those layers are intentionally deferred. Existing component and translation generators scaffold the UI and catalogs.
+## Routes
 
-A single draft stays in React memory. Cancel/back requires confirmation when dirty; reload/document navigation is guarded. Preview/edit retains the draft. Explicit discard or leaving the page clears it. UI-only limits: title 120, task text 4,000, solution key 4,000 characters; due date is optional and validated as an ISO calendar date, then formatted in the current locale and time zone. These bounds must align with the future server contract.
+- Teacher: `/de/teacher/assignments` and `/en/teacher/assignments` (`?classroom=<id>` selects a class). Signed-out visitors are sent to sign-in and back. The signed-in home page links teachers here.
+- Child: `/de/start?child=<childProfileId>` and `/en/start?child=…`, in the signed-in parent's session. "Schulaufgaben" / "School tasks" then lists the class's assignments. Without `child`, or when the child is not the parent's, the start screen keeps its "not available yet" state.
 
-`toChildAssignmentView` explicitly copies title, task text and due date. `ChildAssignmentPreview` accepts only this child-safe DTO. A solution key remains in the teacher editor and is never passed to child UI, browser storage, URLs, logs or network calls. Use dummy text in this unauthenticated development preview.
+The development preview (`/dev/teacher-assignments`) is gone; the real route replaced it.
 
-Backend handoff: add teacher identity/permissions and class ownership (#32) before create/list/edit/delete operations; authorize each operation server-side. Child selection (#12) must return only a separate child DTO, never the solution key. Keep due dates as calendar dates until their backend semantics are agreed. The registered task-text field can receive future transcript updates through React Hook Form's `setValue('taskText', text, { shouldDirty: true })`; no voice controls or APIs are added (#34).
+## Use cases
+
+| Use case                       | Permission          | Ownership                                                                                                  |
+| ------------------------------ | ------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `GetTeacherAssignmentOverview` | `assignment.read`   | Classes from the classroom module, pinned to the teacher; a foreign `?classroom=` falls back to their own. |
+| `CreateAssignment`             | `assignment.create` | Classroom module confirms the class is the teacher's (`getClassroomById`); archived classes refuse.        |
+| `UpdateAssignment`             | `assignment.update` | `loadAuthorizedAssignment`: load by tenant, `requireOnResource` on the stored owner; writes stay pinned.   |
+| `DeleteAssignment`             | `assignment.delete` | As update.                                                                                                 |
+| `ListChildAssignments`         | `learner.read`      | Classroom module checks the child is the parent's and returns its current class (`getChildClassroom`).     |
+
+A parent is refused every teacher operation before storage is touched; the teacher screen then shows "For teachers only". Another teacher's assignment is refused with `auth.permission_denied`. Owner and tenant always come from the authorized actor; the action schemas drop any sent by the browser.
+
+The classroom module is reached only through `ClassroomAccess` (domain port), implemented over its public queries in `infrastructure/classroom` and wired in `composition.ts`.
+
+## The solution key
+
+`solutionKey` is teacher-only. The child path never has it: `listForChild` does not select the column, `ChildAssignment` and `ChildAssignmentView` have no such field, and the teacher's preview shows `ChildAssignmentContent` built by an allowlist. It is never put into URLs, browser storage, logs or audit events (ids only). Only the answer check (#14) and the solution-leak guard (#31) will read it.
+
+## Teacher screen
+
+Overview of the selected class (list, empty state), create, edit, child preview, delete with confirmation. Saving shows progress and announces success in a status line; a refused save keeps the input and marks the fields. Unsaved changes are guarded on reload and need confirmation before leaving the editor. A teacher without an active class creates one inline (classroom module's `CreateClassroomForm`, MVP scope Hessen/mathematics); its invite code is shown once.
+
+Limits (domain, repeated by the database checks): title 120, task text 4,000, solution key 4,000 characters; the due date is an optional ISO calendar date.
+
+## Not done here
+
+- Choosing a child: there is no child-profile screen yet (learner UI), so the start screen takes the child from `?child=`.
+- Help on a school task: selecting one shows it and says help is coming; starting an AI help session needs the session use case (#12, #17).

@@ -1,15 +1,11 @@
+import type { ChildAssignmentView } from '../../application/contracts/assignment-views';
 import type { AssignmentDraft } from '../schemas/assignment-draft-schema';
 
-/** The complete child-facing surface. Teacher-only fields are deliberately absent. */
-export interface ChildAssignmentView {
-  readonly title: string;
-  readonly taskText: string;
-  /** A validated ISO calendar date, not an instant. */
-  readonly dueDate: string | null;
-}
+/** What the child card shows: the child view without its id. Teacher-only fields are absent. */
+export type ChildAssignmentContent = Omit<ChildAssignmentView, 'id'>;
 
 /** Explicit projection prevents additional teacher fields from leaking through object spreading. */
-export function toChildAssignmentView(draft: AssignmentDraft): ChildAssignmentView {
+export function toChildAssignmentContent(draft: AssignmentDraft): ChildAssignmentContent {
   return {
     title: draft.title,
     taskText: draft.taskText,

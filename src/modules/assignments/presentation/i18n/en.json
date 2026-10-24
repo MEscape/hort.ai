@@ -1,17 +1,34 @@
 {
   "assignments": {
+    "page": {
+      "title": "Assignments",
+      "classLabel": "Class",
+      "classGrade": "Grade {grade}",
+      "teachersOnlyTitle": "For teachers only",
+      "teachersOnlyBody": "Assignments are posted by teachers. Sign in with a teacher account to post work for your class.",
+      "noClassTitle": "Create your first class",
+      "noClassBody": "Assignments are posted to a class. Create a class, then share its invite code with the parents."
+    },
     "overview": {
-      "title": "My assignments",
+      "title": "Assignments for {classroom}",
       "create": "New assignment",
       "emptyTitle": "No assignments yet",
-      "emptyBody": "Assignments for your class will appear here once saving is connected."
+      "emptyBody": "Post the first assignment for this class. Children see it on their start screen.",
+      "due": "Due: {date}",
+      "noDue": "No due date",
+      "hasSolution": "Solution key saved",
+      "edit": "Edit",
+      "editLabel": "Edit “{title}”",
+      "delete": "Delete",
+      "deleteLabel": "Delete “{title}”"
     },
-    "development": {
-      "title": "Development preview",
-      "body": "Saving is not connected. Drafts stay on this page only. Use sample text, not private information."
+    "status": {
+      "saved": "Assignment saved.",
+      "deleted": "Assignment deleted."
     },
     "form": {
       "title": "New assignment",
+      "editTitle": "Edit assignment",
       "requiredNote": "Title and task text are required.",
       "titleLabel": "Assignment title",
       "titleHint": "Up to {limit} characters.",
@@ -21,22 +38,46 @@
       "dueHint": "A calendar date, without a time.",
       "teacherOnly": "For the teacher only",
       "solutionLabel": "Solution key (optional)",
-      "solutionHint": "Excluded from the child preview. Up to {limit} characters.",
+      "solutionHint": "Never shown to children. Up to {limit} characters.",
       "cancel": "Cancel",
-      "preview": "Preview as a child"
+      "preview": "Preview as a child",
+      "save": "Save assignment",
+      "saving": "Saving …"
     },
     "preview": {
       "title": "Child preview",
-      "description": "A temporary preview. This assignment has not been saved.",
+      "description": "This is how children of your class will see the assignment. It is saved only when you choose “Save assignment”.",
       "edit": "Keep editing",
       "overview": "Back to overview"
     },
-    "child": { "due": "Due: {date}" },
+    "child": {
+      "due": "Due: {date}",
+      "listTitle": "Tasks from your teacher",
+      "empty": "Your teacher has not posted any tasks yet.",
+      "backToList": "All tasks",
+      "helpSoonTitle": "Help with school tasks is coming soon",
+      "helpSoonBody": "You can read the task here. Hort cannot help with it yet, and nothing was sent."
+    },
     "discard": {
-      "title": "Discard this draft?",
-      "body": "Your text will be lost. Nothing has been saved.",
-      "keep": "Keep the draft",
-      "confirm": "Discard draft"
+      "title": "Discard your changes?",
+      "body": "Your unsaved text will be lost.",
+      "keep": "Keep editing",
+      "confirm": "Discard changes"
+    },
+    "delete": {
+      "title": "Delete “{title}”?",
+      "body": "Children of this class will no longer see this assignment. This cannot be undone.",
+      "keep": "Keep assignment",
+      "confirm": "Delete assignment",
+      "deleting": "Deleting …"
+    },
+    "errors": {
+      "notFound": "This assignment no longer exists. Reload the page to see the current list.",
+      "validation": "Please check the highlighted fields.",
+      "infrastructure": "The assignment could not be saved because of a service error. Please try again.",
+      "invalidId": "This assignment could not be found.",
+      "classroomArchived": "This class is archived and takes no new assignments.",
+      "unexpected": "Something went wrong. Please try again."
     },
     "validation": {
       "titleRequired": "Enter an assignment title.",
@@ -44,7 +85,6 @@
       "taskRequired": "Enter the task text.",
       "taskTooLong": "The task text must be 4,000 characters or fewer.",
       "dateInvalid": "Choose a valid date.",
-      "invalid": "Check this entry.",
       "solutionTooLong": "The solution key must be 4,000 characters or fewer."
     }
   }

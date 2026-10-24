@@ -11,6 +11,9 @@ export { classroomQueries } from './composition';
 
 export { classroomRoutes } from './presentation/routes';
 
+/** A teacher's first class, rendered by the assignment screen when the teacher has none yet (#33). */
+export { CreateClassroomForm } from './presentation/components/create-classroom-form';
+
 export { default as enClassroom } from './presentation/i18n/en.json';
 export { default as deClassroom } from './presentation/i18n/de.json';
 

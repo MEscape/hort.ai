@@ -1,0 +1,195 @@
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { TeacherAssignmentView } from '@modules/assignments/application/contracts/assignment-views';
+import { TeacherAssignmentWorkspace } from '@modules/assignments/presentation/components/teacher-assignment-workspace';
+import messages from '@modules/assignments/presentation/i18n/en.json';
+
+import { I18nClientProvider } from '@components/providers/i18n-client-provider';
+
+const actions = vi.hoisted(() => ({
+  create: vi.fn(),
+  update: vi.fn(),
+  remove: vi.fn(),
+}));
+vi.mock('@modules/assignments/presentation/actions/create-assignment-action', () => ({
+  createAssignmentAction: actions.create,
+}));
+vi.mock('@modules/assignments/presentation/actions/update-assignment-action', () => ({
+  updateAssignmentAction: actions.update,
+}));
+vi.mock('@modules/assignments/presentation/actions/delete-assignment-action', () => ({
+  deleteAssignmentAction: actions.remove,
+}));
+
+const SAVED: TeacherAssignmentView = {
+  id: 'assignment-1',
+  title: 'Read a story',
+  taskText: 'Read page 12. What happens first?',
+  dueDate: '2026-03-29',
+  solutionKey: 'TEACHER_PRIVATE_KEY',
+};
+
+function renderWorkspace(assignments: readonly TeacherAssignmentView[] = []) {
+  return render(
+    <I18nClientProvider locale="en" timeZone="Pacific/Kiritimati" messages={messages} isDevelopment>
+      <TeacherAssignmentWorkspace
+        classroomId="class-a"
+        classroomName="3a"
+        assignments={assignments}
+      />
+    </I18nClientProvider>,
+  );
+}
+
+async function fill(label: string, value: string) {
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText(label), { target: { value } });
+  });
+}
+
+function leavingIsGuarded(): boolean {
+  const leave = new Event('beforeunload', { cancelable: true });
+  window.dispatchEvent(leave);
+  return leave.defaultPrevented;
+}
+
+describe('teacher assignment workspace', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    actions.create.mockResolvedValue({ ok: true, data: SAVED });
+    actions.update.mockResolvedValue({ ok: true, data: SAVED });
+    actions.remove.mockResolvedValue({ ok: true, data: undefined });
+  });
+
+  it('validates, previews only child fields, and saves a new assignment to the class', async () => {
+    renderWorkspace();
+    expect(screen.getByRole('heading', { name: 'No assignments yet' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'New assignment' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save assignment' }));
+    await screen.findByText('Enter an assignment title.');
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assignment title')).toHaveFocus();
+    });
+    expect(actions.create).not.toHaveBeenCalled();
+
+    await fill('Assignment title', SAVED.title);
+    await fill('Task text', SAVED.taskText);
+    await fill('Due date (optional)', '2026-03-29');
+    await fill('Solution key (optional)', 'TEACHER_PRIVATE_KEY');
+    expect(leavingIsGuarded()).toBe(true);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Preview as a child' }));
+    await screen.findByRole('heading', { name: 'Child preview' });
+    expect(screen.getByRole('heading', { name: SAVED.title })).toBeInTheDocument();
+    expect(screen.getByText('Due: March 29, 2026')).toBeInTheDocument();
+    expect(screen.queryByText('TEACHER_PRIVATE_KEY')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Keep editing' }));
+    expect(screen.getByLabelText('Solution key (optional)')).toHaveValue('TEACHER_PRIVATE_KEY');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save assignment' }));
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent('Assignment saved.');
+    });
+    expect(actions.create).toHaveBeenCalledWith({
+      classroomId: 'class-a',
+      title: SAVED.title,
+      taskText: SAVED.taskText,
+      dueDate: '2026-03-29',
+      solutionKey: 'TEACHER_PRIVATE_KEY',
+    });
+    expect(screen.getByRole('heading', { name: 'Assignments for 3a' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(leavingIsGuarded()).toBe(false);
+    });
+  });
+
+  it('keeps the input and marks the field when the server refuses the assignment', async () => {
+    actions.create.mockResolvedValue({
+      ok: false,
+      error: {
+        code: 'assignments.validation_failed',
+        message: 'invalid',
+        fieldErrors: { title: ['assignments.validation.title_too_long'] },
+      },
+    });
+    renderWorkspace();
+    fireEvent.click(screen.getByRole('button', { name: 'New assignment' }));
+    await fill('Assignment title', 'Title');
+    await fill('Task text', 'Task');
+    fireEvent.click(screen.getByRole('button', { name: 'Save assignment' }));
+    expect(await screen.findByText('The title must be 120 characters or fewer.')).toBeVisible();
+    expect(screen.getByLabelText('Task text')).toHaveValue('Task');
+    expect(screen.queryByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('shows a form-level message when saving fails for another reason', async () => {
+    actions.create.mockResolvedValue({
+      ok: false,
+      error: { code: 'assignments.persistence_failed', message: 'failed' },
+    });
+    renderWorkspace();
+    fireEvent.click(screen.getByRole('button', { name: 'New assignment' }));
+    await fill('Assignment title', 'Title');
+    await fill('Task text', 'Task');
+    fireEvent.click(screen.getByRole('button', { name: 'Save assignment' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'The assignment could not be saved because of a service error.',
+    );
+  });
+
+  it('asks before discarding changes and keeps them when asked to', async () => {
+    renderWorkspace();
+    fireEvent.click(screen.getByRole('button', { name: 'New assignment' }));
+    await fill('Assignment title', 'Draft');
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Discard your changes?');
+    fireEvent.click(screen.getByRole('button', { name: 'Keep editing' }));
+    expect(screen.getByLabelText('Assignment title')).toHaveValue('Draft');
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
+    expect(screen.getByRole('heading', { name: 'No assignments yet' })).toBeInTheDocument();
+    expect(actions.create).not.toHaveBeenCalled();
+  });
+
+  it('edits a saved assignment with its stored values', async () => {
+    renderWorkspace([SAVED]);
+    expect(screen.getByText('Solution key saved')).toBeInTheDocument();
+    expect(screen.queryByText('TEACHER_PRIVATE_KEY')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: `Edit “${SAVED.title}”` }));
+    expect(screen.getByRole('heading', { name: 'Edit assignment' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Solution key (optional)')).toHaveValue('TEACHER_PRIVATE_KEY');
+    await fill('Assignment title', 'Read two stories');
+    fireEvent.click(screen.getByRole('button', { name: 'Save assignment' }));
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent('Assignment saved.');
+    });
+    expect(actions.update).toHaveBeenCalledWith(
+      expect.objectContaining({ id: SAVED.id, title: 'Read two stories' }),
+    );
+  });
+
+  it('deletes only after confirmation and reports a refused deletion', async () => {
+    renderWorkspace([SAVED]);
+    fireEvent.click(screen.getByRole('button', { name: `Delete “${SAVED.title}”` }));
+    const prompt = screen.getByRole('alert');
+    expect(prompt).toHaveTextContent(`Delete “${SAVED.title}”?`);
+    expect(within(prompt).getByRole('button', { name: 'Keep assignment' })).toHaveFocus();
+    fireEvent.click(within(prompt).getByRole('button', { name: 'Keep assignment' }));
+    expect(actions.remove).not.toHaveBeenCalled();
+
+    actions.remove.mockResolvedValueOnce({
+      ok: false,
+      error: { code: 'assignments.not_found', message: 'missing' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: `Delete “${SAVED.title}”` }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete assignment' }));
+    expect(await screen.findByText(/This assignment no longer exists/)).toBeVisible();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete assignment' }));
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent('Assignment deleted.');
+    });
+    expect(actions.remove).toHaveBeenLastCalledWith({ id: SAVED.id });
+  });
+});

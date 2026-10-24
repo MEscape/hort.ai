@@ -16,6 +16,18 @@
       "tooLong": "This value is too long.",
       "numberInvalid": "Enter a grade from 1 to 4.",
       "optionUnknown": "Choose one of the available options."
+    },
+    "create": {
+      "nameLabel": "Class name",
+      "nameHint": "For example “3b”. Up to 80 characters.",
+      "gradeLabel": "Grade",
+      "scopeNote": "Hort.ai currently supports mathematics in Hessen.",
+      "submit": "Create class",
+      "submitting": "Creating …",
+      "createdTitle": "Your class is ready",
+      "codeLabel": "Invite code:",
+      "codeHint": "Give this invite code to the parents of your class. It is shown only now; you can create a new one later.",
+      "continue": "Continue to assignments"
     }
   }
 }

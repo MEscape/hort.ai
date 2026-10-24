@@ -16,6 +16,18 @@
       "tooLong": "Dieser Wert ist zu lang.",
       "numberInvalid": "Geben Sie eine Klassenstufe von 1 bis 4 ein.",
       "optionUnknown": "Wählen Sie eine der verfügbaren Optionen."
+    },
+    "create": {
+      "nameLabel": "Name der Klasse",
+      "nameHint": "Zum Beispiel „3b“. Bis zu 80 Zeichen.",
+      "gradeLabel": "Jahrgangsstufe",
+      "scopeNote": "Hort.ai unterstützt derzeit Mathematik in Hessen.",
+      "submit": "Klasse anlegen",
+      "submitting": "Wird angelegt …",
+      "createdTitle": "Deine Klasse ist angelegt",
+      "codeLabel": "Einladungscode:",
+      "codeHint": "Gib diesen Einladungscode an die Eltern deiner Klasse weiter. Er wird nur jetzt angezeigt; später kannst du einen neuen erzeugen.",
+      "continue": "Weiter zu den Aufgaben"
     }
   }
 }

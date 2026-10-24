@@ -1,3 +1,5 @@
+import type { TenantId } from '@modules/auth';
+
 import type { Clock } from '@lib/clock';
 import { db, createPersistenceFailures, dateToInstant } from '@lib/db';
 import { notFoundError } from '@lib/errors';
@@ -5,8 +7,10 @@ import { fromThrowableAsync } from '@lib/result';
 
 import {
   ASSIGNMENT_SELECT,
+  CHILD_ASSIGNMENT_SELECT,
   toAssignment,
   toAssignmentCreateData,
+  toChildAssignmentRecord,
 } from './assignment-record-mapper';
 
 import type { AssignmentDraft } from '../../domain/models/assignment';
@@ -35,6 +39,17 @@ export class PrismaAssignmentRepository implements AssignmentRepository {
       async () =>
         assignments().where({ id, tenantId: scope.tenantId, ownerId: scope.ownerId }).first(),
       failures.infraOnly('findById'),
+    ).map((record) => record && toAssignment(record));
+  }
+
+  /**
+   * @owner-scope builder The use case compares the stored owner with the actor (`requireOnResource`),
+   * so another teacher's assignment is refused with `auth.permission_denied` rather than returned.
+   */
+  findInTenant(id: AssignmentId, tenantId: TenantId) {
+    return fromThrowableAsync(
+      async () => assignments().where({ id, tenantId }).first(),
+      failures.infraOnly('findInTenant'),
     ).map((record) => record && toAssignment(record));
   }
 
@@ -78,6 +93,22 @@ export class PrismaAssignmentRepository implements AssignmentRepository {
         failures.requireRow(() => notFoundError('assignments.not_found', 'Assignment not found.')),
       )
       .map(toAssignment);
+  }
+
+  /**
+   * @owner-scope child Rows of a class, not of a teacher: the use case reaches this class only
+   * through the signed-in parent's own child's membership, which the classroom module checked.
+   */
+  listForChild(classroomId: ClassroomId, tenantId: TenantId, limit: number) {
+    return fromThrowableAsync(
+      async () =>
+        db.orm.public.Assignment.select(...CHILD_ASSIGNMENT_SELECT)
+          .where({ classroomId, tenantId })
+          .orderBy([(row) => row.createdAt.desc(), (row) => row.id.asc()])
+          .limit(limit)
+          .all(),
+      failures.infraOnly('listForChild'),
+    ).map((records) => records.map(toChildAssignmentRecord));
   }
 
   deleteById(id: AssignmentId, scope: AssignmentOwnerScope) {
