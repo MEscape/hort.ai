@@ -1,50 +1,50 @@
 name: Bug
-description: Einen Fehler in Hort.ai melden
+description: Report a bug in Hort.ai
 title: "[Bug]: "
 labels: ["type:bug", "status:triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Danke für die Fehlermeldung! Bitte keine personenbezogenen Daten von Kindern in Beschreibung, Logs oder Screenshots.
+        Thanks for reporting a bug! Please do not include personal data about children in the description, logs or screenshots.
   - type: textarea
     id: description
     attributes:
-      label: Beschreibung
-      description: Was ist passiert?
+      label: Description
+      description: What happened?
     validations:
       required: true
   - type: textarea
     id: reproduction
     attributes:
-      label: Schritte zum Reproduzieren
+      label: Steps to reproduce
       placeholder: |
-        1. Gehe zu '...'
-        2. Klicke auf '...'
-        3. Siehe Fehler
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
-      label: Erwartetes Verhalten
-      description: Was hättest du stattdessen erwartet?
+      label: Expected behavior
+      description: What did you expect to happen instead?
     validations:
       required: true
   - type: textarea
     id: environment
     attributes:
-      label: Umgebung
+      label: Environment
       value: |
-        - Betriebssystem:
+        - OS:
         - Browser:
-        - Node.js-Version:
+        - Node.js version:
     validations:
       required: false
   - type: textarea
     id: additional
     attributes:
-      label: Zusätzlicher Kontext / Logs
-      description: Screenshots, Logs oder Stacktraces (ohne Geheimnisse oder Kinderdaten).
+      label: Additional context / logs
+      description: Screenshots, logs or stack traces (without secrets or children's data).
     validations:
       required: false

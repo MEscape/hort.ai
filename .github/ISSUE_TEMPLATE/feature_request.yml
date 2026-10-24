@@ -1,32 +1,32 @@
 name: Feature
-description: Neue Funktion oder Produktfähigkeit für Hort.ai vorschlagen
+description: Suggest a new feature or product capability for Hort.ai
 title: "[Feature]: "
 labels: ["type:feature", "status:triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Danke für deinen Vorschlag für Hort.ai! Bitte halte das Issue klein: eine Funktion, die sich in wenigen Tagen umsetzen und testen lässt.
+        Thanks for your suggestion for Hort.ai! Please keep the issue small: one feature that can be built and tested within a few days.
   - type: textarea
     id: problem
     attributes:
-      label: Problem / Ausgangslage
-      description: Welches Problem löst die Funktion, und für wen (Kind, Eltern, Team)?
-      placeholder: Ein Kind kann aktuell nicht ...
+      label: Problem / context
+      description: Which problem does this solve, and for whom (child, parent, team)?
+      placeholder: A child currently cannot ...
     validations:
       required: true
   - type: textarea
     id: solution
     attributes:
-      label: Gewünschte Lösung
-      description: Was soll passieren? Beschreibe das Verhalten, nicht die Implementierung.
+      label: Proposed solution
+      description: What should happen? Describe the behavior, not the implementation.
     validations:
       required: true
   - type: textarea
     id: acceptance
     attributes:
-      label: Akzeptanzkriterien
-      description: Überprüfbare Bedingungen, wann das Issue fertig ist.
+      label: Acceptance criteria
+      description: Verifiable conditions that define when this issue is done.
       value: |
         - [ ] 
     validations:
@@ -34,14 +34,14 @@ body:
   - type: textarea
     id: alternatives
     attributes:
-      label: Betrachtete Alternativen
-      description: Welche anderen Lösungen hast du erwogen, und warum nicht?
+      label: Alternatives considered
+      description: Which other solutions did you consider, and why not?
     validations:
       required: false
   - type: textarea
     id: additional
     attributes:
-      label: Zusätzlicher Kontext
-      description: Abhängigkeiten, relevante Regeln aus docs/rules, Skizzen oder Links.
+      label: Additional context
+      description: Dependencies, relevant rules from docs/rules, sketches or links.
     validations:
       required: false

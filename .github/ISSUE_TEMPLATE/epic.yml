@@ -1,32 +1,32 @@
 name: Epic
-description: Größeres Ziel, das in mehrere Sub-Issues aufgeteilt wird
+description: A larger goal that is split into several sub-issues
 title: "[Epic]: "
 labels: ["type:epic"]
 body:
   - type: markdown
     attributes:
       value: |
-        Ein Epic bündelt zusammengehörige Issues. Die eigentliche Arbeit passiert in den Sub-Issues, die du über „Create sub-issue“ anhängst.
+        An epic groups related issues. The actual work happens in the sub-issues, which you attach via "Create sub-issue".
   - type: textarea
     id: goal
     attributes:
-      label: Ziel
-      description: Welches Ergebnis ist erreicht, wenn das Epic abgeschlossen ist?
+      label: Goal
+      description: What outcome is reached when the epic is complete?
     validations:
       required: true
   - type: textarea
     id: scope
     attributes:
-      label: Umfang
-      description: Was gehört dazu, und was ausdrücklich nicht (MVP-Grenze)?
+      label: Scope
+      description: What is included, and what is explicitly not (MVP boundary)?
     validations:
       required: true
   - type: textarea
     id: done
     attributes:
-      label: Abschlusskriterien
+      label: Completion criteria
       value: |
-        - [ ] Alle Sub-Issues sind geschlossen
+        - [ ] All sub-issues are closed
         - [ ] 
     validations:
       required: true
