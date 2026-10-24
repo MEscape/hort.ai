@@ -8,6 +8,7 @@ import { useForm, useFormState } from 'react-hook-form';
 import { useTranslations } from '@i18n/client';
 
 import { toChildAssignmentView } from '../dto/child-assignment-dto';
+import { messageKeyForCode } from '../messages/message-keys';
 import { assignmentDraftSchema } from '../schemas/assignment-draft-schema';
 
 import { useBeforeUnloadGuard } from './use-before-unload-guard';
@@ -53,22 +54,7 @@ export function useAssignmentDraft() {
   }
 
   function errorText(code: string | undefined): string | undefined {
-    switch (code) {
-      case 'titleRequired':
-        return t('validation.titleRequired');
-      case 'titleTooLong':
-        return t('validation.titleTooLong');
-      case 'taskRequired':
-        return t('validation.taskRequired');
-      case 'taskTooLong':
-        return t('validation.taskTooLong');
-      case 'dateInvalid':
-        return t('validation.dateInvalid');
-      case 'solutionTooLong':
-        return t('validation.solutionTooLong');
-      default:
-        return undefined;
-    }
+    return code === undefined ? undefined : t(messageKeyForCode(code));
   }
 
   return {
