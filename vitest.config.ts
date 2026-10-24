@@ -1,5 +1,15 @@
 import { configDefaults, defineConfig } from 'vitest/config';
 
+// Unit tests must not see the host's own settings: a Vercel build exports the project's
+// environment variables (and `VERCEL`), which would change what the config layer validates.
+const HOST_APP_ENV =
+  /^(AUTH_|DATABASE_|LOG_LEVEL$|MAIL_|NEXT_PUBLIC_|RATE_LIMIT_|STORAGE_|UPSTASH_|VERCEL)/;
+for (const key of Object.keys(process.env)) {
+  if (HOST_APP_ENV.test(key)) {
+    Reflect.deleteProperty(process.env, key);
+  }
+}
+
 export default defineConfig({
   test: {
     environment: 'happy-dom',
@@ -14,6 +24,8 @@ export default defineConfig({
     // test that touches module code needs a valid one. These are placeholders, not services:
     // nothing here connects to a database.
     env: {
+      // Vercel builds run with NODE_ENV=production; React then has no `act` and config validation is strict.
+      NODE_ENV: 'test',
       DATABASE_URL: 'postgresql://user:pass@localhost:5432/test',
       AUTH_DATABASE_URL: 'postgresql://user:pass@localhost:5432/test_auth',
       AUTH_SECRET: 'x'.repeat(40),

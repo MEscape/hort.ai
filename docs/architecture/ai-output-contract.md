@@ -1,0 +1,181 @@
+# AI output contract
+
+Everything the AI may return to Hort.ai, and how the backend decides whether to use it. AI output is untrusted until it passes this contract (#6). Owning rules: [`validation.md`](../rules/validation.md) and [`security.md`](../rules/security.md). Code: `src/modules/guidance/domain/ai-output/`, codes in `src/modules/guidance/domain/errors/ai-output-errors.ts`, tests in `__tests__/src/modules/guidance/domain/`.
+
+Hort.ai is a homework companion. It has no exercises of its own and never solves the child's task. The AI only words thinking prompts, graduated hints, praise, comprehension questions and assessments of the child's own answer. The backend decides everything else, including which kind of output it wants and at which hint level.
+
+## Where it runs
+
+```text
+provider adapter (infrastructure, #10)
+  └─ JSON.parse of the model response
+      └─ validateAiOutput(raw, { kind, hintLevel })   ← this contract (domain)
+          └─ solution-leak guard (#31)                ← needs the task and its solution
+              └─ safety checks on the text (#11)
+                  └─ shown to the child
+```
+
+On any rejection the caller discards the output, logs the rejection code (never the text or the child's input), and uses a predefined fallback for the requested kind and hint level (#10).
+
+The contract is a domain function built on the `@lib/utils` shape guards, not a Zod schema. [`validation.md`](../rules/validation.md) reserves Zod for the presentation boundary, and AI output arrives in infrastructure. A domain function can be called from the provider adapter and tested without a provider.
+
+## Shape (version 1)
+
+Every output is one JSON object. The AI never chooses the kind or the hint level. It echoes the values it was asked for, and the backend rejects anything else.
+
+| Field          | Type                                       | Kinds                    | Rule                                                                     |
+| -------------- | ------------------------------------------ | ------------------------ | ------------------------------------------------------------------------ |
+| `version`      | `1`                                        | all                      | exactly the current contract version                                     |
+| `kind`         | see below                                  | all                      | allowlisted, and equal to the requested kind                             |
+| `hintLevel`    | see below                                  | all                      | allowlisted, and equal to the requested level                            |
+| `competencyId` | string                                     | all, optional            | `^[a-z0-9][a-z0-9._-]{0,63}$`; optional until curriculum ingestion (#28) |
+| `text`         | string                                     | all                      | trimmed, not empty, within the kind's maximum length, plain text only    |
+| `result`       | `correct` \| `partly_correct` \| `not_yet` | `answer_assessment` only | allowlisted; any other value, or the field on another kind, is rejected  |
+
+No other field is allowed. An unknown field rejects the whole output; it is not silently dropped.
+
+### Kinds and maximum text length
+
+Lengths count characters (code points), so an emoji counts as one.
+
+| Kind                     | Purpose                                                   | Max length | Extra rule        |
+| ------------------------ | --------------------------------------------------------- | ---------- | ----------------- |
+| `thinking_prompt`        | a question that helps the child think                     | 200        |                   |
+| `hint`                   | a graduated hint at the requested level                   | 280        |                   |
+| `praise`                 | specific praise for what the child did well               | 160        |                   |
+| `comprehension_question` | checks that the child understood their own correct answer | 160        | must end with `?` |
+| `answer_assessment`      | assesses the child's own answer, without the solution     | 200        | requires `result` |
+
+### Hint levels
+
+The hint ladder from #30, lowest help first. No level reveals the solution. The type lives in `src/modules/guidance/domain/models/hint-level.ts` and is shared with the orchestration (#10) and the ladder (#30).
+
+| Level                      | Meaning                                             |
+| -------------------------- | --------------------------------------------------- |
+| `understand_task`          | What is the task asking?                            |
+| `activate_prior_knowledge` | What do you already know that helps?                |
+| `next_step`                | Points to the next step, not the result             |
+| `similar_example`          | A worked example on a similar but different problem |
+
+### Text rules
+
+The text is shown, and may be read aloud, as plain text. It must not contain:
+
+- **Links**: any `scheme://`, `javascript:`, `data:`, `mailto:`, `tel:`, `file:` or `vbscript:`, `www.`, or a bare domain with a common top-level domain (`.de`, `.com`, `.ai`, …). The brand name `Hort.ai` is a bare domain too and is therefore rejected; the AI has no reason to name it.
+- **Markup**: HTML tags (`<b>`, `<!--`), HTML entities (`&amp;`), Markdown links and images, `**`, `~~`, headings and block quotes. `__` stays allowed because worksheets mark a blank with it (`3 + __ = 7`), and `<` before a digit or a space is a comparison (`5 < 7`).
+- **Code**: backticks, `{` or `}`, `=>`, and calls such as `eval(` or `document.`.
+- **Invisible characters**: control characters other than a line break, zero-width characters and bidirectional overrides.
+
+## Rejection
+
+`validateAiOutput` returns `Result<AiOutput, ValidationAppError>`. A rejection has `kind: 'validation'`, `code: 'guidance.ai_output_rejected'`, and `fieldErrors` listing every violation by field. A violation of the output as a whole is reported under `$`. An output that is not an object, has another version or has an unknown kind stops at that first finding; otherwise every field is checked and all violations are returned together.
+
+| Code                                            | Meaning                                                             |
+| ----------------------------------------------- | ------------------------------------------------------------------- |
+| `guidance.ai_output.not_an_object`              | not a plain JSON object (array, string, null, …)                    |
+| `guidance.ai_output.unsupported_version`        | `version` missing or not `1`                                        |
+| `guidance.ai_output.unknown_kind`               | `kind` outside the allowlist                                        |
+| `guidance.ai_output.unexpected_kind`            | an allowlisted kind other than the requested one                    |
+| `guidance.ai_output.unknown_field`              | a field the kind does not allow                                     |
+| `guidance.ai_output.missing_field`              | `kind`, `hintLevel`, `text` or (for an assessment) `result` missing |
+| `guidance.ai_output.invalid_type`               | `text` is not a string                                              |
+| `guidance.ai_output.invalid_hint_level`         | `hintLevel` outside the ladder                                      |
+| `guidance.ai_output.unexpected_hint_level`      | a ladder level other than the requested one                         |
+| `guidance.ai_output.invalid_competency_id`      | `competencyId` present but not a short identifier                   |
+| `guidance.ai_output.invalid_assessment_result`  | `result` outside `correct`, `partly_correct`, `not_yet`             |
+| `guidance.ai_output.text_empty`                 | `text` empty after trimming                                         |
+| `guidance.ai_output.text_too_long`              | `text` longer than the kind allows                                  |
+| `guidance.ai_output.not_a_question`             | a comprehension question that does not end with `?`                 |
+| `guidance.ai_output.contains_control_character` | invisible or control characters                                     |
+| `guidance.ai_output.contains_url`               | a link                                                              |
+| `guidance.ai_output.contains_markup`            | HTML or Markdown                                                    |
+| `guidance.ai_output.contains_code`              | code                                                                |
+| `guidance.ai_output.solution_leaked`            | reserved for the solution-leak guard (#31)                          |
+
+These codes are stable. Renaming one is a breaking change of the contract and bumps its version.
+
+## Examples
+
+All examples answer a request for `{ kind: 'hint', hintLevel: 'next_step' }` unless stated otherwise. The child's task is "23 + 24 = ?".
+
+### Valid
+
+```json
+{
+  "version": 1,
+  "kind": "hint",
+  "hintLevel": "next_step",
+  "text": "Rechne zuerst die Zehner zusammen: Wie viel ist 20 + 20?"
+}
+```
+
+```json
+{
+  "version": 1,
+  "kind": "hint",
+  "hintLevel": "next_step",
+  "competencyId": "de-by.m.2.addition-bis-100",
+  "text": "Welche Zahl gehört in die Lücke: 3 + __ = 7?"
+}
+```
+
+Request `{ kind: 'answer_assessment', hintLevel: 'understand_task' }`, child answered 41:
+
+```json
+{
+  "version": 1,
+  "kind": "answer_assessment",
+  "hintLevel": "understand_task",
+  "result": "not_yet",
+  "text": "Die Zehner stimmen schon. Schau dir die Einer noch einmal an."
+}
+```
+
+Request `{ kind: 'comprehension_question', hintLevel: 'understand_task' }`:
+
+```json
+{
+  "version": 1,
+  "kind": "comprehension_question",
+  "hintLevel": "understand_task",
+  "text": "Warum hast du hier addiert und nicht subtrahiert?"
+}
+```
+
+### Invalid
+
+| Output (abridged)                                                     | Rejected with                                               |
+| --------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `{ "version": 1, "kind": "solution", … }`                             | `kind: unknown_kind`                                        |
+| `{ … "kind": "praise", … }` (a hint was requested)                    | `kind: unexpected_kind`                                     |
+| `{ … "hintLevel": "similar_example", … }` (`next_step` was requested) | `hintLevel: unexpected_hint_level`                          |
+| `{ … "hintLevel": 3, … }`                                             | `hintLevel: invalid_hint_level`                             |
+| `{ …, "answer": "47" }`                                               | `answer: unknown_field`                                     |
+| `{ …, "nextHintLevel": "similar_example" }`                           | `nextHintLevel: unknown_field` (the AI never decides state) |
+| `{ "version": 2, … }`                                                 | `version: unsupported_version`                              |
+| `[{ … }]`                                                             | `$: not_an_object`                                          |
+| `"text": "Schau auf www.mathe-loesungen.de nach."`                    | `text: contains_url`                                        |
+| `"text": "<b>Denk nach!</b>"`                                         | `text: contains_markup`                                     |
+| ``"text": "Tipp: `20 + 20`"``                                         | `text: contains_code`                                       |
+| `"text": ""`                                                          | `text: text_empty`                                          |
+| `"result": "solved"` on an assessment                                 | `result: invalid_assessment_result`                         |
+| `"result": "correct"` on a hint                                       | `result: unknown_field`                                     |
+
+### Leaking the solution
+
+These outputs are valid by shape, so this contract accepts them. The solution-leak guard (#31) must reject them with `guidance.ai_output.solution_leaked`, because only it knows the task and its solution.
+
+| Output text                                                     | Why it leaks                                   |
+| --------------------------------------------------------------- | ---------------------------------------------- |
+| `Das Ergebnis ist 47.`                                          | the final numeric result                       |
+| `20 + 20 = 40, 3 + 4 = 7, also 47.`                             | a fully worked solution of the same problem    |
+| `Fast! Richtig wäre 47.` (an assessment with `result: not_yet`) | an assessment that reveals the expected answer |
+| `Schreib: Tom hat 47 Murmeln.`                                  | a complete answer sentence for a text task     |
+
+A hint at `similar_example` uses a different problem (for example 34 + 13) and does not leak, as long as it never computes the child's own task.
+
+## Changing the contract
+
+1. Change the types and checks in `src/modules/guidance/domain/ai-output/` and their tests.
+2. A breaking change (a removed or renamed field, kind, hint level or code) bumps `AI_OUTPUT_CONTRACT_VERSION`. The prompt and the provider adapter (#10) must change in the same pull request.
+3. Update this document, including the examples.
