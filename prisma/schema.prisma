@@ -1,1 +1,31 @@
 // use prisma-8
+
+enum AuditSeverity {
+  INFO
+  WARN
+}
+
+enum AuditActorKind {
+  MEMBER
+  VISITOR
+  SYSTEM
+}
+
+/// Append-only security trail of the audit module: one row per event a module's policy keeps.
+/// Rows hold ids, counts and codes only, never credentials or personal data.
+model AuditEntry {
+  id         String         @id @onCreate(uuid())
+  tenantId   String
+  source     String
+  type       String
+  severity   AuditSeverity
+  actorKind  AuditActorKind
+  actorId    String?
+  details    Json
+  occurredAt DateTime       @default(now())
+
+  @@index([tenantId, occurredAt])
+  @@index([tenantId, source, type, occurredAt])
+  @@index([tenantId, actorId, occurredAt])
+  @@index([occurredAt])
+}

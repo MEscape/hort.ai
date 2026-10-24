@@ -1,0 +1,50 @@
+/**
+ * Server-side public API of the auth module. Other modules and framework
+ * entry points import from here and nowhere deeper. Browser consumers use client.ts.
+ *
+ * Responsibilities: who is signed in (a parent), and whether that parent may do what a use case
+ * asks. Parent account details and child profiles belong to other modules; they only receive the
+ * authorization service and the ids and scopes below.
+ */
+
+export type { ActorId, TenantId } from './domain/models/ids';
+export { PERMISSIONS } from './domain/models/permission';
+export type { Permission } from './domain/models/permission';
+export type { ResourceScope } from './domain/models/authorize';
+export type { Actor } from './domain/models/actor';
+export { actorHasPermission } from './domain/models/authorize';
+
+/** Authorization: every protected use case of every module receives this. */
+export type { AuthorizationError, AuthorizationService } from './application/authorization-service';
+export { getAccessControl, getAuthQueries, isAuthEnabled } from './composition';
+
+/**
+ * The use cases a sign-in, sign-up, sign-out or password-reset screen calls, with the inputs and
+ * error codes it needs. Server Actions in `presentation/actions` call them.
+ *
+ * @keep Public integration contract for server-side consumers.
+ */
+export { getAuthCommands } from './composition';
+export type { RequestPasswordResetError } from './application/commands/request-password-reset';
+export type { ResetPasswordError } from './application/commands/reset-password';
+export type { SignInError } from './application/commands/sign-in';
+export type { SignUpError } from './application/commands/sign-up';
+export {
+  AUTH_ERROR_CODES,
+  AUTH_LINK_LIFETIME_SECONDS,
+  AUTH_VALIDATION_CODES,
+  CREDENTIAL_LIMITS,
+  EMAIL_PATTERN,
+} from './application/contracts/auth-constraints';
+export type { AuthCode } from './application/contracts/auth-constraints';
+export type {
+  PasswordResetInput,
+  PasswordResetRequestInput,
+  SignInInput,
+  SignUpInput,
+} from './application/contracts/auth-inputs';
+export type { ActorView, Role } from './application/contracts/auth-views';
+
+/** Framework entry points: the auth Route Handler (emailed links) and the addresses the interface serves. */
+export { authRouteHandlers } from './composition';
+export { authRoutes } from './presentation/routes';
