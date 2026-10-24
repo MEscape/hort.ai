@@ -2,6 +2,8 @@
 
 This repository is **HortAi**, built with Next.js App Router, TypeScript, PostgreSQL, Prisma, and Better Auth. Read `README.md` to understand the current project purpose, architecture, setup instructions, and supported workflows. Do not infer product requirements from generic examples in these instructions.
 
+Read [`docs/product/vision.md`](docs/product/vision.md) for the agreed product requirements: a homework companion that never solves the child's task, with no own exercise offering or gamification. For learning, companion or channel work, also read [`docs/product/flows.md`](docs/product/flows.md); its concept proposals are not a final architecture. Galleries, mockups and personal context files cannot override the shared product requirements.
+
 ## Required Documentation
 
 Read and follow the relevant repository documentation before making changes.
@@ -80,6 +82,7 @@ Use the scripts defined in `package.json`. Do not assume scripts exist unless th
   - ESLint
   - Prettier formatting checks
   - i18n catalog tests
+  - Dead-code checks
   - Integration tests
   - Coverage tests
   - Architecture and ESLint tests

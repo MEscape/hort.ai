@@ -17,6 +17,14 @@ The objective is to provide a consistent, evidence-based process for determining
 
 The system prioritizes meaningful verification over superficial checklists, test counts, and the number of findings produced.
 
+## Shared product context for every review
+
+Read the [product vision](../product/vision.md) before selecting acceptance criteria. For learning, companion and channel behavior, also read the [concept overview](../product/flows.md) and respect its requirement, proposal and undecided labels. Review instructions, mockups and component galleries cannot reintroduce own exercises, learning paths or gamification.
+
+For relevant changes, verify that help never reveals the child's solution, AI output cannot directly change state, text and voice meet the same safety requirements, and parent and teacher access stays scoped. Check resuming sessions and deduplicated learning evidence where affected. Praise requires evidence; teacher summaries must not expose raw transcripts or rank children.
+
+Do not require an event-sourced data model, a particular AI processing chain or an implementation of deferred features. Distinguish the intended product from what is actually implemented and verified. The MVP profile, storage behavior and deferred scope are defined in the vision, not inferred from example diagrams.
+
 ---
 
 ## Table of Contents
