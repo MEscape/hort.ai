@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
+import { ASSIGNMENTS_VALIDATION_CODES } from '@modules/assignments/application/contracts/assignment-constraints';
 import de from '@modules/assignments/presentation/i18n/de.json';
 import en from '@modules/assignments/presentation/i18n/en.json';
 import {
   MESSAGE_KEY_BY_CODE,
   messageKeyForCode,
 } from '@modules/assignments/presentation/messages/message-keys';
-import { ASSIGNMENT_VALIDATION_CODES } from '@modules/assignments/presentation/schemas/assignment-draft-schema';
 
 import { getPath } from '@lib/utils';
 
 describe('assignment validation messages', () => {
   it('maps every validation code to actual English and German messages', () => {
-    const codes = Object.values(ASSIGNMENT_VALIDATION_CODES);
+    const codes = Object.values(ASSIGNMENTS_VALIDATION_CODES);
     expect(Object.keys(MESSAGE_KEY_BY_CODE).sort()).toEqual([...codes].sort());
     for (const code of codes) {
       for (const catalog of [en, de]) {

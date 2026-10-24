@@ -3,9 +3,9 @@ import type { MessageCatalog } from '@i18n';
 import { fieldPath } from '@lib/errors';
 import type { NestedKeyOf } from '@lib/errors';
 
-import { ASSIGNMENT_VALIDATION_CODES as VALIDATION } from '../schemas/assignment-draft-schema';
+import { ASSIGNMENTS_VALIDATION_CODES as VALIDATION } from '../../application/contracts/assignment-constraints';
 
-import type { AssignmentCode } from '../schemas/assignment-draft-schema';
+import type { AssignmentCode } from '../../application/contracts/assignment-constraints';
 
 type ValidKeys = NestedKeyOf<MessageCatalog['assignments']>;
 

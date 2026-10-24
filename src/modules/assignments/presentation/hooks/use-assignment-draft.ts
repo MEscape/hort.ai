@@ -5,13 +5,13 @@ import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useFormState } from 'react-hook-form';
 
+import { useBeforeUnloadGuard } from '@hooks/use-before-unload-guard';
+
 import { useTranslations } from '@i18n/client';
 
 import { toChildAssignmentView } from '../dto/child-assignment-dto';
 import { messageKeyForCode } from '../messages/message-keys';
 import { assignmentDraftSchema } from '../schemas/assignment-draft-schema';
-
-import { useBeforeUnloadGuard } from './use-before-unload-guard';
 
 import type { ChildAssignmentView } from '../dto/child-assignment-dto';
 import type { AssignmentDraft } from '../schemas/assignment-draft-schema';
