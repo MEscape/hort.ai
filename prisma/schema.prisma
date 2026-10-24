@@ -401,15 +401,3 @@ model ComprehensionQuestion {
   @@check(expression: sql`"replyText" IS NULL OR char_length("replyText") BETWEEN 1 AND 1000`, name: "ComprehensionQuestion_reply_rule")
   @@check(expression: sql`("replyText" IS NULL) = ("repliedAt" IS NULL)`, name: "ComprehensionQuestion_replied_rule")
 }
-
-/// The voice module's record of a parent's explicit, revocable consent that their child's recordings
-/// may be transcribed. One row per parent and tenant: revoking stamps `revokedAt`, granting again
-/// starts a new `grantedAt` and clears it. Holds ids and timestamps only.
-model VoiceConsent {
-  tenantId  String
-  parentId  String
-  grantedAt DateTime
-  revokedAt DateTime?
-
-  @@id([tenantId, parentId])
-}

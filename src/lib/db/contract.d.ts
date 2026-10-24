@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'10a58591fdd6e8526ccac37c401c8315adaa5632a1c45952707515f7da5d82ea'>;
+  StorageHashBase<'fc105dec9ca1656b4d8cacd0524fa429234a3214a4bdb3ec70fafbbcc1d98622'>;
 export type ExecutionHash =
   ExecutionHashBase<'c34472bff7c2b7010a1a9feb8891bd65a47095469dac87679d33d2107642809b'>;
 export type ProfileHash =
@@ -900,13 +900,6 @@ export namespace Models {
     sections: public_MaterialSection[];
     readonly [RelationKeys]?: 'classroom' | 'sections';
   };
-  export type public_VoiceConsent = {
-    grantedAt: FieldOutputTypes['public']['VoiceConsent']['grantedAt'];
-    parentId: FieldOutputTypes['public']['VoiceConsent']['parentId'];
-    revokedAt: FieldOutputTypes['public']['VoiceConsent']['revokedAt'];
-    tenantId: FieldOutputTypes['public']['VoiceConsent']['tenantId'];
-    readonly [RelationKeys]?: never;
-  };
 }
 
 export declare const models: {
@@ -925,7 +918,6 @@ export declare const models: {
     HintEvent: Models.public_HintEvent;
     MaterialSection: Models.public_MaterialSection;
     TeacherMaterial: Models.public_TeacherMaterial;
-    VoiceConsent: Models.public_VoiceConsent;
   };
 };
 
@@ -2193,38 +2185,6 @@ type ContractBase = Omit<
                 },
               ];
             };
-            readonly VoiceConsent: {
-              columns: {
-                readonly grantedAt: {
-                  readonly dataType: 'pg/timestamptz';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                  readonly nullable: false;
-                  readonly many: false;
-                };
-                readonly parentId: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly many: false;
-                };
-                readonly revokedAt: {
-                  readonly dataType: 'pg/timestamptz';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                  readonly nullable: true;
-                  readonly many: false;
-                };
-                readonly tenantId: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly many: false;
-                };
-              };
-              primaryKey: { readonly columns: readonly ['tenantId', 'parentId'] };
-              uniques: readonly [];
-              indexes: readonly [];
-              foreignKeys: readonly [];
-            };
           };
           readonly valueSet: {
             readonly AssessmentResult: {
@@ -2353,10 +2313,6 @@ type ContractBase = Omit<
     readonly TeacherMaterial: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'TeacherMaterial';
-    };
-    readonly VoiceConsent: {
-      readonly namespace: 'public' & NamespaceId;
-      readonly model: 'VoiceConsent';
     };
   };
   readonly domain: {
@@ -3514,43 +3470,6 @@ type ContractBase = Omit<
                 readonly tenantId: { readonly column: 'tenantId' };
                 readonly title: { readonly column: 'title' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
-              };
-            };
-          };
-          readonly VoiceConsent: {
-            readonly fields: {
-              readonly grantedAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                };
-              };
-              readonly parentId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly revokedAt: {
-                readonly nullable: true;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                };
-              };
-              readonly tenantId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-            };
-            readonly relations: Record<string, never>;
-            readonly storage: {
-              readonly table: 'VoiceConsent';
-              readonly namespaceId: 'public';
-              readonly fields: {
-                readonly grantedAt: { readonly column: 'grantedAt' };
-                readonly parentId: { readonly column: 'parentId' };
-                readonly revokedAt: { readonly column: 'revokedAt' };
-                readonly tenantId: { readonly column: 'tenantId' };
               };
             };
           };
