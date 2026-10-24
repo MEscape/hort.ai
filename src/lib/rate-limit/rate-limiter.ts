@@ -12,7 +12,7 @@ export interface RateLimitRequest {
 /** What an allowed attempt looks like. */
 export interface RateLimitAllowance {
   readonly limit: number;
-  /** Attempts left in this window, or `null` when the limiter could not count (see `degraded`). */
+  /** Attempts left in this window, or `null` when nothing was counted (`degraded`, or limiting is switched off). */
   readonly remaining: number | null;
   /** Seconds until the window restarts, or `null` when unknown. */
   readonly resetAfterSeconds: number | null;

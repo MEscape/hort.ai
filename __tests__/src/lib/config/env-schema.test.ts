@@ -67,6 +67,23 @@ describe('serverEnvSchema', () => {
     expect(problems({ ...development, AUTH_ENABLED: 'false' })).toEqual([]);
   });
 
+  it('needs no rate-limit settings while limiting is off, and refuses that in production', () => {
+    const off = {
+      ...development,
+      RATE_LIMIT_ENABLED: 'false',
+      UPSTASH_REDIS_REST_URL: undefined,
+      UPSTASH_REDIS_REST_TOKEN: undefined,
+      RATE_LIMIT_SECRET: undefined,
+      AUTH_ENABLED: 'false',
+      AUTH_SECRET: undefined,
+    };
+
+    expect(problems(off)).toEqual([]);
+    expect(problems({ ...production, RATE_LIMIT_ENABLED: 'false' })).toEqual([
+      'RATE_LIMIT_ENABLED: RATE_LIMIT_ENABLED=false is not allowed when NODE_ENV=production.',
+    ]);
+  });
+
   it('requires a real mail provider in production', () => {
     expect(problems({ ...production, MAIL_PROVIDER: 'none' })).toEqual([
       'MAIL_PROVIDER: MAIL_PROVIDER must be "smtp" or "resend" in production: sign-in sends e-mail.',
