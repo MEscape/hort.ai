@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'b4c24533b3b5199288e9d082d4afd19bed5e5d6520273577cb784a15c6051594'>;
+  StorageHashBase<'6099aa947d35bd4c5a55c52faf7686b47fd7060ba0c4a1be4d267431ee38bfee'>;
 export type ExecutionHash =
   ExecutionHashBase<'c34472bff7c2b7010a1a9feb8891bd65a47095469dac87679d33d2107642809b'>;
 export type ProfileHash =
@@ -255,10 +255,6 @@ type FieldTypeOverrides = {
         readonly severity: { readonly output: 'INFO' | 'WARN'; readonly input: 'INFO' | 'WARN' };
       };
       readonly ChildProfile: {
-        readonly companion: {
-          readonly output: 'MAX' | 'LILI' | 'FINA';
-          readonly input: 'MAX' | 'LILI' | 'FINA';
-        };
         readonly federalState: {
           readonly output:
             | 'BW'
@@ -294,6 +290,34 @@ type FieldTypeOverrides = {
             | 'ST'
             | 'SH'
             | 'TH';
+        };
+        readonly interests: {
+          readonly output:
+            | 'nature'
+            | 'animals'
+            | 'science'
+            | 'art'
+            | 'music'
+            | 'sports'
+            | 'technology'
+            | 'stories'
+            | 'puzzles'
+            | 'history';
+          readonly input:
+            | 'nature'
+            | 'animals'
+            | 'science'
+            | 'art'
+            | 'music'
+            | 'sports'
+            | 'technology'
+            | 'stories'
+            | 'puzzles'
+            | 'history';
+        };
+        readonly setupStep: {
+          readonly output: 'child' | 'interests' | 'tutor' | 'controls' | 'review' | 'done';
+          readonly input: 'child' | 'interests' | 'tutor' | 'controls' | 'review' | 'done';
         };
       };
       readonly Classroom: {
@@ -486,10 +510,6 @@ type ColumnTypeOverrides = {
       readonly severity: { readonly output: 'INFO' | 'WARN'; readonly input: 'INFO' | 'WARN' };
     };
     readonly ChildProfile: {
-      readonly companion: {
-        readonly output: 'MAX' | 'LILI' | 'FINA';
-        readonly input: 'MAX' | 'LILI' | 'FINA';
-      };
       readonly federalState: {
         readonly output:
           | 'BW'
@@ -525,6 +545,34 @@ type ColumnTypeOverrides = {
           | 'ST'
           | 'SH'
           | 'TH';
+      };
+      readonly interests: {
+        readonly output:
+          | 'nature'
+          | 'animals'
+          | 'science'
+          | 'art'
+          | 'music'
+          | 'sports'
+          | 'technology'
+          | 'stories'
+          | 'puzzles'
+          | 'history';
+        readonly input:
+          | 'nature'
+          | 'animals'
+          | 'science'
+          | 'art'
+          | 'music'
+          | 'sports'
+          | 'technology'
+          | 'stories'
+          | 'puzzles'
+          | 'history';
+      };
+      readonly setupStep: {
+        readonly output: 'child' | 'interests' | 'tutor' | 'controls' | 'review' | 'done';
+        readonly input: 'child' | 'interests' | 'tutor' | 'controls' | 'review' | 'done';
       };
     };
     readonly Classroom: {
@@ -752,15 +800,23 @@ export namespace Models {
     readonly [RelationKeys]?: 'assessment' | 'session';
   };
   export type public_ChildProfile = {
-    companion: FieldOutputTypes['public']['ChildProfile']['companion'];
+    allowedFromMinute: FieldOutputTypes['public']['ChildProfile']['allowedFromMinute'];
+    allowedUntilMinute: FieldOutputTypes['public']['ChildProfile']['allowedUntilMinute'];
     createdAt: FieldOutputTypes['public']['ChildProfile']['createdAt'];
+    dailyLimitMinutes: FieldOutputTypes['public']['ChildProfile']['dailyLimitMinutes'];
     displayName: FieldOutputTypes['public']['ChildProfile']['displayName'];
     federalState: FieldOutputTypes['public']['ChildProfile']['federalState'];
     grade: FieldOutputTypes['public']['ChildProfile']['grade'];
+    guardianConfirmedAt: FieldOutputTypes['public']['ChildProfile']['guardianConfirmedAt'];
+    guardianConsentVersion: FieldOutputTypes['public']['ChildProfile']['guardianConsentVersion'];
     id: FieldOutputTypes['public']['ChildProfile']['id'];
+    interests: FieldOutputTypes['public']['ChildProfile']['interests'];
+    learningInsights: FieldOutputTypes['public']['ChildProfile']['learningInsights'];
     ownerId: FieldOutputTypes['public']['ChildProfile']['ownerId'];
+    setupCompletedAt: FieldOutputTypes['public']['ChildProfile']['setupCompletedAt'];
+    setupStep: FieldOutputTypes['public']['ChildProfile']['setupStep'];
     tenantId: FieldOutputTypes['public']['ChildProfile']['tenantId'];
-    updatedAt: FieldOutputTypes['public']['ChildProfile']['updatedAt'];
+    tutorId: FieldOutputTypes['public']['ChildProfile']['tutorId'];
     voiceConsent: FieldOutputTypes['public']['ChildProfile']['voiceConsent'];
     helpSessions: public_HelpSession[];
     membership: public_ClassMembership | null;
@@ -1286,9 +1342,15 @@ type ContractBase = Omit<
             };
             readonly ChildProfile: {
               columns: {
-                readonly companion: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
+                readonly allowedFromMinute: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly allowedUntilMinute: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
                   readonly nullable: true;
                   readonly many: false;
                 };
@@ -1297,6 +1359,12 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-temporal@1';
                   readonly nullable: false;
                   readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly dailyLimitMinutes: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly displayName: {
@@ -1317,10 +1385,42 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
+                readonly guardianConfirmedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly guardianConsentVersion: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
                 readonly id: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly interests: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', readonly []>;
+                  };
+                  readonly many: { readonly elementNullable: false };
+                };
+                readonly learningInsights: {
+                  readonly dataType: 'pg/bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
+                  };
                   readonly many: false;
                 };
                 readonly ownerId: {
@@ -1329,17 +1429,32 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
+                readonly setupCompletedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly setupStep: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'child'>;
+                  };
+                  readonly many: false;
+                };
                 readonly tenantId: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
-                readonly updatedAt: {
-                  readonly dataType: 'pg/timestamptz';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                readonly tutorId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly voiceConsent: {
@@ -1356,6 +1471,13 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
               indexes: readonly [
+                {
+                  readonly name: 'ChildProfile_one_unfinished_per_owner_15ad2a20';
+                  readonly prefix: 'ChildProfile_one_unfinished_per_owner';
+                  readonly columns: readonly ['tenantId', 'ownerId'];
+                  readonly where: '("setupCompletedAt" IS NULL)';
+                  readonly unique: true;
+                },
                 {
                   readonly name: 'ChildProfile_tenantId_ownerId_createdAt_idx_6658b794';
                   readonly prefix: 'ChildProfile_tenantId_ownerId_createdAt_idx';
@@ -2207,10 +2329,6 @@ type ContractBase = Omit<
               readonly kind: 'valueSet';
               readonly values: readonly ['ACTIVE', 'ARCHIVED'];
             };
-            readonly Companion: {
-              readonly kind: 'valueSet';
-              readonly values: readonly ['MAX', 'LILI', 'FINA'];
-            };
             readonly FederalState: {
               readonly kind: 'valueSet';
               readonly values: readonly [
@@ -2245,6 +2363,21 @@ type ContractBase = Omit<
                 'SIMILAR_EXAMPLE',
               ];
             };
+            readonly Interest: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'nature',
+                'animals',
+                'science',
+                'art',
+                'music',
+                'sports',
+                'technology',
+                'stories',
+                'puzzles',
+                'history',
+              ];
+            };
             readonly MaterialContentType: {
               readonly kind: 'valueSet';
               readonly values: readonly ['PDF', 'TEXT'];
@@ -2252,6 +2385,17 @@ type ContractBase = Omit<
             readonly MaterialStatus: {
               readonly kind: 'valueSet';
               readonly values: readonly ['UPLOADED', 'PROCESSED', 'FAILED', 'DELETED'];
+            };
+            readonly SetupStep: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'child',
+                'interests',
+                'tutor',
+                'controls',
+                'review',
+                'done',
+              ];
             };
             readonly Subject: {
               readonly kind: 'valueSet';
@@ -2613,9 +2757,13 @@ type ContractBase = Omit<
           };
           readonly ChildProfile: {
             readonly fields: {
-              readonly companion: {
+              readonly allowedFromMinute: {
                 readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly allowedUntilMinute: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
               readonly createdAt: {
                 readonly nullable: false;
@@ -2623,6 +2771,10 @@ type ContractBase = Omit<
                   readonly kind: 'scalar';
                   readonly codecId: 'pg/timestamptz-temporal@1';
                 };
+              };
+              readonly dailyLimitMinutes: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
               readonly displayName: {
                 readonly nullable: false;
@@ -2636,11 +2788,42 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
+              readonly guardianConfirmedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly guardianConsentVersion: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly interests: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+                readonly many: { readonly elementNullable: false };
+              };
+              readonly learningInsights: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
               readonly ownerId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly setupCompletedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly setupStep: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
@@ -2648,12 +2831,9 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
-              readonly updatedAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                };
+              readonly tutorId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly voiceConsent: {
                 readonly nullable: false;
@@ -2689,15 +2869,23 @@ type ContractBase = Omit<
               readonly table: 'ChildProfile';
               readonly namespaceId: 'public';
               readonly fields: {
-                readonly companion: { readonly column: 'companion' };
+                readonly allowedFromMinute: { readonly column: 'allowedFromMinute' };
+                readonly allowedUntilMinute: { readonly column: 'allowedUntilMinute' };
                 readonly createdAt: { readonly column: 'createdAt' };
+                readonly dailyLimitMinutes: { readonly column: 'dailyLimitMinutes' };
                 readonly displayName: { readonly column: 'displayName' };
                 readonly federalState: { readonly column: 'federalState' };
                 readonly grade: { readonly column: 'grade' };
+                readonly guardianConfirmedAt: { readonly column: 'guardianConfirmedAt' };
+                readonly guardianConsentVersion: { readonly column: 'guardianConsentVersion' };
                 readonly id: { readonly column: 'id' };
+                readonly interests: { readonly column: 'interests' };
+                readonly learningInsights: { readonly column: 'learningInsights' };
                 readonly ownerId: { readonly column: 'ownerId' };
+                readonly setupCompletedAt: { readonly column: 'setupCompletedAt' };
+                readonly setupStep: { readonly column: 'setupStep' };
                 readonly tenantId: { readonly column: 'tenantId' };
-                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly tutorId: { readonly column: 'tutorId' };
                 readonly voiceConsent: { readonly column: 'voiceConsent' };
               };
             };
@@ -3509,14 +3697,6 @@ type ContractBase = Omit<
               { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
             ];
           };
-          readonly Companion: {
-            readonly codecId: 'pg/text@1';
-            readonly members: readonly [
-              { readonly name: 'MAX'; readonly value: 'MAX' },
-              { readonly name: 'LILI'; readonly value: 'LILI' },
-              { readonly name: 'FINA'; readonly value: 'FINA' },
-            ];
-          };
           readonly FederalState: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -3558,6 +3738,21 @@ type ContractBase = Omit<
               { readonly name: 'SIMILAR_EXAMPLE'; readonly value: 'SIMILAR_EXAMPLE' },
             ];
           };
+          readonly Interest: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'nature'; readonly value: 'nature' },
+              { readonly name: 'animals'; readonly value: 'animals' },
+              { readonly name: 'science'; readonly value: 'science' },
+              { readonly name: 'art'; readonly value: 'art' },
+              { readonly name: 'music'; readonly value: 'music' },
+              { readonly name: 'sports'; readonly value: 'sports' },
+              { readonly name: 'technology'; readonly value: 'technology' },
+              { readonly name: 'stories'; readonly value: 'stories' },
+              { readonly name: 'puzzles'; readonly value: 'puzzles' },
+              { readonly name: 'history'; readonly value: 'history' },
+            ];
+          };
           readonly MaterialContentType: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -3572,6 +3767,17 @@ type ContractBase = Omit<
               { readonly name: 'PROCESSED'; readonly value: 'PROCESSED' },
               { readonly name: 'FAILED'; readonly value: 'FAILED' },
               { readonly name: 'DELETED'; readonly value: 'DELETED' },
+            ];
+          };
+          readonly SetupStep: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'child'; readonly value: 'child' },
+              { readonly name: 'interests'; readonly value: 'interests' },
+              { readonly name: 'tutor'; readonly value: 'tutor' },
+              { readonly name: 'controls'; readonly value: 'controls' },
+              { readonly name: 'review'; readonly value: 'review' },
+              { readonly name: 'done'; readonly value: 'done' },
             ];
           };
           readonly Subject: {
@@ -3602,11 +3808,6 @@ type ContractBase = Omit<
           readonly ClassroomStatus: readonly [
             { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
             { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
-          ];
-          readonly Companion: readonly [
-            { readonly name: 'MAX'; readonly value: 'MAX' },
-            { readonly name: 'LILI'; readonly value: 'LILI' },
-            { readonly name: 'FINA'; readonly value: 'FINA' },
           ];
           readonly FederalState: readonly [
             { readonly name: 'BW'; readonly value: 'BW' },
@@ -3640,6 +3841,18 @@ type ContractBase = Omit<
             { readonly name: 'NEXT_STEP'; readonly value: 'NEXT_STEP' },
             { readonly name: 'SIMILAR_EXAMPLE'; readonly value: 'SIMILAR_EXAMPLE' },
           ];
+          readonly Interest: readonly [
+            { readonly name: 'nature'; readonly value: 'nature' },
+            { readonly name: 'animals'; readonly value: 'animals' },
+            { readonly name: 'science'; readonly value: 'science' },
+            { readonly name: 'art'; readonly value: 'art' },
+            { readonly name: 'music'; readonly value: 'music' },
+            { readonly name: 'sports'; readonly value: 'sports' },
+            { readonly name: 'technology'; readonly value: 'technology' },
+            { readonly name: 'stories'; readonly value: 'stories' },
+            { readonly name: 'puzzles'; readonly value: 'puzzles' },
+            { readonly name: 'history'; readonly value: 'history' },
+          ];
           readonly MaterialContentType: readonly [
             { readonly name: 'PDF'; readonly value: 'PDF' },
             { readonly name: 'TEXT'; readonly value: 'TEXT' },
@@ -3649,6 +3862,14 @@ type ContractBase = Omit<
             { readonly name: 'PROCESSED'; readonly value: 'PROCESSED' },
             { readonly name: 'FAILED'; readonly value: 'FAILED' },
             { readonly name: 'DELETED'; readonly value: 'DELETED' },
+          ];
+          readonly SetupStep: readonly [
+            { readonly name: 'child'; readonly value: 'child' },
+            { readonly name: 'interests'; readonly value: 'interests' },
+            { readonly name: 'tutor'; readonly value: 'tutor' },
+            { readonly name: 'controls'; readonly value: 'controls' },
+            { readonly name: 'review'; readonly value: 'review' },
+            { readonly name: 'done'; readonly value: 'done' },
           ];
           readonly Subject: readonly [
             { readonly name: 'MATH'; readonly value: 'MATH' },

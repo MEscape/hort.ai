@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { tutorCatalog, tutorCatalogSchema, tutorImageKey } from '@modules/tutors';
+import { tutorCatalog, tutorCatalogSchema, tutorImageKey, tutorIntroKey } from '@modules/tutors';
 
 describe('tutor catalog', () => {
   it('parses the shipped tutors.json', () => {
@@ -18,6 +18,10 @@ describe('tutor catalog', () => {
   it('maps a tutor picture to its storage key', () => {
     expect(tutorImageKey('max', 'mund_zu')).toBe('tutors/max/mund-zu.svg');
     expect(tutorImageKey('max', 'mund_auf')).toBe('tutors/max/mund-auf.svg');
+  });
+
+  it('maps a tutor introduction to its storage key', () => {
+    expect(tutorIntroKey('lili')).toBe('tutors/lili/vorstellung.mp3');
   });
 
   it('rejects duplicate ids', () => {

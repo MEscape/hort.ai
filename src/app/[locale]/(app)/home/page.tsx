@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 
 import { AuthFormSkeleton, AuthShell, isAuthEnabled, requireSignedIn } from '@modules/auth';
 import { SignOutButton } from '@modules/auth/client';
+import { ResetOnboardingButton, isDevResetAvailable, requireOnboarded } from '@modules/learner';
 
 import { Hort } from '@components/brand/hort';
 import { I18nProvider } from '@components/providers/i18n-provider';
@@ -25,6 +26,7 @@ export async function generateMetadata({
 
 async function ParentHome() {
   await requireSignedIn('/home');
+  await requireOnboarded();
   const t = await getTranslations('app');
   return (
     <Card>
@@ -35,6 +37,7 @@ async function ParentHome() {
       <CardContent>
         <p className="text-center text-copy-muted">{t('home.description')}</p>
         {isAuthEnabled && <SignOutButton />}
+        {isDevResetAvailable() && <ResetOnboardingButton />}
       </CardContent>
     </Card>
   );
@@ -47,7 +50,7 @@ export default async function HomePage({
 }) {
   const locale = requireLocale((await params).locale);
   return (
-    <I18nProvider locale={locale} namespaces={['auth']}>
+    <I18nProvider locale={locale} namespaces={['auth', 'learner']}>
       <AuthShell>
         <Suspense fallback={<AuthFormSkeleton />}>
           <ParentHome />
