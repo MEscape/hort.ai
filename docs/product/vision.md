@@ -1,6 +1,6 @@
 # Product vision
 
-This document is the source of truth for what Hort.ai is. Issues, milestones and design reviews follow it. It replaces the earlier learning-path idea (learning paths, XP, streaks and interactive learning scenes), which is no longer part of the product.
+This document is the source of truth for what Hort.ai is. Issues, milestones and design reviews follow it. The [concept overview](flows.md) illustrates the intended experience; it is not binding and cannot add requirements. Engineering rules in [`docs/rules/`](../rules/README.md) take precedence over `AI_RULES.md`. It replaces the earlier learning-path idea (learning paths, XP, streaks and interactive learning scenes), which is no longer part of the product.
 
 ## What Hort.ai is
 
@@ -12,11 +12,11 @@ Hort.ai is not an exercise app. It does not offer its own exercises, lessons or 
 
 ## Who it is for
 
-| Role    | What they do                                                                                                                                |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Child   | Primary school, grades 1 to 4, in any German federal state. Talks to Hort.ai by text and, preferably, by voice while working on a task.     |
-| Parent  | Creates the child's profile (interests, companion, controls), links it to a class, and sees a short summary of where the child needed help. |
-| Teacher | Creates a class and invites children with a code. May upload curriculum material and may post work assignments for the class.               |
+| Role    | What they do                                                                                                                                                                                 |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Child   | Primary school, grades 1 to 4, in any German federal state. Talks to Hort.ai by text and, preferably, by voice while working on a task.                                                      |
+| Parent  | Creates the child's profile (interests, companion, controls), links it to a class, and sees a short summary of where the child needed help.                                                  |
+| Teacher | Creates a class and invites children with a code. May upload curriculum material and may post work assignments for the class. Sees aggregates for their own classes only, never transcripts. |
 
 ## How a help session works
 
@@ -27,11 +27,21 @@ Hort.ai is not an exercise app. It does not offer its own exercises, lessons or 
 5. Good work gets specific praise. Hort.ai then asks comprehension questions to make sure the child really understood it.
 6. The session is saved, so the child can continue later.
 
+When a teacher solution key exists, the backend checks the answer against it deterministically. Otherwise an AI assessment is only a proposal that the backend validates; it never decides on its own.
+
 ## Curriculum and teachers
 
 - The AI is grounded in the real curriculum (Lehrplan) of the child's federal state and grade. The backend ingests the official curriculum documents and passes the relevant competencies to the AI as data.
 - Teachers may upload their own material, which is used as additional grounding for their class.
 - Teachers may post work assignments. These are always written by the teacher. Hort.ai never generates exercises or assignments, and the AI never writes or changes them. An optional solution key is used only by the backend and is never shown to the child.
+
+## Companions
+
+The child chooses one predefined companion: Max the dog, Lili the rabbit or Fina the dragon. Each combines appearance, personality and voice. The companion changes tone and wording only, never correctness, hint policy or safety rules.
+
+## Learning events
+
+The MVP records deduplicated learning events (competencies, attempts, hint levels, comprehension checks, completion) for the parent summary and the teacher view. Teachers see aggregates for their class only, never transcripts. Logs never contain raw child input or conversation content.
 
 ## Principles
 
@@ -49,3 +59,10 @@ Hort.ai is not an exercise app. It does not offer its own exercises, lessons or 
 - XP, streaks, rewards, leaderboards and grading.
 - Photo or worksheet recognition (after the MVP).
 - School administration integrations, Alexa, a full subject library.
+
+## After the MVP
+
+- Interests and learning goals set by parents.
+- A parent switch that turns storage off.
+- Automatic recognition of emotions such as frustration.
+- Several children sharing one device.
