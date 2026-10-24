@@ -18,6 +18,15 @@ concurrency:
   group: security-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# Reviewed, time-boxed advisory exceptions shared by npm audit and dependency review.
+# GHSA-86w9-cpqp-85rv: node-forge <= 1.4.0, no patched release. Pulled in only by the official ASK SDK
+# verifier (ask-sdk-express-adapter) for the Alexa certificate-chain check; the certificate URL is pinned to
+# Amazon's S3 path and the request signature itself is checked with node:crypto. Decision B S 2026-10-24,
+# see alexa/README.md ("Known security exception"). Both jobs fail again after the expiry date.
+env:
+  ALLOWED_GHSAS: GHSA-86w9-cpqp-85rv
+  ALLOWED_GHSAS_EXPIRE: "2027-01-24"
+
 jobs:
   # ----------------------------------------------------------------------------
   # 1. NPM Audit (Production Dependencies)
@@ -33,7 +42,23 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - run: npm audit --omit=dev --audit-level=high
+      - name: Audit production dependencies (high and above, minus reviewed exceptions)
+        run: |
+          npm audit --omit=dev --json > audit.json || true
+          node -e '
+            const fs = require("node:fs");
+            const allowed = new Set(process.env.ALLOWED_GHSAS.split(/[\s,]+/).filter(Boolean));
+            const expired = new Date() > new Date(process.env.ALLOWED_GHSAS_EXPIRE + "T23:59:59Z");
+            const report = JSON.parse(fs.readFileSync("audit.json", "utf8"));
+            if (report.error) { console.error(report.error); process.exit(1); }
+            const advisories = Object.values(report.vulnerabilities ?? {})
+              .flatMap((v) => v.via.filter((via) => typeof via === "object"))
+              .filter((a) => a.severity === "high" || a.severity === "critical");
+            const blocking = advisories.filter((a) => expired || !allowed.has(a.url.split("/").pop()));
+            for (const a of advisories) console.log(`${blocking.includes(a) ? "BLOCKING" : "allowed "} ${a.severity} ${a.name} ${a.url}`);
+            if (expired) console.error(`::error::Advisory exceptions expired on ${process.env.ALLOWED_GHSAS_EXPIRE}; review them.`);
+            process.exit(blocking.length > 0 ? 1 : 0);
+          '
 
   # ----------------------------------------------------------------------------
   # 2. PR Dependency Diff Review (Blocks Newly Introduced Vulnerable Packages)
@@ -48,10 +73,18 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Fail once the advisory exceptions have expired
+        run: |
+          if [[ "$(date -u +%F)" > "$ALLOWED_GHSAS_EXPIRE" ]]; then
+            echo "::error::Advisory exceptions expired on $ALLOWED_GHSAS_EXPIRE; review them."
+            exit 1
+          fi
+
       - name: Check dependency diff for vulnerabilities
         uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
         with:
           fail-on-severity: high
+          allow-ghsas: ${{ env.ALLOWED_GHSAS }}
 
   # ----------------------------------------------------------------------------
   # 3. Secret Scanning (Gitleaks)

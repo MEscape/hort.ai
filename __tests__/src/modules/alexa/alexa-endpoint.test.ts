@@ -1,29 +1,43 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type {
+  TutorConversation,
+  TutorTurn,
+} from '@modules/alexa/application/contracts/tutor-conversation-model';
 import { verifyAlexaRequest } from '@modules/alexa/infrastructure/ask-sdk/ask-request-verifier';
-import { CONNECTION_TEST_SENTENCE, createConnectionTest } from '@modules/alexa/presentation/routes';
+import {
+  CONNECTION_TEST_SENTENCE,
+  connectionTestTutor,
+} from '@modules/alexa/infrastructure/connection-test/connection-test-tutor';
+import { createAlexaEndpoint } from '@modules/alexa/presentation/routes';
 
-import { unauthorizedError } from '@lib/errors';
+import { infrastructureError, unauthorizedError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 
 const SKILL_ID = 'amzn1.ask.skill.00000000-0000-0000-0000-000000000000';
 const OTHER_SKILL_ID = 'amzn1.ask.skill.11111111-1111-1111-1111-111111111111';
-const TEST_SENTENCE = 'ahoi aura ai wäre auch gut gewesen';
+const TEST_SENTENCE = 'Lennart wann holen wir uns draußen Suppe';
+const SESSION_ID = 'amzn1.echo-api.session.test';
 
-function envelope(
-  type: string,
-  options: { skillId?: string; intent?: string; timestamp?: string } = {},
-) {
+interface EnvelopeOptions {
+  skillId?: string;
+  intent?: string;
+  slots?: Record<string, { value?: string }>;
+  timestamp?: string;
+}
+
+function envelope(type: string, options: EnvelopeOptions = {}) {
   const skillId = options.skillId ?? SKILL_ID;
   return JSON.stringify({
     version: '1.0',
     context: { System: { application: { applicationId: skillId } } },
-    session: { application: { applicationId: skillId } },
+    session: { sessionId: SESSION_ID, application: { applicationId: skillId } },
     request: {
       type,
+      requestId: 'amzn1.echo-api.request.test',
       timestamp: options.timestamp ?? new Date().toISOString(),
       locale: 'de-DE',
-      ...(options.intent ? { intent: { name: options.intent } } : {}),
+      ...(options.intent ? { intent: { name: options.intent, slots: options.slots } } : {}),
     },
   });
 }
@@ -38,8 +52,23 @@ function post(body: string, headers: Record<string, string> = {}) {
 
 const acceptAll = () => okAsync(undefined);
 
-describe('Alexa connection test handler', () => {
-  const handle = createConnectionTest({ skillId: SKILL_ID, verify: acceptAll });
+function recordingTutor(conversation: 'open' | 'closed' = 'open') {
+  const turns: TutorTurn[] = [];
+  const tutor: TutorConversation = {
+    respond: (turn) => {
+      turns.push(turn);
+      return okAsync({ speech: `Echo: ${turn.utterance ?? 'start'}`, conversation });
+    },
+  };
+  return { tutor, turns };
+}
+
+describe('Alexa endpoint with the connection-test stub', () => {
+  const handle = createAlexaEndpoint({
+    skillId: SKILL_ID,
+    verify: acceptAll,
+    tutor: connectionTestTutor,
+  });
 
   it('answers a LaunchRequest with the exact test sentence in the standard voice', async () => {
     expect(CONNECTION_TEST_SENTENCE).toBe(TEST_SENTENCE);
@@ -56,7 +85,7 @@ describe('Alexa connection test handler', () => {
     });
   });
 
-  it.each(['AMAZON.StopIntent', 'AMAZON.CancelIntent'])(
+  it.each(['AMAZON.StopIntent', 'AMAZON.CancelIntent', 'AMAZON.NavigateHomeIntent'])(
     'ends the session briefly on %s',
     async (intent) => {
       const response = await handle(post(envelope('IntentRequest', { intent })));
@@ -68,13 +97,14 @@ describe('Alexa connection test handler', () => {
     },
   );
 
-  it('gives a minimal spoken answer to AMAZON.HelpIntent', async () => {
+  it('gives a spoken help prompt and keeps listening on AMAZON.HelpIntent', async () => {
     const response = await handle(post(envelope('IntentRequest', { intent: 'AMAZON.HelpIntent' })));
     const body = await response.json();
 
     expect(response.status).toBe(200);
     expect(body.response.outputSpeech.type).toBe('PlainText');
-    expect(body.response.shouldEndSession).toBe(true);
+    expect(body.response.reprompt.outputSpeech.type).toBe('PlainText');
+    expect(body.response.shouldEndSession).toBe(false);
   });
 
   it('acknowledges SessionEndedRequest without speech', async () => {
@@ -105,15 +135,20 @@ describe('Alexa connection test handler', () => {
   });
 
   it('is disabled (503) while no skill id is configured', async () => {
-    const unconfigured = createConnectionTest({ skillId: undefined, verify: acceptAll });
+    const unconfigured = createAlexaEndpoint({
+      skillId: undefined,
+      verify: acceptAll,
+      tutor: connectionTestTutor,
+    });
 
     expect((await unconfigured(post(envelope('LaunchRequest')))).status).toBe(503);
   });
 
   it('rejects the request when signature verification fails', async () => {
-    const rejecting = createConnectionTest({
+    const rejecting = createAlexaEndpoint({
       skillId: SKILL_ID,
       verify: () => errAsync(unauthorizedError('alexa.request_rejected', 'bad signature')),
+      tutor: connectionTestTutor,
     });
 
     const response = await rejecting(post(envelope('LaunchRequest')));
@@ -124,7 +159,7 @@ describe('Alexa connection test handler', () => {
 
   it('rejects non-JSON content types before verification', async () => {
     const verify = vi.fn(acceptAll);
-    const guarded = createConnectionTest({ skillId: SKILL_ID, verify });
+    const guarded = createAlexaEndpoint({ skillId: SKILL_ID, verify, tutor: connectionTestTutor });
 
     const response = await guarded(
       new Request('https://hort.example/api/alexa', { method: 'POST', body: 'x' }),
@@ -138,6 +173,82 @@ describe('Alexa connection test handler', () => {
     const response = await handle(post('x'.repeat(25 * 1024)));
 
     expect(response.status).toBe(413);
+  });
+});
+
+describe('Alexa endpoint as a channel onto the tutor port', () => {
+  it('opens the conversation without words and keeps listening when the tutor asks', async () => {
+    const { tutor, turns } = recordingTutor('open');
+    const handle = createAlexaEndpoint({ skillId: SKILL_ID, verify: acceptAll, tutor });
+
+    const body = await (await handle(post(envelope('LaunchRequest')))).json();
+
+    expect(turns).toEqual([{ conversationId: SESSION_ID, utterance: null, locale: 'de-DE' }]);
+    expect(body.response).toEqual({
+      outputSpeech: { type: 'PlainText', text: 'Echo: start' },
+      reprompt: { outputSpeech: { type: 'PlainText', text: 'Echo: start' } },
+      shouldEndSession: false,
+    });
+  });
+
+  it('passes the free text of the child to the tutor', async () => {
+    const { tutor, turns } = recordingTutor('closed');
+    const handle = createAlexaEndpoint({ skillId: SKILL_ID, verify: acceptAll, tutor });
+
+    const response = await handle(
+      post(
+        envelope('IntentRequest', {
+          intent: 'FreieEingabeIntent',
+          slots: { eingabe: { value: '  neun  ' } },
+        }),
+      ),
+    );
+    const body = await response.json();
+
+    expect(turns).toEqual([{ conversationId: SESSION_ID, utterance: 'neun', locale: 'de-DE' }]);
+    expect(body.response.outputSpeech.text).toBe('Echo: neun');
+    expect(body.response.shouldEndSession).toBe(true);
+  });
+
+  it.each([
+    ['AMAZON.FallbackIntent', undefined],
+    ['FreieEingabeIntent', {}],
+    ['FreieEingabeIntent', { eingabe: { value: '   ' } }],
+  ])('asks again without calling the tutor for %s with %j', async (intent, slots) => {
+    const { tutor, turns } = recordingTutor();
+    const handle = createAlexaEndpoint({ skillId: SKILL_ID, verify: acceptAll, tutor });
+
+    const body = await (
+      await handle(post(envelope('IntentRequest', { intent, ...(slots ? { slots } : {}) })))
+    ).json();
+
+    expect(turns).toEqual([]);
+    expect(body.response.shouldEndSession).toBe(false);
+  });
+
+  it('rejects a request whose session id cannot name a conversation', async () => {
+    const { tutor, turns } = recordingTutor();
+    const handle = createAlexaEndpoint({ skillId: SKILL_ID, verify: acceptAll, tutor });
+    const body = envelope('LaunchRequest').replace(SESSION_ID, '');
+
+    const response = await handle(post(body));
+
+    expect(response.status).toBe(400);
+    expect(turns).toEqual([]);
+  });
+
+  it('apologises and ends the session when the tutor fails', async () => {
+    const failing: TutorConversation = {
+      respond: () => errAsync(infrastructureError('tutor.unavailable', 'down')),
+    };
+    const handle = createAlexaEndpoint({ skillId: SKILL_ID, verify: acceptAll, tutor: failing });
+
+    const response = await handle(post(envelope('LaunchRequest')));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.response.outputSpeech.type).toBe('PlainText');
+    expect(body.response.shouldEndSession).toBe(true);
   });
 });
 
