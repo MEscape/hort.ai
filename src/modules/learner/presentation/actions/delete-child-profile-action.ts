@@ -10,6 +10,7 @@ import { learnerRoutes } from '../routes';
 import { deleteChildProfileSchema } from '../schemas/delete-child-profile-schema';
 import { parseLearnerInput } from '../schemas/parse-learner-input';
 
+/** @keep Server Action for the parent child-profile screens; the UI lands with the parent dashboard (#12). */
 export async function deleteChildProfileAction(input: unknown): Promise<ActionResult<void>> {
   const result = await parseLearnerInput(deleteChildProfileSchema, input).asyncAndThen((command) =>
     learnerCommands.deleteChildProfile.execute(command),
