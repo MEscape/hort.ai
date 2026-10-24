@@ -370,10 +370,12 @@
                 "nullable": false,
                 "on": {
                   "localFields": [
-                    "answerId"
+                    "answerId",
+                    "sessionId"
                   ],
                   "targetFields": [
-                    "id"
+                    "id",
+                    "sessionId"
                   ]
                 },
                 "to": {
@@ -726,10 +728,12 @@
                 "nullable": true,
                 "on": {
                   "localFields": [
-                    "id"
+                    "id",
+                    "sessionId"
                   ],
                   "targetFields": [
-                    "answerId"
+                    "answerId",
+                    "sessionId"
                   ]
                 },
                 "to": {
@@ -2318,20 +2322,23 @@
                 {
                   "index": {
                     "unique": [
-                      "answerId"
+                      "answerId",
+                      "sessionId"
                     ]
                   },
                   "onDelete": "cascade",
                   "source": {
                     "columns": [
-                      "answerId"
+                      "answerId",
+                      "sessionId"
                     ],
                     "namespaceId": "public",
                     "tableName": "AnswerAssessment"
                   },
                   "target": {
                     "columns": [
-                      "id"
+                      "id",
+                      "sessionId"
                     ],
                     "namespaceId": "public",
                     "tableName": "ChildAnswer"
@@ -2363,6 +2370,12 @@
                   "columns": [
                     "sessionId",
                     "idempotencyKey"
+                  ]
+                },
+                {
+                  "columns": [
+                    "answerId",
+                    "sessionId"
                   ]
                 }
               ]
@@ -2727,6 +2740,12 @@
                   "columns": [
                     "sessionId",
                     "idempotencyKey"
+                  ]
+                },
+                {
+                  "columns": [
+                    "id",
+                    "sessionId"
                   ]
                 }
               ]
@@ -4239,7 +4258,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "fc105dec9ca1656b4d8cacd0524fa429234a3214a4bdb3ec70fafbbcc1d98622"
+    "storageHash": "b4c24533b3b5199288e9d082d4afd19bed5e5d6520273577cb784a15c6051594"
   },
   "execution": {
     "executionHash": "c34472bff7c2b7010a1a9feb8891bd65a47095469dac87679d33d2107642809b",

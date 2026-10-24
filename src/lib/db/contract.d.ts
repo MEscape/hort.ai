@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'fc105dec9ca1656b4d8cacd0524fa429234a3214a4bdb3ec70fafbbcc1d98622'>;
+  StorageHashBase<'b4c24533b3b5199288e9d082d4afd19bed5e5d6520273577cb784a15c6051594'>;
 export type ExecutionHash =
   ExecutionHashBase<'c34472bff7c2b7010a1a9feb8891bd65a47095469dac87679d33d2107642809b'>;
 export type ProfileHash =
@@ -989,6 +989,7 @@ type ContractBase = Omit<
               uniques: readonly [
                 { readonly columns: readonly ['answerId'] },
                 { readonly columns: readonly ['sessionId', 'idempotencyKey'] },
+                { readonly columns: readonly ['answerId', 'sessionId'] },
               ];
               indexes: readonly [
                 {
@@ -1015,12 +1016,12 @@ type ContractBase = Omit<
                   readonly source: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'AnswerAssessment';
-                    readonly columns: readonly ['answerId'];
+                    readonly columns: readonly ['answerId', 'sessionId'];
                   };
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'ChildAnswer';
-                    readonly columns: readonly ['id'];
+                    readonly columns: readonly ['id', 'sessionId'];
                   };
                 },
               ];
@@ -1250,7 +1251,10 @@ type ContractBase = Omit<
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['sessionId', 'idempotencyKey'] }];
+              uniques: readonly [
+                { readonly columns: readonly ['sessionId', 'idempotencyKey'] },
+                { readonly columns: readonly ['id', 'sessionId'] },
+              ];
               indexes: readonly [
                 {
                   readonly name: 'ChildAnswer_sessionId_idx_29f415d4';
@@ -2362,8 +2366,8 @@ type ContractBase = Omit<
                 readonly cardinality: 'N:1';
                 readonly nullable: false;
                 readonly on: {
-                  readonly localFields: readonly ['answerId'];
-                  readonly targetFields: readonly ['id'];
+                  readonly localFields: readonly ['answerId', 'sessionId'];
+                  readonly targetFields: readonly ['id', 'sessionId'];
                 };
               };
               readonly session: {
@@ -2578,8 +2582,8 @@ type ContractBase = Omit<
                 readonly cardinality: '1:1';
                 readonly nullable: true;
                 readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['answerId'];
+                  readonly localFields: readonly ['id', 'sessionId'];
+                  readonly targetFields: readonly ['answerId', 'sessionId'];
                 };
               };
               readonly session: {

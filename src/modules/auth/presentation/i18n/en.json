@@ -8,7 +8,7 @@
       },
       "title": "Welcome to the learning adventure!",
       "description": "Together we discover a world full of knowledge, fun and exciting tasks. First, create an account for yourself.",
-      "signUp": "Register as a parent",
+      "signUp": "Register",
       "haveAccount": "Already have an account?",
       "signIn": "Sign in"
     },
@@ -30,11 +30,11 @@
     },
     "signUp": {
       "metadata": {
-        "title": "Set up a parent account",
-        "description": "Create your parent account: it keeps settings, safety and progress for your child in one place."
+        "title": "Set up an account",
+        "description": "Create your account as a parent or a teacher."
       },
-      "title": "Set up your parent account",
-      "description": "With your account you manage the settings, safety and progress of your child.",
+      "title": "Set up your account",
+      "description": "As a parent you manage your child's settings and progress, as a teacher your classes and tasks.",
       "name": "What should we call you?",
       "nameHint": "We use it to greet you in our emails.",
       "role": "I am registering as",
