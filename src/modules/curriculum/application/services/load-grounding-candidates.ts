@@ -34,7 +34,11 @@ export function loadGroundingCandidates(
             .map((fallback) => ({ competencies: fallback, usedFallback: true })),
     );
   const material = query.classroomId
-    ? deps.teacherMaterial.listForClassroom(query.classroomId, MATERIAL_SECTIONS_MAX, query.childProfileId)
+    ? deps.teacherMaterial.listForClassroom(
+        query.classroomId,
+        MATERIAL_SECTIONS_MAX,
+        query.childProfileId,
+      )
     : okAsync([]);
 
   return official.andThen(({ competencies, usedFallback }) =>

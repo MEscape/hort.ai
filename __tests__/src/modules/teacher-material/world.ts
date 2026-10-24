@@ -16,7 +16,7 @@ export function world() {
   const rows: Material[] = [];
   const sections = new Map<
     string,
-    readonly { text: string; code: string; section: string; page: number | null }[]
+    ReadonlyArray<{ text: string; code: string; section: string; page: number | null }>
   >();
   const bytes = new TextEncoder().encode('- Zahlen bis 1000 vergleichen und ordnen.');
   const state = {
@@ -53,9 +53,7 @@ export function world() {
       },
       find: (id, ownerId, tenantId) =>
         okAsync(
-          rows.find(
-            (r) => r.id === id && r.ownerId === ownerId && r.tenantId === tenantId,
-          ) ?? null,
+          rows.find((r) => r.id === id && r.ownerId === ownerId && r.tenantId === tenantId) ?? null,
         ),
       list: (classroomId, scope) =>
         okAsync(
@@ -68,15 +66,20 @@ export function world() {
           ),
         ),
       process: (row, statements) => {
-        if (row.status !== 'UPLOADED') return okAsync(false);
+        if (row.status !== 'UPLOADED') {
+          return okAsync(false);
+        }
         sections.set(row.id, statements);
         row.status = 'PROCESSED';
         return okAsync(true);
       },
       retire: (row, status) => {
+        if (status === 'FAILED' && row.status !== 'UPLOADED') {
+          return okAsync(false);
+        }
         row.status = status;
         sections.delete(row.id);
-        return okAsync(undefined);
+        return okAsync(true);
       },
     },
     store: {

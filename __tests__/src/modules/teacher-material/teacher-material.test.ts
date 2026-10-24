@@ -1,14 +1,18 @@
 import { expect, it } from 'vitest';
 
-import { CompleteMaterialUpload } from '@modules/teacher-material/application/commands/complete-material-upload';
+import { toActorId } from '@modules/auth/domain/models/ids';
 import { BeginMaterialUpload } from '@modules/teacher-material/application/commands/begin-material-upload';
-
+import { CompleteMaterialUpload } from '@modules/teacher-material/application/commands/complete-material-upload';
 import { DeleteMaterial } from '@modules/teacher-material/application/commands/delete-material';
 import { GetMaterialReadUrl } from '@modules/teacher-material/application/queries/get-material-read-url';
 import { ListMaterials } from '@modules/teacher-material/application/queries/list-materials';
-import { toActorId } from '@modules/auth/domain/models/ids';
 
+import { validationError } from '@lib/errors';
+import { errAsync } from '@lib/result';
+
+import { createBrokenRateLimiter } from '../../support/rate-limiting';
 import { parent } from '../auth/fakes';
+
 import { world } from './world';
 
 it('persists an owned material before signing a private upload keyed by trusted IDs', async () => {
@@ -44,8 +48,9 @@ it('refuses upload, list, read, complete and delete for another teacher', async 
     await new GetMaterialReadUrl(w.deps).execute('material-1'),
     await new CompleteMaterialUpload(w.deps).execute('material-1'),
     await new DeleteMaterial(w.deps).execute('material-1'),
-  ])
+  ]) {
     expect(result.isErr()).toBe(true);
+  }
   expect(w.rows[0]?.status).toBe('UPLOADED');
   expect(w.deleted).toBe(false);
 });
@@ -96,9 +101,43 @@ it('fails and removes objects with forged MIME, binary signatures, or a mismatch
   }
 });
 
+it('does not remove a processed object when another completion fails concurrently', async () => {
+  const w = world();
+  await new BeginMaterialUpload(w.deps).execute(w.input);
+  w.deps.textReader.read = () => {
+    const row = w.rows[0];
+    if (row) {
+      row.status = 'PROCESSED';
+    }
+    return errAsync(validationError('test.invalid', 'Invalid', {}));
+  };
+  await new CompleteMaterialUpload(w.deps).execute('material-1');
+  expect(w.rows[0]?.status).toBe('PROCESSED');
+  expect(w.deleted).toBe(false);
+});
+
+it('bounds upload attempts per teacher and refuses a broken limiter', async () => {
+  const w = world();
+  const begin = new BeginMaterialUpload(w.deps);
+  for (let count = 0; count < 30; count++) {
+    expect((await begin.execute(w.input)).isOk()).toBe(true);
+  }
+  expect((await begin.execute(w.input))._unsafeUnwrapErr().kind).toBe('rate_limited');
+  const broken = world();
+  expect(
+    (
+      await new BeginMaterialUpload({
+        ...broken.deps,
+        rateLimiter: createBrokenRateLimiter(),
+      }).execute(broken.input)
+    )._unsafeUnwrapErr().kind,
+  ).toBe('infrastructure');
+  expect(broken.rows).toEqual([]);
+});
+
 it('accepts valid UTF-8 when the sniff boundary splits a multibyte character', async () => {
   const w = world();
-  w.bytes = new TextEncoder().encode('a'.repeat(511) + 'ä und Zahlen ordnen.');
+  w.bytes = new TextEncoder().encode(`${'a'.repeat(511)}ä und Zahlen ordnen.`);
   w.size = w.bytes.length;
   await new BeginMaterialUpload(w.deps).execute({ ...w.input, sizeBytes: w.size });
   expect((await new CompleteMaterialUpload(w.deps).execute('material-1')).isOk()).toBe(true);

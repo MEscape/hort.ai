@@ -37,7 +37,11 @@ export class CompleteMaterialUpload {
               .orElse((error) =>
                 materials
                   .retire(row, 'FAILED')
-                  .andThen(() => store.delete({ visibility: 'private', key: row.objectKey }))
+                  .andThen((changed) =>
+                    changed
+                      ? store.delete({ visibility: 'private', key: row.objectKey })
+                      : okAsync(undefined),
+                  )
                   .andThen(() => errAsync(error)),
               )
               .andThen((statements) => materials.process(row, statements))

@@ -3,8 +3,8 @@ import type { AuthorizationService } from '@modules/auth';
 import type { RateLimiter } from '@lib/rate-limit';
 import type { ObjectStore } from '@lib/storage';
 
+import type { MaterialAuditLog } from '../domain/ports/material-audit-log.port';
 import type {
-  MaterialAuditLog,
   MaterialClassrooms,
   MaterialIngest,
   MaterialTextReader,

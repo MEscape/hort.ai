@@ -5,7 +5,15 @@ import type { InfrastructureAppError } from '@lib/errors';
 import { fromThrowableAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
+import {
+  TEACHER_MATERIAL_METADATA_SELECT,
+  TEACHER_MATERIAL_SECTION_SELECT,
+  toTeacherMaterialStatements,
+} from './teacher-material-record-mapper';
+
 import type { TeacherMaterialStatement } from '../../domain/models/competency';
+import type { ClassroomId, ChildProfileId } from '../../domain/models/ids';
+import type { TeacherMaterialRepository } from '../../domain/ports/teacher-material.repository';
 
 const failures = createPersistenceFailures({
   module: 'curriculum.material',
@@ -18,10 +26,10 @@ const failures = createPersistenceFailures({
  * One SQL snapshot starts at the authorized ChildProfile (owner + tenant), through its current
  * membership. This prevents a stale membership check from reading another class's material.
  */
-export class PrismaTeacherMaterialRepository {
+export class PrismaTeacherMaterialRepository implements TeacherMaterialRepository {
   list(input: {
-    readonly classroomId: string;
-    readonly childProfileId: string;
+    readonly classroomId: ClassroomId;
+    readonly childProfileId: ChildProfileId;
     readonly tenantId: TenantId;
     readonly ownerId: ActorId;
     readonly limit: number;
@@ -45,12 +53,12 @@ export class PrismaTeacherMaterialRepository {
                 .include('materials', (material) =>
                   material
                     .where({ classroomId, tenantId, status: 'PROCESSED' })
-                    .select('id', 'title')
+                    .select(...TEACHER_MATERIAL_METADATA_SELECT)
                     .orderBy((row) => row.createdAt.desc())
                     .limit(limit)
                     .include('sections', (sections) =>
                       sections
-                        .select('code', 'text', 'section', 'page', 'position')
+                        .select(...TEACHER_MATERIAL_SECTION_SELECT)
                         .orderBy((row) => row.position.asc())
                         .limit(limit),
                     ),
@@ -59,16 +67,7 @@ export class PrismaTeacherMaterialRepository {
         )
         .first();
       return (child?.membership?.classroom?.materials ?? [])
-        .flatMap((material) =>
-          material.sections.map((section) => ({
-            code: section.code ?? `s-${section.position}`,
-            text: section.text,
-            section: section.section,
-            page: section.page,
-            materialId: material.id,
-            materialTitle: material.title,
-          })),
-        )
+        .flatMap(toTeacherMaterialStatements)
         .slice(0, limit);
     }, failures.infraOnly('list'));
   }

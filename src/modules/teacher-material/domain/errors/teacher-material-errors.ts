@@ -1,4 +1,4 @@
-import { notFoundError, validationError, FieldErrorBag } from '@lib/errors';
+import { notFoundError, validationError } from '@lib/errors';
 import type { NotFoundAppError, ValidationAppError } from '@lib/errors';
 
 /**
@@ -44,11 +44,6 @@ export function teacherMaterialValidationFailed(
     'The teacher material input is invalid.',
     fieldErrors,
   );
-}
-
-/** One place wires the bag to this module's error factory. */
-export function createTeacherMaterialErrorBag(): FieldErrorBag {
-  return new FieldErrorBag(teacherMaterialValidationFailed);
 }
 
 /** A validation failure on a single field. */

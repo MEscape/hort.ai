@@ -2,6 +2,7 @@ import { errAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
 import type { TeacherMaterialStatement } from '../../domain/models/competency';
+import type { ClassroomId, ChildProfileId } from '../../domain/models/ids';
 import type { TeacherMaterialSource } from '../../domain/ports/teacher-material.port';
 
 interface Dependencies {
@@ -9,9 +10,9 @@ interface Dependencies {
     execute(id: string): AppResultAsync<{ readonly classroomId: string } | null>;
   };
   readonly list: (
-    classroomId: string,
+    classroomId: ClassroomId,
     limit: number,
-    childProfileId: string,
+    childProfileId: ChildProfileId,
   ) => AppResultAsync<readonly TeacherMaterialStatement[]>;
 }
 

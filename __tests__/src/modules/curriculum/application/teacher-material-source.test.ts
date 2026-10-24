@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 
+import { toClassroomId, toChildProfileId } from '@modules/curriculum/domain/models/ids';
 import { ClassroomTeacherMaterialSource } from '@modules/curriculum/infrastructure/teacher-material/classroom-teacher-material-source';
-import { toClassroomId } from '@modules/curriculum/domain/models/ids';
 
 import { okAsync } from '@lib/result';
 
@@ -23,8 +23,10 @@ it('requires the actual child membership; missing context or another class retur
   });
   const classroomId = toClassroomId('class-1');
   expect((await source.listForClassroom(classroomId, 10))._unsafeUnwrap()).toEqual([]);
-  expect((await source.listForClassroom(classroomId, 10, 'child-2'))._unsafeUnwrap()).toEqual([]);
-  expect((await source.listForClassroom(classroomId, 10, 'child-1'))._unsafeUnwrap()).toEqual([
-    statement,
-  ]);
+  expect(
+    (await source.listForClassroom(classroomId, 10, toChildProfileId('child-2')))._unsafeUnwrap(),
+  ).toEqual([]);
+  expect(
+    (await source.listForClassroom(classroomId, 10, toChildProfileId('child-1')))._unsafeUnwrap(),
+  ).toEqual([statement]);
 });

@@ -26,7 +26,9 @@ export class SignedMaterialTextReader implements MaterialTextReader {
             redirect: 'error',
             signal: AbortSignal.timeout(READ_TIMEOUT_MS),
           });
-          if (!response.ok || !response.body) {return err(readFailed());}
+          if (!response.ok || !response.body) {
+            return err(readFailed());
+          }
           const reader = response.body.getReader();
           const chunks: Uint8Array[] = [];
           let size = 0;
@@ -35,9 +37,13 @@ export class SignedMaterialTextReader implements MaterialTextReader {
             while (!done) {
               const part = await reader.read();
               done = part.done;
-              if (part.done) {continue;}
+              if (part.done) {
+                continue;
+              }
               size += part.value.length;
-              if (size > maxBytes) {return err(readFailed());}
+              if (size > maxBytes) {
+                return err(readFailed());
+              }
               chunks.push(part.value);
             }
           } finally {

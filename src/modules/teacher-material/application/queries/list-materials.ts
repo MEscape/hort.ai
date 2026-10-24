@@ -18,16 +18,14 @@ export class ListMaterials {
           this.deps.materials
             .list(room.id, { tenantId: actor.tenantId, ownerId: actor.id })
             .map((rows) =>
-              rows
-                .slice(0, MATERIAL_QUERY_LIMITS.list)
-                .map((row) => ({
-                  id: row.id,
-                  classroomId: row.classroomId,
-                  title: row.title,
-                  contentType: row.contentType,
-                  sizeBytes: row.sizeBytes,
-                  status: row.status,
-                })),
+              rows.slice(0, MATERIAL_QUERY_LIMITS.list).map((row) => ({
+                id: row.id,
+                classroomId: row.classroomId,
+                title: row.title,
+                contentType: row.contentType,
+                sizeBytes: row.sizeBytes,
+                status: row.status,
+              })),
             ),
         ),
     );

@@ -119,7 +119,7 @@ describe('FindRelevantCompetencies', () => {
         limit: 5,
       })
     )._unsafeUnwrap();
-    expect(listForClassroom).toHaveBeenCalledWith('class-1', expect.any(Number));
+    expect(listForClassroom).toHaveBeenCalledWith('class-1', expect.any(Number), undefined);
     expect(view.competencies.map((c) => c.origin)).toContain('teacher-material');
   });
 

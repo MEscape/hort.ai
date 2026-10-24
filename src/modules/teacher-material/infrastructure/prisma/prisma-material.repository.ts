@@ -20,6 +20,8 @@ export class PrismaMaterialRepository implements MaterialRepository {
       async () =>
         db.orm.public.TeacherMaterial.select(...MATERIAL_SELECT).create({
           ...row,
+          tenantId: row.tenantId,
+          ownerId: row.ownerId,
           contentType: 'TEXT',
         }),
       failures.infraOnly('create'),
@@ -38,7 +40,7 @@ export class PrismaMaterialRepository implements MaterialRepository {
     fromThrowableAsync(
       async () =>
         db.orm.public.TeacherMaterial.select(...MATERIAL_SELECT)
-          .where({ classroomId, ...scope })
+          .where({ classroomId, tenantId: scope.tenantId, ownerId: scope.ownerId })
           .where((row) => row.status.neq('DELETED'))
           .orderBy([(row) => row.createdAt.desc(), (row) => row.id.asc()])
           .limit(MATERIAL_LIST_LIMIT)
@@ -59,6 +61,7 @@ export class PrismaMaterialRepository implements MaterialRepository {
           if (changed === 0) {
             return false;
           }
+          // @owner-scope child The material CAS above locks and authorizes the parent by owner and tenant in this transaction.
           await tx.orm.public.MaterialSection.createAll(
             sections.map((section, position) => ({
               materialId: row.id,
@@ -87,9 +90,10 @@ export class PrismaMaterialRepository implements MaterialRepository {
             status === 'FAILED' ? scoped.where({ status: 'UPLOADED' }) : scoped
           ).updateAndCount({ status });
           if (changed > 0) {
-            // @owner-scope parent The owning material was locked/updated with owner and tenant in this transaction.
+            // @owner-scope child The owning material was locked/updated with owner and tenant in this transaction.
             await tx.orm.public.MaterialSection.where({ materialId: row.id }).deleteAndCount();
           }
+          return changed > 0;
         }),
       failures.infraOnly('retire'),
     );

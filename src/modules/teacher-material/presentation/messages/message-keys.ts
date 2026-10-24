@@ -39,6 +39,7 @@ function isTeacherMaterialCode(code: string): code is TeacherMaterialCode {
  * Codes from other modules (authorization, for instance) or from Zod's own
  * structural messages are unknown here and get the generic message.
  */
+/** @keep Dynamically loaded by the architecture catalog tests; browser integrations map stable action codes through this API. */
 export function messageKeyForCode(code: string): MessageKey {
   return isTeacherMaterialCode(code) ? MESSAGE_KEY_BY_CODE[code] : GENERIC_ERROR_MESSAGE_KEY;
 }

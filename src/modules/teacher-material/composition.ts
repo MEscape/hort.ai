@@ -4,7 +4,6 @@ import { randomUUID } from 'node:crypto';
 import { getAccessControl } from '@modules/auth';
 import { classroomQueries } from '@modules/classroom';
 
-import { createAuditLog } from '@lib/logger';
 import { getRateLimiter } from '@lib/rate-limit';
 import { errAsync } from '@lib/result';
 import type { ObjectStore } from '@lib/storage';
@@ -16,13 +15,13 @@ import { CompleteMaterialUpload } from './application/commands/complete-material
 import { DeleteMaterial } from './application/commands/delete-material';
 import { GetMaterialReadUrl } from './application/queries/get-material-read-url';
 import { ListMaterials } from './application/queries/list-materials';
+import { loggerMaterialAuditLog } from './infrastructure/audit/logger-material-audit-log';
 import { OwnedMaterialClassrooms } from './infrastructure/classroom/owned-material-classrooms';
 import { curriculumMaterialIngest } from './infrastructure/curriculum/curriculum-material-ingest';
 import { PrismaMaterialRepository } from './infrastructure/prisma/prisma-material.repository';
 import { SignedMaterialTextReader } from './infrastructure/storage/signed-material-text-reader';
 
 import type { MaterialDependencies } from './application/material-dependencies';
-import type { MaterialAuditLog } from './domain/ports/material-services.port';
 
 const unavailable = () => errAsync(storageVisibilityUnavailable('private'));
 const disabledStore: ObjectStore = {
@@ -34,11 +33,7 @@ const disabledStore: ObjectStore = {
   delete: unavailable,
   createReadUrl: unavailable,
 };
-const audit = createAuditLog<Parameters<MaterialAuditLog['record']>[0]>('teacher-material.audit', {
-  'material.upload_started': 'info',
-  'material.processed': 'info',
-  'material.deleted': 'info',
-});
+
 const store = getObjectStore() ?? disabledStore;
 const dependencies: MaterialDependencies = {
   authorization: getAccessControl(),
@@ -49,7 +44,7 @@ const dependencies: MaterialDependencies = {
   ingest: curriculumMaterialIngest,
   newId: randomUUID,
   rateLimiter: getRateLimiter(),
-  audit,
+  audit: loggerMaterialAuditLog,
 };
 /** Server-only upload lifecycle; no storage key or signed URL is persisted outside the request. */
 export const materialCommands = {

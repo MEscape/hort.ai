@@ -9,6 +9,8 @@ import { parseTeacherMaterialInput } from '../schemas/parse-teacher-material-inp
 
 /** @keep Teacher upload client integration; credentials returned once, never cached or logged. */
 export async function deleteMaterialAction(input: unknown): Promise<ActionResult<void>> {
-  const result = await parseTeacherMaterialInput(materialIdSchema, input).asyncAndThen(value => materialCommands.deleteMaterial.execute(value.id));
+  const result = await parseTeacherMaterialInput(materialIdSchema, input).asyncAndThen((value) =>
+    materialCommands.deleteMaterial.execute(value.id),
+  );
   return toActionResult(result);
 }

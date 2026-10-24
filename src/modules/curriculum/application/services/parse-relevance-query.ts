@@ -12,7 +12,7 @@ import {
   isCurriculumGrade,
   isCurriculumSubject,
 } from '../../domain/models/curriculum-scope';
-import { parseClassroomId } from '../../domain/models/ids';
+import { parseClassroomId, parseChildProfileId } from '../../domain/models/ids';
 import { toCleanLine } from '../../domain/parsing/untrusted-text';
 import {
   RELEVANT_COMPETENCIES_DEFAULT,
@@ -24,7 +24,7 @@ import type {
   CurriculumFederalState,
   CurriculumSubject,
 } from '../../domain/models/curriculum-scope';
-import type { ClassroomId } from '../../domain/models/ids';
+import type { ClassroomId, ChildProfileId } from '../../domain/models/ids';
 import type { RelevantCompetenciesRequest } from '../contracts/curriculum-inputs';
 
 export interface RelevanceQuery {
@@ -34,7 +34,7 @@ export interface RelevanceQuery {
   readonly task: string;
   readonly classroomId: ClassroomId | null;
   readonly limit: number;
-  readonly childProfileId?: string;
+  readonly childProfileId?: ChildProfileId;
 }
 
 const CODES = CURRICULUM_VALIDATION_CODES;
@@ -60,6 +60,12 @@ export function parseRelevanceQuery(
   if (classroomId.isErr()) {
     return err(classroomId.error);
   }
+  const childProfileId = request.childProfileId
+    ? parseChildProfileId(request.childProfileId)
+    : ok(undefined);
+  if (childProfileId.isErr()) {
+    return err(childProfileId.error);
+  }
   const requested =
     isDefined(request.limit) && Number.isInteger(request.limit)
       ? request.limit
@@ -70,7 +76,7 @@ export function parseRelevanceQuery(
     grade: request.grade,
     task: toCleanLine(Array.from(request.task).slice(0, TASK_TEXT_MAX).join('')),
     classroomId: classroomId.value,
-    ...(request.childProfileId ? { childProfileId: request.childProfileId } : {}),
+    ...(childProfileId.value ? { childProfileId: childProfileId.value } : {}),
     limit: clamp(requested, 1, RELEVANT_COMPETENCIES_MAX),
   });
 }

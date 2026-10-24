@@ -1,7 +1,7 @@
 import type { AppResultAsync } from '@lib/result';
 import type { ObjectLocation } from '@lib/storage';
 
-import type { ClassroomId, TeacherMaterialId } from '../models/ids';
+import type { ClassroomId } from '../models/ids';
 import type { MaterialStatement } from '../models/material';
 
 export interface MaterialClassrooms {
@@ -15,7 +15,4 @@ export interface MaterialTextReader {
 }
 export interface MaterialIngest {
   extract(text: string): readonly MaterialStatement[];
-}
-export interface MaterialAuditLog {
-  record(event: { readonly type: string; readonly materialId: TeacherMaterialId }): void;
 }

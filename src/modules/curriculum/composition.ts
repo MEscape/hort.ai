@@ -13,10 +13,7 @@ import { ClassroomTeacherMaterialSource } from './infrastructure/teacher-materia
 
 const materialRepository = new PrismaTeacherMaterialRepository();
 
-/**
- * The module's composition root. Teacher material (#29) is not wired yet: `noTeacherMaterialSource`
- * answers "no material" until #29 replaces it with an adapter over `MaterialSection`.
- */
+/** Public curriculum plus private material, re-authorized against the child's actual class. */
 const dependencies = {
   competencies: new PrismaCompetencyRepository(),
   teacherMaterial: new ClassroomTeacherMaterialSource({

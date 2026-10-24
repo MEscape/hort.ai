@@ -39,7 +39,7 @@ export function decodeMaterial(
   } catch {
     return err(invalidMaterial());
   }
-   
+
   if (
     // eslint-disable-next-line no-control-regex -- Binary magic is rejected, not interpreted as text.
     /[^\S\r\n]*^(?:%PDF-|PK\u0003\u0004|MZ|\x7fELF|GIF8|\x89PNG)/m.test(text) ||
