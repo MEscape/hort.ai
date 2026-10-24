@@ -25,5 +25,79 @@
   "password": {
     "toggle": "Show password",
     "capsLock": "Caps Lock is on."
+  },
+  "designSystem": {
+    "metaTitle": "Hort.ai design system",
+    "eyebrow": "A growing field guide · Edition 01",
+    "title": "Small hands. Big discoveries.",
+    "intro": "A playful, consistent visual language for exploring, thinking and trying again. This working gallery uses the project's real design tokens.",
+    "draft": "Working draft",
+    "note": "Design specimens, not production learning content. The final mascot and lesson contract are still open decisions.",
+    "colors": {
+      "title": "Our colors have jobs",
+      "description": "Purple leads. Teal reassures. Gold celebrates discoveries. Pink brings character. Color never carries feedback alone.",
+      "primary": "Twilight",
+      "secondary": "Lagoon",
+      "accent": "Glow",
+      "bloom": "Bloom",
+      "canvas": "Canvas"
+    },
+    "typography": {
+      "title": "Type with a smile",
+      "heading": "Every question is an adventure.",
+      "headingCaption": "Fredoka · characterful headings",
+      "body": "Clear, friendly words make each next step easy to understand.",
+      "bodyCaption": "Nunito · comfortable reading"
+    },
+    "buttons": {
+      "title": "Buttons you can almost feel",
+      "description": "One strong primary action per moment. A generous touch target, clear text and a visible pressed state.",
+      "primary": "Let's go",
+      "secondary": "Try again",
+      "accent": "Give me a hint",
+      "outline": "Go back",
+      "ghost": "Not now",
+      "disabled": "Coming soon",
+      "selected": "You pressed: {name}",
+      "initial": "Choose a button to try its response."
+    },
+    "cards": {
+      "title": "Three paths, one welcoming world",
+      "description": "These are non-clickable layout specimens. Real navigation cards must be links with meaningful destinations.",
+      "continue": "Continue learning",
+      "continueDescription": "Pick up right where you stopped.",
+      "new": "Learn something new",
+      "newDescription": "A fresh question is waiting.",
+      "explore": "Explore",
+      "exploreDescription": "Follow your curiosity."
+    },
+    "feedback": {
+      "title": "Feedback without fear",
+      "description": "Response language names the next step, not the child's worth. Incorrect answers never look like system errors.",
+      "successTitle": "You figured it out!",
+      "successBody": "Those three apples fit perfectly.",
+      "nudgeTitle": "Good thinking. One more try?",
+      "nudgeBody": "Let's count the apples together.",
+      "hintTitle": "Here's a little clue",
+      "hintBody": "Tap each apple once and watch the basket."
+    },
+    "lesson": {
+      "title": "A lesson should feel like play",
+      "description": "Try the little counting scene. It works with a mouse, touch, Enter and Space—dragging isn't required.",
+      "stageLabel": "Landscape learning stage · 16:10 reference",
+      "progress": "Step 1 of 3",
+      "taskTitle": "Let's count together!",
+      "prompt": "Can you put three apples in the basket?",
+      "tray": "Apples to move",
+      "basket": "Your basket",
+      "selectApple": "Put apple {number} in the basket",
+      "count": "{count} of 3 apples",
+      "reset": "Start again",
+      "guideName": "Companion sketch",
+      "guideText": "Tap an apple. I'll count with you!",
+      "completeTitle": "All three apples!",
+      "completeBody": "You counted them one by one. Nicely done!"
+    },
+    "footer": "Make the next interaction easy to understand, and make trying again feel safe."
   }
 }

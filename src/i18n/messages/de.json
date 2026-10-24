@@ -25,5 +25,79 @@
   "password": {
     "toggle": "Passwort anzeigen",
     "capsLock": "Die Feststelltaste ist aktiv."
+  },
+  "designSystem": {
+    "metaTitle": "Hort.ai Designsystem",
+    "eyebrow": "Unser wachsender Gestaltungsleitfaden · Ausgabe 01",
+    "title": "Kleine Hände. Große Entdeckungen.",
+    "intro": "Eine spielerische, einheitliche Designsprache zum Entdecken, Nachdenken und Weiterprobieren. Diese Galerie verwendet die echten Design-Tokens des Projekts.",
+    "draft": "Arbeitsentwurf",
+    "note": "Designbeispiele, noch keine fertigen Lerninhalte. Über die endgültige Figur und die Lektionsdaten wird noch entschieden.",
+    "colors": {
+      "title": "Jede Farbe hat eine Aufgabe",
+      "description": "Lila führt. Türkis beruhigt. Gold würdigt Entdeckungen. Pink verleiht Charakter. Farbe allein vermittelt nie eine Rückmeldung.",
+      "primary": "Twilight",
+      "secondary": "Lagoon",
+      "accent": "Glow",
+      "bloom": "Bloom",
+      "canvas": "Canvas"
+    },
+    "typography": {
+      "title": "Schrift, die Freude macht",
+      "heading": "Jede Frage ist ein Abenteuer.",
+      "headingCaption": "Fredoka · lebendige Überschriften",
+      "body": "Klare, freundliche Worte zeigen, wie es als Nächstes weitergeht.",
+      "bodyCaption": "Nunito · angenehm zu lesen"
+    },
+    "buttons": {
+      "title": "Knöpfe zum Anfassen",
+      "description": "Eine klare Hauptaktion pro Schritt. Große Tippflächen, kurze Texte und sichtbare Reaktionen.",
+      "primary": "Los geht's",
+      "secondary": "Noch mal versuchen",
+      "accent": "Gib mir einen Tipp",
+      "outline": "Zurück",
+      "ghost": "Nicht jetzt",
+      "disabled": "Bald verfügbar",
+      "selected": "Du hast gewählt: {name}",
+      "initial": "Probiere einen Knopf aus."
+    },
+    "cards": {
+      "title": "Drei Wege, eine einladende Welt",
+      "description": "Diese Karten zeigen nur das Layout. Echte Auswahlkarten müssen Links mit sinnvollem Ziel sein.",
+      "continue": "Weiterlernen",
+      "continueDescription": "Mach genau dort weiter, wo du warst.",
+      "new": "Etwas Neues lernen",
+      "newDescription": "Eine neue Frage wartet auf dich.",
+      "explore": "Entdecken",
+      "exploreDescription": "Folge deiner Neugier."
+    },
+    "feedback": {
+      "title": "Rückmeldung ohne Angst",
+      "description": "Die Rückmeldung zeigt den nächsten Schritt, ohne das Kind zu bewerten. Ein falscher Versuch ist kein Systemfehler.",
+      "successTitle": "Du hast es herausgefunden!",
+      "successBody": "Die drei Äpfel passen genau hinein.",
+      "nudgeTitle": "Gut überlegt. Noch ein Versuch?",
+      "nudgeBody": "Lass uns die Äpfel zusammen zählen.",
+      "hintTitle": "Hier ist ein kleiner Tipp",
+      "hintBody": "Tippe jeden Apfel einmal an und schau in den Korb."
+    },
+    "lesson": {
+      "title": "Lernen soll sich wie Spielen anfühlen",
+      "description": "Probiere die kleine Zählaufgabe aus. Sie funktioniert mit Maus, Touch, Eingabetaste und Leertaste – ganz ohne Ziehen.",
+      "stageLabel": "Lernbühne im Querformat · 16:10 als Vorlage",
+      "progress": "Schritt 1 von 3",
+      "taskTitle": "Wir zählen zusammen!",
+      "prompt": "Kannst du drei Äpfel in den Korb legen?",
+      "tray": "Äpfel zum Einsammeln",
+      "basket": "Dein Korb",
+      "selectApple": "Apfel {number} in den Korb legen",
+      "count": "{count} von 3 Äpfeln",
+      "reset": "Neu anfangen",
+      "guideName": "Begleiter-Skizze",
+      "guideText": "Tippe auf einen Apfel. Ich zähle mit dir!",
+      "completeTitle": "Alle drei Äpfel!",
+      "completeBody": "Du hast sie einzeln gezählt. Toll gemacht!"
+    },
+    "footer": "Der nächste Schritt soll klar sein – und ein neuer Versuch immer willkommen."
   }
 }
