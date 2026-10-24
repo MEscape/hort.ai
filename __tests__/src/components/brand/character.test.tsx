@@ -79,6 +79,21 @@ describe('Character', () => {
     expect(screen.getByRole('img', { name: 'Max' })).toBeVisible();
   });
 
+  it('lays the open-mouth picture over the closed one when they are framed differently', () => {
+    render(
+      <Character
+        imageUrl={CLOSED}
+        openImageUrl={OPEN}
+        openAlignment={{ scaleX: 0.9, scaleY: 0.8, x: 0.05, y: -0.02 }}
+        alt="Max"
+      />,
+    );
+    expect(openMouth()).toHaveStyle({
+      transform: 'translate(5%, -2%) scale(0.9, 0.8)',
+      transformOrigin: '0 0',
+    });
+  });
+
   it('shows a calm paw instead of a broken picture when the picture is missing', () => {
     render(<Character imageUrl={CLOSED} alt="Max" />);
     fireEvent.error(screen.getByRole('img', { name: 'Max' }));

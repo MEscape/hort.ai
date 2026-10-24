@@ -8,14 +8,31 @@ import { useLipSync } from '@hooks/use-lip-sync';
 
 import { cn } from '@lib/utils';
 
+const PERCENT = 100;
+
 /** Nothing changes after hydration; the store only tells the server render from the browser's. */
 const subscribeNever = () => () => undefined;
+
+/**
+ * How to lay the open-mouth picture exactly over the closed one when the two were exported with
+ * different framing: a scale and a shift, as fractions of the picture's own square box. Without it
+ * the swap between the pictures makes the character jump. The proper fix is to export both pictures
+ * on the same canvas, then this is not needed.
+ */
+export interface MouthAlignment {
+  readonly scaleX: number;
+  readonly scaleY: number;
+  readonly x: number;
+  readonly y: number;
+}
 
 export interface CharacterProps {
   /** The closed-mouth picture (the one shown at rest). */
   readonly imageUrl: string;
   /** The open-mouth picture; without it the character cannot lip-sync and stays closed. */
   readonly openImageUrl?: string | undefined;
+  /** Lays the open-mouth picture over the closed one when they are framed differently. */
+  readonly openAlignment?: MouthAlignment | undefined;
   /** True while the character speaks: the mouth then alternates between the two pictures. */
   readonly isSpeaking?: boolean;
   /** The picture's alternative text; `""` when a name next to it already says who it is. */
@@ -38,6 +55,7 @@ export interface CharacterProps {
 export function Character({
   imageUrl,
   openImageUrl,
+  openAlignment,
   isSpeaking = false,
   alt,
   className,
@@ -79,6 +97,14 @@ export function Character({
                 'absolute inset-0 size-full object-contain',
                 isMouthOpen ? 'opacity-100' : 'opacity-0',
               )}
+              style={
+                openAlignment === undefined
+                  ? undefined
+                  : {
+                      transformOrigin: '0 0',
+                      transform: `translate(${openAlignment.x * PERCENT}%, ${openAlignment.y * PERCENT}%) scale(${openAlignment.scaleX}, ${openAlignment.scaleY})`,
+                    }
+              }
             />
           )}
         </>

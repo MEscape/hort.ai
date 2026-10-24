@@ -62,6 +62,7 @@ export function TutorFigure({ tutor, isSelected, isSpeaking, fits, radioProps }:
             <Character
               imageUrl={tutor.imageUrl}
               openImageUrl={isSelected ? tutor.imageOpenUrl : undefined}
+              openAlignment={tutor.openAlignment}
               isSpeaking={isSelected && isSpeaking}
               alt=""
               className="size-20 sm:size-36"
