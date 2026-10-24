@@ -28,8 +28,8 @@ export interface AuthorizedChildProfile {
  *     nothing about which ids exist.
  *  2. Look the child profile up by (id, actor.tenantId): another tenant's id is
  *     simply "not found".
- *  3. `requireOnResource` against the STORED tenant, the backstop should a
- *     repository ever return a foreign record.
+ *  3. `requireOnResource` against the STORED tenant and owner: another parent's profile is
+ *     refused (`auth.permission_denied`), and a foreign tenant's record is the backstop.
  */
 export function loadAuthorizedChildProfile(
   deps: LearnerDependencies,

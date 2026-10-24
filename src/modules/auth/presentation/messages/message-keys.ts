@@ -45,6 +45,7 @@ export const MESSAGE_KEY_BY_CODE = {
   [VALIDATION.passwordMismatch]: fieldPath('validation', 'passwordMismatch'),
   [VALIDATION.nameRequired]: fieldPath('validation', 'nameRequired'),
   [VALIDATION.nameTooLong]: fieldPath('validation', 'nameTooLong'),
+  [VALIDATION.roleInvalid]: fieldPath('validation', 'roleInvalid'),
   [VALIDATION.tokenInvalid]: fieldPath('validation', 'tokenInvalid'),
   [VALIDATION.tenantInvalid]: fieldPath('validation', 'tenantInvalid'),
 } as const satisfies Record<AuthCode, ValidKeys>;
