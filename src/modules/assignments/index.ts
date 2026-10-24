@@ -1,4 +1,6 @@
-/** Presentation-only assignment preview. No authentication or persistence capabilities are exposed. */
+/** Teacher storage is reached only through authorized use cases; preview components remain UI-only. */
+/** @keep Server integration contract for the assignment posting workflow (#33). */
+export { assignmentsQueries } from './composition';
 export { AssignmentWorkspace } from './presentation/components/assignment-workspace';
 export { ChildAssignmentPreview } from './presentation/components/child-assignment-preview';
 export type { ChildAssignmentView } from './presentation/dto/child-assignment-dto';

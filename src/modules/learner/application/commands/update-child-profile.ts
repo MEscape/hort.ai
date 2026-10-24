@@ -28,7 +28,7 @@ export class UpdateChildProfile {
                 return okAsync(childProfile);
               }
               return childProfiles
-                .update(childProfile.id, actor.tenantId, changes)
+                .update(childProfile.id, { tenantId: actor.tenantId, ownerId: actor.id }, changes)
                 .map((updated) => {
                   audit.record({
                     type: 'child_profile.updated',
