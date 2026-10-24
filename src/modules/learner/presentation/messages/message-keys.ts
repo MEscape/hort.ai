@@ -22,6 +22,7 @@ export const MESSAGE_KEY_BY_CODE = {
   [ERRORS.notFound]: fieldPath('errors', 'notFound'),
   [ERRORS.alreadyOnboarded]: fieldPath('errors', 'alreadyOnboarded'),
   [ERRORS.setupIncomplete]: fieldPath('errors', 'setupIncomplete'),
+  [ERRORS.devResetUnavailable]: fieldPath('errors', 'devResetUnavailable'),
   [ERRORS.validationFailed]: fieldPath('errors', 'validation'),
   [ERRORS.persistenceFailed]: fieldPath('errors', 'infrastructure'),
   [VALIDATION.idInvalid]: fieldPath('errors', 'unexpected'),

@@ -328,6 +328,31 @@ describe.skipIf(!isEnabled)('PrismaChildProfileRepository against Postgres', () 
     ).toEqual([]);
   });
 
+  it('deletes all of the owner’s profiles, finished or not, and nothing of anyone else', async () => {
+    const owner = freshOwner();
+    const other = { tenantId: owner.tenantId, ownerId: toActorId('parent-2') };
+    const elsewhere = { tenantId: toTenantId(`${owner.tenantId}-other`), ownerId: owner.ownerId };
+    used.push(elsewhere.tenantId);
+    const first = await reachReview(owner);
+    await repository.markSetupCompleted(first, COMPLETED_AT);
+    await saveProfile(owner);
+    await saveProfile(other);
+    await saveProfile(elsewhere);
+
+    const deleted = await repository.deleteAllOwned(owner);
+
+    expect(deleted._unsafeUnwrap()).toBe(2);
+    expect(await list(owner)).toEqual([]);
+    expect(await list(other)).toHaveLength(1);
+    expect(await list(elsewhere)).toHaveLength(1);
+  });
+
+  it('deletes 0 rows without failing when the owner has none', async () => {
+    const outcome = await repository.deleteAllOwned(freshOwner());
+
+    expect(outcome._unsafeUnwrap()).toBe(0);
+  });
+
   it('lists the oldest profile first and honours the limit', async () => {
     const owner = freshOwner();
     const first = await reachReview(owner);

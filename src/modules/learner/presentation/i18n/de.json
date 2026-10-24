@@ -126,7 +126,7 @@
       "description": "Du bestimmst, was {name} darf. Die sicherste Wahl ist schon ausgewählt.",
       "voice": {
         "title": "Mit Hort sprechen",
-        "description": "{name} darf mit Hort sprechen und Horts Antwort hören. Tippen geht immer.",
+        "description": "{name} darf mit Hort sprechen und Horts Antwort hören. Tippen geht immer. Alexa lässt sich noch nicht verbinden.",
         "on": "Sprache ist an",
         "off": "Sprache ist aus"
       },
@@ -146,7 +146,7 @@
       },
       "insights": {
         "title": "Notizen für deine Zusammenfassung",
-        "description": "Hort darf festhalten, bei welchen Aufgabenarten {name} Hilfe brauchte, damit du später eine kurze Zusammenfassung sehen kannst. Gespräche werden nicht gespeichert. Die Zusammenfassung selbst ist noch in Arbeit.",
+        "description": "Hort darf festhalten, bei welchen Aufgabenarten {name} Hilfe brauchte, für deine spätere Zusammenfassung. Gespräche werden nicht gespeichert. Die Zusammenfassung ist noch in Arbeit.",
         "on": "Notizen sind an",
         "off": "Notizen sind aus"
       },
@@ -197,9 +197,16 @@
     "done": {
       "title": "{name} ist startklar!",
       "description": "Wenn Hausaufgaben anstehen, denkt {tutor} gemeinsam mit {name} mit.",
+      "recapLabel": "Das hast du eingerichtet",
+      "recapGrade": "Klasse {grade}",
       "voiceOn": "Sprache ist an.",
       "voiceOff": "Sprache ist aus.",
       "toHome": "Zu meiner Startseite"
+    },
+    "reset": {
+      "label": "Einrichtung zurücksetzen (nur Entwicklung)",
+      "pending": "Wird zurückgesetzt …",
+      "hint": "Nur für die Entwicklung: löscht deine Kinderprofile, damit du die Einrichtung noch einmal durchlaufen kannst."
     },
     "states": {
       "BW": "Baden-Württemberg",
@@ -223,6 +230,7 @@
       "notFound": "Wir haben dieses Profil nicht gefunden. Geh bitte einen Schritt zurück und versuche es noch einmal.",
       "alreadyOnboarded": "Dein Kind ist schon eingerichtet. Wir bringen dich zu deiner Startseite.",
       "setupIncomplete": "Ein Schritt fehlt noch. Geh bitte noch einmal durch die Schritte.",
+      "devResetUnavailable": "Das gibt es nur während der Entwicklung.",
       "validation": "Bitte prüfe deine Angaben.",
       "infrastructure": "Das konnten wir gerade nicht speichern. Es wurde nichts geändert. Bitte versuche es gleich noch einmal.",
       "unexpected": "Wir konnten nicht bestätigen, dass das gespeichert wurde. Bitte versuche es noch einmal."

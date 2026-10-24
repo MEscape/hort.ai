@@ -6,11 +6,14 @@
  * the signed-in parent itself and only ever touches that parent's own profiles.
  */
 
-export { getLearnerCommands, getLearnerQueries } from './composition';
+/** @keep the home page decides from it whether to render the dev reset button (wired by the UI next). */
+export { getLearnerCommands, getLearnerQueries, isDevResetAvailable } from './composition';
 
 export type { ChooseTutorError } from './application/commands/choose-tutor';
 export type { CompleteSetupError } from './application/commands/complete-setup';
 export type { CreateChildProfileError } from './application/commands/create-child-profile';
+/** @keep the dev reset action maps this union (wired by the UI next). */
+export type { ResetOnboardingError } from './application/commands/reset-onboarding';
 export type { SaveControlsError } from './application/commands/save-controls';
 export type { SaveInterestsError } from './application/commands/save-interests';
 export type { GetOnboardingStateError } from './application/queries/get-onboarding-state';
@@ -50,6 +53,7 @@ export type {
 
 /** Framework entry points: the onboarding screens, the guards pages call, and the module's catalogs. */
 export { OnboardingFlow } from './presentation/components/onboarding-flow';
+export { ResetOnboardingButton } from './presentation/components/reset-onboarding-button';
 export { OnboardingShell } from './presentation/components/onboarding-shell';
 export type { TutorOption } from './presentation/components/tutor-option';
 export { requireOnboarded, requireOnboarding } from './presentation/guards/require-onboarding';

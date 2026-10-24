@@ -37,6 +37,7 @@ export {
   Pencil,
   Puzzle,
   Quote,
+  RotateCcw,
   ShieldCheck,
   Sparkles,
   Star,

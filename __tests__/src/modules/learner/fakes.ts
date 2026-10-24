@@ -14,6 +14,7 @@ import { SETUP_STEPS } from '@modules/learner/domain/models/setup-step';
 import type { SetupStep } from '@modules/learner/domain/models/setup-step';
 import type {
   ChildProfileRepository,
+  ProfileOwner,
   ProfilePatch,
   SavedProfile,
   UnfinishedProfileInput,
@@ -147,6 +148,14 @@ export class InMemoryChildProfiles implements ChildProfileRepository {
     return okAsync<ChildProfile | null>(updated);
   }
 
+  deleteAllOwned({ tenantId, ownerId }: ProfileOwner) {
+    const kept = this.rows.filter((row) => row.ownerId !== ownerId || row.tenantId !== tenantId);
+    const deleted = this.rows.length - kept.length;
+    this.rows.splice(0, this.rows.length, ...kept);
+    this.writes += deleted > 0 ? 1 : 0;
+    return okAsync(deleted);
+  }
+
   markSetupCompleted(profile: ChildProfile, completedAt: Date) {
     const index = this.rows.findIndex((row) => row.id === profile.id);
     const stored = this.rows[index];
@@ -188,6 +197,7 @@ export function build(actor: Actor = PARENT_A, ...initial: ChildProfile[]) {
     childProfiles,
     audit,
     tutors: selectableTutors('max', 'lili', 'fina'),
+    isDevResetAllowed: true,
     clock,
   };
   return { deps, childProfiles, audit, securityAudit };

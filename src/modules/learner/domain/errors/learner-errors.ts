@@ -1,5 +1,16 @@
-import { FieldErrorBag, conflictError, notFoundError, validationError } from '@lib/errors';
-import type { ConflictAppError, NotFoundAppError, ValidationAppError } from '@lib/errors';
+import {
+  FieldErrorBag,
+  conflictError,
+  forbiddenError,
+  notFoundError,
+  validationError,
+} from '@lib/errors';
+import type {
+  ConflictAppError,
+  ForbiddenAppError,
+  NotFoundAppError,
+  ValidationAppError,
+} from '@lib/errors';
 
 /**
  * Stable codes. Presentation maps these to translation keys (i18n.md); nothing here is user-facing
@@ -12,6 +23,7 @@ export const LEARNER_ERROR_CODES = {
   notFound: 'learner.not_found',
   alreadyOnboarded: 'learner.already_onboarded',
   setupIncomplete: 'learner.setup_incomplete',
+  devResetUnavailable: 'learner.dev_reset_unavailable',
   validationFailed: 'learner.validation_failed',
   persistenceFailed: 'learner.persistence_failed',
 } as const;
@@ -50,6 +62,14 @@ export function alreadyOnboarded(): ConflictAppError {
 /** The setup is completed before every step was walked: the parent still has steps to finish. */
 export function setupIncomplete(): ConflictAppError {
   return conflictError(LEARNER_ERROR_CODES.setupIncomplete, 'The setup is not ready to finish.');
+}
+
+/** The development-only onboarding reset was called where it is switched off (production). Says nothing about the parent's data. */
+export function devResetUnavailable(): ForbiddenAppError {
+  return forbiddenError(
+    LEARNER_ERROR_CODES.devResetUnavailable,
+    'The onboarding reset is not available.',
+  );
 }
 
 function learnerValidationFailed(fieldErrors: Record<string, string[]>): ValidationAppError {

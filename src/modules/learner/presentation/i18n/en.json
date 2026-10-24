@@ -126,7 +126,7 @@
       "description": "You decide what {name} may do. The safest choice is already selected.",
       "voice": {
         "title": "Talking to Hort",
-        "description": "{name} may speak to Hort and hear Hort answer. Typing always works.",
+        "description": "{name} may speak to Hort and hear Hort answer. Typing always works. Alexa cannot be connected yet.",
         "on": "Voice is on",
         "off": "Voice is off"
       },
@@ -146,7 +146,7 @@
       },
       "insights": {
         "title": "Notes for your summary",
-        "description": "Hort may note which kinds of tasks {name} needed help with, so you can see a short summary later. No chats are kept. The summary itself is still being built.",
+        "description": "Hort may note which kinds of tasks {name} needed help with, for your summary later. No chats are kept. The summary is still being built.",
         "on": "Notes are on",
         "off": "Notes are off"
       },
@@ -197,9 +197,16 @@
     "done": {
       "title": "{name} is ready!",
       "description": "Whenever there is homework, {tutor} will think it through together with {name}.",
+      "recapLabel": "What you set up",
+      "recapGrade": "Grade {grade}",
       "voiceOn": "Voice is on.",
       "voiceOff": "Voice is off.",
       "toHome": "Go to my home"
+    },
+    "reset": {
+      "label": "Reset setup (dev only)",
+      "pending": "Resetting…",
+      "hint": "Development only: deletes your child profiles so you can run the setup again."
     },
     "states": {
       "BW": "Baden-Württemberg",
@@ -223,6 +230,7 @@
       "notFound": "We could not find this profile. Please go back one step and try again.",
       "alreadyOnboarded": "Your child is already set up. Taking you to your home.",
       "setupIncomplete": "A step is still missing. Please go through the steps once more.",
+      "devResetUnavailable": "This is only available while developing.",
       "validation": "Please check your entries.",
       "infrastructure": "We could not save that right now. Nothing was changed. Please try again in a moment.",
       "unexpected": "We could not confirm that this was saved. Please try again."

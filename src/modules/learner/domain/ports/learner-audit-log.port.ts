@@ -49,6 +49,13 @@ export type LearnerEvent =
       readonly consentVersion: string;
     }
   | {
+      readonly type: 'learner.onboarding_reset';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      /** How many profiles were deleted; no names, no ids. */
+      readonly deletedCount: number;
+    }
+  | {
       readonly type: 'learner.setup_completed';
       readonly actorId: ActorId;
       readonly tenantId: TenantId;

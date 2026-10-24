@@ -14,6 +14,12 @@ export interface UnfinishedProfileInput {
   readonly details: ChildDetails;
 }
 
+/** Whose profiles an operation reaches: the signed-in parent's own, in their own tenant. */
+export interface ProfileOwner {
+  readonly tenantId: TenantId;
+  readonly ownerId: ActorId;
+}
+
 /** What a step of the setup stores: only the parts it names are written. */
 export interface ProfilePatch {
   readonly interests?: readonly Interest[];
@@ -69,6 +75,12 @@ export interface ChildProfileRepository {
     patch: ProfilePatch,
     reaches: Exclude<SetupStep, 'child' | 'done'>,
   ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
+
+  /**
+   * Deletes every profile of the owner, finished or not, and nothing of anyone else. Returns how
+   * many rows went; 0 is success (idempotent). Only the development reset uses it.
+   */
+  deleteAllOwned(owner: ProfileOwner): AppResultAsync<number, InfrastructureAppError>;
 
   /**
    * Finishes the setup of a profile that is at the `review` step, in one conditional statement.

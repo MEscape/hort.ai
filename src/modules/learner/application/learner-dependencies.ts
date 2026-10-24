@@ -12,5 +12,7 @@ export interface LearnerDependencies {
   readonly childProfiles: ChildProfileRepository;
   readonly audit: LearnerAuditLog;
   readonly tutors: TutorCatalogPort;
+  /** Whether the development-only onboarding reset may run (never in production). */
+  readonly isDevResetAllowed: boolean;
   readonly clock: Clock;
 }

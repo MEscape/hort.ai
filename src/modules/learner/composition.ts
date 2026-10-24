@@ -4,11 +4,13 @@ import { withAuditTrail } from '@modules/audit';
 import { getAccessControl } from '@modules/auth';
 
 import { systemClock } from '@lib/clock';
+import { serverEnv } from '@lib/config/server';
 import { once } from '@lib/utils';
 
 import { ChooseTutor } from './application/commands/choose-tutor';
 import { CompleteSetup } from './application/commands/complete-setup';
 import { CreateChildProfile } from './application/commands/create-child-profile';
+import { ResetOnboarding } from './application/commands/reset-onboarding';
 import { SaveControls } from './application/commands/save-controls';
 import { SaveInterests } from './application/commands/save-interests';
 import { GetOnboardingState } from './application/queries/get-onboarding-state';
@@ -31,6 +33,12 @@ import type { LearnerDependencies } from './application/learner-dependencies';
  * The audit port writes its log lines and, through the audit module, the durable trail entries the
  * policy keeps. The trail write is best-effort and never throws.
  */
+/**
+ * The onboarding reset exists to rerun the setup while developing; the validated server config
+ * decides, so production never offers it (the use case refuses there as well).
+ */
+export const isDevResetAvailable = (): boolean => serverEnv.NODE_ENV !== 'production';
+
 const getDependencies = once((): LearnerDependencies => ({
   authorization: getAccessControl(),
   childProfiles: new PrismaChildProfileRepository(),
@@ -40,6 +48,7 @@ const getDependencies = once((): LearnerDependencies => ({
     policy: TRAIL_BY_EVENT,
   }),
   tutors: createCatalogTutors(),
+  isDevResetAllowed: isDevResetAvailable(),
   clock: systemClock,
 }));
 
@@ -51,6 +60,7 @@ export const getLearnerCommands = once(() => {
     chooseTutor: new ChooseTutor(dependencies),
     saveControls: new SaveControls(dependencies),
     completeSetup: new CompleteSetup(dependencies),
+    resetOnboarding: new ResetOnboarding(dependencies),
   };
 });
 

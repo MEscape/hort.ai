@@ -47,6 +47,12 @@ The tutor catalog is the tutors module's checked-in catalog, read through `Tutor
 
 `ChildProfileView = { id, displayName, federalState, grade, interests, tutorId, controls: { voiceEnabled, dailyLimitMinutes, allowedWindow, learningInsights }, guardianConfirmed, setupStep, setupCompletedAt }`. `guardianConfirmed` is true only for the current statement version, so a new version asks again. Tenant, owner and timestamps other than `setupCompletedAt` are not exposed.
 
+## Dev reset
+
+`ResetOnboarding` (command, `learner.delete`) exists so a developer or tester can run the parent setup again without touching the database: it deletes ALL of the signed-in parent's child profiles (finished or not) and nothing else. Tenant and owner come from the actor, never from input; another parent's rows are never reached. It is idempotent (0 rows is success) and answers with the number deleted.
+
+It is development only, and the gate is in the backend, not just the UI. `composition.ts` sets `isDevResetAllowed` from the validated server config (`serverEnv.NODE_ENV !== 'production'`); `isDevResetAvailable()` is the same check for a page that decides whether to show the button. The use case authorizes first, then refuses with `learner.dev_reset_unavailable` (forbidden) without reading any data, so the answer does not reveal whether profiles exist. The audit event `learner.onboarding_reset` carries the deleted count only and is written only when something was deleted.
+
 ## Using the controls
 
 `isLearningAllowedNow(controls, now)` is the pure check for the future help-session use case: with an allowed window it is true only inside `[from, until)` read as clock time in `LEARNER_TIME_ZONE` (`Europe/Berlin`, through `Intl`, so it follows daylight saving), and always true without one. Nothing calls it yet.
@@ -62,6 +68,8 @@ Events are ids, counts and flags only, never the name or any other detail of the
 | `learner.tutor_chosen`              | Only when the choice changed                    | `tutorId` (catalog data)                                                                                                   |
 | `learner.controls_changed`          | Only when a control differs from the stored one | `voiceEnabled` and `learningInsights` (the new value, or `null` if unchanged), `dailyLimitChanged`, `allowedWindowChanged` |
 | `learner.guardian_consent_recorded` | Once per confirmation (first, or a new version) | `consentVersion`                                                                                                           |
+| `learner.onboarding_reset`          | Only when the dev reset deleted rows            | `deletedCount` (no names, no ids)                                                                                          |
+| `learner.onboarding_reset`          | Only when the dev reset deleted rows            | `deletedCount` (no names, no ids)                                                                                          |
 | `learner.setup_completed`           | Only for the call that wins the write           | ids                                                                                                                        |
 
 `learner.voice_consent_changed` no longer exists; the voice flag is part of `learner.controls_changed`. Wired in `composition.ts` with `withAuditTrail(..., { source: 'learner' })` (`TRAIL_BY_EVENT`, `LEVEL_BY_EVENT`; all `member`/`info`). Denials are audited by the authorization service.
@@ -77,7 +85,7 @@ Events are ids, counts and flags only, never the name or any other detail of the
 - The journey has seven screens (welcome, child, interests, companion, safety and settings, review, done). A wide screen shows Hort and the list of steps beside the card, a phone one progress bar above it. "Change" on the review returns to the review after saving, so a correction never means walking through every step again.
 - The companions come from the checked-in tutor catalog (`@modules/tutors`): the page prepares them (`tutor-options.ts`) and passes them down, so presentation never imports another module. Their pictures live in public storage; a missing picture shows an icon. A companion is recommended when the child's interests match what it likes; nothing is preselected. The voice is described in words, not played: no speech exists yet.
 - Every control starts at its most private value (no voice, no limit, no window, no notes) and the guardian confirmation starts unticked. The "always on" list on the controls screen is plain text, not a switch: it states principles, not settings.
-- Not part of onboarding on purpose: Alexa (no account linking exists; PR #42 is a dev-only skill), an age field, free-text interests, linking to a class (#32).
+- Not part of onboarding on purpose: Alexa (the `alexa` module is a signed connection-test endpoint; it has no account linking, and `alexa/README.md` says a pairing code between a device and a child needs its own review). The controls screen says so in one sentence instead of showing a connect button that would not connect, an age field, free-text interests, linking to a class (#32).
 
 ## Known gaps
 

@@ -15,6 +15,7 @@ import type { ActorId, ChildProfileId, TenantId } from '../../domain/models/ids'
 import type { SetupStep } from '../../domain/models/setup-step';
 import type {
   ChildProfileRepository,
+  ProfileOwner,
   ProfilePatch,
   SavedProfile,
   UnfinishedProfileInput,
@@ -178,6 +179,16 @@ export class PrismaChildProfileRepository implements ChildProfileRepository {
           : null,
       failures.infraOnly('updateUnfinished'),
     ).map((record) => (record === null ? null : toChildProfile(record)));
+  }
+
+  deleteAllOwned({
+    tenantId,
+    ownerId,
+  }: ProfileOwner): AppResultAsync<number, InfrastructureAppError> {
+    return fromThrowableAsync(
+      async () => db.orm.public.ChildProfile.where({ tenantId, ownerId }).deleteAndCount(),
+      failures.infraOnly('deleteAllOwned'),
+    );
   }
 
   markSetupCompleted(

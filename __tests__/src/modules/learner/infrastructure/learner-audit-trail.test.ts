@@ -34,6 +34,12 @@ const EVENTS: LearnerEvent[] = [
     allowedWindowChanged: false,
   },
   { type: 'learner.guardian_consent_recorded', ...IDS, consentVersion: '2026-10-24' },
+  {
+    type: 'learner.onboarding_reset',
+    actorId: IDS.actorId,
+    tenantId: IDS.tenantId,
+    deletedCount: 2,
+  },
   { type: 'learner.setup_completed', ...IDS },
 ];
 
@@ -79,6 +85,7 @@ describe('the learner audit trail', () => {
         allowedWindowChanged: false,
       },
       { childProfileId: 'profile-1', consentVersion: '2026-10-24' },
+      { deletedCount: 2 },
       { childProfileId: 'profile-1' },
     ]);
   });
