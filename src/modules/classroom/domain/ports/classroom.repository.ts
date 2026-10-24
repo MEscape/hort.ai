@@ -6,6 +6,11 @@ import type { AppResultAsync } from '@lib/result';
 import type { Classroom, ClassroomDraft } from '../models/classroom';
 import type { ChildProfileId, ClassroomId } from '../models/ids';
 
+export interface ClassroomOwnerScope {
+  readonly tenantId: TenantId;
+  readonly ownerId: ActorId;
+}
+
 export interface NewClassroom {
   readonly tenantId: TenantId;
   /** The teacher creating the class: the authorized actor, never a request field. */
@@ -34,15 +39,16 @@ export interface ChildMembership {
 
 /**
  * Persistence for classes and their memberships. Every read and write takes the tenant and matches
- * on (id, tenantId), so another tenant's id behaves exactly like an id that does not exist. Whether
- * the teacher owns the class is checked by the use case on the loaded record (`requireOnResource`);
- * the list is pinned to the owner.
+ * on tenantId. Teacher reads and writes also constrain ownerId, so a foreign classroom behaves
+ * like one that does not exist; use cases additionally requireOnResource on the stored record.
+ * Parent membership operations requireOwnChild first; joining also requires the invite code.
  *
  * Finders return `null` for "absent"; deciding that absence is an error is the use case's job.
  */
 export interface ClassroomRepository {
   findById(
     id: ClassroomId,
+    ownerId: ActorId,
     tenantId: TenantId,
   ): AppResultAsync<Classroom | null, InfrastructureAppError>;
 
@@ -63,14 +69,14 @@ export interface ClassroomRepository {
 
   rename(
     id: ClassroomId,
-    tenantId: TenantId,
+    scope: ClassroomOwnerScope,
     name: string,
   ): AppResultAsync<Classroom, NotFoundAppError | InfrastructureAppError>;
 
   /** Stores the hash of a new code; the old code stops working with the same write. */
   replaceInviteCode(
     id: ClassroomId,
-    tenantId: TenantId,
+    scope: ClassroomOwnerScope,
     inviteCodeHash: string,
   ): AppResultAsync<Classroom, NotFoundAppError | InfrastructureAppError>;
 
@@ -78,6 +84,7 @@ export interface ClassroomRepository {
   archive(
     id: ClassroomId,
     tenantId: TenantId,
+    ownerId: ActorId,
   ): AppResultAsync<Classroom, NotFoundAppError | InfrastructureAppError>;
 
   findMembershipOfChild(
@@ -102,7 +109,7 @@ export interface ClassroomRepository {
   /** Display names only, oldest member first. Bounded. */
   listMembers(
     classroomId: ClassroomId,
-    tenantId: TenantId,
+    scope: ClassroomOwnerScope,
     limit: number,
   ): AppResultAsync<readonly ClassMember[], InfrastructureAppError>;
 }

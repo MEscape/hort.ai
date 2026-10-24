@@ -34,6 +34,7 @@ import type {
   ChildMembership,
   ClassMember,
   ClassroomRepository,
+  ClassroomOwnerScope,
   NewClassroom,
   NewMembership,
 } from '../../domain/ports/classroom.repository';
@@ -44,7 +45,7 @@ const failures = createPersistenceFailures({
   subject: 'Classroom',
 });
 
-/** @owner-scope builder `listByOwner` pins ownerId; every id lookup's caller checks the stored owner (`requireOnResource`); the invite-code lookup is a capability. */
+// @owner-scope builder Callers constrain the teacher owner or document their invitation-code capability.
 const classrooms = () => db.orm.public.Classroom.select(...CLASSROOM_SELECT);
 
 /**
@@ -58,18 +59,18 @@ const classrooms = () => db.orm.public.Classroom.select(...CLASSROOM_SELECT);
 export class PrismaClassroomRepository implements ClassroomRepository {
   constructor(private readonly clock: Clock) {}
 
-  /** @owner-scope builder The use case compares the stored owner with the actor (`requireOnResource`), so another teacher's class is refused. */
   findById(
     id: ClassroomId,
+    ownerId: ActorId,
     tenantId: TenantId,
   ): AppResultAsync<Classroom | null, InfrastructureAppError> {
     return fromThrowableAsync(
-      async () => classrooms().where({ id, tenantId }).first(),
+      async () => classrooms().where({ id, tenantId, ownerId }).first(),
       failures.infraOnly('findById'),
     ).map((record) => record && toClassroom(record));
   }
 
-  /** @owner-scope capability A parent reaches another teacher's class only by its secret invite code (stored as a hash). */
+  // @owner-scope capability JoinClassroom verifies the parent owns the child before resolving the current active invite-code hash.
   findActiveByInviteCodeHash(
     inviteCodeHash: string,
     tenantId: TenantId,
@@ -114,16 +115,16 @@ export class PrismaClassroomRepository implements ClassroomRepository {
     ).map(toClassroom);
   }
 
-  /** @owner-scope builder The use case loaded this class and checked its stored owner (`requireOnResource`) before renaming it. */
   rename(
     id: ClassroomId,
-    tenantId: TenantId,
+    scope: ClassroomOwnerScope,
     name: string,
   ): AppResultAsync<Classroom, NotFoundAppError | InfrastructureAppError> {
+    const { tenantId, ownerId } = scope;
     return fromThrowableAsync(
       async () =>
         classrooms()
-          .where({ id, tenantId })
+          .where({ id, tenantId, ownerId })
           .update({ name, ...touched(this.clock.now()) }),
       failures.infraOnly('rename'),
     )
@@ -131,17 +132,17 @@ export class PrismaClassroomRepository implements ClassroomRepository {
       .map(toClassroom);
   }
 
-  /** @owner-scope builder The use case loaded this class and checked its stored owner (`requireOnResource`) before issuing a new code. */
   replaceInviteCode(
     id: ClassroomId,
-    tenantId: TenantId,
+    scope: ClassroomOwnerScope,
     inviteCodeHash: string,
   ): AppResultAsync<Classroom, NotFoundAppError | InfrastructureAppError> {
+    const { tenantId, ownerId } = scope;
     const now = this.clock.now();
     return fromThrowableAsync(
       async () =>
         classrooms()
-          .where({ id, tenantId })
+          .where({ id, tenantId, ownerId })
           .update({ inviteCodeHash, inviteCodeIssuedAt: instantOf(now), ...touched(now) }),
       failures.infraOnly('replaceInviteCode'),
     )
@@ -149,19 +150,20 @@ export class PrismaClassroomRepository implements ClassroomRepository {
       .map(toClassroom);
   }
 
-  /** @owner-scope builder The use case loaded this class and checked its stored owner (`requireOnResource`) before archiving it and its memberships. */
   archive(
     id: ClassroomId,
     tenantId: TenantId,
+    ownerId: ActorId,
   ): AppResultAsync<Classroom, NotFoundAppError | InfrastructureAppError> {
     const now = this.clock.now();
     return fromThrowableAsync(
       () =>
         db.transaction(async (tx) => {
           const archived = await tx.orm.public.Classroom.select(...CLASSROOM_SELECT)
-            .where({ id, tenantId })
+            .where({ id, tenantId, ownerId })
             .update({ status: CLASSROOM_STATUS_RECORD.archived, ...touched(now) });
           if (archived !== null) {
+            // @owner-scope derived Memberships belong to the classroom just archived with id, tenantId and teacher ownerId in this transaction.
             await tx.orm.public.ClassMembership.where({
               classroomId: id,
               tenantId,
@@ -175,7 +177,7 @@ export class PrismaClassroomRepository implements ClassroomRepository {
       .map(toClassroom);
   }
 
-  /** @owner-scope builder The caller first has the learner module confirm the child is the signed-in parent's own (`requireOwnChild`). */
+  // @owner-scope child JoinClassroom and GetChildClassroom first requireOwnChild against the stored profile owner; this tenant and child id identify its membership.
   findMembershipOfChild(
     childProfileId: ChildProfileId,
     tenantId: TenantId,
@@ -190,7 +192,6 @@ export class PrismaClassroomRepository implements ClassroomRepository {
     ).map((record) => (record === null ? null : toChildMembership(record)));
   }
 
-  /** @owner-scope capability The class is reached by its invite code (hash lookup); the caller confirmed the child is the parent's own. */
   addMember(input: NewMembership): AppResultAsync<Date, ConflictAppError | InfrastructureAppError> {
     const { tenantId, classroomId, childProfileId } = input;
     return fromThrowableAsync(
@@ -199,12 +200,14 @@ export class PrismaClassroomRepository implements ClassroomRepository {
           // Row-locks the class while it is still active: an archive running at the same time
           // either finishes first (no row, refused here) or waits and then deletes this
           // membership too. A plain insert only takes a key-share lock and would slip through.
+          // @owner-scope capability JoinClassroom resolved classroomId using the current invite-code hash after requireOwnChild; this locks that active classroom.
           const active = await tx.orm.public.Classroom.select('id')
             .where({ id: classroomId, tenantId, status: CLASSROOM_STATUS_RECORD.active })
             .update({ status: CLASSROOM_STATUS_RECORD.active });
           if (active === null) {
             return null;
           }
+          // @owner-scope child JoinClassroom verified requireOwnChild and the invitation capability; the active classroom was locked above in this transaction.
           return tx.orm.public.ClassMembership.select(...JOINED_AT_SELECT).create({
             tenantId,
             classroomId,
@@ -217,7 +220,7 @@ export class PrismaClassroomRepository implements ClassroomRepository {
     );
   }
 
-  /** @owner-scope builder The caller first has the learner module confirm the child is the signed-in parent's own (`requireOwnChild`). */
+  // @owner-scope child LeaveClassroom and join rollback use only the tenant and child id previously authorized by requireOwnChild.
   removeMemberOfChild(
     childProfileId: ChildProfileId,
     tenantId: TenantId,
@@ -229,15 +232,16 @@ export class PrismaClassroomRepository implements ClassroomRepository {
     ).map((count) => count > 0);
   }
 
-  /** @owner-scope builder The use case checked the class's stored owner (`requireOnResource`) before listing its members. */
   listMembers(
     classroomId: ClassroomId,
-    tenantId: TenantId,
+    scope: ClassroomOwnerScope,
     limit: number,
   ): AppResultAsync<readonly ClassMember[], InfrastructureAppError> {
+    const { tenantId, ownerId } = scope;
     return fromThrowableAsync(
       async () =>
         db.orm.public.ClassMembership.where({ classroomId, tenantId })
+          .where((row) => row.classroom.some({ tenantId, ownerId }))
           .select(...CLASS_MEMBER_SELECT)
           .include('childProfile', (child) => child.select(...CHILD_DISPLAY_NAME_SELECT))
           .orderBy([(row) => row.joinedAt.asc(), (row) => row.id.asc()])

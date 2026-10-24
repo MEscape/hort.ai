@@ -27,7 +27,11 @@ export class RegenerateInviteCode {
       .andThen(({ actor, classroom }) => {
         const issued = inviteCodes.issue();
         return classrooms
-          .replaceInviteCode(classroom.id, actor.tenantId, issued.hash)
+          .replaceInviteCode(
+            classroom.id,
+            { tenantId: actor.tenantId, ownerId: actor.id },
+            issued.hash,
+          )
           .map((updated) => {
             audit.record({
               type: 'classroom.invite_code_regenerated',

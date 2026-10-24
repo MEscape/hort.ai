@@ -72,8 +72,10 @@ function world() {
   };
 
   const classrooms: ClassroomRepository = {
-    findById: (id, tenantId) => {
-      const room = rooms.find((row) => row.id === id && row.tenantId === tenantId);
+    findById: (id, ownerId, tenantId) => {
+      const room = rooms.find(
+        (row) => row.id === id && row.tenantId === tenantId && row.ownerId === ownerId,
+      );
       return okAsync(room ? strip(room) : null);
     },
     findActiveByInviteCodeHash: (hash) => {
@@ -102,8 +104,8 @@ function world() {
       rooms.push(room);
       return okAsync(strip(room));
     },
-    rename: (id, _tenantId, name) => patch(id, { name }),
-    replaceInviteCode: (id, _tenantId, inviteCodeHash) => patch(id, { inviteCodeHash }),
+    rename: (id, _scope, name) => patch(id, { name }),
+    replaceInviteCode: (id, _scope, inviteCodeHash) => patch(id, { inviteCodeHash }),
     archive: (id) => {
       for (let index = members.length - 1; index >= 0; index -= 1) {
         if (members[index]!.classroomId === id) {
@@ -135,7 +137,7 @@ function world() {
       }
       return okAsync(index >= 0);
     },
-    listMembers: (classroomId, _tenantId, limit) =>
+    listMembers: (classroomId, _scope, limit) =>
       okAsync(
         members
           .filter((row) => row.classroomId === classroomId)
@@ -275,7 +277,7 @@ describe('teacher classes', () => {
       await w.regenerate.execute({ id }),
       await w.listMembers.execute(id),
     ]) {
-      expect(result._unsafeUnwrapErr().kind).toBe('forbidden');
+      expect(result._unsafeUnwrapErr().kind).toBe('not_found');
     }
   });
 });
@@ -309,7 +311,7 @@ describe('joining with an invite code', () => {
     const listed = (await w.listMembers.execute(id))._unsafeUnwrap();
     expect(listed).toEqual([{ childProfileId: 'child-1', displayName: 'Lina', joinedAt: NOW }]);
     expect(Object.keys(listed[0]!)).toEqual(['childProfileId', 'displayName', 'joinedAt']);
-    expect((await w.listMembers.execute(foreign.id))._unsafeUnwrapErr().kind).toBe('forbidden');
+    expect((await w.listMembers.execute(foreign.id))._unsafeUnwrapErr().kind).toBe('not_found');
   });
 
   it('rejects an unknown or malformed code, and audits it without the code', async () => {

@@ -22,7 +22,9 @@ export class RenameClassroom {
       .andThen(requireActive)
       .andThen(({ actor, classroom }) =>
         parseClassroomName(input.name)
-          .asyncAndThen((name) => classrooms.rename(classroom.id, actor.tenantId, name))
+          .asyncAndThen((name) =>
+            classrooms.rename(classroom.id, { tenantId: actor.tenantId, ownerId: actor.id }, name),
+          )
           .map((renamed) => {
             audit.record({
               type: 'classroom.renamed',
