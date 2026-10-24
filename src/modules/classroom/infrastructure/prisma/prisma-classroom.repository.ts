@@ -1,0 +1,225 @@
+import type { ActorId, TenantId } from '@modules/auth';
+
+import type { Clock } from '@lib/clock';
+import { db, createPersistenceFailures, instantToDate } from '@lib/db';
+import type { ConflictAppError, InfrastructureAppError, NotFoundAppError } from '@lib/errors';
+import { fromThrowableAsync } from '@lib/result';
+import type { AppResultAsync } from '@lib/result';
+
+import {
+  CLASSROOM_ERROR_CODES,
+  childAlreadyInClassroom,
+  classroomNotFound,
+} from '../../domain/errors/classroom-errors';
+
+import {
+  CHILD_DISPLAY_NAME_SELECT,
+  CLASS_MEMBER_SELECT,
+  CLASSROOM_SELECT,
+  CLASSROOM_STATUS_RECORD,
+  instantOf,
+  toClassMember,
+  toClassroom,
+  toClassroomCreateData,
+  touched,
+} from './classroom-record-mapper';
+
+import type { Classroom } from '../../domain/models/classroom';
+import type { ChildProfileId, ClassroomId } from '../../domain/models/ids';
+import type {
+  ChildMembership,
+  ClassMember,
+  ClassroomRepository,
+  NewClassroom,
+  NewMembership,
+} from '../../domain/ports/classroom.repository';
+
+const failures = createPersistenceFailures({
+  module: 'classroom.persistence',
+  code: CLASSROOM_ERROR_CODES.persistenceFailed,
+  subject: 'Classroom',
+});
+
+const classrooms = () => db.orm.public.Classroom.select(...CLASSROOM_SELECT);
+
+/**
+ * Prisma 8 repository for classes and memberships.
+ *
+ * Reading a member's display name crosses into the learner module's `ChildProfile` table on
+ * purpose and narrowly: one column, through the membership's own foreign key, because a teacher
+ * holds no `learner.*` permission and the learner module has no teacher-facing read (#32: display
+ * names only). Writes to the profile go through the learner module's use cases instead.
+ */
+export class PrismaClassroomRepository implements ClassroomRepository {
+  constructor(private readonly clock: Clock) {}
+
+  findById(
+    id: ClassroomId,
+    tenantId: TenantId,
+  ): AppResultAsync<Classroom | null, InfrastructureAppError> {
+    return fromThrowableAsync(
+      async () => classrooms().where({ id, tenantId }).first(),
+      failures.infraOnly('findById'),
+    ).map((record) => record && toClassroom(record));
+  }
+
+  findActiveByInviteCodeHash(
+    inviteCodeHash: string,
+    tenantId: TenantId,
+  ): AppResultAsync<Classroom | null, InfrastructureAppError> {
+    return fromThrowableAsync(
+      async () =>
+        classrooms()
+          .where({ inviteCodeHash, tenantId, status: CLASSROOM_STATUS_RECORD.active })
+          .first(),
+      failures.infraOnly('findActiveByInviteCodeHash'),
+    ).map((record) => record && toClassroom(record));
+  }
+
+  listByOwner(
+    tenantId: TenantId,
+    ownerId: ActorId,
+    limit: number,
+  ): AppResultAsync<readonly Classroom[], InfrastructureAppError> {
+    return fromThrowableAsync(
+      async () =>
+        classrooms()
+          .where({ tenantId, ownerId })
+          // `id` breaks ties so the order is stable between requests.
+          .orderBy([(row) => row.createdAt.desc(), (row) => row.id.asc()])
+          .limit(limit)
+          .all(),
+      failures.infraOnly('listByOwner'),
+    ).map((records) => records.map(toClassroom));
+  }
+
+  create(input: NewClassroom): AppResultAsync<Classroom, InfrastructureAppError> {
+    const { tenantId, ownerId, draft, inviteCodeHash } = input;
+    return fromThrowableAsync(
+      async () =>
+        classrooms().create({
+          tenantId,
+          ownerId,
+          inviteCodeHash,
+          ...toClassroomCreateData(draft),
+        }),
+      failures.infraOnly('create'),
+    ).map(toClassroom);
+  }
+
+  rename(
+    id: ClassroomId,
+    tenantId: TenantId,
+    name: string,
+  ): AppResultAsync<Classroom, NotFoundAppError | InfrastructureAppError> {
+    return fromThrowableAsync(
+      async () =>
+        classrooms()
+          .where({ id, tenantId })
+          .update({ name, ...touched(this.clock.now()) }),
+      failures.infraOnly('rename'),
+    )
+      .andThen(failures.requireRow(classroomNotFound))
+      .map(toClassroom);
+  }
+
+  replaceInviteCode(
+    id: ClassroomId,
+    tenantId: TenantId,
+    inviteCodeHash: string,
+  ): AppResultAsync<Classroom, NotFoundAppError | InfrastructureAppError> {
+    const now = this.clock.now();
+    return fromThrowableAsync(
+      async () =>
+        classrooms()
+          .where({ id, tenantId })
+          .update({ inviteCodeHash, inviteCodeIssuedAt: instantOf(now), ...touched(now) }),
+      failures.infraOnly('replaceInviteCode'),
+    )
+      .andThen(failures.requireRow(classroomNotFound))
+      .map(toClassroom);
+  }
+
+  archive(
+    id: ClassroomId,
+    tenantId: TenantId,
+  ): AppResultAsync<Classroom, NotFoundAppError | InfrastructureAppError> {
+    const now = this.clock.now();
+    return fromThrowableAsync(
+      () =>
+        db.transaction(async (tx) => {
+          const archived = await tx.orm.public.Classroom.select(...CLASSROOM_SELECT)
+            .where({ id, tenantId })
+            .update({ status: CLASSROOM_STATUS_RECORD.archived, ...touched(now) });
+          if (archived !== null) {
+            await tx.orm.public.ClassMembership.where({
+              classroomId: id,
+              tenantId,
+            }).deleteAndCount();
+          }
+          return archived;
+        }),
+      failures.infraOnly('archive'),
+    )
+      .andThen(failures.requireRow(classroomNotFound))
+      .map(toClassroom);
+  }
+
+  findMembershipOfChild(
+    childProfileId: ChildProfileId,
+    tenantId: TenantId,
+  ): AppResultAsync<ChildMembership | null, InfrastructureAppError> {
+    return fromThrowableAsync(
+      async () =>
+        db.orm.public.ClassMembership.where({ childProfileId, tenantId })
+          .select('joinedAt')
+          .include('classroom', (classroom) => classroom.select(...CLASSROOM_SELECT))
+          .first(),
+      failures.infraOnly('findMembershipOfChild'),
+    ).map((record) =>
+      record === null || record.classroom === null
+        ? null
+        : { classroom: toClassroom(record.classroom), joinedAt: instantToDate(record.joinedAt) },
+    );
+  }
+
+  addMember(input: NewMembership): AppResultAsync<Date, ConflictAppError | InfrastructureAppError> {
+    return fromThrowableAsync(
+      async () =>
+        db.orm.public.ClassMembership.select('joinedAt').create({
+          tenantId: input.tenantId,
+          classroomId: input.classroomId,
+          childProfileId: input.childProfileId,
+        }),
+      failures.orConflict('addMember', childAlreadyInClassroom),
+    ).map((record) => instantToDate(record.joinedAt));
+  }
+
+  removeMemberOfChild(
+    childProfileId: ChildProfileId,
+    tenantId: TenantId,
+  ): AppResultAsync<boolean, InfrastructureAppError> {
+    return fromThrowableAsync(
+      async () =>
+        db.orm.public.ClassMembership.where({ childProfileId, tenantId }).deleteAndCount(),
+      failures.infraOnly('removeMemberOfChild'),
+    ).map((count) => count > 0);
+  }
+
+  listMembers(
+    classroomId: ClassroomId,
+    tenantId: TenantId,
+    limit: number,
+  ): AppResultAsync<readonly ClassMember[], InfrastructureAppError> {
+    return fromThrowableAsync(
+      async () =>
+        db.orm.public.ClassMembership.where({ classroomId, tenantId })
+          .select(...CLASS_MEMBER_SELECT)
+          .include('childProfile', (child) => child.select(...CHILD_DISPLAY_NAME_SELECT))
+          .orderBy([(row) => row.joinedAt.asc(), (row) => row.id.asc()])
+          .limit(limit)
+          .all(),
+      failures.infraOnly('listMembers'),
+    ).map((records) => records.map(toClassMember));
+  }
+}

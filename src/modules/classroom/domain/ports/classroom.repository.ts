@@ -85,10 +85,11 @@ export interface ClassroomRepository {
     tenantId: TenantId,
   ): AppResultAsync<ChildMembership | null, InfrastructureAppError>;
 
-  /** Refused with `childAlreadyInClassroom` when the child already has a class (unique key). */
-  addMember(
-    input: NewMembership,
-  ): AppResultAsync<void, ConflictAppError | InfrastructureAppError>;
+  /**
+   * Adds the child and returns when it joined. Refused with `childAlreadyInClassroom` when the
+   * child already has a class (unique key), which also settles two joins racing each other.
+   */
+  addMember(input: NewMembership): AppResultAsync<Date, ConflictAppError | InfrastructureAppError>;
 
   /** Idempotent: whether a membership was removed. */
   removeMemberOfChild(

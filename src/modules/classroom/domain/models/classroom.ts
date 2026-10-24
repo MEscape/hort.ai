@@ -83,7 +83,9 @@ export interface ClassroomDraft {
 /** Primary school: grades 1 to 4 (#5), a whole number. */
 function isValidGrade(value: number): boolean {
   return (
-    Number.isInteger(value) && value >= CLASSROOM_LIMITS.gradeMin && value <= CLASSROOM_LIMITS.gradeMax
+    Number.isInteger(value) &&
+    value >= CLASSROOM_LIMITS.gradeMin &&
+    value <= CLASSROOM_LIMITS.gradeMax
   );
 }
 
