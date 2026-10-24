@@ -6,6 +6,8 @@ Use this file when the full engineering context is needed in one place, especial
 
 ## Authority and usage
 
+- Product requirements are defined in `docs/product/vision.md`; concept proposals in `docs/product/flows.md` are not binding architecture.
+- Engineering rules govern how agreed product requirements are implemented. If a task or document contradicts either source, surface the conflict instead of treating an example, mockup or gallery as a new requirement.
 - These rules are mandatory project conventions, not suggestions.
 - Follow these rules for every change unless a more specific rule below explicitly applies.
 - When rules overlap, apply the rule belonging to the more specific responsibility.
@@ -13,7 +15,7 @@ Use this file when the full engineering context is needed in one place, especial
 - A deviation must be recorded as a short decision note and the owning rule updated.
 - Architectural dependency violations must fail lint/build checks.
 - Prefer referencing the relevant rule when a rule file exists rather than creating duplicate guidance.
-- The repository's split rule files remain the canonical organized documentation; this file is the consolidated AI-friendly copy.
+- The split rule files in `docs/rules/` are the canonical engineering sources and take precedence over `AI_RULES.md` if they differ.
 
 ---
 

@@ -2,6 +2,13 @@
 
 This directory contains the canonical engineering rules. Each file owns one concern. Avoid duplication; reference the owning rule.
 
+## Authority and product requirements
+
+- Product requirements are defined in `docs/product/vision.md`; concept proposals in `docs/product/flows.md` are not binding architecture.
+- Engineering rules govern how agreed product requirements are implemented. If a task or document contradicts either source, surface the conflict instead of treating an example, mockup or gallery as a new requirement.
+- The split rule files in `docs/rules/` are the canonical engineering sources and take precedence over `AI_RULES.md` if they differ.
+- Within the engineering rules, apply the rule for the more specific responsibility. Rules take precedence over conventions; architectural boundaries remain mandatory. Record an approved deviation as a short decision note and update the owning rule and consolidated copy together.
+
 ## Rule hierarchy
 
 ```mermaid
