@@ -2,8 +2,14 @@ import type { ComponentType, ReactNode } from 'react';
 
 import type { IconProps } from '@components/ui/icons';
 
+import { TONES } from './tones';
+
+import type { Tone } from './tones';
+
 export interface SettingRowProps {
   readonly icon: ComponentType<IconProps>;
+  /** The colour of the icon tile. */
+  readonly tone: Tone;
   /** Ties the text to the control it describes (`aria-labelledby` / `aria-describedby`). */
   readonly titleId: string;
   readonly descriptionId: string;
@@ -23,6 +29,7 @@ export interface SettingRowProps {
  */
 export function SettingRow({
   icon: Icon,
+  tone,
   titleId,
   descriptionId,
   title,
@@ -35,7 +42,7 @@ export function SettingRow({
       <div className="flex min-w-0 flex-1 flex-col sm:flex-row sm:items-start sm:gap-4">
         <span
           aria-hidden="true"
-          className="hidden size-11 shrink-0 items-center justify-center rounded-token bg-secondary text-secondary-foreground sm:flex"
+          className={`hidden size-11 shrink-0 items-center justify-center rounded-token ${TONES[tone]} sm:flex`}
         >
           <Icon className="size-6" />
         </span>
@@ -46,7 +53,7 @@ export function SettingRow({
           >
             <span
               aria-hidden="true"
-              className="flex size-9 shrink-0 items-center justify-center rounded-token bg-secondary text-secondary-foreground sm:hidden"
+              className={`flex size-9 shrink-0 items-center justify-center rounded-token ${TONES[tone]} sm:hidden`}
             >
               <Icon className="size-5" />
             </span>

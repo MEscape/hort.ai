@@ -68,6 +68,7 @@ export function TimeSettings({ control, errors, errorText }: TimeSettingsProps) 
         render={({ field }) => (
           <SettingRow
             icon={Clock}
+            tone="amber"
             titleId={`${id}-window-title`}
             descriptionId={`${id}-window-description`}
             title={t('controls.time.windowTitle')}
@@ -84,7 +85,7 @@ export function TimeSettings({ control, errors, errorText }: TimeSettingsProps) 
         )}
       />
       {isWindowOn && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-4">
           <Controller
             control={control}
             name="windowFrom"

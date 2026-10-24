@@ -51,6 +51,7 @@ const TUTORS = [
     greeting: 'Wuff, hallo! Ich bin Max.',
     voice: 'freundlich, kräftig',
     imageUrl: '',
+    tone: 'sky' as const,
   },
   {
     id: 'lili',
@@ -62,6 +63,7 @@ const TUTORS = [
     greeting: 'Hallo, ich bin Lili.',
     voice: 'sanft, warm',
     imageUrl: '',
+    tone: 'sky' as const,
   },
 ];
 

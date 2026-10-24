@@ -35,6 +35,7 @@ export function TutorChoice({ tutor, fits, radioProps }: TutorChoiceProps) {
       <span className="flex items-center gap-4">
         <TutorAvatar
           imageUrl={tutor.imageUrl}
+          tone={tutor.tone}
           alt={t('tutor.imageAlt', { name: tutor.name, animal: tutor.animal })}
           className="size-16 sm:size-20"
         />

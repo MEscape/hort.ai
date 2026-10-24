@@ -60,21 +60,21 @@ export function StepFrame({
   return (
     <form onSubmit={onSubmit} noValidate aria-busy={isPending}>
       <Card>
-        <header className="flex items-start gap-4 px-6 pt-7 sm:px-10 sm:pt-9">
-          <span
-            aria-hidden="true"
-            className="flex size-12 shrink-0 items-center justify-center rounded-token bg-primary font-heading text-xl font-semibold text-primary-foreground shadow-soft"
-          >
-            {stepNumber}
-          </span>
-          <div className="flex min-w-0 flex-col gap-1">
+        <header className="flex flex-col gap-3 px-6 pt-7 sm:px-10 sm:pt-9">
+          <div className="flex items-center gap-4">
+            <span
+              aria-hidden="true"
+              className="flex size-11 shrink-0 items-center justify-center rounded-token bg-primary font-heading text-xl font-semibold text-primary-foreground shadow-soft sm:size-12"
+            >
+              {stepNumber}
+            </span>
             <h1 ref={headingRef} tabIndex={-1} className="text-2xl wrap-anywhere sm:text-3xl">
               {title}
             </h1>
-            {description !== undefined && (
-              <p className="measure text-lead text-copy-muted">{description}</p>
-            )}
           </div>
+          {description !== undefined && (
+            <p className="measure text-lead text-copy-muted sm:pl-16">{description}</p>
+          )}
         </header>
         <fieldset disabled={isPending} className="flex min-w-0 flex-col gap-6 px-6 py-6 sm:px-10">
           {children}

@@ -134,6 +134,7 @@ export function ReviewStep({
           <p className="flex items-center gap-3">
             <TutorAvatar
               imageUrl={tutor.imageUrl}
+              tone={tutor.tone}
               alt={t('tutor.imageAlt', { name: tutor.name, animal: tutor.animal })}
               className="size-14"
             />

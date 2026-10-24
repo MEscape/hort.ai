@@ -2,11 +2,12 @@
 
 import type { BaseSyntheticEvent } from 'react';
 
-import { ShieldCheck, Sparkles, UserPlus, Users } from '@components/ui/icons';
+import { ShieldCheck, Sparkles, UserPlus } from '@components/ui/icons';
 
 import { useTranslations } from '@i18n/client';
 
 import { StepFrame } from './step-frame';
+import { TONES } from './tones';
 
 export interface WelcomeStepProps {
   readonly stepNumber: number;
@@ -15,9 +16,9 @@ export interface WelcomeStepProps {
 }
 
 const ITEMS = [
-  { key: 'child', icon: UserPlus },
-  { key: 'companion', icon: Sparkles },
-  { key: 'controls', icon: Users },
+  { key: 'child', icon: UserPlus, tone: 'sky' },
+  { key: 'companion', icon: Sparkles, tone: 'amber' },
+  { key: 'controls', icon: ShieldCheck, tone: 'green' },
 ] as const;
 
 /** The first screen: what will happen and how little is asked, before anything is asked. */
@@ -37,14 +38,14 @@ export function WelcomeStep({ stepNumber, shouldTakeFocus, onStart }: WelcomeSte
       }}
     >
       <ul aria-label={t('welcome.listLabel')} className="flex flex-col gap-3">
-        {ITEMS.map(({ key, icon: Icon }) => (
+        {ITEMS.map(({ key, icon: Icon, tone }) => (
           <li
             key={key}
             className="flex items-start gap-4 rounded-token-lg border border-border bg-surface p-4"
           >
             <span
               aria-hidden="true"
-              className="flex size-11 shrink-0 items-center justify-center rounded-token bg-secondary text-secondary-foreground"
+              className={`flex size-11 shrink-0 items-center justify-center rounded-token ${TONES[tone]}`}
             >
               <Icon className="size-6" />
             </span>

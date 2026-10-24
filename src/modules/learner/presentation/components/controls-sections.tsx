@@ -38,6 +38,7 @@ export function VoiceSetting({ control, name }: Pick<ControlsSectionProps, 'cont
       render={({ field }) => (
         <SettingRow
           icon={Mic}
+          tone="sky"
           titleId={`${id}-title`}
           descriptionId={`${id}-description`}
           title={t('controls.voice.title')}
@@ -68,6 +69,7 @@ export function InsightsSetting({ control, name }: Pick<ControlsSectionProps, 'c
       render={({ field }) => (
         <SettingRow
           icon={BookOpen}
+          tone="bloom"
           titleId={`${id}-title`}
           descriptionId={`${id}-description`}
           title={t('controls.insights.title')}
