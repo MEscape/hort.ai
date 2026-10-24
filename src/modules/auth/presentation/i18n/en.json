@@ -1,0 +1,163 @@
+{
+  "auth": {
+    "loading": "Getting things ready…",
+    "welcome": {
+      "metadata": {
+        "title": "Welcome to the learning adventure",
+        "description": "Create a parent account and start a safe, playful learning adventure with your child."
+      },
+      "title": "Welcome to the learning adventure!",
+      "description": "Together we discover a world full of knowledge, fun and exciting tasks. First, create an account for yourself.",
+      "signUp": "Register as a parent",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "signIn": {
+      "metadata": {
+        "title": "Sign in",
+        "description": "Sign in to your parent account to see how your child is doing."
+      },
+      "title": "Good to see you again!",
+      "description": "Your family’s next learning adventure starts here.",
+      "email": "Email address",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "One moment…",
+      "forgotPassword": "Forgot your password?",
+      "continueNotice": "Sign in and we will take you right back to the page you opened.",
+      "noAccount": "New here?",
+      "createAccount": "Set up a parent account"
+    },
+    "signUp": {
+      "metadata": {
+        "title": "Set up a parent account",
+        "description": "Create your parent account: it keeps settings, safety and progress for your child in one place."
+      },
+      "title": "Set up your parent account",
+      "description": "With your account you manage the settings, safety and progress of your child.",
+      "name": "What should we call you?",
+      "nameHint": "We use it to greet you in our emails.",
+      "email": "Email address",
+      "password": "Password",
+      "confirmPassword": "Repeat password",
+      "submit": "Create account",
+      "submitting": "Creating your account…",
+      "safety": "For a safe and positive learning experience.",
+      "haveAccount": "Already have an account?",
+      "signInLink": "Sign in",
+      "successTitle": "Check your inbox!",
+      "success": "If {email} is new here, a confirmation link is on its way. If you already have an account, sign in instead.",
+      "steps": {
+        "label": "What happens next",
+        "confirm": {
+          "title": "Open the link",
+          "description": "Open the email and tap the link inside."
+        },
+        "signIn": {
+          "title": "Sign in",
+          "description": "Then sign in and the adventure can begin."
+        }
+      },
+      "checkSpam": "Nothing there yet? Have a look in your spam folder.",
+      "toSignIn": "Go to sign in"
+    },
+    "forgotPassword": {
+      "metadata": {
+        "title": "Forgot your password?",
+        "description": "Ask for a link to choose a new password."
+      },
+      "title": "No problem!",
+      "description": "Enter your email address. We will send you a link to choose a new password.",
+      "email": "Email address",
+      "submit": "Send me the link",
+      "submitting": "Sending…",
+      "backToSignIn": "Back to sign in",
+      "successTitle": "Check your inbox!",
+      "success": "If there is an account for this address, a link is on its way. It works for {minutes} minutes.",
+      "checkSpam": "Nothing there yet? Have a look in your spam folder.",
+      "resend": "Send the link again",
+      "resendIn": "Send again in {seconds} s",
+      "resent": "We sent it again.",
+      "differentAddress": "Use a different address"
+    },
+    "resetPassword": {
+      "metadata": {
+        "title": "Choose a new password"
+      },
+      "title": "Choose a new password",
+      "description": "Pick something only you know. A few random words work well.",
+      "newPassword": "New password",
+      "confirmPassword": "Repeat new password",
+      "submit": "Save password",
+      "submitting": "Saving…",
+      "successTitle": "All set!",
+      "success": "Your password is changed. You can sign in now.",
+      "signIn": "Go to sign in",
+      "missingTokenTitle": "This link is incomplete",
+      "missingToken": "Something got lost on the way. Ask for a new link and we will send one right away.",
+      "requestNew": "Ask for a new link"
+    },
+    "emailVerification": {
+      "metadata": {
+        "title": "Confirm your email address"
+      },
+      "successTitle": "Welcome aboard!",
+      "success": "Your email address is confirmed. You can sign in now.",
+      "failureTitle": "That link did not work",
+      "failure": "It has expired or was already used. Sign in and we will send you a fresh one.",
+      "signIn": "Go to sign in"
+    },
+    "signOut": {
+      "label": "Sign out",
+      "pending": "Signing out…"
+    },
+    "errors": {
+      "unauthenticated": "Please sign in to continue.",
+      "invalidCredentials": "That did not quite fit. Check your email address and password and try again.",
+      "sessionExpired": "You were away for a while. Please sign in again.",
+      "reauthenticationRequired": "For your safety, please sign in once more.",
+      "invalidToken": "This link no longer works. Ask for a new one.",
+      "emailNotVerified": "Your email address is not confirmed yet. We just sent you a new link.",
+      "permissionDenied": "You are not allowed to do this.",
+      "rateLimited": "That was a little fast. Wait a moment, then try again.",
+      "validation": "Please check what you entered.",
+      "infrastructure": "We cannot get through right now. Please try again in a moment.",
+      "unexpected": "Something went wrong. Please try again."
+    },
+    "validation": {
+      "emailRequired": "Please enter your email address.",
+      "emailInvalid": "That does not look like an email address yet.",
+      "emailTooLong": "The email address can have at most {emailMax} characters.",
+      "passwordRequired": "Please enter your password.",
+      "passwordTooShort": "Your password needs at least {passwordMin} characters.",
+      "passwordTooLong": "Your password can have at most {passwordMax} characters.",
+      "passwordMismatch": "The two passwords are not the same yet.",
+      "nameRequired": "Please tell us what to call you.",
+      "nameTooLong": "The name can have at most {nameMax} characters.",
+      "tokenInvalid": "This link is not valid. Ask for a new one.",
+      "tenantInvalid": "That place does not exist."
+    },
+    "emailSuggestion": {
+      "question": "Did you mean"
+    },
+    "passwordGuidance": {
+      "empty": "Choose a password to see how strong it is.",
+      "strengthLabel": "Strength: {level}",
+      "strength": {
+        "weak": "Weak",
+        "fair": "Fair",
+        "good": "Good",
+        "strong": "Strong"
+      },
+      "required": "Needed",
+      "recommended": "Even better",
+      "length": "At least {passwordMin} characters",
+      "notCommon": "Not a common password or pattern",
+      "avoidsPersonal": "Does not contain your name or email",
+      "met": "Done.",
+      "notMet": "Not done yet.",
+      "tip": "Tip: four or more unrelated words make a strong password that is easy to remember.",
+      "match": "The passwords match"
+    }
+  }
+}

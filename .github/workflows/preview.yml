@@ -1,7 +1,11 @@
 # ==============================================================================
 # HORTAI - VERCEL PREVIEW DEPLOYMENT PIPELINE
-# Builds and deploys an isolated preview environment for internal pull requests
-# and maintains a single updated PR comment with the deployment URL.
+# Deploys an isolated preview environment for internal pull requests and
+# maintains a single updated PR comment with the deployment URL.
+#
+# The build runs REMOTELY on Vercel (no `vercel pull` / `vercel build` here),
+# so sensitive Preview environment variables are available to the build.
+# Sensitive values cannot be pulled by the CLI ("[SENSITIVE]" placeholders).
 # ==============================================================================
 
 name: Preview
@@ -21,10 +25,61 @@ concurrency:
 
 jobs:
   # ----------------------------------------------------------------------------
-  # Build & Deploy Vercel Preview
+  # Migrate the Preview databases
+  # Uses DEDICATED preview databases (never production). Runs in its own job so the
+  # PR-level cancel-in-progress above can never kill a migration halfway, and so
+  # migrations from different PRs run one at a time.
+  # ----------------------------------------------------------------------------
+  migrate-preview:
+    name: Migrate preview databases
+
+    # Same guard as the deploy job: no secrets for fork or Dependabot PRs.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
+
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    concurrency:
+      group: preview-database
+      cancel-in-progress: false
+
+    environment: preview
+
+    permissions:
+      contents: read
+
+    env:
+      DATABASE_URL: ${{ secrets.PREVIEW_DATABASE_URL }}
+      AUTH_DATABASE_URL: ${{ secrets.PREVIEW_AUTH_DATABASE_URL }}
+
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      # Ensure Prisma client & contracts exist since `--ignore-scripts` skips postinstall.
+      - name: Generate Prisma client & contracts
+        run: npm run db:generate
+
+      - name: Check migration files
+        run: npm run db:migrate:check
+
+      - name: Apply application migrations
+        run: npm run db:migrate:app
+
+      - name: Apply auth migrations
+        run: npm run db:migrate:auth
+
+  # ----------------------------------------------------------------------------
+  # Deploy Vercel Preview (remote build)
   # ----------------------------------------------------------------------------
   deploy-preview:
     name: Vercel preview
+    needs: migrate-preview
 
     # Fork PRs and Dependabot PRs do not receive repository secrets,
     # so skip them rather than failing the deployment.
@@ -50,29 +105,18 @@ jobs:
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
     steps:
+      # Checkout only: the CLI uploads the source and Vercel installs, builds and
+      # deploys it using the project's Preview environment variables.
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup
-
-      # Ensure Prisma client & contracts exist since `--ignore-scripts` skips postinstall.
-      - name: Generate Prisma client & contracts
-        run: npm run db:generate
-
-      # Pull the Preview environment variables and project settings.
-      - name: Pull Vercel preview settings
-        run: npx --yes "vercel@${VERCEL_CLI_VERSION}" pull --yes --environment=preview --token="$VERCEL_TOKEN"
-
-      # Build the exact artifact that will be deployed.
-      - name: Build preview
-        run: npx --yes "vercel@${VERCEL_CLI_VERSION}" build --token="$VERCEL_TOKEN"
-
-      # Deploy the artifact built above.
-      - name: Deploy preview
+      # A failed remote build fails this step (non-zero exit).
+      # Only the deployment URL is printed to stdout; build logs are in Vercel.
+      - name: Deploy preview (remote build)
         id: deploy
         run: |
-          url="$(npx --yes "vercel@${VERCEL_CLI_VERSION}" deploy --prebuilt --token="$VERCEL_TOKEN")"
+          url="$(npx --yes "vercel@${VERCEL_CLI_VERSION}" deploy --yes --token="$VERCEL_TOKEN")"
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
       # Update a single PR comment instead of creating a new comment
@@ -95,7 +139,9 @@ jobs:
               repo,
               issue_number,
             });
-            const existing = comments.find((c) => c.body?.includes(marker));
+            const existing = comments.find(
+              (c) => c.user?.type === 'Bot' && c.body?.includes(marker),
+            );
 
             if (existing) {
               await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });

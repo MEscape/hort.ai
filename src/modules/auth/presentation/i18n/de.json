@@ -1,0 +1,163 @@
+{
+  "auth": {
+    "loading": "Wir machen alles bereit…",
+    "welcome": {
+      "metadata": {
+        "title": "Willkommen im Lernabenteuer",
+        "description": "Erstelle ein Elternkonto und starte mit deinem Kind ein sicheres, spielerisches Lernabenteuer."
+      },
+      "title": "Willkommen im Lernabenteuer!",
+      "description": "Gemeinsam entdecken wir eine Welt voller Wissen, Spaß und spannender Aufgaben. Erstelle zuerst ein Konto für dich.",
+      "signUp": "Als Eltern registrieren",
+      "haveAccount": "Schon ein Konto?",
+      "signIn": "Anmelden"
+    },
+    "signIn": {
+      "metadata": {
+        "title": "Anmelden",
+        "description": "Melde dich mit deinem Elternkonto an und sieh, wie es deinem Kind geht."
+      },
+      "title": "Schön, dass du wieder da bist!",
+      "description": "Hier beginnt das nächste Lernabenteuer für deine Familie.",
+      "email": "E-Mail-Adresse",
+      "password": "Passwort",
+      "submit": "Anmelden",
+      "submitting": "Einen Moment …",
+      "forgotPassword": "Passwort vergessen?",
+      "continueNotice": "Melde dich an, dann geht es direkt auf der Seite weiter, die du geöffnet hast.",
+      "noAccount": "Neu hier?",
+      "createAccount": "Elternkonto einrichten"
+    },
+    "signUp": {
+      "metadata": {
+        "title": "Elternkonto einrichten",
+        "description": "Richte dein Elternkonto ein: Es hält Einstellungen, Sicherheit und Fortschritt deines Kindes an einem Ort."
+      },
+      "title": "Elternkonto einrichten",
+      "description": "Mit deinem Konto verwaltest du die Einstellungen, Sicherheit und den Fortschritt deines Kindes.",
+      "name": "Wie dürfen wir dich nennen?",
+      "nameHint": "So begrüßen wir dich in unseren E-Mails.",
+      "email": "E-Mail-Adresse",
+      "password": "Passwort",
+      "confirmPassword": "Passwort wiederholen",
+      "submit": "Konto erstellen",
+      "submitting": "Dein Konto wird erstellt …",
+      "safety": "Für eine sichere und positive Lernerfahrung.",
+      "haveAccount": "Schon ein Konto?",
+      "signInLink": "Anmelden",
+      "successTitle": "Schau in dein Postfach!",
+      "success": "Wenn {email} neu hier ist, ist ein Bestätigungslink unterwegs. Hast du schon ein Konto, melde dich einfach an.",
+      "steps": {
+        "label": "So geht es weiter",
+        "confirm": {
+          "title": "Link öffnen",
+          "description": "Öffne die E-Mail und tippe auf den Link darin."
+        },
+        "signIn": {
+          "title": "Anmelden",
+          "description": "Danach meldest du dich an und das Abenteuer kann beginnen."
+        }
+      },
+      "checkSpam": "Noch nichts angekommen? Schau auch im Spam-Ordner nach.",
+      "toSignIn": "Zur Anmeldung"
+    },
+    "forgotPassword": {
+      "metadata": {
+        "title": "Passwort vergessen?",
+        "description": "Fordere einen Link an, um ein neues Passwort zu wählen."
+      },
+      "title": "Kein Problem!",
+      "description": "Gib deine E-Mail-Adresse ein. Wir schicken dir einen Link, mit dem du ein neues Passwort wählst.",
+      "email": "E-Mail-Adresse",
+      "submit": "Link schicken",
+      "submitting": "Wird gesendet …",
+      "backToSignIn": "Zurück zur Anmeldung",
+      "successTitle": "Schau in dein Postfach!",
+      "success": "Wenn es zu dieser Adresse ein Konto gibt, ist ein Link unterwegs. Er ist {minutes} Minuten gültig.",
+      "checkSpam": "Noch nichts angekommen? Schau auch im Spam-Ordner nach.",
+      "resend": "Link noch einmal schicken",
+      "resendIn": "Nochmal senden in {seconds} s",
+      "resent": "Wir haben ihn noch einmal geschickt.",
+      "differentAddress": "Andere Adresse verwenden"
+    },
+    "resetPassword": {
+      "metadata": {
+        "title": "Neues Passwort wählen"
+      },
+      "title": "Neues Passwort wählen",
+      "description": "Wähle etwas, das nur du kennst. Ein paar zufällige Wörter funktionieren gut.",
+      "newPassword": "Neues Passwort",
+      "confirmPassword": "Neues Passwort wiederholen",
+      "submit": "Passwort speichern",
+      "submitting": "Wird gespeichert …",
+      "successTitle": "Alles klar!",
+      "success": "Dein Passwort ist geändert. Du kannst dich jetzt anmelden.",
+      "signIn": "Zur Anmeldung",
+      "missingTokenTitle": "Dieser Link ist unvollständig",
+      "missingToken": "Unterwegs ist etwas verloren gegangen. Fordere einen neuen Link an, wir schicken ihn sofort.",
+      "requestNew": "Neuen Link anfordern"
+    },
+    "emailVerification": {
+      "metadata": {
+        "title": "E-Mail-Adresse bestätigen"
+      },
+      "successTitle": "Willkommen an Bord!",
+      "success": "Deine E-Mail-Adresse ist bestätigt. Du kannst dich jetzt anmelden.",
+      "failureTitle": "Der Link hat nicht geklappt",
+      "failure": "Er ist abgelaufen oder wurde schon benutzt. Melde dich an, dann schicken wir dir einen frischen.",
+      "signIn": "Zur Anmeldung"
+    },
+    "signOut": {
+      "label": "Abmelden",
+      "pending": "Du wirst abgemeldet …"
+    },
+    "errors": {
+      "unauthenticated": "Bitte melde dich an, um weiterzumachen.",
+      "invalidCredentials": "Das hat leider nicht gepasst. Prüfe E-Mail-Adresse und Passwort und versuche es noch einmal.",
+      "sessionExpired": "Du warst eine Weile weg. Bitte melde dich noch einmal an.",
+      "reauthenticationRequired": "Zu deiner Sicherheit: Bitte melde dich noch einmal an.",
+      "invalidToken": "Dieser Link funktioniert nicht mehr. Fordere einen neuen an.",
+      "emailNotVerified": "Deine E-Mail-Adresse ist noch nicht bestätigt. Wir haben dir gerade einen neuen Link geschickt.",
+      "permissionDenied": "Das darfst du nicht.",
+      "rateLimited": "Das ging etwas schnell. Warte einen Moment und versuche es dann noch einmal.",
+      "validation": "Bitte prüfe deine Angaben.",
+      "infrastructure": "Wir kommen gerade nicht weiter. Bitte versuche es gleich noch einmal.",
+      "unexpected": "Etwas ist schiefgelaufen. Bitte versuche es noch einmal."
+    },
+    "validation": {
+      "emailRequired": "Bitte gib deine E-Mail-Adresse ein.",
+      "emailInvalid": "Das sieht noch nicht wie eine E-Mail-Adresse aus.",
+      "emailTooLong": "Die E-Mail-Adresse darf höchstens {emailMax} Zeichen haben.",
+      "passwordRequired": "Bitte gib dein Passwort ein.",
+      "passwordTooShort": "Dein Passwort braucht mindestens {passwordMin} Zeichen.",
+      "passwordTooLong": "Dein Passwort darf höchstens {passwordMax} Zeichen haben.",
+      "passwordMismatch": "Die beiden Passwörter sind noch nicht gleich.",
+      "nameRequired": "Bitte sag uns, wie wir dich nennen dürfen.",
+      "nameTooLong": "Der Name darf höchstens {nameMax} Zeichen haben.",
+      "tokenInvalid": "Dieser Link ist nicht gültig. Fordere einen neuen an.",
+      "tenantInvalid": "Diesen Ort gibt es nicht."
+    },
+    "emailSuggestion": {
+      "question": "Meintest du"
+    },
+    "passwordGuidance": {
+      "empty": "Wähle ein Passwort, um seine Stärke zu prüfen.",
+      "strengthLabel": "Stärke: {level}",
+      "strength": {
+        "weak": "Schwach",
+        "fair": "Ordentlich",
+        "good": "Gut",
+        "strong": "Stark"
+      },
+      "required": "Das brauchst du",
+      "recommended": "Noch besser",
+      "length": "Mindestens {passwordMin} Zeichen",
+      "notCommon": "Kein häufiges Passwort oder Muster",
+      "avoidsPersonal": "Enthält weder deinen Namen noch deine E-Mail",
+      "met": "Erledigt.",
+      "notMet": "Noch nicht erledigt.",
+      "tip": "Tipp: Vier oder mehr Wörter, die nichts miteinander zu tun haben, ergeben ein starkes Passwort, das du dir gut merken kannst.",
+      "match": "Die Passwörter stimmen überein"
+    }
+  }
+}

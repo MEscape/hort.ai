@@ -31,6 +31,9 @@ export function buildLocalizedMetadata({
     openGraph: {
       type: 'website',
       siteName: APP_IDENTITY.name,
+      images: [
+        { url: APP_IDENTITY.assets.socialImage, width: 1200, height: 630, alt: APP_IDENTITY.name },
+      ],
       title,
       description,
       url: canonical,

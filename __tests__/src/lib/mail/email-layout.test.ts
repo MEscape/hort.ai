@@ -34,6 +34,7 @@ describe('renderEmail without optional parts', () => {
   it('draws the logo from the app origin and credits the product', () => {
     expect(rendered.html).toContain(`src="${publicEnv.NEXT_PUBLIC_APP_URL}/email/hortai.png"`);
     expect(rendered.html).toContain(`alt="${APP_IDENTITY.name}"`);
+    expect(rendered.html).toContain('width="248" height="80"');
     expect(rendered.html).toContain(`>${APP_IDENTITY.name}</p>`);
   });
 

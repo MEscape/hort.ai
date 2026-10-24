@@ -308,7 +308,7 @@ export function policyFor(moduleName, root = process.cwd()) {
  * unsaved changes or leaving the page (`useReportUnsavedChanges`, `useBeforeUnloadGuard`, …). A react-hook-form
  * form in module presentation calls one or says why not with `@unsaved-work none <reason>`
  * (`architecture/unsaved-work-guard`). `__tests__/architecture/policy-consistency.test.ts` checks that at least
- * one such hook exists, so the convention cannot silently match nothing.
+ * one such hook exists when a form needs it; explicit credential-form opt-outs need no guard.
  */
 export const UNSAVED_WORK_GUARD = /^use\w*(?:Unsaved|BeforeUnload)\w*$/;
 
