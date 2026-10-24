@@ -35,15 +35,17 @@ export function TutorAvatar({ imageUrl, alt, className, tone = 'sky' }: TutorAva
     () => false,
   );
 
+  const showsPicture = !hasFailed && imageUrl !== '' && isReady;
+
   return (
     <span
       className={cn(
         'flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-token-lg',
-        TONES[tone],
+        showsPicture ? 'border border-border bg-surface' : TONES[tone],
         className,
       )}
     >
-      {hasFailed || imageUrl === '' || !isReady ? (
+      {!showsPicture ? (
         <PawPrint className="size-10" aria-hidden="true" />
       ) : (
         // @ui-plain img Companion pictures are SVGs from public storage; they need no optimizer.
@@ -53,7 +55,6 @@ export function TutorAvatar({ imageUrl, alt, className, tone = 'sky' }: TutorAva
           alt={alt}
           width={96}
           height={96}
-          loading="lazy"
           className="size-full object-contain"
           onError={() => {
             setHasFailed(true);

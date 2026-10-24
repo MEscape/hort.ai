@@ -32,7 +32,9 @@ export async function generateMetadata({
 async function ParentOnboarding() {
   await requireSignedIn(learnerRoutes.onboarding());
   const state = await requireOnboarding();
-  return <OnboardingFlow initial={state} tutors={buildTutorOptions()} />;
+  // A fresh key per server render: the browser keeps the state of a page it left (the router
+  // restores it), so without this a reset or a second visit could show the screen of the last visit.
+  return <OnboardingFlow key={crypto.randomUUID()} initial={state} tutors={buildTutorOptions()} />;
 }
 
 export default async function OnboardingPage({
