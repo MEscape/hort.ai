@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 
 import { AuthFormSkeleton, AuthShell, isAuthEnabled, requireSignedIn } from '@modules/auth';
 import { SignOutButton } from '@modules/auth/client';
+import { requireOnboarded } from '@modules/learner';
 
 import { Hort } from '@components/brand/hort';
 import { I18nProvider } from '@components/providers/i18n-provider';
@@ -25,6 +26,7 @@ export async function generateMetadata({
 
 async function ParentHome() {
   await requireSignedIn('/home');
+  await requireOnboarded();
   const t = await getTranslations('app');
   return (
     <Card>

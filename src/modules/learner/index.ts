@@ -47,3 +47,12 @@ export type {
   OnboardingStateView,
   ParentControlsView,
 } from './application/contracts/learner-views';
+
+/** Framework entry points: the onboarding screens, the guards pages call, and the module's catalogs. */
+export { OnboardingFlow } from './presentation/components/onboarding-flow';
+export { OnboardingShell } from './presentation/components/onboarding-shell';
+export type { TutorOption } from './presentation/components/tutor-option';
+export { requireOnboarded, requireOnboarding } from './presentation/guards/require-onboarding';
+export { learnerRoutes } from './presentation/routes';
+export { default as enLearner } from './presentation/i18n/en.json';
+export { default as deLearner } from './presentation/i18n/de.json';
