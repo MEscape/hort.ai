@@ -15,5 +15,6 @@ export interface TeacherMaterialSource {
   listForClassroom(
     classroomId: ClassroomId,
     limit: number,
+    childProfileId?: string,
   ): AppResultAsync<readonly TeacherMaterialStatement[], InfrastructureAppError>;
 }

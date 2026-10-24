@@ -34,6 +34,7 @@ export interface RelevanceQuery {
   readonly task: string;
   readonly classroomId: ClassroomId | null;
   readonly limit: number;
+  readonly childProfileId?: string;
 }
 
 const CODES = CURRICULUM_VALIDATION_CODES;
@@ -69,6 +70,7 @@ export function parseRelevanceQuery(
     grade: request.grade,
     task: toCleanLine(Array.from(request.task).slice(0, TASK_TEXT_MAX).join('')),
     classroomId: classroomId.value,
+    ...(request.childProfileId ? { childProfileId: request.childProfileId } : {}),
     limit: clamp(requested, 1, RELEVANT_COMPETENCIES_MAX),
   });
 }

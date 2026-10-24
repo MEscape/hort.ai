@@ -21,7 +21,18 @@ export function toTeacherMaterialId(raw: string): TeacherMaterialId {
 
 /** Brands an id that arrived from a request, after checking its shape. */
 export const parseTeacherMaterialId = createIdParser({
-  isValid: (raw: string) => raw.length > 0 && raw.length <= TEACHER_MATERIAL_ID_MAX_LENGTH,
+  isValid: (raw: string) =>
+    /^[A-Za-z0-9_-]+$/.test(raw) && raw.length <= TEACHER_MATERIAL_ID_MAX_LENGTH,
   brand: toTeacherMaterialId,
   mapError: () => fieldValidationFailed('id', TEACHER_MATERIAL_VALIDATION_CODES.idInvalid),
+});
+
+export type ClassroomId = Brand<string, 'ClassroomId'>;
+export function toClassroomId(raw: string): ClassroomId {
+  return raw as ClassroomId;
+}
+export const parseClassroomId = createIdParser({
+  isValid: (raw: string) => /^[A-Za-z0-9_-]{1,128}$/.test(raw),
+  brand: toClassroomId,
+  mapError: () => fieldValidationFailed('classroomId', TEACHER_MATERIAL_VALIDATION_CODES.idInvalid),
 });

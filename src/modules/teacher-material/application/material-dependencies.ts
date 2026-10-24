@@ -3,8 +3,13 @@ import type { AuthorizationService } from '@modules/auth';
 import type { RateLimiter } from '@lib/rate-limit';
 import type { ObjectStore } from '@lib/storage';
 
+import type {
+  MaterialAuditLog,
+  MaterialClassrooms,
+  MaterialIngest,
+  MaterialTextReader,
+} from '../domain/ports/material-services.port';
 import type { MaterialRepository } from '../domain/ports/material.repository';
-import type { MaterialAuditLog, MaterialClassrooms, MaterialIngest, MaterialTextReader } from '../domain/ports/material-services.port';
 
 export interface MaterialDependencies {
   readonly authorization: AuthorizationService;
