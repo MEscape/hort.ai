@@ -28,7 +28,7 @@ body:
       label: Acceptance criteria
       description: Verifiable conditions that define when this issue is done.
       value: |
-        - [ ] 
+        - [ ]
     validations:
       required: true
   - type: textarea
