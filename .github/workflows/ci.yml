@@ -154,7 +154,8 @@ jobs:
       - name: Start storage and rate-limit emulators
         run: |
           cp .env.docker.example .env.docker
-          docker compose --env-file .env.docker up -d --wait redis-rest azurite azurite-init
+          docker compose --env-file .env.docker up -d --wait redis-rest azurite
+          docker compose --env-file .env.docker run --rm azurite-init
       - name: Wait for Redis REST
         run: |
           for _ in $(seq 1 30); do
