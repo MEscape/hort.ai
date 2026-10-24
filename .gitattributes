@@ -1,0 +1,4 @@
+# Line endings are LF in the repository and in every checkout: Prettier requires it, and a CRLF
+# shell script bind-mounted into a container (docker/postgres/initdb) fails to run.
+* text=auto eol=lf
+*.sh text eol=lf

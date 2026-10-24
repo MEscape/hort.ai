@@ -1,0 +1,283 @@
+# ==============================================================================
+# HORTAI - LICENSE COMPLIANCE PIPELINE
+# Audits third-party SPDX package licenses against the approved policy allowlist,
+# annotates violations on `package-lock.json`, and updates a single PR comment.
+# ==============================================================================
+
+name: License check
+
+on:
+  # Called from ci.yml, which production.yml also re-runs on the deployed commit.
+  workflow_call:
+    inputs:
+      allowed-licenses:
+        description: Semicolon-separated SPDX identifiers to allow. Empty uses the default list below.
+        type: string
+        required: false
+        default: ""
+      license-exceptions:
+        description: Semicolon-separated packages accepted despite their license (name or name@version).
+        type: string
+        required: false
+        default: ""
+      include-dev:
+        description: Also check devDependencies. Default is runtime dependencies only.
+        type: boolean
+        required: false
+        default: false
+
+  # Manual run from the Actions tab.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: license-check-${{ github.event_name }}-${{ github.ref }}
+  # Cancel superseded PR runs; never cancel a run that guards a production deploy.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # License policy. This is the single place to edit it.
+  # SPDX expressions are evaluated: "(MIT OR Apache-2.0)" passes if either side
+  # is allowed, "A AND B" requires both. CC-BY-4.0 covers caniuse-lite (Next.js).
+  ALLOWED_LICENSES: ${{ inputs.allowed-licenses || 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD;BlueOak-1.0.0;CC0-1.0;CC-BY-4.0;Unlicense;Python-2.0;LGPL-3.0-or-later;MPL-2.0;MIT-0' }}
+
+  # Packages reviewed and accepted despite their license.
+  LICENSE_EXCEPTIONS: ${{ inputs.license-exceptions || '' }}
+
+  # "true" also scans devDependencies.
+  INCLUDE_DEV: ${{ inputs.include-dev && 'true' || 'false' }}
+
+  # Pinned for reproducible runs.
+  LICENSE_CHECKER_VERSION: "4.4.2"
+
+  # File name of the JSON report. Written by "Generate license report",
+  # read by "Enforce license policy", uploaded by "Upload license report".
+  REPORT_PATH: license-report.json
+
+jobs:
+  # ----------------------------------------------------------------------------
+  # Scan & Enforce SPDX License Policy
+  # ----------------------------------------------------------------------------
+  license-check:
+    name: License compliance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+      # Only used to create/update the PR comment.
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      # Pinned Node, cached ~/.npm, lockfile-exact install.
+      - uses: ./.github/actions/setup
+
+      # Collect license data only. The policy decision happens in the next step
+      # so that every offending package is reported at once.
+      - name: Generate license report
+        run: |
+          scope_flag="--production"
+          if [ "$INCLUDE_DEV" = "true" ]; then
+            scope_flag=""
+          fi
+
+          # scope_flag is intentionally unquoted: it may be empty.
+          # shellcheck disable=SC2086
+          npx --yes "license-checker-rseidelsohn@${LICENSE_CHECKER_VERSION}" \
+            $scope_flag \
+            --excludePrivatePackages \
+            --json \
+            --out "$REPORT_PATH"
+
+          echo "Scanned $(node -p "Object.keys(require('./${REPORT_PATH}')).length") packages."
+
+      # Compare every package against the allowlist. On violations this prints
+      # each offender in the log, adds an error annotation per package, writes
+      # a job summary, updates one PR comment, and fails the job.
+      - name: Enforce license policy
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const fs = require('fs');
+            const { owner, repo } = context.repo;
+
+            // Convert a ';'-separated variable into a lowercase Set.
+            const toSet = (value) =>
+              new Set(
+                (value || '')
+                  .split(';')
+                  .map((item) => item.trim().toLowerCase())
+                  .filter(Boolean)
+              );
+
+            const allowed = toSet(process.env.ALLOWED_LICENSES);
+            const exceptions = toSet(process.env.LICENSE_EXCEPTIONS);
+
+            // True when one pair of parentheses encloses the whole expression.
+            const isWrapped = (expr) => {
+              if (!expr.startsWith('(') || !expr.endsWith(')')) return false;
+              let depth = 0;
+              for (let i = 0; i < expr.length; i++) {
+                if (expr[i] === '(') depth++;
+                if (expr[i] === ')') depth--;
+                if (depth === 0 && i < expr.length - 1) return false;
+              }
+              return true;
+            };
+
+            // Split on an operator that sits outside any parentheses.
+            const splitTopLevel = (expr, operator) => {
+              const parts = [];
+              let depth = 0;
+              let start = 0;
+              for (let i = 0; i < expr.length; i++) {
+                if (expr[i] === '(') depth++;
+                else if (expr[i] === ')') depth--;
+                else if (depth === 0 && expr.startsWith(operator, i)) {
+                  parts.push(expr.slice(start, i));
+                  i += operator.length - 1;
+                  start = i + 1;
+                }
+              }
+              parts.push(expr.slice(start));
+              return parts;
+            };
+
+            // Evaluate an SPDX-style expression. Anything unrecognised
+            // (UNKNOWN, "Custom: ...", "X WITH exception") is not allowed.
+            const isAllowed = (raw) => {
+              // license-checker appends "*" when it guessed the license from a file.
+              let expr = String(raw).trim().toLowerCase().replace(/\*$/, '');
+              while (isWrapped(expr)) expr = expr.slice(1, -1).trim();
+
+              const alternatives = splitTopLevel(expr, ' or ');
+              if (alternatives.length > 1) return alternatives.some(isAllowed);
+
+              const requirements = splitTopLevel(expr, ' and ');
+              if (requirements.length > 1) return requirements.every(isAllowed);
+
+              return allowed.has(expr);
+            };
+
+            const report = JSON.parse(fs.readFileSync(process.env.REPORT_PATH, 'utf8'));
+            const total = Object.keys(report).length;
+            const violations = [];
+
+            for (const [pkg, info] of Object.entries(report)) {
+              // Keys look like "name@1.2.3" or "@scope/name@1.2.3".
+              const name = pkg.slice(0, pkg.lastIndexOf('@'));
+              if (exceptions.has(pkg.toLowerCase()) || exceptions.has(name.toLowerCase())) continue;
+
+              // A license array means "choose one", so one allowed entry is enough.
+              const licenses = (Array.isArray(info.licenses) ? info.licenses : [info.licenses]).filter(Boolean);
+              if (licenses.some(isAllowed)) continue;
+
+              violations.push({
+                pkg,
+                license: licenses.join(' / ') || 'UNKNOWN',
+                repository: info.repository || '',
+              });
+            }
+
+            // Build log and annotations.
+            console.log(`Allowed licenses: ${process.env.ALLOWED_LICENSES}`);
+            console.log(`Checked ${total} packages, found ${violations.length} violation(s).`);
+            for (const v of violations) {
+              core.error(`${v.pkg} uses "${v.license}", which is not on the allowlist.`, {
+                title: 'Disallowed license',
+                file: 'package-lock.json',
+              });
+            }
+
+            // Job summary.
+            const summary = core.summary.addHeading('License compliance', 2);
+            if (violations.length === 0) {
+              summary.addRaw(`All ${total} packages use allowed licenses.`, true);
+            } else {
+              summary.addTable([
+                [
+                  { data: 'Package', header: true },
+                  { data: 'License', header: true },
+                  { data: 'Repository', header: true },
+                ],
+                ...violations.map((v) => [v.pkg, v.license, v.repository]),
+              ]);
+            }
+            await summary.write();
+
+            // PR comment: one comment, updated in place. Fork and Dependabot
+            // PRs get a read-only token, so they rely on annotations instead.
+            const pr = context.payload.pull_request;
+            const canComment =
+              pr &&
+              pr.head.repo.full_name === `${owner}/${repo}` &&
+              context.actor !== 'dependabot[bot]';
+
+            if (canComment) {
+              try {
+                const marker = '<!-- license-check -->';
+                const body = violations.length
+                  ? [
+                      marker,
+                      '**License check failed**',
+                      '',
+                      'These packages use licenses that are not on the approved list:',
+                      '',
+                      '| Package | License |',
+                      '| --- | --- |',
+                      ...violations.map((v) => `| \`${v.pkg}\` | ${v.license} |`),
+                      '',
+                      `Allowed: ${process.env.ALLOWED_LICENSES.split(';').join(', ')}`,
+                      '',
+                      'Replace the dependency, or add it to `license-exceptions` after legal review.',
+                    ].join('\n')
+                  : `${marker}\n**License check passed**`;
+
+                const comments = await github.paginate(github.rest.issues.listComments, {
+                  owner,
+                  repo,
+                  issue_number: pr.number,
+                });
+                const existing = comments.find((comment) => comment.body?.includes(marker));
+
+                if (existing) {
+                  await github.rest.issues.updateComment({
+                    owner,
+                    repo,
+                    comment_id: existing.id,
+                    body,
+                  });
+                } else if (violations.length) {
+                  // Do not add a comment to PRs that never had a problem.
+                  await github.rest.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: pr.number,
+                    body,
+                  });
+                }
+              } catch (error) {
+                // A failed comment must never hide the real result.
+                core.warning(`Could not post PR comment: ${error.message}`);
+              }
+            }
+
+            if (violations.length) {
+              core.setFailed(`${violations.length} package(s) use disallowed licenses.`);
+            }
+
+      # Keep the raw report for audits, including when the check fails.
+      - name: Upload license report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: license-report
+          path: ${{ env.REPORT_PATH }}
+          if-no-files-found: ignore
+          retention-days: 30

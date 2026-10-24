@@ -1,0 +1,104 @@
+# ==============================================================================
+# HORTAI - VERCEL PREVIEW DEPLOYMENT PIPELINE
+# Builds and deploys an isolated preview environment for internal pull requests
+# and maintains a single updated PR comment with the deployment URL.
+# ==============================================================================
+
+name: Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+# Older previews of the same PR are obsolete.
+# Cancel them when a new commit arrives.
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # ----------------------------------------------------------------------------
+  # Build & Deploy Vercel Preview
+  # ----------------------------------------------------------------------------
+  deploy-preview:
+    name: Vercel preview
+
+    # Fork PRs and Dependabot PRs do not receive repository secrets,
+    # so skip them rather than failing the deployment.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
+
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    environment:
+      name: preview
+      url: ${{ steps.deploy.outputs.url }}
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    env:
+      VERCEL_CLI_VERSION: "65.0.0"
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      # Ensure Prisma client & contracts exist since `--ignore-scripts` skips postinstall.
+      - name: Generate Prisma client & contracts
+        run: npm run db:generate
+
+      # Pull the Preview environment variables and project settings.
+      - name: Pull Vercel preview settings
+        run: npx --yes "vercel@${VERCEL_CLI_VERSION}" pull --yes --environment=preview --token="$VERCEL_TOKEN"
+
+      # Build the exact artifact that will be deployed.
+      - name: Build preview
+        run: npx --yes "vercel@${VERCEL_CLI_VERSION}" build --token="$VERCEL_TOKEN"
+
+      # Deploy the artifact built above.
+      - name: Deploy preview
+        id: deploy
+        run: |
+          url="$(npx --yes "vercel@${VERCEL_CLI_VERSION}" deploy --prebuilt --token="$VERCEL_TOKEN")"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      # Update a single PR comment instead of creating a new comment
+      # for every commit pushed to the PR.
+      - name: Comment preview URL on the PR
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.url }}
+        with:
+          script: |
+            const marker = '<!-- vercel-preview -->';
+            const sha = context.payload.pull_request.head.sha.slice(0, 7);
+            const body = `${marker}\n**Preview:** ${process.env.PREVIEW_URL}\n\nCommit \`${sha}\``;
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+            });
+            const existing = comments.find((c) => c.body?.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }

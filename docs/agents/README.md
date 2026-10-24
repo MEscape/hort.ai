@@ -48,15 +48,15 @@ A single general-purpose review agent can mix unrelated concerns, overlook speci
 
 This system separates engineering review into specialized agents. Each agent answers a distinct question and provides evidence within its area of responsibility.
 
-| Agent | Primary Question |
-|---|---|
-| Goal Checker | Did we implement everything that was requested? |
-| Designer | Is the user experience correct, consistent, accessible, and usable? |
-| Architecture | Does the implementation fit the system's architecture and maintainability requirements? |
-| Security | Can the implementation be exploited through technical vulnerabilities? |
-| Bug Bounty | How could an authorized external researcher abuse or break the feature? |
-| Test / Regression | Do the tests provide convincing evidence of correctness and protection against regressions? |
-| Production Blocker | Is there any known issue that should prevent production deployment? |
+| Agent              | Primary Question                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| Goal Checker       | Did we implement everything that was requested?                                             |
+| Designer           | Is the user experience correct, consistent, accessible, and usable?                         |
+| Architecture       | Does the implementation fit the system's architecture and maintainability requirements?     |
+| Security           | Can the implementation be exploited through technical vulnerabilities?                      |
+| Bug Bounty         | How could an authorized external researcher abuse or break the feature?                     |
+| Test / Regression  | Do the tests provide convincing evidence of correctness and protection against regressions? |
+| Production Blocker | Is there any known issue that should prevent production deployment?                         |
 
 The agents complement one another rather than duplicate each other's work.
 
@@ -78,7 +78,7 @@ Agents must not invent repository facts, test results, requirements, or verifica
 
 ## Goal Checker Agent
 
-**Specification:** [`docs/agents/goal-checker-agent.md`](docs/agents/goal-checker-agent.md)
+**Specification:** [`docs/agents/goal-checker-agent.md`](goal-checker-agent.md)
 
 ### Purpose
 
@@ -107,7 +107,7 @@ Run for every feature or significant change where completion must be verified ag
 
 ## Designer Agent
 
-**Specification:** [`docs/agents/designer-agent.md`](docs/agents/designer-agent.md)
+**Specification:** [`docs/agents/designer-agent.md`](designer-agent.md)
 
 ### Purpose
 
@@ -138,7 +138,7 @@ Run for user-facing changes, frontend features, workflows, and changes that affe
 
 ## Architecture Agent
 
-**Specification:** [`docs/agents/architecture-agent.md`](docs/agents/architecture-agent.md)
+**Specification:** [`docs/agents/architecture-agent.md`](architecture-agent.md)
 
 ### Purpose
 
@@ -168,7 +168,7 @@ Run for major features, backend changes, new modules, shared components, archite
 
 ## Security Agent
 
-**Specification:** [`docs/agents/security-agent.md`](docs/agents/security-agent.md)
+**Specification:** [`docs/agents/security-agent.md`](security-agent.md)
 
 ### Purpose
 
@@ -200,7 +200,7 @@ Run for security-sensitive features, externally accessible functionality, authen
 
 ## Bug Bounty Agent
 
-**Specification:** [`docs/agents/bug-bounty-agent.md`](docs/agents/bug-bounty-agent.md)
+**Specification:** [`docs/agents/bug-bounty-agent.md`](bug-bounty-agent.md)
 
 ### Purpose
 
@@ -233,7 +233,7 @@ Testing must be limited to systems and environments where the operator has autho
 
 ## Test / Regression Agent
 
-**Specification:** [`docs/agents/test-agent.md`](docs/agents/test-agent.md)
+**Specification:** [`docs/agents/test-agent.md`](test-agent.md)
 
 ### Purpose
 
@@ -269,6 +269,7 @@ Run for every feature, bug fix, refactor, and significant code change. Apply add
 A test is valuable when it verifies meaningful behavior and would detect the relevant regression.
 
 The agent must distinguish between:
+
 - Adequate coverage.
 - Non-blocking test improvements.
 - Meaningful regression risk.
@@ -280,7 +281,7 @@ A missing test is not automatically a release blocker, and passing tests do not 
 
 ## Production Blocker Agent
 
-**Specification:** [`docs/agents/production-blocker-agent.md`](docs/agents/production-blocker-agent.md)
+**Specification:** [`docs/agents/production-blocker-agent.md`](production-blocker-agent.md)
 
 ### Purpose
 
@@ -322,24 +323,24 @@ The Production Blocker Agent evaluates the actual risk and available evidence. I
 
 The agents have separate primary responsibilities, with supporting roles where concerns overlap.
 
-| Concern | Goal | Design | Architecture | Security | Bug Bounty | Test / Regression | Production |
-|---|---|---|---|---|---|---|---|
-| Requirements completeness | Primary | | | | | Supporting | Gate |
-| Acceptance criteria | Primary | Supporting | | | | Supporting | Gate |
-| UI/UX | | Primary | | | | Supporting | |
-| Accessibility | | Primary | | | | Supporting | |
-| Code structure | | | Primary | | | Supporting | |
-| Complexity and maintainability | | | Primary | | | | Supporting |
-| Authentication | | | | Primary | Supporting | Supporting | Gate |
-| Authorization | | | | Primary | Primary | Supporting | Gate |
-| Technical vulnerabilities | | | | Primary | Supporting | | Gate |
-| Business-logic abuse | | | Supporting | Supporting | Primary | Supporting | Gate |
-| Functional correctness | Supporting | Supporting | | | | Primary | Gate |
-| Behavioral test quality | | | | | | Primary | Gate |
-| Regression detection | Supporting | Supporting | Supporting | Supporting | Supporting | Primary | Gate |
-| Integration verification | | | Supporting | Supporting | Supporting | Primary | Gate |
-| Deployment readiness | | | | Supporting | | Supporting | Primary |
-| Release-blocking decision | | | | | | | Primary |
+| Concern                        | Goal       | Design     | Architecture | Security   | Bug Bounty | Test / Regression | Production |
+| ------------------------------ | ---------- | ---------- | ------------ | ---------- | ---------- | ----------------- | ---------- |
+| Requirements completeness      | Primary    |            |              |            |            | Supporting        | Gate       |
+| Acceptance criteria            | Primary    | Supporting |              |            |            | Supporting        | Gate       |
+| UI/UX                          |            | Primary    |              |            |            | Supporting        |            |
+| Accessibility                  |            | Primary    |              |            |            | Supporting        |            |
+| Code structure                 |            |            | Primary      |            |            | Supporting        |            |
+| Complexity and maintainability |            |            | Primary      |            |            |                   | Supporting |
+| Authentication                 |            |            |              | Primary    | Supporting | Supporting        | Gate       |
+| Authorization                  |            |            |              | Primary    | Primary    | Supporting        | Gate       |
+| Technical vulnerabilities      |            |            |              | Primary    | Supporting |                   | Gate       |
+| Business-logic abuse           |            |            | Supporting   | Supporting | Primary    | Supporting        | Gate       |
+| Functional correctness         | Supporting | Supporting |              |            |            | Primary           | Gate       |
+| Behavioral test quality        |            |            |              |            |            | Primary           | Gate       |
+| Regression detection           | Supporting | Supporting | Supporting   | Supporting | Supporting | Primary           | Gate       |
+| Integration verification       |            |            | Supporting   | Supporting | Supporting | Primary           | Gate       |
+| Deployment readiness           |            |            |              | Supporting |            | Supporting        | Primary    |
+| Release-blocking decision      |            |            |              |            |            |                   | Primary    |
 
 **Primary** means the agent owns the analysis. **Supporting** means it may identify relevant concerns within its scope. **Gate** means its findings can inform the final deployment decision.
 
@@ -408,15 +409,15 @@ The Production Blocker Agent should reassess any release decision affected by th
 
 The execution strategy should reflect the type and risk of the change.
 
-| Agent | Pull Request | Feature Completion | Pre-Release | Major Refactor | Security-Sensitive Change |
-|---|---|---|---|---|---|
-| Goal Checker | Recommended | Required | As needed | Recommended | Required |
-| Designer | Conditional | Required for UI | As needed | Conditional | Conditional |
-| Architecture | Conditional | Recommended | As needed | Required | Recommended |
-| Security | Conditional | Recommended | Required | Conditional | Required |
-| Bug Bounty | Not normally | Conditional | Required where relevant | Conditional | Required where relevant |
-| Test / Regression | Required | Required | Required | Required | Required |
-| Production Blocker | Not normally | Not normally | Required | Not normally | Required |
+| Agent              | Pull Request | Feature Completion | Pre-Release             | Major Refactor | Security-Sensitive Change |
+| ------------------ | ------------ | ------------------ | ----------------------- | -------------- | ------------------------- |
+| Goal Checker       | Recommended  | Required           | As needed               | Recommended    | Required                  |
+| Designer           | Conditional  | Required for UI    | As needed               | Conditional    | Conditional               |
+| Architecture       | Conditional  | Recommended        | As needed               | Required       | Recommended               |
+| Security           | Conditional  | Recommended        | Required                | Conditional    | Required                  |
+| Bug Bounty         | Not normally | Conditional        | Required where relevant | Conditional    | Required where relevant   |
+| Test / Regression  | Required     | Required           | Required                | Required       | Required                  |
+| Production Blocker | Not normally | Not normally       | Required                | Not normally   | Required                  |
 
 **Execution guidance:**
 
@@ -435,18 +436,19 @@ A conditional agent should be selected when the change's scope or risk makes its
 
 Every agent should use a consistent system for communicating severity.
 
-| Severity | Meaning |
-|---|---|
-| BLOCKER | An issue that must be resolved before the relevant workflow or deployment can proceed. |
+| Severity | Meaning                                                                                                  |
+| -------- | -------------------------------------------------------------------------------------------------------- |
+| BLOCKER  | An issue that must be resolved before the relevant workflow or deployment can proceed.                   |
 | CRITICAL | A severe issue with potentially major security, functional, data-integrity, or operational consequences. |
-| HIGH | A significant issue that should normally be resolved before release. |
-| MEDIUM | A meaningful issue that should be addressed but does not automatically block release. |
-| LOW | A minor defect or improvement with limited impact. |
-| INFO | An observation or recommendation without an established direct defect. |
+| HIGH     | A significant issue that should normally be resolved before release.                                     |
+| MEDIUM   | A meaningful issue that should be addressed but does not automatically block release.                    |
+| LOW      | A minor defect or improvement with limited impact.                                                       |
+| INFO     | An observation or recommendation without an established direct defect.                                   |
 
 Severity describes the impact of a finding. It does not independently determine whether deployment must be blocked.
 
 The Production Blocker Agent makes that decision using:
+
 - Actual and potential impact.
 - Likelihood and exposure.
 - Affected functionality and users.
@@ -536,15 +538,15 @@ For example, the Test / Regression Agent's `NEEDS TESTS` verdict should normally
 
 A finding and a production blocker are not necessarily the same thing.
 
-| Example finding | Typical interpretation | Automatically blocks release? |
-|---|---|---|
-| Designer: inconsistent spacing | Minor UX inconsistency | No |
-| Architecture: excessive coupling | Potential technical debt | No |
-| Security: confirmed authorization bypass | Serious security vulnerability | Normally yes |
-| Goal Checker: required critical functionality missing | Incomplete implementation | Depends on the requirement and release scope |
-| Test / Regression: missing test for a critical business invariant | Potentially unacceptable verification gap | Depends on risk and available evidence |
-| Test / Regression: missing test for a low-risk helper | Non-blocking test improvement | No |
-| Production: failed deployment or unsafe migration | Operational release risk | Normally yes |
+| Example finding                                                   | Typical interpretation                    | Automatically blocks release?                |
+| ----------------------------------------------------------------- | ----------------------------------------- | -------------------------------------------- |
+| Designer: inconsistent spacing                                    | Minor UX inconsistency                    | No                                           |
+| Architecture: excessive coupling                                  | Potential technical debt                  | No                                           |
+| Security: confirmed authorization bypass                          | Serious security vulnerability            | Normally yes                                 |
+| Goal Checker: required critical functionality missing             | Incomplete implementation                 | Depends on the requirement and release scope |
+| Test / Regression: missing test for a critical business invariant | Potentially unacceptable verification gap | Depends on risk and available evidence       |
+| Test / Regression: missing test for a low-risk helper             | Non-blocking test improvement             | No                                           |
+| Production: failed deployment or unsafe migration                 | Operational release risk                  | Normally yes                                 |
 
 The final decision must account for the actual consequences of the issue, its exposure, the intended release scope, and available evidence.
 

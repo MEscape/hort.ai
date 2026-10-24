@@ -1,0 +1,72 @@
+# ==============================================================================
+# HORTAI - SECURITY & SUPPLY-CHAIN AUDIT PIPELINE
+# Enforces dependency vulnerability checks, PR dependency diffs, and secret leaks.
+# ==============================================================================
+
+name: Security
+
+on:
+  schedule:
+    - cron: "17 5 * * 1" # Weekly on Monday at 05:17 UTC
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # ----------------------------------------------------------------------------
+  # 1. NPM Audit (Production Dependencies)
+  # ----------------------------------------------------------------------------
+  npm-audit:
+    name: npm audit (production deps)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      - run: npm audit --omit=dev --audit-level=high
+
+  # ----------------------------------------------------------------------------
+  # 2. PR Dependency Diff Review (Blocks Newly Introduced Vulnerable Packages)
+  # ----------------------------------------------------------------------------
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - name: Check dependency diff for vulnerabilities
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+        with:
+          fail-on-severity: high
+
+  # ----------------------------------------------------------------------------
+  # 3. Secret Scanning (Gitleaks)
+  # ----------------------------------------------------------------------------
+  secrets:
+    name: Secret scanning
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,24 @@
+# ==============================================================================
+# HORTAI - COMPOSITE SETUP ACTION
+# Pinned Node (from .nvmrc) + hardened lockfile-exact install with npm cache.
+# ==============================================================================
+
+name: Setup Node and install dependencies
+description: Pinned Node (from .nvmrc) + lockfile-exact install with a safe npm cache.
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+      with:
+        node-version-file: .nvmrc
+        # Caches ~/.npm keyed by package-lock.json. Safe: `npm ci` still installs
+        # exactly what the lockfile says and fails if package.json and lockfile disagree.
+        cache: npm
+
+    - name: Install dependencies
+      shell: bash
+      # --ignore-scripts blocks arbitrary third-party postinstall execution in CI/CD
+      # where deployment secrets (VERCEL_TOKEN / PRODUCTION_DATABASE_URL) are present.
+      run: npm ci --no-audit --no-fund --ignore-scripts

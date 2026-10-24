@@ -1,0 +1,13 @@
+# ==============================================================================
+# GITLEAKS CONFIGURATION
+# Used by the Security workflow and by the pre-commit hook.
+# ==============================================================================
+
+title = "HortAi gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Microsoft's published Azurite emulator account key. Public by design, it protects nothing."
+regexes = ['''Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==''']

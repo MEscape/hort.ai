@@ -1,0 +1,29 @@
+{
+  "metadata": {
+    "description": "Ein KI-gestützter, kindgerechter Lernbegleiter, der Lernen zu einer interaktiven Reise macht."
+  },
+  "routeError": {
+    "title": "Etwas ist schiefgelaufen",
+    "description": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "retry": "Erneut versuchen"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "description": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+    "backToHome": "Zur Startseite"
+  },
+  "navigation": {
+    "label": "Hauptnavigation"
+  },
+  "loading": "Wird geladen…",
+  "pagination": {
+    "previous": "Zurück",
+    "next": "Weiter",
+    "summary": "{first}–{last} von {total}",
+    "page": "Seite {page}"
+  },
+  "password": {
+    "toggle": "Passwort anzeigen",
+    "capsLock": "Die Feststelltaste ist aktiv."
+  }
+}

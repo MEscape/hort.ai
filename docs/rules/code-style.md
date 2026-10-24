@@ -4,9 +4,9 @@
 - Prefer small, single-purpose functions and early returns over deep nesting.
 - Keep files under 300 code lines, excluding blank lines and comments; application files and component files must stay under 200.
 - Split files by responsibility and name them accordingly. Keep cohesive structures, such as flat tables and state machines, together; wrap justified exceptions in:
-  /* eslint-disable max-lines -- <why splitting would hurt> */
+  /* eslint-disable max-lines -- <why splitting would hurt> _/
   ...
-  /* eslint-enable max-lines */
+  /_ eslint-enable max-lines */
 - Any lint warning is an error. npm run lint must fail on warnings.
 - Prefer const; never use var.
 - Prefer immutable data and non-mutating operations.

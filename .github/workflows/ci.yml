@@ -1,0 +1,236 @@
+# ==============================================================================
+# HORTAI - CONTINUOUS INTEGRATION PIPELINE
+# Lint, types, database contract and migrations, tests, license check and a
+# production build. `ci-success` is the single required status check. Also called
+# from production.yml to re-validate the exact commit before a deploy.
+# ==============================================================================
+
+name: CI
+
+on:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  # ----------------------------------------------------------------------------
+  # 1. Lint, Format, Dead Code
+  # ----------------------------------------------------------------------------
+  lint:
+    name: Lint and format
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run i18n:check
+      - run: npm run dead-code
+
+  # ----------------------------------------------------------------------------
+  # 2. Type Check
+  # ----------------------------------------------------------------------------
+  typecheck:
+    name: Type check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - run: npm run typecheck
+
+  # ----------------------------------------------------------------------------
+  # 3. Database Contract & Migrations
+  # ----------------------------------------------------------------------------
+  database:
+    name: Database contracts and migrations
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci_password
+          POSTGRES_DB: app_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d app_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://ci:ci_password@localhost:5432/app_ci
+      AUTH_DATABASE_URL: postgresql://ci:ci_password@localhost:5432/app_ci_auth
+      AUTH_DATABASE_NAME: app_ci_auth
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Create auth database
+        run: PGPASSWORD=ci_password psql -h localhost -U ci -d app_ci -c 'CREATE DATABASE app_ci_auth'
+      - run: npm run db:migrate:check
+      - name: Verify generated database contract
+        run: |
+          npm run db:generate
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Generated files are stale. Run 'npm run db:generate' and commit the result."
+            git status --short
+            git --no-pager diff --stat
+            exit 1
+          fi
+      - name: Apply application migrations
+        run: |
+          npm run db:migrate:app
+          npm run db:migrate:status
+      - run: npm run db:migrate:auth
+      - run: npm run db:verify
+
+  # ----------------------------------------------------------------------------
+  # 4. Tests (Unit + Coverage, Integration Against Emulators, Architecture, Scripts)
+  # ----------------------------------------------------------------------------
+  test:
+    name: Unit, integration and architecture tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci_password
+          POSTGRES_DB: app_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d app_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://ci:ci_password@localhost:5432/app_ci
+      AUTH_DATABASE_URL: postgresql://ci:ci_password@localhost:5432/app_ci_auth
+      AUTH_DATABASE_NAME: app_ci_auth
+      AUTH_ENABLED: "false"
+      LOG_LEVEL: warn
+      # The emulators below, under the application's own variable names (same values as
+      # .env.example / .env.docker.example). Integration tests read exactly these.
+      UPSTASH_REDIS_REST_URL: http://127.0.0.1:8079
+      UPSTASH_REDIS_REST_TOKEN: local-dev-redis-token
+      RATE_LIMIT_SECRET: ci-placeholder-not-a-secret-000000000000
+      STORAGE_PROVIDER: azure
+      STORAGE_AZURE_ACCOUNT_NAME: devstoreaccount1
+      STORAGE_AZURE_ACCOUNT_KEY: Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==
+      STORAGE_AZURE_BLOB_ENDPOINT: http://127.0.0.1:10000/devstoreaccount1
+      STORAGE_AZURE_PUBLIC_CONTAINER: hortai-public
+      STORAGE_AZURE_PRIVATE_CONTAINER: hortai-private
+      STORAGE_PUBLIC_BASE_URL: http://127.0.0.1:10000/devstoreaccount1/hortai-public
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Create auth database
+        run: PGPASSWORD=ci_password psql -h localhost -U ci -d app_ci -c 'CREATE DATABASE app_ci_auth'
+      - run: npm run db:migrate
+      - name: Unit tests with coverage
+        run: npm run test:coverage
+      - name: Start storage and rate-limit emulators
+        run: |
+          cp .env.docker.example .env.docker
+          docker compose --env-file .env.docker up -d --wait redis-rest azurite azurite-init
+      - name: Wait for Redis REST
+        run: |
+          for _ in $(seq 1 30); do
+            if curl -fsS -X POST "$UPSTASH_REDIS_REST_URL" \
+              -H "Authorization: Bearer $UPSTASH_REDIS_REST_TOKEN" \
+              -H "Content-Type: application/json" -d '["PING"]' >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Redis REST did not become ready."
+          exit 1
+      - run: npm run test:integration
+      - run: npm run test:architecture
+      - run: npm run test:scripts
+      - name: Emulator logs
+        if: failure()
+        run: docker compose --env-file .env.docker logs --no-color
+
+  # ----------------------------------------------------------------------------
+  # 5. License Compliance
+  # ----------------------------------------------------------------------------
+  license:
+    name: License compliance
+    uses: ./.github/workflows/license-check.yml
+    permissions:
+      contents: read
+      pull-requests: write
+
+  # ----------------------------------------------------------------------------
+  # 6. Production Build
+  # ----------------------------------------------------------------------------
+  build:
+    name: Next.js production build
+    needs: [lint, typecheck, database, test]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_APP_URL: https://ci.example.invalid
+      DATABASE_URL: postgresql://ci:ci_password@localhost:5432/app_ci
+      AUTH_ENABLED: "true"
+      AUTH_SECRET: ci-placeholder-not-a-secret-000000000000
+      AUTH_DATABASE_URL: postgresql://ci:ci_password@localhost:5432/app_ci_auth
+      MAIL_PROVIDER: smtp
+      MAIL_SMTP_HOST: localhost
+      MAIL_FROM: ci@example.invalid
+      UPSTASH_REDIS_REST_URL: https://ci-placeholder.upstash.invalid
+      UPSTASH_REDIS_REST_TOKEN: ci-placeholder-not-a-secret
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - uses: actions/cache@0057852fbaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'public/**', 'next.config.*') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+      - run: npm run db:generate
+      - run: npm run build
+
+  # ----------------------------------------------------------------------------
+  # 7. Required Status Check (the only one branch protection needs)
+  # ----------------------------------------------------------------------------
+  ci-success:
+    name: CI success
+    if: always()
+    needs: [lint, typecheck, database, test, license, build]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Verify all required jobs passed
+        env:
+          FAILED: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}
+        run: |
+          if [ "$FAILED" = "true" ]; then
+            echo "::error::One or more required CI jobs did not pass."
+            exit 1
+          fi

@@ -14,7 +14,7 @@
 - Avoid N+1 queries. See [performance.md](performance.md).
 - Keep Prisma-specific errors inside infrastructure. See [errors.md](errors.md).
 - Ship schema changes as reviewed migrations; never edit an applied migration.
-- Filter owner-scoped table queries by their owner column (or document with @owner-scope).
+- Filter queries on an owned table by its owner column (`OWNERSHIP.columns` in `eslint/policy/policy.mjs`), or document why not with @owner-scope.
 - Store file bytes in object storage, not the database. Store ownership and metadata in the database; the row determines whether a file exists.
 - Store timestamps in UTC.
 - Store money as integer minor units or decimal, never floating point.

@@ -171,10 +171,10 @@ Do not use intermediate verdicts such as "Mostly Complete," "Almost Complete," o
 
 ### 1. Requirements Verification
 
-| # | Requirement | Implementation Evidence | Implementation Status | Test Coverage |
-|---|---|---|---|---|
-| 1 | Concrete requirement | File, function, or code path | Satisfied / Partial / Missing / Unverified | Covered / Partial / Missing / N/A |
-| 2 | Concrete requirement | Evidence or explanation | Status | Coverage |
+| #   | Requirement          | Implementation Evidence      | Implementation Status                      | Test Coverage                     |
+| --- | -------------------- | ---------------------------- | ------------------------------------------ | --------------------------------- |
+| 1   | Concrete requirement | File, function, or code path | Satisfied / Partial / Missing / Unverified | Covered / Partial / Missing / N/A |
+| 2   | Concrete requirement | Evidence or explanation      | Status                                     | Coverage                          |
 
 Include every material requirement identified during the review. Reference concrete file paths, functions, tests, migrations, or configuration. Include line numbers when reliably available.
 

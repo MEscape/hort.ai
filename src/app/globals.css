@@ -1,0 +1,482 @@
+@import 'tailwindcss';
+/* `animate-in` / `animate-out` used by Radix-based primitives (select). */
+@import 'tw-animate-css';
+
+/*
+ * Hortai design tokens.
+ *
+ * Three layers:
+ *   1. Brand + feedback tokens (:root). Components never write raw hex/px;
+ *      everything routes through these variables.
+ *   2. WORLDS ([data-world]). A learning world re-skins the page background
+ *      only. Brand colors, feedback colors and text colors never change per
+ *      world, so contrast guarantees hold everywhere.
+ *   3. Child/parent preferences on <html>: data-motion="calm" and
+ *      data-font="readable" (see the bottom of this file).
+ *
+ * Contrast is measured, not assumed: see contrast-report.txt. Text pairs are
+ * >= 4.5:1, control boundaries and focus rings >= 3:1.
+ */
+:root {
+  /* ── Brand ───────────────────────────────────────────────────────────────
+   * For each color:
+   *   X             fills (buttons, badges)
+   *   X-foreground  text ON the fill
+   *   X-copy        the color used AS text/icon on the page (>= 4.5:1)
+   */
+  /* Twilight indigo: the main action color. */
+  --hortai-color-primary: #4a33b5;
+  --hortai-color-primary-foreground: #ffffff;
+  --hortai-color-primary-copy: #4a33b5;
+
+  /* Lagoon teal: calm, secondary actions, "reassuring" moments. */
+  --hortai-color-secondary: #27b3a3;
+  --hortai-color-secondary-foreground: #04241f;
+  --hortai-color-secondary-copy: #0b665e;
+
+  /* Lumi glow gold: discovery, rewards, the one warm light in the world. */
+  --hortai-color-accent: #ffc247;
+  --hortai-color-accent-foreground: #2b1b00;
+  --hortai-color-accent-copy: #7a4f00;
+
+  /* Bloom pink: character and celebration moments. Never a status. */
+  --hortai-color-bloom: #ff7ba5;
+  --hortai-color-bloom-foreground: #3a0a1c;
+  --hortai-color-bloom-copy: #a81f55;
+
+  /* ── Surfaces & text ───────────────────────────────────────────────────── */
+  --hortai-color-background: #f4f2fc; /* the page */
+  --hortai-color-surface: #ffffff; /* a panel or card */
+  --hortai-color-sunken: #e8e4f7; /* wells, tab strips, quiet cards */
+  --hortai-color-highlight: #ece8fb; /* hover / selected tint */
+  --hortai-color-highlight-border: #c9bff0;
+  --hortai-color-text: #1f1a3d;
+  --hortai-color-text-muted: #55507a;
+  --hortai-color-border: #ddd8f0; /* decorative separators only */
+
+  /* Boundary of interactive controls: 3:1 against surface AND page (WCAG 1.4.11). */
+  --hortai-color-border-strong: #837da3;
+
+  /* Keyboard focus. One color, one rule (see :focus-visible below). On a dark
+     fill, wrap in [data-on-dark] to switch to the light ring. */
+  --hortai-color-focus: #2a1d8f;
+  --hortai-color-focus-on-dark: #ffe08a;
+
+  /* ── Feedback ──────────────────────────────────────────────────────────────
+   * LEARNER-FACING (what a child sees after an answer or a hint):
+   *   success  they got it
+   *   nudge    "Almost! Let's try another way." Deliberately NOT red: a wrong
+   *            answer is not an error and must never look like one.
+   *   hint     a lightbulb, offered not imposed
+   * SYSTEM-FACING (loading failed, parent area, destructive actions):
+   *   info, warning, danger
+   * Rule: never show `danger` to a child for a wrong answer.
+   * All static: a world cannot redefine what "danger" looks like.
+   * Each: solid (text/icon), subtle (background), border.
+   */
+  --hortai-color-success: #176b3a;
+  --hortai-color-success-subtle: #e7f6ec;
+  --hortai-color-success-border: #9ad3ae;
+
+  --hortai-color-nudge: #9a3a00;
+  --hortai-color-nudge-subtle: #ffefe3;
+  --hortai-color-nudge-border: #f2b98e;
+
+  --hortai-color-hint: #775000;
+  --hortai-color-hint-subtle: #fff5d1;
+  --hortai-color-hint-border: #ebcb6a;
+
+  --hortai-color-warning: #8a5100;
+  --hortai-color-warning-subtle: #fdf3dc;
+  --hortai-color-warning-border: #e8c777;
+
+  --hortai-color-danger: #b42318;
+  --hortai-color-danger-subtle: #fdecea;
+  --hortai-color-danger-border: #f0a8a1;
+
+  --hortai-color-info: #1d5a99;
+  --hortai-color-info-subtle: #e8f1fb;
+  --hortai-color-info-border: #a3c4ea;
+
+  --hortai-color-status-foreground: #ffffff;
+
+  /* ── Charts ────────────────────────────────────────────────────────────────
+   * Five explicit colors (not color-mix tints): each is >= 3:1 against the
+   * surface AND the page. Hue alone still cannot carry meaning for everyone, so
+   * every series also gets a marker shape (CHART_MARKERS) and a text label.
+   * Max five series per chart; for a child, prefer 2-3.
+   */
+  --hortai-chart-1: #4a33b5;
+  --hortai-chart-2: #0b7f73;
+  --hortai-chart-3: #c2410c;
+  --hortai-chart-4: #a81f55;
+  --hortai-chart-5: #8a6100;
+
+  /* ── Type ────────────────────────────────────────────────────────────────── */
+  --hortai-font-heading:
+    var(--font-fredoka), ui-rounded, 'Arial Rounded MT Bold', 'Trebuchet MS', system-ui, sans-serif;
+  --hortai-font-body: var(--font-nunito), ui-rounded, system-ui, sans-serif;
+
+  /* ── Shape: a hierarchy, not one radius for everything ───────────────────── */
+  --hortai-radius-sm: 10px; /* chips, small buttons, list items */
+  --hortai-radius: 14px; /* controls: buttons, inputs, tabs */
+  --hortai-radius-lg: 20px; /* cards, answers, alerts */
+  --hortai-radius-xl: 28px; /* hero panels, speech bubbles, dialogs */
+
+  --hortai-section-spacing: 3rem;
+  --hortai-app-header-height: 4rem;
+
+  /* ── Depth: soft, tinted with the text color, never neutral grey ─────────── */
+  --hortai-shadow-soft: 0 1px 2px rgb(31 26 61 / 0.06), 0 4px 14px rgb(31 26 61 / 0.07);
+  --hortai-shadow-lift: 0 2px 4px rgb(31 26 61 / 0.08), 0 12px 28px rgb(31 26 61 / 0.13);
+  --hortai-shadow-glow:
+    0 0 0 4px color-mix(in oklab, var(--hortai-color-accent) 35%, transparent),
+    0 8px 28px color-mix(in oklab, var(--hortai-color-accent) 45%, transparent);
+
+  --background: var(--hortai-color-background);
+  --foreground: var(--hortai-color-text);
+}
+
+/*
+ * Worlds. A world changes the page's atmosphere (the gradient behind the
+ * lesson), nothing else. Put data-world on <body> or on a lesson wrapper.
+ *
+ * WHY THE DERIVED TOKEN IS DECLARED ON [data-world] TOO: `var()` in a custom
+ * property resolves where the property is DECLARED. If --hortai-world-bg lived
+ * only on :root it would capture the default world's colors once and a wrapper
+ * override of --hortai-world-top would never reach it. Declaring it on the
+ * wrapper makes it resolve again. Any token derived from another overridable
+ * token needs the same treatment.
+ *
+ * Both gradient ends are light enough to keep text and muted text >= 4.5:1.
+ */
+:root,
+[data-world] {
+  --hortai-world-top: #e2f4df; /* meadow (default) */
+  --hortai-world-bottom: var(--hortai-color-background);
+  --hortai-world-bg: linear-gradient(
+    to bottom,
+    var(--hortai-world-top),
+    var(--hortai-world-bottom)
+  );
+}
+
+[data-world='lagoon'] {
+  --hortai-world-top: #d8f0f1;
+}
+
+[data-world='stargaze'] {
+  --hortai-world-top: #e3defa;
+}
+
+/*
+ * Registers the tokens with Tailwind so components write `bg-primary
+ * text-primary-foreground rounded-token` instead of arbitrary values.
+ * `inline` keeps every utility pointing at the live CSS variable.
+ *
+ * Naming rule: a token name says what the color is FOR. Text colors are named
+ * for text (`text-copy`), surfaces for surfaces (`bg-surface`). Never reuse
+ * shadcn's names (muted, destructive, input, ring) for a different role.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--hortai-color-primary);
+  --color-primary-foreground: var(--hortai-color-primary-foreground);
+  --color-primary-copy: var(--hortai-color-primary-copy);
+
+  --color-secondary: var(--hortai-color-secondary);
+  --color-secondary-foreground: var(--hortai-color-secondary-foreground);
+  --color-secondary-copy: var(--hortai-color-secondary-copy);
+
+  --color-accent: var(--hortai-color-accent);
+  --color-accent-foreground: var(--hortai-color-accent-foreground);
+  --color-accent-copy: var(--hortai-color-accent-copy);
+
+  --color-bloom: var(--hortai-color-bloom);
+  --color-bloom-foreground: var(--hortai-color-bloom-foreground);
+  --color-bloom-copy: var(--hortai-color-bloom-copy);
+
+  --color-canvas: var(--hortai-color-background);
+  --color-surface: var(--hortai-color-surface);
+  --color-sunken: var(--hortai-color-sunken);
+  --color-highlight: var(--hortai-color-highlight);
+  --color-highlight-border: var(--hortai-color-highlight-border);
+  --color-copy: var(--hortai-color-text);
+  --color-copy-muted: var(--hortai-color-text-muted);
+  --color-border: var(--hortai-color-border);
+  --color-border-strong: var(--hortai-color-border-strong);
+  --color-focus: var(--hortai-color-focus);
+
+  --color-success: var(--hortai-color-success);
+  --color-success-subtle: var(--hortai-color-success-subtle);
+  --color-success-border: var(--hortai-color-success-border);
+
+  --color-nudge: var(--hortai-color-nudge);
+  --color-nudge-subtle: var(--hortai-color-nudge-subtle);
+  --color-nudge-border: var(--hortai-color-nudge-border);
+
+  --color-hint: var(--hortai-color-hint);
+  --color-hint-subtle: var(--hortai-color-hint-subtle);
+  --color-hint-border: var(--hortai-color-hint-border);
+
+  --color-warning: var(--hortai-color-warning);
+  --color-warning-subtle: var(--hortai-color-warning-subtle);
+  --color-warning-border: var(--hortai-color-warning-border);
+
+  --color-danger: var(--hortai-color-danger);
+  --color-danger-subtle: var(--hortai-color-danger-subtle);
+  --color-danger-border: var(--hortai-color-danger-border);
+
+  --color-info: var(--hortai-color-info);
+  --color-info-subtle: var(--hortai-color-info-subtle);
+  --color-info-border: var(--hortai-color-info-border);
+
+  --color-status-foreground: var(--hortai-color-status-foreground);
+
+  --color-chart-1: var(--hortai-chart-1);
+  --color-chart-2: var(--hortai-chart-2);
+  --color-chart-3: var(--hortai-chart-3);
+  --color-chart-4: var(--hortai-chart-4);
+  --color-chart-5: var(--hortai-chart-5);
+
+  --spacing-section: var(--hortai-section-spacing);
+  --spacing-app-header: var(--hortai-app-header-height);
+
+  --radius-token-sm: var(--hortai-radius-sm);
+  --radius-token: var(--hortai-radius);
+  --radius-token-lg: var(--hortai-radius-lg);
+  --radius-token-xl: var(--hortai-radius-xl);
+
+  --shadow-soft: var(--hortai-shadow-soft);
+  --shadow-lift: var(--hortai-shadow-lift);
+  --shadow-glow: var(--hortai-shadow-glow);
+
+  --font-sans: var(--hortai-font-body);
+  --font-heading: var(--hortai-font-heading);
+  --font-body: var(--hortai-font-body);
+
+  /* Reading sizes. `text-lead` is for instructions a child must read to act;
+     `text-display` for a screen's one big headline. */
+  --text-lead: 1.25rem;
+  --text-lead--line-height: 1.6;
+  --text-display: 2.75rem;
+  --text-display--line-height: 1.1;
+
+  /* Motion. Springs overshoot only slightly: bounce is a seasoning. */
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-pop: pop 320ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  --animate-glow: glow-once 900ms ease-out 1;
+  --animate-float: float 5s ease-in-out infinite;
+  --animate-orb: orb-breathe 1.8s ease-in-out infinite;
+  --animate-accordion-down: accordion-down 200ms ease-out;
+  --animate-accordion-up: accordion-up 200ms ease-out;
+}
+
+/* Full-height workspace below the app header. `dvh` follows the mobile
+   browser's collapsing toolbar; the first declaration is the fallback. */
+@utility h-app-body {
+  height: calc(100vh - var(--hortai-app-header-height));
+  height: calc(100dvh - var(--hortai-app-header-height));
+}
+
+/* The world's atmosphere behind a lesson. */
+@utility bg-world {
+  background-image: var(--hortai-world-bg);
+}
+
+/* Reading width: instructions and explanations stay under ~60 characters. */
+@utility measure {
+  max-width: 60ch;
+}
+
+/* Keep a bottom action bar clear of the phone's home indicator. */
+@utility pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* The one focus ring. Use for custom widgets; native controls get it from the
+   global :focus-visible rule below. 3px + 2px offset is visible on every fill. */
+@utility focus-ring {
+  outline: 3px solid var(--hortai-focus-color, var(--hortai-color-focus));
+  outline-offset: 2px;
+}
+
+@layer base {
+  /* Long words must never push a 320px phone sideways. Headings balance their
+     lines instead of hyphenating: split words are harder for early readers. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+    font-family: var(--hortai-font-heading);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  p,
+  li {
+    text-wrap: pretty;
+  }
+
+  /* Anything pressable says so, and answers a tap immediately (no double-tap-
+     to-zoom delay on touch screens). */
+  button:not(:disabled),
+  summary,
+  select:not(:disabled),
+  label[for],
+  input:is([type='checkbox'], [type='radio'], [type='submit'], [type='button']):not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='tab']:not([aria-disabled='true']),
+  [role='option']:not([aria-disabled='true']),
+  [role='radio']:not([aria-disabled='true']),
+  [role='switch']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+
+  button,
+  a,
+  summary,
+  select,
+  label,
+  [role='button'],
+  [role='tab'],
+  [role='radio'],
+  [role='switch'] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Edge draws its own "show password" eye; the platform's field has one. */
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
+  }
+}
+
+body {
+  background: var(--hortai-color-background);
+  color: var(--hortai-color-text);
+  font-family: var(--hortai-font-body);
+
+  /* Body copy is larger than a typical app: this is read by children. */
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+/* Visible focus everywhere. Components do not add their own ring. */
+:focus-visible {
+  outline: 3px solid var(--hortai-focus-color, var(--hortai-color-focus));
+  outline-offset: 2px;
+}
+
+/* On a dark fill (a primary-colored panel), use the light ring. */
+[data-on-dark] {
+  --hortai-focus-color: var(--hortai-color-focus-on-dark);
+}
+
+/* ── Keyframes ─────────────────────────────────────────────────────────────── */
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+/* A small arrival: feedback appearing, a badge earned. */
+@keyframes pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* One soft pulse of light, for a meaningful moment. Plays once. */
+@keyframes glow-once {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--hortai-color-accent) 70%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 16px transparent;
+  }
+}
+
+/* Ambient companion bob. Opt-in per component (`ambient`), never on content. */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes orb-breathe {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+/* ── Calm: reduced motion, from the OS or from a setting inside Hortai ────────
+ * Honors prefers-reduced-motion and an in-app switch (data-motion="calm" on
+ * <html>), because a child or parent should not have to find an OS setting.
+ * Every animated state also has a static equivalent (text label, icon shape),
+ * so nothing is lost when motion stops.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+[data-motion='calm'],
+[data-motion='calm'] *,
+[data-motion='calm'] *::before,
+[data-motion='calm'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ── Readable: an easier-to-read typeface for the whole app, set on <html> ──── */
+[data-font='readable'] {
+  --hortai-font-heading: var(--font-atkinson), system-ui, sans-serif;
+  --hortai-font-body: var(--font-atkinson), system-ui, sans-serif;
+}

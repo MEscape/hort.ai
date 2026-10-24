@@ -1,0 +1,9 @@
+# Architecture notes
+
+How the larger subsystems work, one document per subsystem. The rules in [`../rules/`](../rules/README.md) say what is allowed; these notes explain the decisions behind a subsystem so it can be changed safely.
+
+| Subsystem     | Document                               |
+| ------------- | -------------------------------------- |
+| Rate limiting | [`rate-limiting.md`](rate-limiting.md) |
+
+The shared libraries are documented in [`src/lib/README.md`](../../src/lib/README.md). Add a document here when a subsystem spans several modules or parts of `src/lib`, and link it from the rule or convention that depends on it.

@@ -1,0 +1,105 @@
+import { z } from 'zod';
+
+import { SECONDS_PER_MINUTE } from '@lib/utils';
+
+import { booleanFlag, commaSeparatedList, integerSetting, postgresUrl } from './env-primitives';
+import { refineEnv } from './env-rules';
+
+import type { EnvRule } from './env-rules';
+
+const SECONDS_PER_DAY = 24 * 60 * SECONDS_PER_MINUTE;
+
+const DEFAULT_AUTH_ENABLED = true;
+const DEFAULT_AUTH_DATABASE_POOL_SIZE = 5;
+
+const DEFAULT_SESSION_EXPIRES_IN_SECONDS = 7 * SECONDS_PER_DAY;
+const DEFAULT_SESSION_UPDATE_AGE_SECONDS = SECONDS_PER_DAY;
+const DEFAULT_SESSION_FRESH_AGE_SECONDS = 15 * SECONDS_PER_MINUTE;
+const DEFAULT_SESSION_MAX_LIFETIME_SECONDS = 30 * SECONDS_PER_DAY;
+
+const DEFAULT_DEV_ACTOR_ROLE = 'viewer';
+
+const MIN_AUTH_SECRET_LENGTH = 32;
+
+const authEnvObjectSchema = z.object({
+  /** `false` skips sign-in and acts as `AUTH_DEV_ACTOR_ROLE`. Refused in production (see `env-schema.ts`). */
+  AUTH_ENABLED: booleanFlag(DEFAULT_AUTH_ENABLED),
+
+  /** Signs sessions and tokens. Required, at least `MIN_AUTH_SECRET_LENGTH` characters, once auth is enabled. */
+  AUTH_SECRET: z.string().optional(),
+
+  /** Database holding the authentication tables. Required once auth is enabled. */
+  AUTH_DATABASE_URL: postgresUrl.optional(),
+
+  AUTH_DATABASE_POOL_SIZE: integerSetting(DEFAULT_AUTH_DATABASE_POOL_SIZE),
+
+  /** Session lifetime. */
+  AUTH_SESSION_EXPIRES_IN_SECONDS: integerSetting(DEFAULT_SESSION_EXPIRES_IN_SECONDS),
+
+  /** How often a session in use is extended. Not above the session lifetime. */
+  AUTH_SESSION_UPDATE_AGE_SECONDS: integerSetting(DEFAULT_SESSION_UPDATE_AGE_SECONDS),
+
+  /** How recent a sign-in must be for sensitive actions. Not above the session lifetime. */
+  AUTH_SESSION_FRESH_AGE_SECONDS: integerSetting(DEFAULT_SESSION_FRESH_AGE_SECONDS),
+
+  /** Hard cap on a session's total age, however often it is extended. Not below the session lifetime. */
+  AUTH_SESSION_MAX_LIFETIME_SECONDS: integerSetting(DEFAULT_SESSION_MAX_LIFETIME_SECONDS),
+
+  /** IPs or CIDR ranges of the reverse proxies in front of the app. Entries are checked by the rate-limit rules. */
+  AUTH_TRUSTED_PROXIES: commaSeparatedList,
+
+  /**
+   * Platform administrators by (verified) e-mail address: the bootstrap of a
+   * deployment. Lower-cased. A malformed entry would silently grant nobody
+   * anything, so it is rejected instead.
+   */
+  AUTH_PLATFORM_ADMIN_EMAILS: commaSeparatedList
+    .transform((entries) => entries.map((entry) => entry.toLowerCase()))
+    .pipe(z.array(z.email({ error: 'Must be an e-mail address.' }))),
+
+  /** The role acted as when `AUTH_ENABLED=false`. Unused while auth is enabled. */
+  AUTH_DEV_ACTOR_ROLE: z.string().min(1).default(DEFAULT_DEV_ACTOR_ROLE),
+});
+
+export type AuthEnv = z.infer<typeof authEnvObjectSchema>;
+
+/** Auth is off in development only, and then none of its settings matter. */
+const whileEnabled = (breaks: (env: AuthEnv) => boolean) => (env: AuthEnv) =>
+  env.AUTH_ENABLED && breaks(env);
+
+/** What must hold once auth is enabled. */
+export const authEnvRules: ReadonlyArray<EnvRule<AuthEnv>> = [
+  {
+    path: 'AUTH_SECRET',
+    violated: whileEnabled((env) => (env.AUTH_SECRET?.length ?? 0) < MIN_AUTH_SECRET_LENGTH),
+    message: `AUTH_SECRET is required and must be at least ${MIN_AUTH_SECRET_LENGTH} characters when auth is enabled.`,
+  },
+  {
+    path: 'AUTH_DATABASE_URL',
+    violated: whileEnabled((env) => !env.AUTH_DATABASE_URL),
+    message: 'AUTH_DATABASE_URL is required when auth is enabled.',
+  },
+  {
+    path: 'AUTH_SESSION_UPDATE_AGE_SECONDS',
+    violated: whileEnabled(
+      (env) => env.AUTH_SESSION_UPDATE_AGE_SECONDS > env.AUTH_SESSION_EXPIRES_IN_SECONDS,
+    ),
+    message: 'Must not exceed AUTH_SESSION_EXPIRES_IN_SECONDS.',
+  },
+  {
+    path: 'AUTH_SESSION_FRESH_AGE_SECONDS',
+    violated: whileEnabled(
+      (env) => env.AUTH_SESSION_FRESH_AGE_SECONDS > env.AUTH_SESSION_EXPIRES_IN_SECONDS,
+    ),
+    message: 'Must not exceed AUTH_SESSION_EXPIRES_IN_SECONDS.',
+  },
+  {
+    path: 'AUTH_SESSION_MAX_LIFETIME_SECONDS',
+    violated: whileEnabled(
+      (env) => env.AUTH_SESSION_MAX_LIFETIME_SECONDS < env.AUTH_SESSION_EXPIRES_IN_SECONDS,
+    ),
+    message: 'Must be at least AUTH_SESSION_EXPIRES_IN_SECONDS.',
+  },
+];
+
+export const authEnvSchema = authEnvObjectSchema.superRefine(refineEnv(authEnvRules));

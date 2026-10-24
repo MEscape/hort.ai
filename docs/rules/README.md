@@ -36,4 +36,5 @@ graph TD
   CODE --> NAME["naming.md"]
   CODE --> STYLE["code-style.md"]
   CODE --> COM["comments.md"]
-  
+
+```

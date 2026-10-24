@@ -14,6 +14,6 @@
 - composition.ts is the module's composition root: the only file that knows both its use cases and adapters, and the only place another module is wired in.
 - index.ts exposes the intentional server-side API; client.ts exposes browser-safe APIs (Server Actions, routes, DTO types, vocabulary). No other file may serve as a barrel.
 - Export only intentional public members. Use named re-exports, never export *.
-- When referencing another module's aggregate, define a local branded reference ID under the same brand name (e.g. WebsiteId).
+- When referencing another module's aggregate, define a local branded reference ID under the same brand name (e.g. ProfileId).
 - Protect every use case by default. Public or system use cases require an @authorization <category> <reason> tag and an entry in the reviewed architecture-test list.
 - Follow [naming.md](naming.md) for file and directory names.

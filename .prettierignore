@@ -1,0 +1,94 @@
+# ==============================================================================
+# PRETTIER IGNORE CONFIGURATION
+# Excludes dependencies, build artifacts, lockfiles, and auto-generated code
+# from Prettier formatting to preserve byte-exact outputs and speed up CI.
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Dependencies & Package Manager Lockfiles
+# (Never hand-format; owned strictly by the package manager)
+# ------------------------------------------------------------------------------
+/node_modules/
+/.pnp
+.pnp.*
+/.yarn/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+bun.lockb
+
+# ------------------------------------------------------------------------------
+# Next.js, Vercel & Build Outputs
+# ------------------------------------------------------------------------------
+/.next/
+/out/
+/build/
+/dist/
+/.vercel/
+/.turbo/
+/.contentlayer/
+
+# ------------------------------------------------------------------------------
+# TypeScript, Linter & Formatter Caches
+# ------------------------------------------------------------------------------
+*.tsbuildinfo
+next-env.d.ts
+.eslintcache
+.prettiercache
+
+# ------------------------------------------------------------------------------
+# Testing, Coverage & CI Reports
+# ------------------------------------------------------------------------------
+/coverage/
+/.vitest/
+license-report.json
+
+# ------------------------------------------------------------------------------
+# Database, Prisma & Auto-Generated Contracts
+# (Emitted by `npm run db:generate` / migrations; CI checks byte-for-byte match)
+# ------------------------------------------------------------------------------
+/prisma/migrations/
+/generated/
+src/lib/db/contract.json
+src/lib/db/contract.d.ts
+pgdata/
+postgres-data/
+*.db
+*.sqlite
+*.sqlite3
+
+# ------------------------------------------------------------------------------
+# Minified, Bundled & Auto-Generated Assets
+# ------------------------------------------------------------------------------
+/public/
+*.min.js
+*.min.css
+CHANGELOG.md
+
+# ------------------------------------------------------------------------------
+# Environment, Secrets & Local Configs
+# ------------------------------------------------------------------------------
+.env*
+*.pem
+*.key
+*.crt
+.nvmrc
+Dockerfile*
+
+# ------------------------------------------------------------------------------
+# IDEs (JetBrains / VS Code), OS & Logs
+# ------------------------------------------------------------------------------
+/.idea/
+/.vscode/
+*.iml
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*

@@ -1,0 +1,29 @@
+{
+  "metadata": {
+    "description": "An AI-powered, child-friendly learning companion that turns learning into an interactive journey."
+  },
+  "routeError": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Please try again.",
+    "retry": "Try again"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or has moved.",
+    "backToHome": "Back to home"
+  },
+  "navigation": {
+    "label": "Main navigation"
+  },
+  "loading": "Loading…",
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "summary": "{first}–{last} of {total}",
+    "page": "Page {page}"
+  },
+  "password": {
+    "toggle": "Show password",
+    "capsLock": "Caps Lock is on."
+  }
+}

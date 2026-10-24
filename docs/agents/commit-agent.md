@@ -33,7 +33,7 @@ Turn the repository's intended working changes into a small, coherent set of com
    - Use Conventional Commits, matching the style of existing `git log` messages where compatible.
    - Format: `type(scope): subject`
    - Allowed types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `ci`.
-   - Use a meaningful scope for the affected module or area, such as `auth`, `booking`, `ui`, or `rules`.
+   - Use a meaningful scope for the affected module or area, such as `auth`, `profile`, `ui`, or `rules`.
    - Keep the subject concise, specific, and action-oriented.
    - If an issue number is provided, append it to the subject as `(#123)`.
    - Do not amend, rebase, reset, or rewrite existing commits unless explicitly requested.

@@ -1,0 +1,98 @@
+import { z } from 'zod';
+
+import { authEnvSchema } from './auth-env-schema';
+import { integerSetting, postgresUrl } from './env-primitives';
+import { refineEnv } from './env-rules';
+import { mailEnvSchema } from './mail-env-schema';
+import { rateLimitEnvRules, rateLimitEnvSchema } from './rate-limit-env-schema';
+import { storageEnvSchema } from './storage-env-schema';
+
+import type { AuthEnv } from './auth-env-schema';
+import type { EnvRule } from './env-rules';
+import type { MailEnv } from './mail-env-schema';
+import type { RateLimitEnv } from './rate-limit-env-schema';
+import type { StorageEnv } from './storage-env-schema';
+
+const DEFAULT_NODE_ENV = 'development' as const;
+const DEFAULT_DATABASE_POOL_SIZE = 10;
+const DEFAULT_DATABASE_POOL_TIMEOUT_SECONDS = 10;
+const DEFAULT_LOG_LEVEL = 'info' as const;
+
+const serverEnvBaseSchema = z.object({
+  NODE_ENV: z.enum(['development', 'test', 'production']).default(DEFAULT_NODE_ENV),
+
+  DATABASE_URL: postgresUrl,
+
+  DATABASE_POOL_SIZE: integerSetting(DEFAULT_DATABASE_POOL_SIZE),
+
+  DATABASE_POOL_TIMEOUT_SECONDS: integerSetting(DEFAULT_DATABASE_POOL_TIMEOUT_SECONDS),
+
+  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default(DEFAULT_LOG_LEVEL),
+});
+
+/** Everything the server schema validates, as one value: what the rules below read. */
+type ServerEnvShape = z.infer<typeof serverEnvBaseSchema> &
+  AuthEnv &
+  MailEnv &
+  RateLimitEnv &
+  StorageEnv;
+
+const isProduction = (env: ServerEnvShape) => env.NODE_ENV === 'production';
+
+/** What production demands of the domains together; a domain's own requirements stay in its file. */
+const productionRules: ReadonlyArray<EnvRule<ServerEnvShape>> = [
+  {
+    path: 'AUTH_ENABLED',
+    violated: (env) => isProduction(env) && !env.AUTH_ENABLED,
+    message: 'AUTH_ENABLED=false is not allowed when NODE_ENV=production.',
+  },
+  {
+    path: 'MAIL_PROVIDER',
+    violated: (env) => isProduction(env) && env.MAIL_PROVIDER === 'none',
+    message: 'MAIL_PROVIDER must be "smtp" or "resend" in production: sign-in sends e-mail.',
+  },
+  {
+    path: 'MAIL_PROVIDER',
+    violated: (env) => !isProduction(env) && env.MAIL_PROVIDER === 'resend',
+    message: 'MAIL_PROVIDER must be "none" or "smtp" outside production.',
+  },
+  {
+    path: 'MAIL_API_URL',
+    // Every request carries MAIL_API_KEY as a bearer credential.
+    violated: (env) =>
+      isProduction(env) &&
+      env.MAIL_PROVIDER === 'resend' &&
+      new URL(env.MAIL_API_URL).protocol !== 'https:',
+    message: 'MAIL_API_URL must be an https URL in production.',
+  },
+  ...(['STORAGE_AZURE_BLOB_ENDPOINT', 'STORAGE_PUBLIC_BASE_URL'] as const).map(
+    (name): EnvRule<ServerEnvShape> => ({
+      path: name,
+      // Signed upload and read URLs (bearer credentials) and public delivery must not travel over plain HTTP.
+      violated: (env) => {
+        const value = env[name];
+        return isProduction(env) && value !== undefined && new URL(value).protocol !== 'https:';
+      },
+      message: `${name} must be an https URL in production.`,
+    }),
+  ),
+];
+
+/**
+ * Server-only configuration.
+ *
+ * Authentication, mail, rate-limit and storage configuration are composed into the
+ * server schema so the application has one validated server configuration
+ * object. Rules internal to one domain live in that domain's file and are
+ * attached there (authentication, mail) or here (rate limit, which reads
+ * `NODE_ENV` and the authentication secret); rules that span the domains are
+ * `productionRules`.
+ */
+export const serverEnvSchema = serverEnvBaseSchema
+  .and(authEnvSchema)
+  .and(mailEnvSchema)
+  .and(rateLimitEnvSchema)
+  .and(storageEnvSchema)
+  .superRefine(refineEnv<ServerEnvShape>(rateLimitEnvRules, productionRules));
+
+export type ServerEnv = z.infer<typeof serverEnvSchema>;
