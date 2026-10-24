@@ -60,8 +60,8 @@ jobs:
         with:
           persist-credentials: false
 
-      # `deploy` alone fails with "Project not found" when linked only via env vars;
-      # `pull` writes .vercel/project.json so the link is file-based.
+      # `deploy` fails with "Project not found" when linked via env vars (while `pull`
+      # works with them). `pull` writes .vercel/project.json, so deploy links by file.
       - name: Link Vercel project
         run: npx --yes "vercel@${VERCEL_CLI_VERSION}" pull --yes --environment=preview --token="$VERCEL_TOKEN"
 
@@ -70,6 +70,7 @@ jobs:
       - name: Deploy preview (remote build)
         id: deploy
         run: |
+          unset VERCEL_ORG_ID VERCEL_PROJECT_ID
           url="$(npx --yes "vercel@${VERCEL_CLI_VERSION}" deploy --yes --token="$VERCEL_TOKEN")"
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
