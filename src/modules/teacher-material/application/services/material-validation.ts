@@ -1,0 +1,25 @@
+import { validationError } from '@lib/errors';
+import type { ValidationAppError } from '@lib/errors';
+import { err, ok } from '@lib/result';
+import type { AppResult } from '@lib/result';
+
+import { MATERIAL_MAX_BYTES } from '../../domain/models/material';
+
+import type { BeginMaterialInput } from '../contracts/material-inputs';
+
+export function invalidMaterial(): ValidationAppError {
+  return validationError('teacher_material.validation_failed', 'Invalid material.', { file: ['teacher_material.validation.invalid_file'] });
+}
+/** No PDF parser is installed. Fail closed rather than claiming PDF extraction succeeded. */
+export function validateMaterialInput(input: BeginMaterialInput): AppResult<BeginMaterialInput, ValidationAppError> {
+  return input.contentType === 'text/plain' && Number.isInteger(input.sizeBytes) && input.sizeBytes > 0 && input.sizeBytes <= MATERIAL_MAX_BYTES && input.title.trim().length > 0 && input.title.length <= 200
+    ? ok(input) : err(invalidMaterial());
+}
+/** UTF-8 text has no magic number: reject binary controls, PDF and common active-content signatures. */
+export function decodeMaterial(bytes: Uint8Array): AppResult<string, ValidationAppError> {
+  let text: string;
+  try { text = new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+  catch { return err(invalidMaterial()); }
+  if (/[^\S\r\n]*^(?:%PDF-|PK\u0003\u0004|MZ|\x7fELF|GIF8|\x89PNG)/m.test(text) || /[\x00-\x08\x0b\x0e-\x1f]/.test(text)) return err(invalidMaterial());
+  return ok(text);
+}
