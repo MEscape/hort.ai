@@ -1,23 +1,12 @@
 import { z } from 'zod';
 
+import { ASSIGNMENTS_VALIDATION_CODES } from '../../application/contracts/assignment-constraints';
+
 /** UI-only bounds until the assignment creation contract exists (issue #33). */
 export const ASSIGNMENT_DRAFT_LIMITS = { title: 120, taskText: 4000, solutionKey: 4000 } as const;
 const calendarDateSchema = z.iso.date();
 
-/** Stable validation codes; presentation/messages/message-keys.ts maps them to translation keys. */
-export const ASSIGNMENT_VALIDATION_CODES = {
-  titleRequired: 'titleRequired',
-  titleTooLong: 'titleTooLong',
-  taskRequired: 'taskRequired',
-  taskTooLong: 'taskTooLong',
-  dateInvalid: 'dateInvalid',
-  solutionTooLong: 'solutionTooLong',
-} as const;
-
-export type AssignmentCode =
-  (typeof ASSIGNMENT_VALIDATION_CODES)[keyof typeof ASSIGNMENT_VALIDATION_CODES];
-
-const CODES = ASSIGNMENT_VALIDATION_CODES;
+const CODES = ASSIGNMENTS_VALIDATION_CODES;
 
 /** Local preview validation; future Server Actions must validate again at their own boundary. */
 export const assignmentDraftSchema = z.object({
