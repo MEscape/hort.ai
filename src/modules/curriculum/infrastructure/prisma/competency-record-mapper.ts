@@ -132,6 +132,22 @@ export function toCompetencyCreateData(
   };
 }
 
+/** The document fields an ingest may change under the same source key and version. */
+export const DOCUMENT_METADATA_FIELDS = [
+  'title',
+  'federalState',
+  'subject',
+  'gradeFrom',
+  'gradeTo',
+  'sourceUrl',
+] as const;
+
+type DocumentMetadata = Omit<ReturnType<typeof toDocumentCreateData>, 'sourceKey' | 'version'>;
+
+export function sameMetadata(stored: DocumentMetadata, next: DocumentMetadata): boolean {
+  return DOCUMENT_METADATA_FIELDS.every((field) => stored[field] === next[field]);
+}
+
 /** A stored statement and a new one are the same when everything retrieval reads is the same. */
 export function sameStatement(record: CompetencyRecord, statement: CompetencyStatement): boolean {
   return (

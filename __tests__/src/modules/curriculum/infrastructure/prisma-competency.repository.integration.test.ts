@@ -113,6 +113,18 @@ describe.skipIf(!isEnabled)('PrismaCompetencyRepository against Postgres', () =>
     ]);
   });
 
+  it('picks the highest version even when an older one is ingested later', async () => {
+    await repository.saveDocument(draft(stateKey, 'v1', 'sl', ['Alte Fassung nachgeladen']));
+    expect((await ours('sl')).map((c) => c.document.version)).toEqual(['v2']);
+  });
+
+  it('updates changed metadata of the same version', async () => {
+    const renamed = draft(stateKey, 'v2', 'sl', ['Neue Fassung']);
+    const next = { ...renamed, source: { ...renamed.source, title: 'Umbenannt' } };
+    expect((await repository.saveDocument(next))._unsafeUnwrap()).toBe('updated');
+    expect((await ours('sl'))[0]?.document.title).toBe('Umbenannt');
+  });
+
   it('keeps state documents and documents valid everywhere apart', async () => {
     await repository.saveDocument(draft(fallbackKey, '1', null, ['Für alle Länder']));
     expect((await ours(null)).map((c) => c.text)).toEqual(['Für alle Länder']);

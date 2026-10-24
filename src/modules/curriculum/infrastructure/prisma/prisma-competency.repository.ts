@@ -8,6 +8,8 @@ import { CURRICULUM_ERROR_CODES } from '../../domain/errors/curriculum-errors';
 import {
   COMPETENCY_SELECT,
   CURRICULUM_DOCUMENT_SELECT,
+  DOCUMENT_METADATA_FIELDS,
+  sameMetadata,
   sameStatement,
   toCompetency,
   toCompetencyCreateData,
@@ -30,17 +32,26 @@ const failures = createPersistenceFailures({
   subject: 'Competency',
 });
 
-/** The newest version of each source, judged by when it was ingested. */
+/** Upper bound of document versions read per lookup; far above any real curriculum history. */
+const DOCUMENTS_MAX = 200;
+
+/** `2022` > `2011`, `v10` > `v9`; an equal version (never stored twice) falls back to ingest time. */
+function isNewer(document: CurriculumDocumentRecord, current: CurriculumDocumentRecord): boolean {
+  const byVersion = document.version.localeCompare(current.version, 'en', { numeric: true });
+  if (byVersion !== 0) {
+    return byVersion > 0;
+  }
+  return instantToDate(document.createdAt).getTime() > instantToDate(current.createdAt).getTime();
+}
+
+/** The newest version of each source by its version, not by when it was ingested. */
 function newestPerSource(
   documents: readonly CurriculumDocumentRecord[],
 ): CurriculumDocumentRecord[] {
   const newest = new Map<string, CurriculumDocumentRecord>();
   for (const document of documents) {
     const current = newest.get(document.sourceKey);
-    if (
-      !current ||
-      instantToDate(document.createdAt).getTime() > instantToDate(current.createdAt).getTime()
-    ) {
+    if (!current || isNewer(document, current)) {
       newest.set(document.sourceKey, document);
     }
   }
@@ -61,14 +72,18 @@ export class PrismaCompetencyRepository implements CompetencyRepository {
         db.transaction(async (tx) => {
           const documents = tx.orm.public.CurriculumDocument;
           const competencies = tx.orm.public.Competency;
+          const metadata = toDocumentCreateData(source);
           const existing = await documents
-            .select('id')
+            .select('id', ...DOCUMENT_METADATA_FIELDS)
             .where({ sourceKey: source.sourceKey, version: source.version })
             .first();
-          const documentId =
-            existing?.id ?? (await documents.create(toDocumentCreateData(source))).id;
+          const documentId = existing?.id ?? (await documents.create(metadata)).id;
 
-          if (existing) {
+          if (existing && !sameMetadata(existing, metadata)) {
+            // Title, URL or scope changed: the document and its statements' scope follow.
+            await documents.where({ id: documentId }).update(metadata);
+            await competencies.where({ documentId }).deleteAndCount();
+          } else if (existing) {
             const stored = await competencies
               .select(...COMPETENCY_SELECT)
               .where({ documentId })
@@ -110,7 +125,9 @@ export class PrismaCompetencyRepository implements CompetencyRepository {
           federalState === null
             ? matching.where((row) => row.federalState.isNull())
             : matching.where({ federalState: toFederalStateRecord(federalState) })
-        ).all(),
+        )
+          .limit(DOCUMENTS_MAX)
+          .all(),
       );
       if (documents.length === 0) {
         return [];
