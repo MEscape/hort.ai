@@ -38,6 +38,9 @@
       "keep": "Entwurf behalten",
       "confirm": "Entwurf verwerfen"
     },
+    "errors": {
+      "unexpected": "Bitte überprüfe deine Angaben und versuche es noch einmal."
+    },
     "validation": {
       "titleRequired": "Bitte gib einen Titel ein.",
       "titleTooLong": "Der Titel darf höchstens 120 Zeichen enthalten.",
