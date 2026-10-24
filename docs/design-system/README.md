@@ -4,13 +4,13 @@ Hort.ai's child-facing UI uses the existing design tokens, fonts, and localized 
 
 Start the app with `npm run dev` to open the pages:
 
-| Page            | English                                                     | Deutsch                                                        |
-| --------------- | ----------------------------------------------------------- | -------------------------------------------------------------- |
-| Overview        | [Overview](http://localhost:3000/en/design-system)          | [Übersicht](http://localhost:3000/de/design-system)            |
-| Buttons         | [Buttons](http://localhost:3000/en/design-system/buttons)   | [Buttons](http://localhost:3000/de/design-system/buttons)      |
-| Cards           | [Cards](http://localhost:3000/en/design-system/cards)       | [Karten](http://localhost:3000/de/design-system/cards)         |
-| Feedback        | [Feedback](http://localhost:3000/en/design-system/feedback) | [Rückmeldung](http://localhost:3000/de/design-system/feedback) |
-| Hint card       | [Hints](http://localhost:3000/en/design-system/lesson)      | [Hinweise](http://localhost:3000/de/design-system/lesson)      |
+| Page      | English                                                     | Deutsch                                                        |
+| --------- | ----------------------------------------------------------- | -------------------------------------------------------------- |
+| Overview  | [Overview](http://localhost:3000/en/design-system)          | [Übersicht](http://localhost:3000/de/design-system)            |
+| Buttons   | [Buttons](http://localhost:3000/en/design-system/buttons)   | [Buttons](http://localhost:3000/de/design-system/buttons)      |
+| Cards     | [Cards](http://localhost:3000/en/design-system/cards)       | [Karten](http://localhost:3000/de/design-system/cards)         |
+| Feedback  | [Feedback](http://localhost:3000/en/design-system/feedback) | [Rückmeldung](http://localhost:3000/de/design-system/feedback) |
+| Hint card | [Hints](http://localhost:3000/en/design-system/lesson)      | [Hinweise](http://localhost:3000/de/design-system/lesson)      |
 
 ## Reusable components
 
