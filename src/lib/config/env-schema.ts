@@ -26,6 +26,12 @@ const serverEnvBaseSchema = z.object({
 
   DATABASE_URL: postgresUrl,
 
+  // Missing configuration disables the endpoint (503), never disables authenticity checks.
+  ALEXA_SKILL_ID: z
+    .string()
+    .regex(/^amzn1\.ask\.skill\.[a-zA-Z0-9-]+$/)
+    .optional(),
+
   DATABASE_POOL_SIZE: integerSetting(DEFAULT_DATABASE_POOL_SIZE),
 
   DATABASE_POOL_TIMEOUT_SECONDS: integerSetting(DEFAULT_DATABASE_POOL_TIMEOUT_SECONDS),
