@@ -77,6 +77,7 @@ Use the scripts defined in `package.json`. Do not assume scripts exist unless th
 ### Code quality and validation
 
 - `npm run check` — run the full validation pipeline:
+  - Production dependency audit (`npm run audit:prod`)
   - TypeScript type-checking
   - ESLint
   - Prettier formatting checks
