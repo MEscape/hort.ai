@@ -1,10 +1,12 @@
 import { SkillRequestSignatureVerifier, TimestampVerifier } from 'ask-sdk-express-adapter';
 
-import type { UnauthorizedAppError } from '@lib/errors';
+import type { InfrastructureAppError, UnauthorizedAppError } from '@lib/errors';
 import { errAsync, fromThrowable, fromThrowableAsync, type AppResultAsync } from '@lib/result';
 import { MS_PER_MINUTE, parseJson } from '@lib/utils';
 
 import { alexaRequestRejected } from '../../domain/errors/alexa-errors';
+
+import { downloadCertChain } from './cert-chain-download';
 
 import type { IncomingHttpHeaders } from 'node:http';
 
@@ -21,6 +23,8 @@ const NEW_CERT_DOWNLOADS_PER_WINDOW = 5;
 const NEW_CERT_WINDOW_MINUTES = 10;
 const NEW_CERT_WINDOW_MS = NEW_CERT_WINDOW_MINUTES * MS_PER_MINUTE;
 const KNOWN_CERT_URLS_MAX = 8;
+/** The SDK's internal download step (`https.get` without any timeout in ask-sdk-express-adapter 2.14). */
+const SDK_DOWNLOAD_STEP = '_getCertChainByUrl';
 
 interface SignatureVerifier {
   verify(raw: string, headers: IncomingHttpHeaders): Promise<void>;
@@ -92,10 +96,28 @@ export function createAskRequestVerifier(deps: AskVerifierDependencies) {
 }
 
 export const verifyAlexaRequest = createAskRequestVerifier({
-  signature: new SkillRequestSignatureVerifier(),
+  signature: withCertDownload(new SkillRequestSignatureVerifier(), (url) => downloadCertChain(url)),
   timestamp: new TimestampVerifier(TOLERANCE_MS),
   now: () => Date.now(),
 });
+
+/**
+ * Replaces only the transport of the official verifier: URL checks, chain validation, caching and the signature
+ * check stay the SDK's. A test fails the build if a newer SDK drops this step, so it cannot silently fall back
+ * to a download without a deadline.
+ */
+export function withCertDownload(
+  verifier: SkillRequestSignatureVerifier,
+  download: (url: string) => AppResultAsync<string, InfrastructureAppError>,
+): SkillRequestSignatureVerifier {
+  // The SDK expects a rejecting promise; its own verify() catches it and reports a failed verification.
+  const sdkDownload = async (url: string): Promise<string> => {
+    const chain = await download(url);
+    return chain.isOk() ? chain.value : Promise.reject(new Error(chain.error.message));
+  };
+  Object.defineProperty(verifier, SDK_DOWNLOAD_STEP, { value: sdkDownload });
+  return verifier;
+}
 
 function readHeader(headers: IncomingHttpHeaders, name: string): string | undefined {
   const value = Object.entries(headers).find(([key]) => key.toLowerCase() === name)?.[1];

@@ -63,6 +63,9 @@ in cheap guards that run first, so a forged request cannot make the server fetch
    The SDK caches certificates per URL string, so a certificate has exactly one cache key.
 3. Download budget: a URL that has not yet verified a request costs a download from S3; such downloads run one at
    a time and at most 5 per 10 minutes per server instance. A URL that verified a request skips the budget.
+   The download itself (`infrastructure/ask-sdk/cert-chain-download.ts`) replaces only the SDK's transport, whose
+   `https.get` has no timeout: `fetch` with `AbortSignal.timeout(3 s)` for connect, headers and body together,
+   no redirects, at most 64 KiB. On timeout the request is aborted (socket closed) and the slot is free again.
 4. Then the SDK: timestamp verifier, certificate chain, signature (`Signature-256`), and finally the skill id.
 
 If Amazon rotates its certificate while an attacker keeps the budget exhausted, real requests fail until the
