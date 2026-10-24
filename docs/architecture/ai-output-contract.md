@@ -15,6 +15,8 @@ provider adapter (infrastructure, #10)
                   └─ shown to the child
 ```
 
+The prompt that asks for the output is built by `buildHintPrompt` (`domain/prompt/hint-prompt.ts`): fixed instructions that never contain the child's text, and the task and competencies as a separate JSON data block. The child's task enters only as a `ChildTaskText` (`domain/models/child-task-text.ts`: trimmed, at most 1000 characters, no control or invisible characters). The safety checks on the text are `checkChildSafeText` (`domain/child-safety/check-child-safe-text.ts`): no requests for personal data, no secrecy, no inappropriate words. `HintOrchestrator` runs the whole chain and logs every fallback as `guidance.hint_fallback_used` with level, reason and codes.
+
 On any rejection the caller discards the output, logs the rejection code (never the text or the child's input), and uses a predefined fallback for the requested kind and hint level (#10).
 
 The contract is a domain function built on the `@lib/utils` shape guards, not a Zod schema. [`validation.md`](../rules/validation.md) reserves Zod for the presentation boundary, and AI output arrives in infrastructure. A domain function can be called from the provider adapter and tested without a provider.
