@@ -163,8 +163,10 @@ model Classroom {
   @@check(expression: sql`"inviteCodeHash" ~ '^[0-9a-f]{64}$'`, name: "Classroom_invite_code_rule")
 }
 
-/// A child in a class. `childProfileId` is unique: a child is in at most one class (B S, #8);
-/// leaving deletes the row, and archiving a class ends its memberships.
+/// A child in a class. `childProfileId` is unique: a child is in at most one class (B S, #8).
+/// There is no inactive membership row: leaving deletes it, and archiving a class must delete its
+/// memberships in the same transaction (classroom use case, #32), so an archived class never
+/// blocks a child from joining another one.
 model ClassMembership {
   id             String       @id @onCreate(uuid())
   tenantId       String
@@ -359,6 +361,8 @@ model ChildAnswer {
   assessment     AnswerAssessment?
 
   @@unique([sessionId, idempotencyKey])
+  /// The target of `AnswerAssessment`'s (answerId, sessionId) key: an assessment stays in its answer's session.
+  @@unique([id, sessionId])
   @@index([sessionId, occurredAt])
   @@check(expression: sql`char_length("idempotencyKey") BETWEEN 1 AND 128`, name: "ChildAnswer_key_rule")
   @@check(expression: sql`char_length("text") BETWEEN 1 AND 1000`, name: "ChildAnswer_text_rule")
@@ -375,9 +379,12 @@ model AnswerAssessment {
   occurredAt     DateTime         @default(now())
 
   session        HelpSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  answer         ChildAnswer      @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  /// Keyed on (answerId, sessionId), so the answer must belong to the same session.
+  answer         ChildAnswer      @relation(fields: [answerId, sessionId], references: [id, sessionId], onDelete: Cascade)
 
   @@unique([sessionId, idempotencyKey])
+  /// Implied by `answerId @unique`; Prisma needs it spelled out for the one-to-one composite key.
+  @@unique([answerId, sessionId])
   @@check(expression: sql`char_length("idempotencyKey") BETWEEN 1 AND 128`, name: "AnswerAssessment_key_rule")
   @@check(expression: sql`char_length("text") BETWEEN 1 AND 1000`, name: "AnswerAssessment_text_rule")
 }

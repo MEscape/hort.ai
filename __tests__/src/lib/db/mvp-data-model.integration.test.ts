@@ -134,6 +134,39 @@ describe.skipIf(!isEnabled)('MVP data model constraints against Postgres', () =>
     ).toHaveLength(2);
   });
 
+  it('refuses an assessment that points at an answer of another session', async () => {
+    const child = await childProfile();
+    const [own, foreign] = await Promise.all(
+      [1, 2].map(() =>
+        db.orm.public.HelpSession.create({
+          tenantId,
+          ownerId: 'parent-1',
+          childProfileId: child.id,
+          taskText: 'Rechne 23 + 19.',
+        }),
+      ),
+    );
+    const answer = await db.orm.public.ChildAnswer.create({
+      sessionId: foreign.id,
+      idempotencyKey: 'answer-x',
+      text: '42',
+    });
+    const assessment = {
+      answerId: answer.id,
+      idempotencyKey: 'assess-1',
+      result: 'CORRECT',
+      text: 'Stimmt, 23 + 19 = 42.',
+    } as const;
+
+    await expect(
+      db.orm.public.AnswerAssessment.create({ ...assessment, sessionId: own.id }),
+    ).rejects.toThrow(/AnswerAssessment_answerId_sessionId_fkey/);
+    // The same row in the answer's own session is valid, so only the session mismatch was refused.
+    await expect(
+      db.orm.public.AnswerAssessment.create({ ...assessment, sessionId: foreign.id }),
+    ).resolves.toMatchObject({ answerId: answer.id });
+  });
+
   it('refuses a grade outside 1 to 4 even from a writer that skips the domain', async () => {
     await expect(
       db.orm.public.ChildProfile.create({

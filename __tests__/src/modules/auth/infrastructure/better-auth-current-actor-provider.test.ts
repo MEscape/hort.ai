@@ -18,7 +18,13 @@ const clock: Clock = { now: () => NOW };
 function session(overrides: Partial<SessionSnapshot['user']> & { createdAt?: Date } = {}) {
   const { createdAt = new Date(NOW.getTime() - 1000), ...user } = overrides;
   const snapshot: SessionSnapshot = {
-    user: { id: 'parent-1', email: 'mara@example.org', emailVerified: true, role: 'parent', ...user },
+    user: {
+      id: 'parent-1',
+      email: 'mara@example.org',
+      emailVerified: true,
+      role: 'parent',
+      ...user,
+    },
     session: { createdAt },
   };
   return snapshot;
