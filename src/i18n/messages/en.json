@@ -1,4 +1,8 @@
 {
+  "home": {
+    "title": "You’re signed in!",
+    "description": "Your parent account is ready. Your family’s learning adventure will start here."
+  },
   "metadata": {
     "description": "An AI-powered, child-friendly learning companion that turns learning into an interactive journey."
   },
@@ -87,22 +91,51 @@
       "hintBody": "Tap each apple once and watch the basket."
     },
     "lesson": {
-      "title": "A lesson should feel like play",
-      "description": "Try the little counting scene. It works with a mouse, touch, Enter and Space—dragging isn't required.",
-      "stageLabel": "Landscape learning stage · 16:10 reference",
-      "progress": "Step 1 of 3",
-      "taskTitle": "Let's count together!",
-      "prompt": "Can you put three apples in the basket?",
-      "tray": "Apples to move",
-      "basket": "Your basket",
-      "selectApple": "Put apple {number} in the basket",
-      "count": "{count} of 3 apples",
+      "title": "Hints, not answers",
+      "description": "The child brings a task from school; the companion helps one small step at a time. The gallery shows only the hint card: no solution, no points, nothing is sent or stored.",
+      "stageLabel": "Hint card · gallery example, not a learning flow",
+      "taskLabel": "Your task from school",
+      "taskText": "\"Lisa has 7 marbles. She gets 5 more. How many marbles does she have now?\"",
+      "hintTitle": "Hint {number}",
+      "hint1": "Read the task again slowly. What does Lisa have at the start?",
+      "hint2": "What happens to the marbles: does Lisa get more, or does she give some away?",
+      "hint3": "You could draw the marbles or count on your fingers. Try it your way.",
+      "nextHint": "Another hint",
       "reset": "Start again",
+      "lastHint": "That was the last hint. You can do the rest yourself, and you can always ask again.",
       "guideName": "Companion sketch",
-      "guideText": "Tap an apple. I'll count with you!",
-      "completeTitle": "All three apples!",
-      "completeBody": "You counted them one by one. Nicely done!"
+      "guideText": "I won't tell you the answer, but I'll stay with you while you work it out."
     },
     "footer": "Make the next interaction easy to understand, and make trying again feel safe."
+  },
+  "start": {
+    "metaTitle": "Homework help",
+    "greeting": "Hello!",
+    "question": "Need some help?",
+    "back": "Back",
+    "actions": {
+      "task": "My task",
+      "school": "School tasks",
+      "continue": "Continue"
+    },
+    "entry": {
+      "title": "What's your task?",
+      "label": "Your task",
+      "placeholder": "Write your homework task here …",
+      "note": "Up to {limit} characters. Your text stays on this page and is not saved.",
+      "empty": "Write your task here first.",
+      "review": "Done",
+      "clear": "Clear text",
+      "unavailableTitle": "Help is coming soon",
+      "unavailableBody": "Your task was not sent or saved. You can keep editing it here."
+    },
+    "school": {
+      "title": "School tasks",
+      "body": "Tasks from your teacher aren't available here yet."
+    },
+    "resume": {
+      "title": "Continue",
+      "body": "Saved tasks aren't available here yet."
+    }
   }
 }

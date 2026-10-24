@@ -331,7 +331,7 @@ Ensure that:
 - Only validated text is displayed or read aloud.
 - No screen ever shows the solution of the child's task.
 
-Do not add a standalone exercise, quiz or lesson offering. Contextual comprehension questions and similar-but-different worked examples may support the child's current task, but must never reveal its solution. Visual explanations follow the same constraint.
+Do not add exercises, quizzes or learning content of HortAi's own. Visual explanations are allowed only when they help the child understand their own task and never solve it.
 
 ## 11. Navigation and Choice Architecture
 

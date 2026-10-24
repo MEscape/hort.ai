@@ -13,14 +13,14 @@ export async function CardSpecimens({ locale }: CardSpecimensProps) {
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
-      <Card className="flex flex-col gap-4">
+      <Card className="gap-4 p-5">
         <div aria-hidden="true" className="relative h-16 w-16 rounded-token-lg bg-primary">
           <span className="absolute inset-3 rounded-full border-4 border-primary-foreground" />
         </div>
         <h3 className="font-heading text-xl text-copy">{t('designSystem.cards.continue')}</h3>
         <p className="text-base text-copy-muted">{t('designSystem.cards.continueDescription')}</p>
       </Card>
-      <Card tone="highlight" className="flex flex-col gap-4">
+      <Card tone="highlight" className="gap-4 p-5">
         <div
           aria-hidden="true"
           className="flex h-16 w-16 items-center justify-center rounded-token-lg bg-accent"
@@ -30,7 +30,7 @@ export async function CardSpecimens({ locale }: CardSpecimensProps) {
         <h3 className="font-heading text-xl text-copy">{t('designSystem.cards.new')}</h3>
         <p className="text-base text-copy-muted">{t('designSystem.cards.newDescription')}</p>
       </Card>
-      <Card tone="sunken" className="flex flex-col gap-4">
+      <Card tone="sunken" className="gap-4 p-5">
         <div aria-hidden="true" className="relative h-16 w-16 rounded-token-lg bg-secondary">
           <span className="absolute inset-3 rounded-token-sm border-4 border-secondary-foreground" />
           <span className="absolute inset-5 rounded-full bg-secondary-foreground" />

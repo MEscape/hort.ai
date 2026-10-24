@@ -4,10 +4,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { Button } from '@components/ui/button';
 
 describe('Button', () => {
-  it('defaults to a non-submitting button with a clear accessible name', () => {
-    render(<Button>Continue</Button>);
+  it('defaults to the main-action variant and size with a clear accessible name', () => {
+    render(<Button type="button">Continue</Button>);
 
-    expect(screen.getByRole('button', { name: 'Continue' })).toHaveAttribute('type', 'button');
+    const button = screen.getByRole('button', { name: 'Continue' });
+    expect(button).toHaveAttribute('data-variant', 'default');
+    expect(button).toHaveAttribute('data-size', 'default');
+    expect(button).toHaveClass('bg-primary');
   });
 
   it('uses the selected semantic token variant', () => {

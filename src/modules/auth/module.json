@@ -1,0 +1,6 @@
+{
+  "role": "platform",
+  "reason": "Identity module. Its ids come from the identity provider (no request-side parser) and it keeps no records of its own (no repository, no record mapper). The one authorization service lives directly in application/ (nothing else may), and its domain models (Actor, Permission, authorize) are part of the public API.",
+  "extraRootFiles": { "application": ["authorization-service.ts"] },
+  "runtimeExports": ["actorHasPermission"]
+}

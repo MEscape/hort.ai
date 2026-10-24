@@ -2,17 +2,17 @@
 
 Hort.ai's child-facing UI uses the existing design tokens, fonts, and localized copy to make homework help clear, playful, and reassuring. The [product vision](../product/vision.md) defines the experience; the [concept overview](../product/flows.md) distinguishes requirements from proposals.
 
-The gallery shows real shared components alongside a local-only counting specimen. The `/lesson` route and its sample copy demonstrate presentation, not an approved lesson, exercise offering or backend workflow. Do not use them to infer product requirements or implement learning paths, XP or rewards.
+The gallery shows the real shared components alongside a local-only hint-card specimen (hints for a task the child brought, never a solution). It demonstrates presentation, not an exercise offering or backend workflow; do not use it to infer product requirements, learning paths, XP or rewards.
 
 Start the app with `npm run dev` to open the pages:
 
-| Page            | English                                                     | Deutsch                                                        |
-| --------------- | ----------------------------------------------------------- | -------------------------------------------------------------- |
-| Overview        | [Overview](http://localhost:3000/en/design-system)          | [Übersicht](http://localhost:3000/de/design-system)            |
-| Buttons         | [Buttons](http://localhost:3000/en/design-system/buttons)   | [Buttons](http://localhost:3000/de/design-system/buttons)      |
-| Cards           | [Cards](http://localhost:3000/en/design-system/cards)       | [Karten](http://localhost:3000/de/design-system/cards)         |
-| Feedback        | [Feedback](http://localhost:3000/en/design-system/feedback) | [Rückmeldung](http://localhost:3000/de/design-system/feedback) |
-| Lesson specimen | [Lesson](http://localhost:3000/en/design-system/lesson)     | [Lektion](http://localhost:3000/de/design-system/lesson)       |
+| Page      | English                                                     | Deutsch                                                        |
+| --------- | ----------------------------------------------------------- | -------------------------------------------------------------- |
+| Overview  | [Overview](http://localhost:3000/en/design-system)          | [Übersicht](http://localhost:3000/de/design-system)            |
+| Buttons   | [Buttons](http://localhost:3000/en/design-system/buttons)   | [Buttons](http://localhost:3000/de/design-system/buttons)      |
+| Cards     | [Cards](http://localhost:3000/en/design-system/cards)       | [Karten](http://localhost:3000/de/design-system/cards)         |
+| Feedback  | [Feedback](http://localhost:3000/en/design-system/feedback) | [Rückmeldung](http://localhost:3000/de/design-system/feedback) |
+| Hint card | [Hints](http://localhost:3000/en/design-system/lesson)      | [Hinweise](http://localhost:3000/de/design-system/lesson)      |
 
 ## Reusable components
 

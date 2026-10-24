@@ -1,8 +1,6 @@
 # HortAi
 
-HortAi helps primary-school children with homework and test preparation through thinking prompts, graduated hints and comprehension questions. The child brings a school task or chooses a teacher-written assignment; HortAi never solves it and offers no exercises or gamification of its own.
-
-Before planning features, read the [product vision](docs/product/vision.md) and the [concept overview with Mermaid diagrams](docs/product/flows.md). They distinguish agreed requirements from proposals and undecided technical details; a diagram or gallery does not prove implementation.
+HortAi is an AI companion that helps primary-school children with their homework and test preparation when their parents do not have the time. The child works on a real task from school; HortAi gives thinking prompts and graduated hints grounded in the curriculum, and never solves the task for the child. Teachers can take part and post their own assignments. HortAi offers no exercises of its own. Read [`docs/product/vision.md`](docs/product/vision.md) before planning features. The [concept overview](docs/product/flows.md) illustrates it with Mermaid diagrams and is not binding.
 
 A [Next.js](https://nextjs.org) App Router application with TypeScript, PostgreSQL ([Prisma](https://www.prisma.io)) and [Better Auth](https://www.better-auth.com). Production runs on Vercel.
 
@@ -20,7 +18,8 @@ cp .env.example .env                # app settings, ready for local development
 cp .env.docker.example .env.docker  # settings of the local containers
 npm ci
 docker compose --env-file .env.docker config   # optional: validate the interpolation
-docker compose --env-file .env.docker up -d --wait
+docker compose --env-file .env.docker up -d --wait postgres redis-rest mailpit azurite
+docker compose --env-file .env.docker run --rm azurite-init
 npm run db:generate
 npm run db:migrate
 npm run dev                         # http://localhost:3000
@@ -58,7 +57,7 @@ The application runs on your machine. Docker Compose runs only its local depende
 | Command                           | What it does                                                         |
 | --------------------------------- | -------------------------------------------------------------------- |
 | `npm run dev` / `build` / `start` | Development server, production build, production server              |
-| `npm run check`                   | Everything CI runs: types, lint, format, i18n, dead code, all tests  |
+| `npm run check`                   | Types, lint, format, i18n, dead code, all tests (incl. integration)  |
 | `npm test`                        | Unit tests (`npm run test:watch` while developing)                   |
 | `npm run test:integration`        | Integration tests; need the containers and a migrated database       |
 | `npm run lint:fix` / `format`     | Fix lint and formatting                                              |
@@ -69,11 +68,16 @@ The application runs on your machine. Docker Compose runs only its local depende
 
 Run the narrowest tests while iterating and `npm run check` before opening a pull request.
 
-## Continuous integration
+## Build and deploy (Vercel)
 
-- Pull requests: lint, types, database contract and migrations, tests, license check, security scan, build. The `CI success` job is the single required check.
-- `main`: re-runs CI, builds, migrates both databases, deploys to Vercel and smoke-tests `/api/health`.
-- CI starts the emulators (`redis-rest`, `azurite`, `azurite-init`) from `docker-compose.yml` with the values of `.env.docker.example`, next to a Postgres service. Actions are pinned to commit SHAs; Dependabot keeps them and the container images current.
+There is no GitHub Actions workflow. Vercel builds every push and pull request with `npm run build:vercel` (set in `vercel.json`), which fails the deployment at the first failing step:
+
+1. types, lint, format, i18n catalogs, dead code
+2. unit tests with coverage, architecture and script tests
+3. Prisma contract, migration check, `next build`
+4. app and auth migrations, then `db:verify`
+
+The migrations run against the `DATABASE_URL` / `AUTH_DATABASE_URL` of the Vercel environment being built, so Production and Preview must point at their own databases, with a role allowed to migrate. Integration tests need the Docker containers and are not part of the Vercel build: run `npm run check` locally before merging.
 
 ## Project layout
 

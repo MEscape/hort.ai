@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createAuditLog } from '@lib/logger';
-import type { AuditLevel } from '@lib/logger';
+import type { AuditLevel, createAuditLog as createAuditLogType } from '@lib/logger';
 import { auditLevelOf } from '@lib/logger/audit-log';
 
 type AuditEventName = 'created' | 'test_failed';
@@ -15,6 +14,7 @@ interface Line {
 }
 
 let stdout: ReturnType<typeof vi.spyOn>;
+let createAuditLog: typeof createAuditLogType;
 
 function written(): Line[] {
   return (stdout.mock.calls as unknown[][]).map((call) => JSON.parse(String(call[0])) as Line);
@@ -25,11 +25,16 @@ function event(extra: Record<string, unknown> = {}, type: AuditEventName = 'crea
   return { type, ...extra };
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  // The logger captures its level on import; CI may otherwise filter these info events.
+  vi.resetModules();
+  vi.stubEnv('LOG_LEVEL', 'info');
+  ({ createAuditLog } = await import('@lib/logger'));
   stdout = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 });
 
 afterEach(() => {
+  vi.unstubAllEnvs();
   vi.restoreAllMocks();
 });
 

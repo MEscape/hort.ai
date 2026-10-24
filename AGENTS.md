@@ -144,17 +144,34 @@ For each task:
 
 Do not broaden the task without a clear reason. If an adjacent issue must be addressed for correctness or security, explain why it is necessary.
 
+## Agent Skills
+
+The repository ships agent skills in `.agents/skills/` (Codex, Gemini CLI and other agents that read `.agents/skills`) and an identical copy in `.claude/skills/` (Claude Code). `__tests__/architecture/agent-skills.test.ts` keeps both trees in step; change a skill in both places.
+
+Load the matching skill before you start:
+
+| Skill                     | Use when                                                                         |
+| ------------------------- | -------------------------------------------------------------------------------- |
+| `test-driven-development` | implementing a feature, fixing a bug or changing behavior (default for all code) |
+| `systematic-debugging`    | a test, the build or CI fails, or the app misbehaves                             |
+| `writing-plans`           | before a multi-file change or parallel work; includes time-boxed spikes          |
+| `lean-code`               | writing or reviewing code; keeps diffs small and reuses what exists              |
+| `code-review`             | before committing or opening a PR, or when reviewing one; drives `docs/agents/`  |
+| `demo-flow-qa`            | after a user-facing feature, before a demo or merge; real browser, DE/EN, mobile |
+| `ui-polish`               | building or refining a screen within the existing design system                  |
+
+Skills are working procedures. Rules, conventions and architecture documents take precedence over them.
+
 ## Next.js Version-Specific Instructions
 
 <!-- BEGIN:nextjs-agent-rules -->
 
-**This is NOT the Next.js you know.**
+## This is NOT the Next.js you know
 
-Before writing or modifying Next.js code, consult the documentation installed with the current version of Next.js in `node_modules/next/dist/docs/`. Do not rely on remembered APIs, outdated examples, or assumptions from earlier Next.js versions.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
-Read the relevant guides for the APIs and features being changed. Follow the installed documentation and established project patterns.
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
-If a task requires understanding Next.js behavior, locate the relevant documentation before implementing the change.
 <!-- END:nextjs-agent-rules -->
 
 ## Completion Requirements

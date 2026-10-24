@@ -1,0 +1,236 @@
+[
+  {
+    "id": "schema.public",
+    "label": "Create schema \"public\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Create schema \"public\"",
+        "sql": "CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "table.AuditEntry",
+    "label": "Create table \"AuditEntry\"",
+    "summary": "Creates table \"AuditEntry\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "AuditEntry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"AuditEntry\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AuditEntry\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"AuditEntry\"",
+        "sql": "CREATE TABLE \"public\".\"AuditEntry\" (\n  \"actorId\" text,\n  \"actorKind\" text NOT NULL,\n  \"details\" json NOT NULL,\n  \"id\" text NOT NULL,\n  \"occurredAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"severity\" text NOT NULL,\n  \"source\" text NOT NULL,\n  \"tenantId\" text NOT NULL,\n  \"type\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"AuditEntry_actorKind_check_eb9fa190\" CHECK (\"actorKind\" IN ('MEMBER', 'VISITOR', 'SYSTEM')),\n  CONSTRAINT \"AuditEntry_severity_check_f199a339\" CHECK (\"severity\" IN ('INFO', 'WARN'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"AuditEntry\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"AuditEntry\"",
+          "r",
+          "p"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AuditEntry.AuditEntry_occurredAt_idx_c6b89167",
+    "label": "Create index \"AuditEntry_occurredAt_idx_c6b89167\" on \"AuditEntry\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AuditEntry_occurredAt_idx_c6b89167",
+        "table": "AuditEntry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AuditEntry_occurredAt_idx_c6b89167\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AuditEntry_occurredAt_idx_c6b89167\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AuditEntry_occurredAt_idx_c6b89167\"",
+        "sql": "CREATE INDEX \"AuditEntry_occurredAt_idx_c6b89167\" ON \"public\".\"AuditEntry\" (\"occurredAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AuditEntry_occurredAt_idx_c6b89167\" exists on \"AuditEntry\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AuditEntry_occurredAt_idx_c6b89167\"",
+          "i",
+          "I",
+          "\"public\".\"AuditEntry\"",
+          "btree",
+          "[\"occurredAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AuditEntry.AuditEntry_tenantId_actorId_occurredAt_idx_c39c0fc6",
+    "label": "Create index \"AuditEntry_tenantId_actorId_occurredAt_idx_c39c0fc6\" on \"AuditEntry\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AuditEntry_tenantId_actorId_occurredAt_idx_c39c0fc6",
+        "table": "AuditEntry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AuditEntry_tenantId_actorId_occurredAt_idx_c39c0fc6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AuditEntry_tenantId_actorId_occurredAt_idx_c39c0fc6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AuditEntry_tenantId_actorId_occurredAt_idx_c39c0fc6\"",
+        "sql": "CREATE INDEX \"AuditEntry_tenantId_actorId_occurredAt_idx_c39c0fc6\" ON \"public\".\"AuditEntry\" (\"tenantId\", \"actorId\", \"occurredAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AuditEntry_tenantId_actorId_occurredAt_idx_c39c0fc6\" exists on \"AuditEntry\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AuditEntry_tenantId_actorId_occurredAt_idx_c39c0fc6\"",
+          "i",
+          "I",
+          "\"public\".\"AuditEntry\"",
+          "btree",
+          "[\"tenantId\",\"actorId\",\"occurredAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AuditEntry.AuditEntry_tenantId_occurredAt_idx_735df4e8",
+    "label": "Create index \"AuditEntry_tenantId_occurredAt_idx_735df4e8\" on \"AuditEntry\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AuditEntry_tenantId_occurredAt_idx_735df4e8",
+        "table": "AuditEntry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AuditEntry_tenantId_occurredAt_idx_735df4e8\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AuditEntry_tenantId_occurredAt_idx_735df4e8\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AuditEntry_tenantId_occurredAt_idx_735df4e8\"",
+        "sql": "CREATE INDEX \"AuditEntry_tenantId_occurredAt_idx_735df4e8\" ON \"public\".\"AuditEntry\" (\"tenantId\", \"occurredAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AuditEntry_tenantId_occurredAt_idx_735df4e8\" exists on \"AuditEntry\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AuditEntry_tenantId_occurredAt_idx_735df4e8\"",
+          "i",
+          "I",
+          "\"public\".\"AuditEntry\"",
+          "btree",
+          "[\"tenantId\",\"occurredAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AuditEntry.AuditEntry_tenantId_source_type_occurredAt_idx_6b022bb0",
+    "label": "Create index \"AuditEntry_tenantId_source_type_occurredAt_idx_6b022bb0\" on \"AuditEntry\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AuditEntry_tenantId_source_type_occurredAt_idx_6b022bb0",
+        "table": "AuditEntry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AuditEntry_tenantId_source_type_occurredAt_idx_6b022bb0\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AuditEntry_tenantId_source_type_occurredAt_idx_6b022bb0\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AuditEntry_tenantId_source_type_occurredAt_idx_6b022bb0\"",
+        "sql": "CREATE INDEX \"AuditEntry_tenantId_source_type_occurredAt_idx_6b022bb0\" ON \"public\".\"AuditEntry\" (\"tenantId\", \"source\", \"type\", \"occurredAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AuditEntry_tenantId_source_type_occurredAt_idx_6b022bb0\" exists on \"AuditEntry\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AuditEntry_tenantId_source_type_occurredAt_idx_6b022bb0\"",
+          "i",
+          "I",
+          "\"public\".\"AuditEntry\"",
+          "btree",
+          "[\"tenantId\",\"source\",\"type\",\"occurredAt\"]"
+        ]
+      }
+    ]
+  }
+]
