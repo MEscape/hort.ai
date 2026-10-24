@@ -151,15 +151,20 @@ describe.skipIf(!isEnabled)('MVP data model constraints against Postgres', () =>
       idempotencyKey: 'answer-x',
       text: '42',
     });
+    const assessment = {
+      answerId: answer.id,
+      idempotencyKey: 'assess-1',
+      result: 'CORRECT',
+      text: 'Stimmt, 23 + 19 = 42.',
+    } as const;
 
     await expect(
-      db.orm.public.AnswerAssessment.create({
-        sessionId: own.id,
-        answerId: answer.id,
-        idempotencyKey: 'assess-1',
-        result: 'CORRECT',
-      }),
-    ).rejects.toThrow();
+      db.orm.public.AnswerAssessment.create({ ...assessment, sessionId: own.id }),
+    ).rejects.toThrow(/AnswerAssessment_answerId_sessionId_fkey/);
+    // The same row in the answer's own session is valid, so only the session mismatch was refused.
+    await expect(
+      db.orm.public.AnswerAssessment.create({ ...assessment, sessionId: foreign.id }),
+    ).resolves.toMatchObject({ answerId: answer.id });
   });
 
   it('refuses a grade outside 1 to 4 even from a writer that skips the domain', async () => {
