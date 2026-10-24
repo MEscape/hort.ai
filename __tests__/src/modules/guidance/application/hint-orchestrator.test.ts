@@ -4,7 +4,7 @@ import { createHintOrchestrator } from '@modules/guidance';
 import { HintOrchestrator } from '@modules/guidance/application/services/hint-orchestrator';
 import { HINT_LEVELS } from '@modules/guidance/domain/models/hint-level';
 
-import { REQUEST, fakeHintProvider } from '../fakes';
+import { REQUEST, fakeHintProvider, recordingAuditLog } from '../fakes';
 
 import type { ProviderScript } from '../fakes';
 
@@ -17,7 +17,8 @@ function hint(overrides: Record<string, unknown> = {}) {
 
 function build(script: ProviderScript) {
   const { provider, requests } = fakeHintProvider(script);
-  return { orchestrator: new HintOrchestrator({ provider }), requests };
+  const { audit, events } = recordingAuditLog();
+  return { orchestrator: new HintOrchestrator({ provider, audit }), requests, events };
 }
 
 const INVALID_OUTPUT = { kind: 'fallback', level: 'next_step', reason: 'invalid_output' };
@@ -95,6 +96,67 @@ describe('HintOrchestrator', () => {
       kind: 'fallback',
       level,
     });
+  });
+});
+
+describe('HintOrchestrator child safety (#11)', () => {
+  it.each([
+    ['asks for the address', 'Super! Wo wohnst du eigentlich?'],
+    ['asks for a photo', 'Schick mir ein Foto von deinem Heft.'],
+    ['asks for secrecy', 'Das bleibt unser Geheimnis, okay?'],
+    ['insults the child', 'Du Versager, denk doch mal nach.'],
+  ])('falls back when a contract-conforming hint %s', async (_case, text) => {
+    const { orchestrator } = build({ answer: hint({ text }) });
+
+    expect(await orchestrator.suggest(REQUEST)).toEqual({
+      kind: 'fallback',
+      level: 'next_step',
+      reason: 'unsafe_output',
+    });
+  });
+
+  it('logs a fallback with its level, reason and codes, never with the AI text or the task', async () => {
+    const text = 'Wo wohnst du? Dann helfe ich dir.';
+    const { orchestrator, events } = build({ answer: hint({ text }) });
+
+    await orchestrator.suggest(REQUEST);
+
+    expect(events).toEqual([
+      {
+        type: 'guidance.hint_fallback_used',
+        level: 'next_step',
+        reason: 'unsafe_output',
+        codes: ['guidance.child_safety.asks_for_personal_data'],
+      },
+    ]);
+    expect(JSON.stringify(events)).not.toContain('wohnst');
+    expect(JSON.stringify(events)).not.toContain('Äpfel');
+  });
+
+  it('logs the contract codes of a rejected answer', async () => {
+    const { orchestrator, events } = build({ answer: hint({ kind: 'solution' }) });
+
+    await orchestrator.suggest(REQUEST);
+
+    expect(events).toMatchObject([
+      { reason: 'invalid_output', codes: ['guidance.ai_output.unknown_kind'] },
+    ]);
+  });
+
+  it('logs a provider failure without codes', async () => {
+    const { orchestrator, events } = build({ failure: { kind: 'timeout' } });
+
+    await orchestrator.suggest(REQUEST);
+
+    expect(events).toMatchObject([{ reason: 'timeout', codes: [] }]);
+  });
+
+  it('logs nothing when the hint is shown', async () => {
+    const { orchestrator, events } = build({ answer: hint() });
+
+    await orchestrator.suggest(REQUEST);
+
+    expect(events).toEqual([]);
   });
 });
 

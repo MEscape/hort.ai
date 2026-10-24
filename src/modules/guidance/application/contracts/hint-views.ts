@@ -1,7 +1,8 @@
+import type { HintFallbackReason as DomainHintFallbackReason } from '../../domain/models/hint-fallback-reason';
 import type { HintLevel } from '../../domain/models/hint-level';
 
 /** Why the predefined prompt was used instead of the AI's answer. */
-export type HintFallbackReason = 'timeout' | 'provider_unavailable' | 'invalid_output';
+export type HintFallbackReason = DomainHintFallbackReason;
 
 /**
  * What the child gets for one hint request: a validated AI hint, or the

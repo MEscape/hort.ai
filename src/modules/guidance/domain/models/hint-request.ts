@@ -1,3 +1,4 @@
+import type { ChildTaskText } from './child-task-text';
 import type { HintLevel } from './hint-level';
 
 /**
@@ -16,8 +17,8 @@ export interface CurriculumCompetency {
  * cannot change what the model is asked to do.
  */
 export interface HintRequest {
-  /** The child's task as entered; bounded and checked before it gets here (#11). */
-  readonly task: string;
+  /** The child's task, bounded and checked by `parseChildTaskText` (#11). */
+  readonly task: ChildTaskText;
   /** Decided by the backend, never by the AI. */
   readonly level: HintLevel;
   readonly competencies: readonly CurriculumCompetency[];

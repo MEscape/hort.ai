@@ -13,3 +13,10 @@ export {
   AI_OUTPUT_VALIDATION_CODES,
 } from './domain/errors/ai-output-errors';
 export type { AiOutputErrorCode, AiOutputValidationCode } from './domain/errors/ai-output-errors';
+export {
+  CHILD_INPUT_ERROR_CODES,
+  CHILD_INPUT_VALIDATION_CODES,
+} from './domain/errors/child-input-errors';
+export type { ChildInputValidationCode } from './domain/errors/child-input-errors';
+export { CHILD_SAFETY_VALIDATION_CODES } from './domain/errors/child-safety-errors';
+export type { ChildSafetyValidationCode } from './domain/errors/child-safety-errors';
