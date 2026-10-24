@@ -1,4 +1,8 @@
 {
+  "home": {
+    "title": "You’re signed in!",
+    "description": "Your parent account is ready. Your family’s learning adventure will start here."
+  },
   "metadata": {
     "description": "An AI-powered, child-friendly learning companion that turns learning into an interactive journey."
   },

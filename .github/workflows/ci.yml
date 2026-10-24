@@ -154,7 +154,8 @@ jobs:
       - name: Start storage and rate-limit emulators
         run: |
           cp .env.docker.example .env.docker
-          docker compose --env-file .env.docker up -d --wait redis-rest azurite azurite-init
+          docker compose --env-file .env.docker up -d --wait redis-rest azurite
+          docker compose --env-file .env.docker run --rm azurite-init
       - name: Wait for Redis REST
         run: |
           for _ in $(seq 1 30); do
@@ -172,7 +173,12 @@ jobs:
       - run: npm run test:scripts
       - name: Emulator logs
         if: failure()
-        run: docker compose --env-file .env.docker logs --no-color
+        run: |
+          if [ -f .env.docker ]; then
+            docker compose --env-file .env.docker logs --no-color
+          else
+            echo "Emulators were not started; no logs to collect."
+          fi
 
   # ----------------------------------------------------------------------------
   # 5. License Compliance
@@ -208,7 +214,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
-      - uses: actions/cache@0057852fbaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: .next/cache
           key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'public/**', 'next.config.*') }}

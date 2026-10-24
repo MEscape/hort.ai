@@ -1,3 +1,6 @@
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it, vi } from 'vitest';
 
 import { fontAtkinson, fontFredoka, fontNunito, fontVariables } from '@lib/fonts';
@@ -18,4 +21,15 @@ describe('fonts', () => {
   it('joins all variable classes for the root element', () => {
     expect(fontVariables).toBe('class--font-fredoka class--font-nunito class--font-atkinson');
   });
+});
+
+it('retains exactly the font files loaded by next/font, including readable mode', () => {
+  const files = readdirSync(join(process.cwd(), 'public/fonts'), { recursive: true })
+    .filter((path) => path.toString().endsWith('.woff2'))
+    .map(String);
+  expect(files).toHaveLength(4);
+  const loader = readFileSync(join(process.cwd(), 'src/lib/fonts/fonts.ts'), 'utf8');
+  for (const path of files) {
+    expect(loader).toContain(path.replaceAll('\\', '/'));
+  }
 });

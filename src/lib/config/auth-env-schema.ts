@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { SECONDS_PER_MINUTE } from '@lib/utils';
+import { SECONDS_PER_MINUTE, slugify } from '@lib/utils';
 
 import { booleanFlag, commaSeparatedList, integerSetting, postgresUrl } from './env-primitives';
 import { refineEnv } from './env-rules';
@@ -17,12 +17,13 @@ const DEFAULT_SESSION_UPDATE_AGE_SECONDS = SECONDS_PER_DAY;
 const DEFAULT_SESSION_FRESH_AGE_SECONDS = 15 * SECONDS_PER_MINUTE;
 const DEFAULT_SESSION_MAX_LIFETIME_SECONDS = 30 * SECONDS_PER_DAY;
 
-const DEFAULT_DEV_ACTOR_ROLE = 'viewer';
+const DEFAULT_TENANT_ID = 'default';
+const TENANT_ID_MAX_LENGTH = 64;
 
 const MIN_AUTH_SECRET_LENGTH = 32;
 
 const authEnvObjectSchema = z.object({
-  /** `false` skips sign-in and acts as `AUTH_DEV_ACTOR_ROLE`. Refused in production (see `env-schema.ts`). */
+  /** `false` skips sign-in and acts as a fixed parent of the default tenant. Refused in production (see `env-schema.ts`). */
   AUTH_ENABLED: booleanFlag(DEFAULT_AUTH_ENABLED),
 
   /** Signs sessions and tokens. Required, at least `MIN_AUTH_SECRET_LENGTH` characters, once auth is enabled. */
@@ -49,16 +50,18 @@ const authEnvObjectSchema = z.object({
   AUTH_TRUSTED_PROXIES: commaSeparatedList,
 
   /**
-   * Platform administrators by (verified) e-mail address: the bootstrap of a
-   * deployment. Lower-cased. A malformed entry would silently grant nobody
-   * anything, so it is rejected instead.
+   * The one tenant every account belongs to. Lower-case letters, digits and single hyphens (the shape
+   * of a slug), at most `TENANT_ID_MAX_LENGTH` characters; the auth module's `createTenantId` checks
+   * the same rule. No request can choose another.
    */
-  AUTH_PLATFORM_ADMIN_EMAILS: commaSeparatedList
-    .transform((entries) => entries.map((entry) => entry.toLowerCase()))
-    .pipe(z.array(z.email({ error: 'Must be an e-mail address.' }))),
-
-  /** The role acted as when `AUTH_ENABLED=false`. Unused while auth is enabled. */
-  AUTH_DEV_ACTOR_ROLE: z.string().min(1).default(DEFAULT_DEV_ACTOR_ROLE),
+  AUTH_DEFAULT_TENANT_ID: z
+    .string()
+    .min(1)
+    .max(TENANT_ID_MAX_LENGTH)
+    .refine((value) => slugify(value) === value, {
+      error: 'Must be lower-case letters, digits and single hyphens.',
+    })
+    .default(DEFAULT_TENANT_ID),
 });
 
 export type AuthEnv = z.infer<typeof authEnvObjectSchema>;

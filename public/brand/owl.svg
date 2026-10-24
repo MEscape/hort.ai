@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 180" width="160" height="180">
+  <defs>
+    <linearGradient id="feathers" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d99556"/><stop offset="1" stop-color="#a65c2c"/></linearGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff0d9"/><stop offset="1" stop-color="#ffdbb0"/></linearGradient>
+    <linearGradient id="book-cover" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#177db0"/><stop offset="1" stop-color="#075586"/></linearGradient>
+    <g id="body">
+      <ellipse cx="78" cy="171" rx="47" ry="5" fill="#6f391b" opacity=".1"/>
+      <path d="M38 106C15 103 10 123 13 146Q16 160 38 158Z" fill="#f5a323"/>
+      <path d="M36 112Q16 112 20 147" fill="none" stroke="#713b1c" stroke-width="6" stroke-linecap="round"/>
+      <path d="M46 103C27 117 29 153 49 164Q80 175 110 162C133 147 129 117 111 104Z" fill="url(#feathers)"/>
+      <path d="M51 120Q79 101 105 122L107 156Q81 169 53 155Z" fill="url(#face)"/>
+      <path d="M53 159L45 169Q43 174 50 174H64Q70 174 68 168L65 160M95 160L91 169Q89 174 96 174H110Q117 173 112 168L105 158" fill="#9a5428"/>
+      <path d="M31 38Q23 22 36 28Q32 12 47 25C65 15 99 15 116 22Q132 6 130 25Q143 20 136 38C154 64 147 97 124 113C103 128 57 128 35 111C10 92 12 58 31 38Z" fill="#7b421f"/>
+      <path d="M29 35Q23 24 37 30Q34 17 46 29C65 19 100 18 116 27Q129 13 126 30Q138 24 132 38C148 62 143 93 120 108C97 124 58 122 36 106C14 88 15 57 29 35Z" fill="url(#feathers)"/>
+      <path d="M30 65C31 39 59 34 79 57C94 28 127 35 135 59C151 92 120 111 82 113C48 115 21 98 30 65Z" fill="url(#face)"/>
+      <ellipse cx="55" cy="72" rx="20" ry="24" fill="#fffdf9"/><ellipse cx="109" cy="67" rx="21" ry="24" fill="#fffdf9"/>
+      <ellipse cx="38" cy="91" rx="8" ry="4" fill="#df9d69" opacity=".4"/><ellipse cx="126" cy="88" rx="8" ry="4" fill="#df9d69" opacity=".4"/>
+      <path d="M75 80C75 65 91 64 96 78Q95 97 86 100Q77 100 75 80Z" fill="#ffa51c"/>
+    </g>
+    <g id="face-hello" fill="#60300f">
+      <ellipse cx="59" cy="71" rx="12" ry="16"/><ellipse cx="113" cy="66" rx="13" ry="16"/>
+      <g fill="#fffdf9"><circle cx="63" cy="64" r="4.5"/><circle cx="117" cy="59" r="4.5"/></g>
+      <path d="M77 83Q85 89 94 81" fill="none" stroke="#7b421f" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
+    <g id="face-think" fill="#60300f">
+      <ellipse cx="62" cy="66" rx="11" ry="15"/><ellipse cx="117" cy="61" rx="11" ry="15"/>
+      <g fill="#fffdf9"><circle cx="65" cy="59" r="4"/><circle cx="120" cy="54" r="4"/></g>
+      <path d="M41 45Q51 38 62 43M84 87L91 85" fill="none" stroke="#7b421f" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g id="face-happy" fill="none" stroke="#60300f" stroke-width="5" stroke-linecap="round">
+      <path d="M43 74Q55 59 67 72M97 69Q109 54 121 67"/><path d="M77 81Q86 94 95 79" stroke-width="3"/>
+    </g>
+    <g id="face-oops" fill="#60300f">
+      <ellipse cx="56" cy="77" rx="11" ry="14"/><ellipse cx="109" cy="72" rx="11" ry="14"/>
+      <g fill="#fffdf9"><circle cx="59" cy="70" r="4"/><circle cx="112" cy="65" r="4"/></g>
+      <path d="M43 46L63 42M99 39L119 43M82 88Q86 85 90 87" fill="none" stroke="#7b421f" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g id="face-mail" fill="none" stroke="#60300f" stroke-width="4.5" stroke-linecap="round">
+      <path d="M43 74Q55 60 67 72M97 69Q109 55 121 67"/><path d="M78 82Q86 88 94 80" stroke-width="2.5"/>
+    </g>
+    <g id="book">
+      <path d="M66 115Q67 109 74 111L119 121Q124 122 122 130L111 164Q110 168 104 166L60 153Z" fill="url(#book-cover)"/>
+      <path d="M72 114L118 125L107 161" fill="none" stroke="#fffdf9" stroke-width="5" stroke-linecap="round"/>
+      <path d="M72 124L103 131" stroke="#50a2c9" stroke-width="2" stroke-linecap="round" opacity=".6"/>
+    </g>
+    <g id="letter">
+      <rect x="59" y="118" width="64" height="42" rx="6" fill="#fffdf9" stroke="#d99556" stroke-width="2"/>
+      <path d="M62 122L91 143L120 122" fill="none" stroke="#a65c2c" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M64 156L80 143M117 156L103 144" stroke="#e8c9a8" stroke-width="2"/><rect x="109" y="124" width="7" height="9" rx="1" fill="#ffa51c"/>
+    </g>
+    <g id="wings" fill="url(#feathers)">
+      <path d="M41 113C22 119 28 148 47 153C58 155 76 149 78 140Q79 135 70 135Q83 128 75 124Q60 118 48 123Z"/>
+      <path d="M124 122Q135 130 125 146Q119 155 111 147Q106 143 113 140Q106 135 113 131Q108 126 124 122Z"/>
+      <path d="M38 119Q27 141 47 150" fill="none" stroke="#9a5428" stroke-width="2" stroke-linecap="round"/>
+    </g>
+  </defs>
+  <use href="#body"/><use href="#face-hello"/><use href="#book"/><use href="#wings"/>
+</svg>

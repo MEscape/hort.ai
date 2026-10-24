@@ -26,27 +26,32 @@ describe('authEnvSchema defaults', () => {
       AUTH_SESSION_FRESH_AGE_SECONDS: 900,
       AUTH_SESSION_MAX_LIFETIME_SECONDS: 30 * DAY,
       AUTH_TRUSTED_PROXIES: [],
-      AUTH_PLATFORM_ADMIN_EMAILS: [],
-      AUTH_DEV_ACTOR_ROLE: 'viewer',
+      AUTH_DEFAULT_TENANT_ID: 'default',
     });
   });
 
-  it('lower-cases platform admin e-mails and splits proxies', () => {
-    const parsed = authEnvSchema.parse({
-      ...valid,
-      AUTH_PLATFORM_ADMIN_EMAILS: 'Admin@Example.org, ops@example.org',
-      AUTH_TRUSTED_PROXIES: '10.0.0.1, 10.0.0.0/8',
-    });
+  it('splits proxies', () => {
+    const parsed = authEnvSchema.parse({ ...valid, AUTH_TRUSTED_PROXIES: '10.0.0.1, 10.0.0.0/8' });
 
-    expect(parsed.AUTH_PLATFORM_ADMIN_EMAILS).toEqual(['admin@example.org', 'ops@example.org']);
     expect(parsed.AUTH_TRUSTED_PROXIES).toEqual(['10.0.0.1', '10.0.0.0/8']);
   });
+});
 
-  it('rejects a malformed platform admin e-mail', () => {
-    expect(problems({ ...valid, AUTH_PLATFORM_ADMIN_EMAILS: 'not-an-email' })).toEqual([
-      'AUTH_PLATFORM_ADMIN_EMAILS',
-    ]);
+describe('authEnvSchema default tenant', () => {
+  it('takes the configured tenant instead of the default', () => {
+    expect(authEnvSchema.parse({ ...valid, AUTH_DEFAULT_TENANT_ID: 'school-7' })).toMatchObject({
+      AUTH_DEFAULT_TENANT_ID: 'school-7',
+    });
   });
+
+  it.each(['Default', 'a b', 'under_score', '-lead', 'x'.repeat(65), ''])(
+    'rejects the tenant id %j',
+    (value) => {
+      expect(problems({ ...valid, AUTH_DEFAULT_TENANT_ID: value })).toEqual([
+        'AUTH_DEFAULT_TENANT_ID',
+      ]);
+    },
+  );
 });
 
 describe('authEnvSchema while auth is enabled', () => {

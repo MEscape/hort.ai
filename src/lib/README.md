@@ -34,13 +34,14 @@ Environment variables are validated with Zod, once, when first imported. Do not 
 - `publicEnv` (`@lib/config`): the validated `NEXT_PUBLIC_*` variables. Safe in any bundle.
 - `serverEnv` (`@lib/config/server`, `server-only`): everything, secrets included. Importing it from a Client Component is a build error instead of a runtime failure against the browser's empty `process.env`. A failing start names every variable at fault and the reason, never the value (`parseEnv`).
 - `resolveRateLimitSettings(serverEnv)` (`@lib/config/server`): the validated variables as the limiter's settings.
-- `APP_IDENTITY` (`@lib/config`): the product's name and its colours, for the places that cannot read CSS variables: `theme-color`, the web app manifest and every e-mail. `colors` are **literal** copies of the `--hortai-color-*` tokens in `globals.css`; a test pins them.
+- `APP_IDENTITY` (`@lib/config`): the product's name, brand asset URLs and its colours, for the places that cannot read CSS variables: `theme-color`, the web app manifest and every e-mail. `colors` are **literal** copies of the `--hortai-color-*` tokens in `globals.css`; a test pins them. The owl, wordmark and raster exports share the [brand asset pipeline](../../docs/architecture/branding.md).
 - **Types**: `ServerEnv`, `PublicEnv`.
 
 How it is organised (to add a variable: [`adding-an-environment-variable.md`](../../docs/conventions/adding-an-environment-variable.md)):
 
 - A variable's own shape lives in its domain's Zod schema (`auth-env-schema.ts`, `mail-env-schema.ts`, `rate-limit-env-schema.ts`, `public-env-schema.ts`, the base in `env-schema.ts`). `env-primitives.ts` holds the shared building blocks: `booleanFlag`, `commaSeparatedList`, `integerSetting`, `httpUrl`, `postgresUrl`.
 - What must hold **across** variables is a table of `EnvRule`s (`path`, `violated`, `message`; `env-rules.ts`), attached with `schema.superRefine(refineEnv(rules))`: authentication (only while `AUTH_ENABLED=true`), mail (per provider), rate limit (only while `RATE_LIMIT_ENABLED=true`), and the production rules in `env-schema.ts`. Each domain's schema file holds its schema and its rules together; `rate-limit-settings.ts` turns the validated variables into the limiter's settings. To add a rule, add a row to its domain's table.
+- Two variables belong to modules rather than to a subsystem of `src/lib`: `AUTH_DEFAULT_TENANT_ID` (the one tenant of the auth module, a slug, default `default`; [`authentication.md`](../../docs/architecture/authentication.md)) and `AUDIT_RETENTION_DAYS` (how long the audit trail keeps an entry, default 365).
 - What the rules enforce, in short: `DATABASE_URL` is always required; authentication variables only while `AUTH_ENABLED=true`; mail settings as soon as a provider is chosen; production refuses `AUTH_ENABLED=false`, `RATE_LIMIT_ENABLED=false`, `MAIL_PROVIDER=none`, and an `http://` `UPSTASH_REDIS_REST_URL` or `MAIL_API_URL` (both carry a bearer credential); `resend` is refused outside production.
 
 <a id="lib-mail"></a>
