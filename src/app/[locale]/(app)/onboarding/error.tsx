@@ -1,12 +1,11 @@
 'use client';
 
-import { PageMain } from '@components/layout/layout-primitives';
 import { RouteErrorPanel } from '@components/shared/route-error-panel';
 
 export default function OnboardingError({ reset }: { readonly reset: () => void }) {
   return (
-    <PageMain variant="centered">
+    <main className="flex min-h-dvh items-center justify-center px-4">
       <RouteErrorPanel onRetry={reset} />
-    </PageMain>
+    </main>
   );
 }
