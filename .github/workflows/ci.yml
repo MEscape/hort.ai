@@ -172,7 +172,12 @@ jobs:
       - run: npm run test:scripts
       - name: Emulator logs
         if: failure()
-        run: docker compose --env-file .env.docker logs --no-color
+        run: |
+          if [ -f .env.docker ]; then
+            docker compose --env-file .env.docker logs --no-color
+          else
+            echo "Emulators were not started; no logs to collect."
+          fi
 
   # ----------------------------------------------------------------------------
   # 5. License Compliance
