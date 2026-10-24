@@ -15,12 +15,13 @@ import { parseArgs } from 'node:util';
 
 import { parse as parseDotenv } from 'dotenv';
 
-import { systemClock } from '@lib/clock';
-import { storageEnvSchema } from '@lib/config/storage-env-schema';
-import { createObjectStore } from '@lib/storage/create-object-store';
-import type { ObjectStore } from '@lib/storage';
 import { tutorCatalog, tutorImageKey, TUTOR_STORAGE_PREFIX } from '@modules/tutors';
 import type { TutorImage } from '@modules/tutors';
+
+import { systemClock } from '@lib/clock';
+import { storageEnvSchema } from '@lib/config/storage-env-schema';
+import type { ObjectStore } from '@lib/storage';
+import { createObjectStore } from '@lib/storage/create-object-store';
 
 const SOURCE_SUFFIX: Record<TutorImage, string> = { mund_zu: 'mund_zu', mund_auf: 'mund_offen' };
 const IMAGE_CACHE = 'public, max-age=86400';
@@ -47,7 +48,7 @@ function loadStore(envFile: string): ObjectStore {
     );
   }
   const store = createObjectStore(parsed.data, { clock: systemClock });
-  if (store === null || !store.supports('public')) {
+  if (!store?.supports('public')) {
     fail('STORAGE_PROVIDER=azure with a public container is required.');
   }
   return store;
@@ -111,7 +112,7 @@ async function upload(store: ObjectStore, item: Upload): Promise<void> {
   const response = await fetch(target.value.url, {
     method: 'PUT',
     headers: target.value.headers,
-    body: item.body,
+    body: new Blob([Uint8Array.from(item.body)]),
   });
   if (response.status !== 201) {
     fail(`${item.key}: upload answered HTTP ${response.status}`);

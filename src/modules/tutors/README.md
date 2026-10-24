@@ -3,8 +3,8 @@
 The animal tutors a child can choose (name, persona, voice, two pictures). No AI or speech logic
 lives here; the persona only colours style, examples and greeting.
 
-- `domain/tutors.json` — the catalog, single source for every tutor.
-- `domain/tutor.ts` — its Zod schema (`tutorCatalogSchema`), parsed at import by `index.ts`.
+- `presentation/catalog/tutors.json` — the catalog, single source for every tutor.
+- `presentation/schemas/tutor-catalog-schema.ts` — its Zod schema (`tutorCatalogSchema`), parsed at import by `index.ts`.
 - `scripts/sync-tutors.ts` — uploads pictures and `tutors/manifest.json` to the public container.
 
 ## Storage layout
@@ -21,7 +21,7 @@ The browser loads the pictures directly from `STORAGE_PUBLIC_BASE_URL/tutors/<id
 
 ## Adding a tutor
 
-1. Add an entry to `domain/tutors.json`. `id` is lower-case without umlauts (it is the storage
+1. Add an entry to `presentation/catalog/tutors.json`. `id` is lower-case without umlauts (it is the storage
    folder). `quelle` is the prefix of the designer's files.
 2. Put the two SVGs into one folder, named `<quelle>_mund_zu.svg` and `<quelle>_mund_offen.svg`.
 3. Sync, once per environment (the env file holds the `STORAGE_*` settings, see `.env.example`):
