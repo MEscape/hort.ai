@@ -3,6 +3,7 @@
 import { useOnboardingFlow } from '../hooks/use-onboarding-flow';
 import { useStageContext } from '../hooks/use-stage-context';
 
+import { AlexaStep } from './alexa-step';
 import { ChildProfileStep } from './child-profile-step';
 import { ControlsStep } from './controls-step';
 import { DoneStep } from './done-step';
@@ -62,7 +63,17 @@ function CurrentStage({ context, tutors }: StageProps) {
           profile={profile}
           tutors={tutors}
           onBack={back}
-          onSaved={context.savedThen('controls')}
+          onSaved={context.savedThen('alexa')}
+        />
+      );
+    case 'alexa':
+      return (
+        <AlexaStep
+          {...common}
+          onBack={back}
+          onContinue={() => {
+            context.goTo('controls');
+          }}
         />
       );
     case 'controls':

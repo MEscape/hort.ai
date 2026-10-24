@@ -14,6 +14,7 @@ export interface StageContext {
   readonly back: () => void;
   readonly edit: OnboardingFlowState['edit'];
   readonly start: () => void;
+  readonly goTo: OnboardingFlowState['goTo'];
   /** A handler that shows what the backend stored and moves to the stage after it. */
   readonly savedThen: (next: OnboardingStage) => (saved: ChildProfileDto) => void;
 }
@@ -30,6 +31,7 @@ export function useStageContext(
     tutor: tutors.find((option) => option.id === flow.profile?.tutorId) ?? null,
     back: flow.back,
     edit: flow.edit,
+    goTo: flow.goTo,
     start: () => {
       flow.goTo('child');
     },

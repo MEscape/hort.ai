@@ -10,6 +10,7 @@ export const ONBOARDING_STAGES = [
   'child',
   'interests',
   'tutor',
+  'alexa',
   'controls',
   'review',
   'done',

@@ -51,6 +51,8 @@ const TUTORS = [
     greeting: 'Wuff, hallo! Ich bin Max.',
     voice: 'freundlich, kräftig',
     imageUrl: '',
+    imageOpenUrl: '',
+    introUrl: 'https://storage.test/tutors/x/vorstellung.mp3',
     tone: 'sky' as const,
   },
   {
@@ -63,6 +65,8 @@ const TUTORS = [
     greeting: 'Hallo, ich bin Lili.',
     voice: 'sanft, warm',
     imageUrl: '',
+    imageOpenUrl: '',
+    introUrl: 'https://storage.test/tutors/x/vorstellung.mp3',
     tone: 'sky' as const,
   },
 ];
@@ -115,7 +119,7 @@ describe('onboarding flow', () => {
   it('starts at the welcome screen, which saves nothing', () => {
     renderFlow();
     expect(screen.getByRole('heading', { name: 'Let’s set things up together' })).toBeVisible();
-    expect(screen.getAllByText(/Step 1 of 7/)[0]).toBeVisible();
+    expect(screen.getAllByText(/Step 1 of 8/)[0]).toBeVisible();
     expect(createChildProfileAction).not.toHaveBeenCalled();
   });
 
@@ -196,8 +200,75 @@ describe('onboarding flow', () => {
 
     fireEvent.click(screen.getByRole('radio', { name: /Max/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
-    expect(await screen.findByRole('heading', { name: 'Safety and settings' })).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Connect Alexa (optional)' })).toBeVisible();
     expect(chooseTutorAction).toHaveBeenCalledWith({ tutorId: 'max', profileId: 'p1' });
+  });
+
+  it('plays the spoken introduction of the chosen companion only on request, and stops it again', () => {
+    const play = vi.fn(() => Promise.resolve());
+    const pause = vi.fn();
+    const created: string[] = [];
+    vi.stubGlobal(
+      'Audio',
+      class {
+        currentTime = 0;
+        constructor(url: string) {
+          created.push(url);
+        }
+        play = play;
+        pause = pause;
+      },
+    );
+    renderFlow({ step: 'tutor', profile: PROFILE });
+    expect(screen.getByText('Tap a companion to meet them.')).toBeVisible();
+    expect(created).toEqual([]);
+
+    fireEvent.click(screen.getByRole('radio', { name: /Max/ }));
+    expect(created).toEqual([]);
+    fireEvent.click(screen.getByRole('button', { name: 'Hear Max introduce themselves' }));
+    expect(created).toEqual(['https://storage.test/tutors/x/vorstellung.mp3']);
+    expect(play).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Max is speaking…')).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Stop' }));
+    expect(pause).toHaveBeenCalled();
+    expect(screen.queryByText('Max is speaking…')).not.toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
+  it('says so, and still lets the parent choose, when the introduction cannot be played', async () => {
+    vi.stubGlobal(
+      'Audio',
+      class {
+        currentTime = 0;
+        play = () => Promise.reject(new Error('blocked'));
+        pause = vi.fn();
+      },
+    );
+    renderFlow({ step: 'tutor', profile: PROFILE });
+    fireEvent.click(screen.getByRole('radio', { name: /Max/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Hear Max introduce themselves' }));
+    expect(await screen.findByText(/introduction is not available right now/)).toBeVisible();
+    expect(screen.getByRole('radio', { name: /Max/ })).toBeChecked();
+    vi.unstubAllGlobals();
+  });
+
+  it('shows the optional Alexa step as a placeholder that saves nothing and never blocks', async () => {
+    renderFlow({ step: 'tutor', profile: { ...PROFILE, tutorId: 'max' } });
+    fireEvent.click(screen.getByRole('radio', { name: /Max/ }));
+    vi.mocked(chooseTutorAction).mockResolvedValue({
+      ok: true,
+      data: { ...PROFILE, tutorId: 'max' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    expect(await screen.findByRole('heading', { name: 'Connect Alexa (optional)' })).toBeVisible();
+    expect(screen.getByText('Not available yet')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Connect with Alexa' })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Connect later' }));
+    expect(await screen.findByRole('heading', { name: 'Safety and settings' })).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+    expect(await screen.findByRole('heading', { name: 'Connect Alexa (optional)' })).toBeVisible();
   });
 
   it('starts every control at its most private value and needs the guardian confirmation', async () => {

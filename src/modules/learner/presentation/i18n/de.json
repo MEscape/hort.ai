@@ -25,6 +25,10 @@
           "title": "Begleiter",
           "hint": "Wer hilft"
         },
+        "alexa": {
+          "title": "Alexa",
+          "hint": "Optional"
+        },
         "controls": {
           "title": "Sicherheit",
           "hint": "Deine Regeln"
@@ -44,6 +48,7 @@
       "child": "Wem helfen wir? Ein Vorname reicht.",
       "interests": "Was liebt dein Kind? Ich suche passende Beispiele.",
       "tutor": "Jeder Begleiter hilft auf seine Art. Lass dir Zeit.",
+      "alexa": "Alexa ist freiwillig. Überspringen ist völlig okay.",
       "controls": "Du entscheidest. Alles hier darf privat bleiben.",
       "review": "Fast geschafft. Stimmt alles?",
       "done": "Geschafft! Jetzt kommt die erste Hausaufgabe."
@@ -119,7 +124,28 @@
       "greetingLabel": "So sagt er Hallo",
       "languageNote": "Die Begleiter sprechen Deutsch mit deinem Kind.",
       "imageAlt": "{name}, {animal}",
-      "submit": "Weiter"
+      "submit": "Weiter",
+      "play": "{name} stellt sich vor",
+      "stop": "Stopp",
+      "speaking": "{name} spricht …",
+      "audioUnavailable": "Die Vorstellung ist gerade nicht verfügbar. Du kannst den Begleiter trotzdem wählen.",
+      "pick": "Tippe auf einen Begleiter, um ihn kennenzulernen."
+    },
+    "alexa": {
+      "title": "Alexa verbinden (optional)",
+      "description": "Später kann dein Kind Hort per Sprachbefehl über Alexa starten. Du kannst die Verbindung jederzeit trennen.",
+      "hero": "Hort für Alexa",
+      "status": {
+        "unavailable": "Noch nicht verfügbar",
+        "not_linked": "Nicht verbunden",
+        "linked": "Verbunden"
+      },
+      "unavailableNote": "Die Alexa-Verbindung wird noch gebaut. Hier wird nichts gespeichert, und die Einrichtung klappt auch ohne.",
+      "linkedNote": "Alexa ist mit diesem Konto verbunden.",
+      "connect": "Mit Alexa verbinden",
+      "disconnect": "Alexa trennen",
+      "later": "Später verbinden",
+      "continue": "Weiter"
     },
     "controls": {
       "title": "Sicherheit und Einstellungen",

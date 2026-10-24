@@ -13,6 +13,7 @@ const MOOD_BY_STAGE = {
   child: 'hello',
   interests: 'happy',
   tutor: 'think',
+  alexa: 'hello',
   controls: 'hello',
   review: 'think',
   done: 'happy',

@@ -25,6 +25,10 @@
           "title": "Companion",
           "hint": "Who helps"
         },
+        "alexa": {
+          "title": "Alexa",
+          "hint": "Optional"
+        },
         "controls": {
           "title": "Safety",
           "hint": "Your settings"
@@ -44,6 +48,7 @@
       "child": "Who are we helping? Just a first name is fine.",
       "interests": "What does your child love? I will pick matching examples.",
       "tutor": "Every companion helps in their own way. Take your time.",
+      "alexa": "Alexa is optional. Skip it if you like.",
       "controls": "You decide. Everything here can stay private.",
       "review": "Almost there. Is everything right?",
       "done": "All set! Time for the first homework."
@@ -119,7 +124,28 @@
       "greetingLabel": "Says hello like this",
       "languageNote": "Companions speak German with your child, so their words below are in German.",
       "imageAlt": "{name}, the {animal}",
-      "submit": "Continue"
+      "submit": "Continue",
+      "play": "Hear {name} introduce themselves",
+      "stop": "Stop",
+      "speaking": "{name} is speaking…",
+      "audioUnavailable": "The introduction is not available right now. You can still choose this companion.",
+      "pick": "Tap a companion to meet them."
+    },
+    "alexa": {
+      "title": "Connect Alexa (optional)",
+      "description": "Later, your child can start Hort by voice through Alexa. You can disconnect it at any time.",
+      "hero": "Hort for Alexa",
+      "status": {
+        "unavailable": "Not available yet",
+        "not_linked": "Not connected",
+        "linked": "Connected"
+      },
+      "unavailableNote": "Connecting Alexa is still being built. Nothing is stored here, and the setup works without it.",
+      "linkedNote": "Alexa is connected to this account.",
+      "connect": "Connect with Alexa",
+      "disconnect": "Disconnect Alexa",
+      "later": "Connect later",
+      "continue": "Continue"
     },
     "controls": {
       "title": "Safety and settings",

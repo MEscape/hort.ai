@@ -14,4 +14,8 @@ export interface TutorOption {
   readonly tone: Tone;
   /** Absolute URL of the closed-mouth picture; the picture may be missing, the card still works. */
   readonly imageUrl: string;
+  /** Absolute URL of the open-mouth picture, shown while the introduction plays. */
+  readonly imageOpenUrl: string;
+  /** Absolute URL of the spoken introduction (MP3), empty when no storage address is configured. */
+  readonly introUrl: string;
 }

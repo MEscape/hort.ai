@@ -1,20 +1,26 @@
 import 'server-only';
 
 import type { TutorOption } from '@modules/learner';
-import { tutorCatalog, tutorImageKey } from '@modules/tutors';
+import { tutorCatalog, tutorImageKey, tutorIntroKey } from '@modules/tutors';
 
 import { serverEnv } from '@lib/config/server';
 
 /** The tutor catalog names a main colour; the tile behind the picture takes the matching tone. */
-const TONE_BY_COLOUR: Readonly<Record<string, TutorOption['tone']>> = { blau: 'sky', rot: 'bloom' };
+const TONE_BY_COLOUR: Readonly<Record<string, TutorOption['tone']>> = {
+  blau: 'sky',
+  rot: 'bloom',
+};
 
 /**
  * The companions a parent can choose, taken from the checked-in tutor catalog: only those marked
- * ready, with just what the setup shows. The picture URL points at public storage; without a storage
- * address it stays empty and the card falls back to its icon.
+ * ready, with just what the setup shows. Pictures and the spoken introduction live in the public
+ * container of the environment the app runs in: `STORAGE_PUBLIC_BASE_URL` is set per environment
+ * (local, preview, production), so each one reads its own container. Without an address the URLs
+ * stay empty, the cards fall back to an icon and the play button says the sound is unavailable.
  */
 export function buildTutorOptions(): readonly TutorOption[] {
   const base = serverEnv.STORAGE_PUBLIC_BASE_URL?.replace(/\/$/, '');
+  const url = (key: string) => (base === undefined ? '' : `${base}/${key}`);
 
   return tutorCatalog.tutoren
     .filter((tutor) => tutor.status === 'bereit')
@@ -28,6 +34,8 @@ export function buildTutorOptions(): readonly TutorOption[] {
       greeting: tutor.begruessung,
       voice: tutor.stimme.charakter,
       tone: TONE_BY_COLOUR[tutor.farbe ?? ''] ?? 'amber',
-      imageUrl: base === undefined ? '' : `${base}/${tutorImageKey(tutor.id, 'mund_zu')}`,
+      imageUrl: url(tutorImageKey(tutor.id, 'mund_zu')),
+      imageOpenUrl: url(tutorImageKey(tutor.id, 'mund_auf')),
+      introUrl: url(tutorIntroKey(tutor.id)),
     }));
 }
