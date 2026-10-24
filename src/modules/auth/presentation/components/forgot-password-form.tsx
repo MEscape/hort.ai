@@ -2,6 +2,9 @@
 
 import { useId } from 'react';
 
+import { FormAlert } from '@components/shared/form-alert';
+import { HortPanel } from '@components/shared/hort-panel';
+import { SubmitButton } from '@components/shared/submit-button';
 import { ArrowLeft } from '@components/ui/icons';
 
 import { useTranslations } from '@i18n/client';
@@ -10,10 +13,7 @@ import { useForgotPasswordForm } from '../hooks/use-forgot-password-form';
 import { authRoutes } from '../routes';
 
 import { AuthEmailField } from './auth-email-field';
-import { AuthFormAlert } from './auth-form-alert';
 import { AuthLink } from './auth-link';
-import { AuthPanel } from './auth-panel';
-import { AuthSubmitButton } from './auth-submit-button';
 import { ForgotPasswordSent } from './forgot-password-sent';
 
 /** Asks for a reset link. The answer is the same whether or not the address has an account. */
@@ -29,7 +29,7 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <AuthPanel
+    <HortPanel
       mood={mood}
       title={t('forgotPassword.title')}
       description={t('forgotPassword.description')}
@@ -57,13 +57,13 @@ export function ForgotPasswordForm() {
             form.setValue('email', accepted, { shouldDirty: true, shouldValidate: true });
           }}
         />
-        <AuthFormAlert id={`${id}-form-error`} message={formError} />
-        <AuthSubmitButton
+        <FormAlert id={`${id}-form-error`} message={formError} />
+        <SubmitButton
           isPending={isPending}
           label={t('forgotPassword.submit')}
           pendingLabel={t('forgotPassword.submitting')}
         />
       </form>
-    </AuthPanel>
+    </HortPanel>
   );
 }

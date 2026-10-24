@@ -4,12 +4,12 @@ Who is signed in, and whether they may do what a use case asks. Owning rules: [`
 
 ## Identity model (MVP assumptions)
 
-| Concept               | What it is                                                                                         | Where it lives                                                     |
-| --------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| **Parent (actor)**    | The only authenticated identity: an e-mail and password account, confirmed by e-mail               | `auth` module (`Actor`, role `parent`)                             |
-| **Child profile**     | Data a parent owns: name, learning settings. Not an account, has no credentials and no permissions | a future `learner` module (not built)                              |
-| **Learning progress** | Belongs to a child profile, therefore to that profile's parent                                     | a future learning module (not built)                               |
-| **Tenant**            | One configured tenant (`default`), the same for every account                                      | `AUTH_DEFAULT_TENANT_ID`, stamped on every `Actor` by the provider |
+| Concept               | What it is                                                                                                    | Where it lives                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Parent (actor)**    | The only authenticated identity: an e-mail and password account, confirmed by e-mail                          | `auth` module (`Actor`, role `parent`)                             |
+| **Child profile**     | Data a parent owns: display name, federal state, grade. Not an account, has no credentials and no permissions | `learner` module ([learner.md](learner.md))                        |
+| **Learning progress** | Belongs to a child profile, therefore to that profile's parent                                                | a future learning module (not built)                               |
+| **Tenant**            | One configured tenant (`default`), the same for every account                                                 | `AUTH_DEFAULT_TENANT_ID`, stamped on every `Actor` by the provider |
 
 The product requirements do not say whether a child ever signs in with credentials of its own. Nothing here invents that policy: a child is a profile of a parent, and the parent's session is the only session. The model stays adaptable:
 
@@ -20,7 +20,7 @@ The product requirements do not say whether a child ever signs in with credentia
 
 - **auth** establishes identity and sessions and answers "may this parent do this to this resource". It does not create, store or validate child profiles, and logging in never creates one.
 - **account/parent module (when needed)** owns account-level capabilities beyond credentials (display name, settings). It may orchestrate "an authenticated parent creates a child profile" by calling the learner module's use case.
-- **learner module** owns the profile's rules (name, age, preferences), its lifecycle and its persistence. Every profile row stores `ownerId` (the guardian's `ActorId`) and `tenantId`. Its use cases call `authorization.requireInTenant('learner.create')` first (the returned actor is the owner to store), and `requireOnResource('learner.read' | 'learner.update' | 'learner.delete', { tenantId, ownerId })` on the loaded record.
+- **learner module** owns the profile's rules (display name, federal state, grade, voice consent), its lifecycle and its persistence. Every profile row stores `ownerId` (the guardian's `ActorId`) and `tenantId`. Its use cases call `authorization.requireInTenant('learner.create')` first (the returned actor is the owner to store), and `requireOnResource('learner.read' | 'learner.update' | 'learner.delete', { tenantId, ownerId })` on the loaded record.
 - **learning/progress module** reaches progress through the child profile, so the same ownership check applies; it never trusts a profile id as proof of access.
 
 ## Authorization
@@ -77,7 +77,7 @@ Only the audit module's domain, application and infrastructure layers are used. 
 
 - **Child credentials**: undecided (see above). Not built.
 - **Parental consent and age handling** (GDPR-K): out of scope here; sign-up confirms the e-mail address only.
-- **Learner module and its tables**: not built; the `learner.*` permissions and the ownership check are ready for it.
+- **Learner module**: built for the parent onboarding ([learner.md](learner.md)); it creates and completes one child profile. Listing, editing and deleting profiles, and several children per parent, are not built (`learner.delete` is unused).
 - **E-mail changes, account deletion, MFA, social login**: not built, as requested.
 - **Generators**: `npm run gen -- module` produces tenant-scoped entities whose `scopeOf` returns `{ tenantId }` only. Against this contract that no longer compiles on purpose: in a one-tenant system a tenant-only scope would let any parent reach any other's data. A generated module needs its entity to carry `ownerId` and `scopeOf` to return it.
 

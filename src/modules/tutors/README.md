@@ -14,10 +14,15 @@ In the public container (`STORAGE_AZURE_PUBLIC_CONTAINER`, served from `STORAGE_
 ```
 tutors/<id>/mund-zu.svg     mouth closed
 tutors/<id>/mund-auf.svg    mouth open (shown while the tutor speaks)
+tutors/<id>/vorstellung.mp3 spoken introduction (15 to 19 s), plays without any speech provider
 tutors/manifest.json        the catalog with absolute picture URLs (`bilder`)
 ```
 
 The browser loads the pictures directly from `STORAGE_PUBLIC_BASE_URL/tutors/<id>/...`.
+
+## Showing a tutor
+
+Use the shared `Character` component (`src/components/brand/character.tsx`) with `tutorImageKey(id, 'mund_zu')` and `tutorImageKey(id, 'mund_auf')` resolved against `STORAGE_PUBLIC_BASE_URL`, and `useCharacterVoice` (`src/hooks/use-character-voice.ts`) with `tutorIntroKey(id)` to play the introduction. The lip sync (mouth open while the audio plays) is in `Character`; this module stays the catalog and the storage keys, so every screen that shows a tutor reuses the same two pieces. The pictures should be transparent (the component draws no background of its own); until every uploaded picture is, one with a white background only disappears on a white surface.
 
 ## Adding a tutor
 
