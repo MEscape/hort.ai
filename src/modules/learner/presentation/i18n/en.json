@@ -1,0 +1,293 @@
+{
+  "learner": {
+    "metadata": {
+      "title": "Set up your child",
+      "description": "A few quick steps: your child’s profile, a companion, and the settings you want."
+    },
+    "stepper": {
+      "label": "Setup steps",
+      "step": "Step {current} of {total}",
+      "done": "Done",
+      "items": {
+        "welcome": {
+          "title": "Welcome",
+          "hint": "What we will do"
+        },
+        "child": {
+          "title": "Your child",
+          "hint": "Name and grade"
+        },
+        "interests": {
+          "title": "Interests",
+          "hint": "What they enjoy"
+        },
+        "tutor": {
+          "title": "Companion",
+          "hint": "Who helps"
+        },
+        "alexa": {
+          "title": "Alexa",
+          "hint": "Optional"
+        },
+        "controls": {
+          "title": "Safety",
+          "hint": "Your settings"
+        },
+        "review": {
+          "title": "Check",
+          "hint": "One last look"
+        },
+        "done": {
+          "title": "Ready",
+          "hint": "Off you go"
+        }
+      }
+    },
+    "guide": {
+      "welcome": "Hi! I am Hort. I will show you around.",
+      "child": "Who are we helping? Just a first name is fine.",
+      "interests": "What does your child love? I will pick matching examples.",
+      "tutor": "Every companion helps in their own way. Take your time.",
+      "alexa": "Alexa is optional. Skip it if you like.",
+      "controls": "You decide. Everything here can stay private.",
+      "review": "Almost there. Is everything right?",
+      "done": "All set! Time for the first homework."
+    },
+    "actions": {
+      "back": "Back",
+      "continue": "Continue",
+      "skip": "Skip for now",
+      "saving": "Saving…",
+      "edit": "Change"
+    },
+    "welcome": {
+      "title": "Let’s set things up together",
+      "description": "It takes about three minutes. Everything is saved as you go, so you can stop and come back.",
+      "listLabel": "What we will do",
+      "items": {
+        "child": {
+          "title": "Add your child",
+          "description": "A first name, the federal state and the grade, so Hort fits the school curriculum."
+        },
+        "companion": {
+          "title": "Choose a companion",
+          "description": "Pick interests and the friend who will help with homework."
+        },
+        "controls": {
+          "title": "Set your safety rules",
+          "description": "Voice, learning times and what Hort may note. You stay in control."
+        }
+      },
+      "promise": "Hort never gives the solution. Your child still does the thinking.",
+      "start": "Get started"
+    },
+    "child": {
+      "title": "Tell us about your child",
+      "description": "Hort uses this to match the school curriculum of your child’s grade.",
+      "displayName": "What should Hort call your child?",
+      "displayNameHint": "A first name or nickname is enough. Please no surname.",
+      "federalState": "Federal state",
+      "federalStatePlaceholder": "Choose a federal state",
+      "federalStateHint": "The curriculum is different in every state.",
+      "grade": "Grade",
+      "gradeOption": "Grade {grade}",
+      "privacy": "Only you can see this profile. Your child does not need an account.",
+      "submit": "Continue"
+    },
+    "interests": {
+      "title": "What does {name} enjoy?",
+      "description": "Choose up to {max}. Hort uses them to pick examples your child likes. You can skip this.",
+      "groupLabel": "Interests of {name}",
+      "counter": "{count} of {max} chosen",
+      "limitReached": "That is the maximum. Remove one to choose another.",
+      "items": {
+        "nature": "Nature",
+        "animals": "Animals",
+        "science": "Science",
+        "art": "Art",
+        "music": "Music",
+        "sports": "Sports",
+        "technology": "Technology",
+        "stories": "Books",
+        "puzzles": "Puzzles",
+        "history": "History"
+      },
+      "submit": "Continue"
+    },
+    "tutor": {
+      "title": "Who should help {name}?",
+      "description": "Every companion has their own voice and way of explaining. You can change this later.",
+      "groupLabel": "Companion for {name}",
+      "recommended": "Fits {topics}",
+      "likes": "Likes",
+      "voice": "Voice",
+      "greetingLabel": "Says hello like this",
+      "languageNote": "Companions speak German with your child, so their words below are in German.",
+      "imageAlt": "{name}, the {animal}",
+      "submit": "Continue",
+      "play": "Hear {name} introduce themselves",
+      "stop": "Stop",
+      "speaking": "{name} is speaking…",
+      "audioUnavailable": "The introduction is not available right now. You can still choose this companion.",
+      "pick": "Tap a companion to meet them."
+    },
+    "alexa": {
+      "title": "Connect Alexa (optional)",
+      "description": "Later, your child can start Hort by voice through Alexa. You can disconnect it at any time.",
+      "status": {
+        "unavailable": "Not available yet",
+        "not_linked": "Not connected",
+        "linked": "Connected"
+      },
+      "unavailableNote": "Connecting Alexa is still being built. Nothing is stored here, and the setup works without it.",
+      "linkedNote": "Alexa is connected to this account.",
+      "connect": "Connect with Alexa",
+      "disconnect": "Disconnect Alexa",
+      "later": "Connect later",
+      "continue": "Continue",
+      "command": "“Alexa, open Hort.”",
+      "how": {
+        "title": "How it will work",
+        "steps": {
+          "link": "You connect your Alexa account with Hort once.",
+          "say": "Your child says the sentence above to start.",
+          "help": "Hort helps your child think the task through, and never gives the solution."
+        }
+      }
+    },
+    "controls": {
+      "title": "Safety and settings",
+      "description": "You decide what {name} may do. The safest choice is already selected.",
+      "voice": {
+        "title": "Talking to {tutor}",
+        "description": "{name} may speak to {tutor} and hear the answer. Typing always works. Alexa cannot be connected yet.",
+        "on": "Voice is on",
+        "off": "Voice is off"
+      },
+      "time": {
+        "title": "Learning time",
+        "description": "Keep homework help to times that suit your family.",
+        "limit": "Daily limit",
+        "limitNone": "No limit",
+        "limitOption": "{minutes} minutes",
+        "windowTitle": "Only at certain times",
+        "windowDescription": "Hort is only available inside this window.",
+        "windowOn": "Window is on",
+        "windowOff": "Any time of day",
+        "from": "From",
+        "until": "Until",
+        "note": "Times apply from the first homework help. The daily limit is saved now and applied once Hort can measure learning time.",
+        "limitHint": "How long Hort helps per day."
+      },
+      "insights": {
+        "title": "Notes for your summary",
+        "description": "Hort may note which kinds of tasks {name} needed help with, for your summary later. No chats are kept. The summary is still being built.",
+        "on": "Notes are on",
+        "off": "Notes are off"
+      },
+      "always": {
+        "title": "What always applies",
+        "items": {
+          "solution": "Hort never gives the solution to a task. Your child does the thinking.",
+          "checks": "Text for your child goes through safety checks first.",
+          "private": "Only you can see this profile. Your child has no account."
+        }
+      },
+      "guardian": {
+        "label": "I am the parent or legal guardian of {name}, and I allow Hort to store the details from this setup.",
+        "hint": "Required to continue. Privacy notice version {version}."
+      },
+      "submit": "Continue",
+      "groups": {
+        "voice": "Voice",
+        "time": "Learning time",
+        "notes": "Summary for you",
+        "guardian": "Your confirmation"
+      }
+    },
+    "review": {
+      "title": "Is everything right?",
+      "description": "Have a last look. You can change anything now.",
+      "sections": {
+        "child": "Your child",
+        "interests": "Interests",
+        "tutor": "Companion",
+        "controls": "Safety and settings"
+      },
+      "rows": {
+        "name": "Name",
+        "state": "Federal state",
+        "grade": "Grade",
+        "voice": "Voice",
+        "limit": "Daily limit",
+        "window": "Learning window",
+        "insights": "Notes for your summary",
+        "guardian": "Guardian confirmed"
+      },
+      "values": {
+        "on": "On",
+        "off": "Off",
+        "none": "None",
+        "anyTime": "Any time",
+        "window": "{from} to {until}",
+        "yes": "Yes"
+      },
+      "noInterests": "No interests chosen",
+      "submit": "Finish setup"
+    },
+    "done": {
+      "title": "{name} is ready!",
+      "description": "Whenever there is homework, {tutor} will think it through together with {name}.",
+      "recapLabel": "What you set up",
+      "recapGrade": "Grade {grade}",
+      "voiceOn": "Voice is on.",
+      "voiceOff": "Voice is off.",
+      "toHome": "Go to my home"
+    },
+    "reset": {
+      "label": "Reset setup (dev only)",
+      "pending": "Resetting…",
+      "hint": "Development only: deletes your child profiles so you can run the setup again."
+    },
+    "states": {
+      "BW": "Baden-Württemberg",
+      "BY": "Bavaria",
+      "BE": "Berlin",
+      "BB": "Brandenburg",
+      "HB": "Bremen",
+      "HH": "Hamburg",
+      "HE": "Hesse",
+      "MV": "Mecklenburg-Vorpommern",
+      "NI": "Lower Saxony",
+      "NW": "North Rhine-Westphalia",
+      "RP": "Rhineland-Palatinate",
+      "SL": "Saarland",
+      "SN": "Saxony",
+      "ST": "Saxony-Anhalt",
+      "SH": "Schleswig-Holstein",
+      "TH": "Thuringia"
+    },
+    "errors": {
+      "notFound": "We could not find this profile. Please go back one step and try again.",
+      "alreadyOnboarded": "Your child is already set up. Taking you to your home.",
+      "setupIncomplete": "A step is still missing. Please go through the steps once more.",
+      "devResetUnavailable": "This is only available while developing.",
+      "validation": "Please check your entries.",
+      "infrastructure": "We could not save that right now. Nothing was changed. Please try again in a moment.",
+      "unexpected": "We could not confirm that this was saved. Please try again."
+    },
+    "validation": {
+      "displayNameRequired": "Please enter a name for your child.",
+      "displayNameTooLong": "The name can have at most {displayNameMax} characters.",
+      "displayNameInvalid": "Please use letters, numbers or simple punctuation only.",
+      "federalStateInvalid": "Please choose a federal state.",
+      "gradeInvalid": "Please choose a grade.",
+      "tutorInvalid": "Please choose a companion.",
+      "interestsInvalid": "One of the interests is not available.",
+      "interestsTooMany": "Please choose at most {maxInterests} interests.",
+      "dailyLimitInvalid": "Please choose one of the listed limits.",
+      "windowInvalid": "The window must end at least 30 minutes after it starts.",
+      "guardianConfirmationRequired": "Please confirm that you are the parent or guardian."
+    }
+  }
+}
