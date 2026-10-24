@@ -120,8 +120,22 @@ The skill id is not a secret, but it is environment-specific and therefore not c
 has advisory **GHSA-86w9-cpqp-85rv** (RSA PKCS#1 v1.5 signature verification, `<= 1.4.0`, no patched release).
 node-forge is used only for the certificate-chain check of Amazon's signing certificate, whose URL is pinned to
 `https://s3.amazonaws.com/echo.api/`; the request signature itself is verified with `node:crypto`. The advisory is
-accepted as a reviewed, time-boxed exception until **2027-01-24** (decision B S, 2026-10-24). The repository
-currently has no automated dependency audit (GitHub Actions were replaced by the Vercel build pipeline), so
-`npm audit --omit=dev` reports exactly this one high advisory and nothing enforces the date; if an audit gate is
-reintroduced, allow only `GHSA-86w9-cpqp-85rv` and only until that date. Exit: a patched node-forge or SDK
-release, or replacing the SDK verifier with a `node:crypto` certificate-chain check.
+accepted as a reviewed, time-boxed exception until **2027-01-24** (decision B S, 2026-10-24). `npm run
+security:audit` (first step of `npm run build:vercel`, so every Vercel deployment) runs `npm audit --omit=dev`
+and fails on any high or critical advisory except exactly this one, on any advisory it cannot read and, from
+2027-01-25 (UTC), on the expired exception itself. The exception lives in `scripts/security-audit.ts`; extending
+it needs a new review. Exit: a patched node-forge or SDK release, or replacing the SDK verifier with a
+`node:crypto` certificate-chain check.
+
+## Request verification
+
+`ask-request-verifier.ts` keeps the official SDK verifiers and puts three cheap checks in front of them, so
+an unauthenticated caller cannot make the endpoint download certificates at will:
+
+1. `request.timestamp` must be within ±150 s of the server clock (the SDK alone accepts any future date).
+2. `SignatureCertChainUrl` must be exactly one `https://s3.amazonaws.com/echo.api/<name>.pem` (no query,
+   fragment, credentials, other port, nested or encoded path); `:443` and host case are normalised and the
+   SDK receives that canonical URL, so its per-URL cache cannot be bypassed with variants.
+3. URLs not yet verified share a download budget of 5 per minute per instance. A verified URL (the one
+   Amazon actually uses) is never limited. Under an active attack on a cold instance real requests may be
+   rejected for up to a minute; that is the accepted trade-off against unbounded outbound downloads.

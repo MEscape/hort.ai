@@ -37,6 +37,14 @@ route and metadata files in `src/app`) are never reported. The logic lives in
 `scripts/lib/dead-code.ts`; `__tests__/scripts/dead-code.test.ts` covers it. Remove a shared piece
 when its last consumer goes ([`adding-a-shared-utility`](../docs/conventions/adding-a-shared-utility.md)).
 
+## Security audit
+
+`npm run security:audit` runs `npm audit --omit=dev` and fails (exit 1) on every high or critical
+advisory that is not a reviewed exception with an end date in `scripts/security-audit.ts`, on an
+expired exception and on a report it cannot read (fail closed, e.g. registry unreachable). It is the
+first step of `npm run build:vercel`. The logic lives in `scripts/lib/security-audit.ts`;
+`__tests__/scripts/security-audit.test.ts` covers it.
+
 ## Commands
 
 | Command                                    | What it does                                                                                                    | Convention doc                                                                            |
