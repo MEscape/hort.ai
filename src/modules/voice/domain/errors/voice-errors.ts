@@ -26,6 +26,8 @@ export const VOICE_VALIDATION_CODES = {
   speakerInvalid: 'voice.validation.speaker_invalid',
   textRequired: 'voice.validation.text_required',
   textTooLong: 'voice.validation.text_too_long',
+  /** The text breaks the content or child-safety rules, so no voice speaks it. */
+  textUnsafe: 'voice.validation.text_unsafe',
   recordingRequired: 'voice.validation.recording_required',
   recordingTooLarge: 'voice.validation.recording_too_large',
   recordingTypeUnsupported: 'voice.validation.recording_type_unsupported',

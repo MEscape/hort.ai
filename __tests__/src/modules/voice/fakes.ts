@@ -41,12 +41,21 @@ export function fakeSpeech(): FakeSpeech {
   };
 }
 
+const VOICES = new Map([
+  ['max', 'VoiceMax'],
+  ['eule', 'VoiceOwl'],
+]);
+
 export function voiceDependencies(overrides: Partial<VoiceDependencies> = {}): VoiceDependencies {
   return {
     authorization: allowing(),
     rateLimiter: createTestRateLimiter(),
     speech: fakeSpeech(),
-    voices: { voiceFor: (id) => (id === 'max' ? 'VoiceMax' : null) },
+    voices: {
+      voiceFor: (id) => VOICES.get(id) ?? null,
+      isFixedLine: (id, text) => id === 'eule' && text === 'Willkommen bei Hort.ai!',
+    },
+    textGuard: { isSafe: (text) => !/geheimnis|https?:/i.test(text) },
     ...overrides,
   };
 }

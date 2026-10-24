@@ -1,7 +1,7 @@
 import { tutorCatalog } from '@modules/tutors';
 import type { TutorCatalog } from '@modules/tutors';
 
-import { invariant, isString, nullable, objectOf, oneOf } from '@lib/utils';
+import { arrayOf, invariant, isString, nullable, objectOf, oneOf } from '@lib/utils';
 
 import narratorJson from './narrator.json';
 
@@ -18,6 +18,8 @@ interface Narrator {
   readonly id: string;
   readonly rolle: 'erzaehler';
   readonly name: string | null;
+  /** Fixed lines the owl may say without the spoken-text guard: written and reviewed by us. */
+  readonly saetze: readonly string[];
   readonly tts: {
     readonly provider: string;
     readonly voiceId: string;
@@ -29,6 +31,7 @@ const isNarrator = objectOf<Narrator>({
   id: isString,
   rolle: oneOf(['erzaehler'] as const),
   name: nullable(isString),
+  saetze: arrayOf(isString),
   tts: objectOf<Narrator['tts']>({
     provider: isString,
     voiceId: isString,
@@ -38,8 +41,8 @@ const isNarrator = objectOf<Narrator>({
 
 /**
  * Voices from checked-in configuration: every tutor that is `bereit` with an ElevenLabs voice
- * (`tutors.json`, `stimme.tts`) plus the narrator (`narrator.json`). Swapping a voice is an edit
- * of those files, not of code.
+ * (`tutors.json`, `stimme.tts`) plus the narrator (`narrator.json`), and the narrator's fixed lines
+ * (`saetze`, a server-side allow-list). Swapping a voice is an edit of those files, not of code.
  */
 export function catalogSpeakerVoices(
   catalog: TutorCatalog = tutorCatalog,
@@ -57,5 +60,11 @@ export function catalogSpeakerVoices(
     invariant(!voices.has(narrator.id), `The narrator id "${narrator.id}" is also a tutor id.`);
     voices.set(narrator.id, narrator.tts.voiceId);
   }
-  return { voiceFor: (speakerId) => voices.get(speakerId) ?? null };
+  const fixedLines = new Map<string, ReadonlySet<string>>([
+    [narrator.id, new Set(narrator.saetze.map((line) => line.trim()))],
+  ]);
+  return {
+    voiceFor: (speakerId) => voices.get(speakerId) ?? null,
+    isFixedLine: (speakerId, text) => fixedLines.get(speakerId)?.has(text.trim()) ?? false,
+  };
 }

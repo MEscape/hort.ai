@@ -10,6 +10,7 @@ import { once } from '@lib/utils';
 import { SynthesizeSpeech } from './application/queries/synthesize-speech';
 import { TranscribeSpeech } from './application/queries/transcribe-speech';
 import { catalogSpeakerVoices } from './infrastructure/catalog/catalog-speaker-voices';
+import { guidanceSpokenTextGuard } from './infrastructure/guidance/guidance-spoken-text-guard';
 import { createVoiceRouteHandlers } from './presentation/http/voice-route-handlers';
 
 import type { VoiceRouteHandlers } from './presentation/http/voice-route-handlers';
@@ -26,6 +27,7 @@ export const getVoiceQueries = once(() => {
     rateLimiter: getRateLimiter(),
     speech: getSpeechProvider(),
     voices: catalogSpeakerVoices(),
+    textGuard: guidanceSpokenTextGuard,
   };
   return {
     synthesizeSpeech: new SynthesizeSpeech(dependencies),
