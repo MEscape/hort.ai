@@ -1,4 +1,8 @@
 {
+  "home": {
+    "title": "Du bist angemeldet!",
+    "description": "Dein Elternkonto ist bereit. Hier startet bald das Lernabenteuer für deine Familie."
+  },
   "metadata": {
     "description": "Ein KI-gestützter, kindgerechter Lernbegleiter, der Lernen zu einer interaktiven Reise macht."
   },
@@ -87,21 +91,20 @@
       "hintBody": "Tippe jeden Apfel einmal an und schau in den Korb."
     },
     "lesson": {
-      "title": "Lernen soll sich wie Spielen anfühlen",
-      "description": "Probiere die kleine Zählaufgabe aus. Sie funktioniert mit Maus, Touch, Eingabetaste und Leertaste – ganz ohne Ziehen.",
-      "stageLabel": "Lernbühne im Querformat · 16:10 als Vorlage",
-      "progress": "Schritt 1 von 3",
-      "taskTitle": "Wir zählen zusammen!",
-      "prompt": "Kannst du drei Äpfel in den Korb legen?",
-      "tray": "Äpfel zum Einsammeln",
-      "basket": "Dein Korb",
-      "selectApple": "Apfel {number} in den Korb legen",
-      "count": "{count} von 3 Äpfeln",
+      "title": "Hinweise statt Lösungen",
+      "description": "Das Kind bringt eine Aufgabe aus der Schule mit, der Begleiter hilft Schritt für Schritt. Die Galerie zeigt nur die Hinweis-Karte: keine Lösung, keine Punkte, nichts wird gesendet oder gespeichert.",
+      "stageLabel": "Hinweis-Karte · Galerie-Beispiel, kein Lernablauf",
+      "taskLabel": "Deine Aufgabe aus der Schule",
+      "taskText": "„Lisa hat 7 Murmeln. Sie bekommt 5 dazu. Wie viele Murmeln hat sie jetzt?“",
+      "hintTitle": "Hinweis {number}",
+      "hint1": "Lies die Aufgabe noch einmal langsam. Was hat Lisa am Anfang?",
+      "hint2": "Was passiert mit den Murmeln: Bekommt Lisa welche dazu oder gibt sie welche ab?",
+      "hint3": "Du kannst die Murmeln malen oder mit den Fingern weiterzählen. Probier es auf deine Art.",
+      "nextHint": "Noch ein Hinweis",
       "reset": "Neu anfangen",
+      "lastHint": "Das war der letzte Hinweis. Den Rest schaffst du selbst, und du kannst jederzeit wieder fragen.",
       "guideName": "Begleiter-Skizze",
-      "guideText": "Tippe auf einen Apfel. Ich zähle mit dir!",
-      "completeTitle": "Alle drei Äpfel!",
-      "completeBody": "Du hast sie einzeln gezählt. Toll gemacht!"
+      "guideText": "Ich verrate dir die Lösung nicht, aber ich bleibe bei dir, bis du es geschafft hast."
     },
     "footer": "Der nächste Schritt soll klar sein – und ein neuer Versuch immer willkommen."
   }

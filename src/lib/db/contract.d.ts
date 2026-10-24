@@ -23,8 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'0c0734babd6eeb868fee1f281ca96963022475611560e9f170f465daa35f8599'>;
-export type ExecutionHash = ExecutionHashBase<string>;
+  StorageHashBase<'8db5f60cf8e0fb19d3d2a7b9ebb18c733aa05cae9dd7ecbd9b96916d538df7e8'>;
+export type ExecutionHash =
+  ExecutionHashBase<'9e682105523b52360966eee6249e3deb8d3091aa7a80822c9f413fd350056ec3'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -237,7 +238,19 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
   : Encoded;
 type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 
-type FieldTypeOverrides = {};
+type FieldTypeOverrides = {
+  readonly public: {
+    readonly models: {
+      readonly AuditEntry: {
+        readonly actorKind: {
+          readonly output: 'MEMBER' | 'VISITOR' | 'SYSTEM';
+          readonly input: 'MEMBER' | 'VISITOR' | 'SYSTEM';
+        };
+        readonly severity: { readonly output: 'INFO' | 'WARN'; readonly input: 'INFO' | 'WARN' };
+      };
+    };
+  };
+};
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
@@ -252,7 +265,17 @@ export type FieldInputTypes = FieldTypesFromDomain<
   FieldTypeOverrides,
   'input'
 >;
-type ColumnTypeOverrides = {};
+type ColumnTypeOverrides = {
+  readonly public: {
+    readonly AuditEntry: {
+      readonly actorKind: {
+        readonly output: 'MEMBER' | 'VISITOR' | 'SYSTEM';
+        readonly input: 'MEMBER' | 'VISITOR' | 'SYSTEM';
+      };
+      readonly severity: { readonly output: 'INFO' | 'WARN'; readonly input: 'INFO' | 'WARN' };
+    };
+  };
+};
 export type StorageColumnTypes = ColumnTypesFromStorage<
   ContractBase['storage'],
   CodecTypes,
@@ -268,10 +291,25 @@ export type StorageColumnInputTypes = ColumnTypesFromStorage<
   'input'
 >;
 
-export namespace Models {}
+export namespace Models {
+  export type public_AuditEntry = {
+    actorId: FieldOutputTypes['public']['AuditEntry']['actorId'];
+    actorKind: FieldOutputTypes['public']['AuditEntry']['actorKind'];
+    details: FieldOutputTypes['public']['AuditEntry']['details'];
+    id: FieldOutputTypes['public']['AuditEntry']['id'];
+    occurredAt: FieldOutputTypes['public']['AuditEntry']['occurredAt'];
+    severity: FieldOutputTypes['public']['AuditEntry']['severity'];
+    source: FieldOutputTypes['public']['AuditEntry']['source'];
+    tenantId: FieldOutputTypes['public']['AuditEntry']['tenantId'];
+    type: FieldOutputTypes['public']['AuditEntry']['type'];
+    readonly [RelationKeys]?: never;
+  };
+}
 
 export declare const models: {
-  public: {};
+  public: {
+    AuditEntry: Models.public_AuditEntry;
+  };
 };
 
 export type TypeMaps = TypeMapsType<
@@ -290,7 +328,108 @@ type ContractBase = Omit<
       readonly public: {
         readonly id: 'public';
         readonly kind: 'postgres-schema';
-        readonly entries: { readonly table: {} };
+        readonly entries: {
+          readonly table: {
+            readonly AuditEntry: {
+              columns: {
+                readonly actorId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly actorKind: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly details: {
+                  readonly dataType: 'pg/json';
+                  readonly codecId: 'pg/json@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly occurredAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly severity: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly source: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly tenantId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly type: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'AuditEntry_occurredAt_idx_c6b89167';
+                  readonly prefix: 'AuditEntry_occurredAt_idx';
+                  readonly columns: readonly ['occurredAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AuditEntry_tenantId_actorId_occurredAt_idx_c39c0fc6';
+                  readonly prefix: 'AuditEntry_tenantId_actorId_occurredAt_idx';
+                  readonly columns: readonly ['tenantId', 'actorId', 'occurredAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AuditEntry_tenantId_occurredAt_idx_735df4e8';
+                  readonly prefix: 'AuditEntry_tenantId_occurredAt_idx';
+                  readonly columns: readonly ['tenantId', 'occurredAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'AuditEntry_tenantId_source_type_occurredAt_idx_6b022bb0';
+                  readonly prefix: 'AuditEntry_tenantId_source_type_occurredAt_idx';
+                  readonly columns: readonly ['tenantId', 'source', 'type', 'occurredAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
+          };
+          readonly valueSet: {
+            readonly AuditActorKind: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['MEMBER', 'VISITOR', 'SYSTEM'];
+            };
+            readonly AuditSeverity: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['INFO', 'WARN'];
+            };
+          };
+        };
       };
     };
     readonly storageHash: StorageHash;
@@ -299,11 +438,104 @@ type ContractBase = Omit<
 > & {
   readonly target: 'postgres';
   readonly targetFamily: 'sql';
-  readonly roots: Record<string, never>;
+  readonly roots: {
+    readonly AuditEntry: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'AuditEntry';
+    };
+  };
   readonly domain: {
     readonly namespaces: {
       readonly public: {
-        readonly models: Record<string, never>;
+        readonly models: {
+          readonly AuditEntry: {
+            readonly fields: {
+              readonly actorId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly actorKind: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly details: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/json@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly occurredAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly severity: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly source: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly tenantId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly type: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'AuditEntry';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly actorId: { readonly column: 'actorId' };
+                readonly actorKind: { readonly column: 'actorKind' };
+                readonly details: { readonly column: 'details' };
+                readonly id: { readonly column: 'id' };
+                readonly occurredAt: { readonly column: 'occurredAt' };
+                readonly severity: { readonly column: 'severity' };
+                readonly source: { readonly column: 'source' };
+                readonly tenantId: { readonly column: 'tenantId' };
+                readonly type: { readonly column: 'type' };
+              };
+            };
+          };
+        };
+        readonly enum: {
+          readonly AuditActorKind: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'MEMBER'; readonly value: 'MEMBER' },
+              { readonly name: 'VISITOR'; readonly value: 'VISITOR' },
+              { readonly name: 'SYSTEM'; readonly value: 'SYSTEM' },
+            ];
+          };
+          readonly AuditSeverity: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'INFO'; readonly value: 'INFO' },
+              { readonly name: 'WARN'; readonly value: 'WARN' },
+            ];
+          };
+        };
+        readonly enumMemberTypes?: {
+          readonly AuditActorKind: readonly [
+            { readonly name: 'MEMBER'; readonly value: 'MEMBER' },
+            { readonly name: 'VISITOR'; readonly value: 'VISITOR' },
+            { readonly name: 'SYSTEM'; readonly value: 'SYSTEM' },
+          ];
+          readonly AuditSeverity: readonly [
+            { readonly name: 'INFO'; readonly value: 'INFO' },
+            { readonly name: 'WARN'; readonly value: 'WARN' },
+          ];
+        };
       };
     };
   };
@@ -335,6 +567,21 @@ type ContractBase = Omit<
     };
   };
   readonly extensions: {};
+  readonly execution: {
+    readonly executionHash: ExecutionHash;
+    readonly mutations: {
+      readonly defaults: readonly [
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'AuditEntry';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+      ];
+    };
+  };
   readonly meta: {};
 
   readonly profileHash: ProfileHash;

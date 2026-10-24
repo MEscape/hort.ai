@@ -107,7 +107,15 @@ describe('db client', () => {
   it('does not cache the client on globalThis in production', async () => {
     vi.stubEnv('NODE_ENV', 'production');
     // Production configuration requires these.
+    vi.stubEnv('AUTH_ENABLED', 'true');
     vi.stubEnv('UPSTASH_REDIS_REST_URL', 'https://redis.example.test');
+    vi.stubEnv('STORAGE_PROVIDER', 'azure');
+    vi.stubEnv('STORAGE_AZURE_ACCOUNT_NAME', 'testaccount');
+    vi.stubEnv('STORAGE_AZURE_ACCOUNT_KEY', Buffer.alloc(64).toString('base64'));
+    vi.stubEnv('STORAGE_AZURE_BLOB_ENDPOINT', 'https://storage.example.test');
+    vi.stubEnv('STORAGE_AZURE_PUBLIC_CONTAINER', 'test-public');
+    vi.stubEnv('STORAGE_AZURE_PRIVATE_CONTAINER', 'test-private');
+    vi.stubEnv('STORAGE_PUBLIC_BASE_URL', 'https://assets.example.test');
     vi.stubEnv('MAIL_PROVIDER', 'smtp');
     vi.stubEnv('MAIL_SMTP_HOST', 'smtp.example.test');
     vi.stubEnv('MAIL_FROM', 'noreply@example.test');

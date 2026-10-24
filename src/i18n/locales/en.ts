@@ -1,3 +1,5 @@
+import { enAuth as auth } from '@modules/auth';
+
 import enApp from '../messages/en.json';
 
 /**
@@ -8,6 +10,7 @@ import enApp from '../messages/en.json';
  */
 const messages = {
   app: enApp,
+  auth: auth.auth,
 } as const;
 
 export default messages;
