@@ -58,6 +58,7 @@ const classrooms = () => db.orm.public.Classroom.select(...CLASSROOM_SELECT);
 export class PrismaClassroomRepository implements ClassroomRepository {
   constructor(private readonly clock: Clock) {}
 
+  /** @owner-scope builder The use case compares the stored owner with the actor (`requireOnResource`), so another teacher's class is refused. */
   findById(
     id: ClassroomId,
     tenantId: TenantId,
@@ -68,6 +69,7 @@ export class PrismaClassroomRepository implements ClassroomRepository {
     ).map((record) => record && toClassroom(record));
   }
 
+  /** @owner-scope capability A parent reaches another teacher's class only by its secret invite code (stored as a hash). */
   findActiveByInviteCodeHash(
     inviteCodeHash: string,
     tenantId: TenantId,
@@ -112,6 +114,7 @@ export class PrismaClassroomRepository implements ClassroomRepository {
     ).map(toClassroom);
   }
 
+  /** @owner-scope builder The use case loaded this class and checked its stored owner (`requireOnResource`) before renaming it. */
   rename(
     id: ClassroomId,
     tenantId: TenantId,
@@ -128,6 +131,7 @@ export class PrismaClassroomRepository implements ClassroomRepository {
       .map(toClassroom);
   }
 
+  /** @owner-scope builder The use case loaded this class and checked its stored owner (`requireOnResource`) before issuing a new code. */
   replaceInviteCode(
     id: ClassroomId,
     tenantId: TenantId,
