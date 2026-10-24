@@ -160,7 +160,7 @@ export interface ChildProfileUpdateData {
   grade?: number;
   companion?: ChildProfileCompanionRecord | null;
   voiceConsent?: boolean;
-  updatedAt: string;
+  updatedAt: ReturnType<typeof dateToInstant>;
 }
 
 type ChildProfileFieldUpdate1 = Pick<
