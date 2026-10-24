@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createAuthorizationService } from '@modules/auth/application/authorization-service';
 import type { Actor } from '@modules/auth/domain/models/actor';
 import { toActorId } from '@modules/auth/domain/models/ids';
+import type { CurrentActorProvider } from '@modules/auth/domain/ports/current-actor-provider.port';
 import type { ClassroomDependencies } from '@modules/classroom/application/classroom-dependencies';
 import { ArchiveClassroom } from '@modules/classroom/application/commands/archive-classroom';
 import { CreateClassroom } from '@modules/classroom/application/commands/create-classroom';
@@ -22,7 +23,6 @@ import type { ClassroomRepository } from '@modules/classroom/domain/ports/classr
 import { cryptoInviteCodeIssuer } from '@modules/classroom/infrastructure/security/crypto-invite-code-issuer';
 
 import { forbiddenError, infrastructureError, notFoundError } from '@lib/errors';
-import type { CurrentActorProvider } from '@modules/auth/domain/ports/current-actor-provider.port';
 import { errAsync, okAsync } from '@lib/result';
 
 import { createBrokenRateLimiter, createTestRateLimiter } from '../../support/rate-limiting';
@@ -68,7 +68,7 @@ function world() {
   const patch = (id: string, change: Partial<Classroom & { inviteCodeHash: string }>) => {
     const index = rooms.findIndex((room) => room.id === id);
     rooms[index] = { ...rooms[index], ...change } as Classroom & { inviteCodeHash: string };
-    return okAsync(strip(rooms[index]!));
+    return okAsync(strip(rooms[index]));
   };
 
   const classrooms: ClassroomRepository = {

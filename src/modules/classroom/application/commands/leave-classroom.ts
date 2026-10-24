@@ -2,9 +2,9 @@ import type { AppResultAsync } from '@lib/result';
 
 import { parseChildProfileId } from '../../domain/models/ids';
 
+import type { ChildProfileAccessError } from '../../domain/ports/child-profile-access.port';
 import type { ClassroomDependencies } from '../classroom-dependencies';
 import type { ChildProfileIdInput } from '../contracts/classroom-views';
-import type { ChildProfileAccessError } from '../../domain/ports/child-profile-access.port';
 
 /**
  * A parent takes their own child out of its class. The profile keeps its federal state and grade.

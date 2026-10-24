@@ -3,9 +3,9 @@ import type { AppResultAsync } from '@lib/result';
 import { parseChildProfileId } from '../../domain/models/ids';
 import { toChildClassroomView } from '../classroom-view-mappers';
 
+import type { ChildProfileAccessError } from '../../domain/ports/child-profile-access.port';
 import type { ClassroomDependencies } from '../classroom-dependencies';
 import type { ChildClassroomView } from '../contracts/classroom-views';
-import type { ChildProfileAccessError } from '../../domain/ports/child-profile-access.port';
 
 /** The class the signed-in parent's child is in, or `null`. Another parent's child is refused. */
 export class GetChildClassroom {

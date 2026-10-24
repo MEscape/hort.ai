@@ -12,7 +12,7 @@ import type {
   ClassroomStatus,
   ClassroomSubject,
 } from '../../domain/models/classroom';
-import type { ClassMember } from '../../domain/ports/classroom.repository';
+import type { ChildMembership, ClassMember } from '../../domain/ports/classroom.repository';
 
 /**
  * Persistence shapes. Generated Prisma contract types never leave the persistence layer.
@@ -168,4 +168,25 @@ export function toClassMember(record: ClassMemberRecord): ClassMember {
     displayName: record.childProfile?.displayName ?? '',
     joinedAt: instantToDate(record.joinedAt),
   };
+}
+
+export const JOINED_AT_SELECT = ['joinedAt'] as const;
+
+export interface JoinedAtRecord {
+  readonly joinedAt: InstantRecord;
+}
+
+export function toJoinedAt(record: JoinedAtRecord): Date {
+  return instantToDate(record.joinedAt);
+}
+
+/** A membership row with its whole class, for "which class is my child in". */
+export interface ChildMembershipRecord extends JoinedAtRecord {
+  readonly classroom: ClassroomRecord | null;
+}
+
+export function toChildMembership(record: ChildMembershipRecord): ChildMembership | null {
+  return record.classroom === null
+    ? null
+    : { classroom: toClassroom(record.classroom), joinedAt: toJoinedAt(record) };
 }

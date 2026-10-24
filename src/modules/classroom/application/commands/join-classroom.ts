@@ -14,11 +14,11 @@ import { normalizeInviteCode } from '../../domain/models/invite-code';
 import { toChildClassroomView } from '../classroom-view-mappers';
 import { CLASSROOM_RATE_LIMITS } from '../rate-limits';
 
-import type { ClassroomDependencies } from '../classroom-dependencies';
-import type { ChildClassroomView, JoinClassroomInput } from '../contracts/classroom-views';
 import type { Classroom } from '../../domain/models/classroom';
 import type { ChildProfileId } from '../../domain/models/ids';
 import type { ChildProfileAccessError } from '../../domain/ports/child-profile-access.port';
+import type { ClassroomDependencies } from '../classroom-dependencies';
+import type { ChildClassroomView, JoinClassroomInput } from '../contracts/classroom-views';
 
 export type JoinClassroomError =
   ChildProfileAccessError | RateLimitedAppError | ConflictAppError | InfrastructureAppError;
@@ -78,10 +78,10 @@ function findClassroomByCode(
 function joinOnce(
   deps: ClassroomDependencies,
   actor: Actor,
-  childProfileId: ChildProfileId,
-  classroom: Classroom,
+  target: { readonly childProfileId: ChildProfileId; readonly classroom: Classroom },
 ): AppResultAsync<ChildClassroomView, JoinClassroomError> {
   const { classrooms, childProfiles, audit } = deps;
+  const { childProfileId, classroom } = target;
   return classrooms
     .findMembershipOfChild(childProfileId, actor.tenantId)
     .andThen((current): AppResultAsync<ChildClassroomView, JoinClassroomError> => {
@@ -145,7 +145,7 @@ export class JoinClassroom {
         )
         .andThen((childProfileId) =>
           findClassroomByCode(this.deps, actor, input.inviteCode).andThen((classroom) =>
-            joinOnce(this.deps, actor, childProfileId, classroom),
+            joinOnce(this.deps, actor, { childProfileId, classroom }),
           ),
         ),
     );

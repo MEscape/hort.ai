@@ -41,3 +41,16 @@ export function normalizeInviteCode(raw: string): NormalizedInviteCode | null {
 export function formatInviteCode(code: NormalizedInviteCode): string {
   return `${code.slice(0, GROUP_SIZE)}-${code.slice(GROUP_SIZE)}`;
 }
+
+/**
+ * Builds a code from random positions in the alphabet (one per symbol, any integer; reduced into
+ * range). The random source is the issuer's; this only says what a code is made of.
+ */
+export function inviteCodeFromPositions(positions: readonly number[]): NormalizedInviteCode {
+  const symbols = positions
+    .slice(0, INVITE_CODE_LENGTH)
+    .map((position) =>
+      INVITE_CODE_ALPHABET.charAt(Math.abs(position) % INVITE_CODE_ALPHABET.length),
+    );
+  return symbols.join('') as NormalizedInviteCode; // Every symbol is from the alphabet.
+}

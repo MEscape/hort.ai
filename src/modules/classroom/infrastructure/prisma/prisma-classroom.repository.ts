@@ -1,7 +1,7 @@
 import type { ActorId, TenantId } from '@modules/auth';
 
 import type { Clock } from '@lib/clock';
-import { db, createPersistenceFailures, instantToDate } from '@lib/db';
+import { db, createPersistenceFailures } from '@lib/db';
 import type { ConflictAppError, InfrastructureAppError, NotFoundAppError } from '@lib/errors';
 import { fromThrowableAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
@@ -17,10 +17,13 @@ import {
   CLASS_MEMBER_SELECT,
   CLASSROOM_SELECT,
   CLASSROOM_STATUS_RECORD,
+  JOINED_AT_SELECT,
   instantOf,
+  toChildMembership,
   toClassMember,
   toClassroom,
   toClassroomCreateData,
+  toJoinedAt,
   touched,
 } from './classroom-record-mapper';
 
@@ -172,27 +175,23 @@ export class PrismaClassroomRepository implements ClassroomRepository {
     return fromThrowableAsync(
       async () =>
         db.orm.public.ClassMembership.where({ childProfileId, tenantId })
-          .select('joinedAt')
+          .select(...JOINED_AT_SELECT)
           .include('classroom', (classroom) => classroom.select(...CLASSROOM_SELECT))
           .first(),
       failures.infraOnly('findMembershipOfChild'),
-    ).map((record) =>
-      record === null || record.classroom === null
-        ? null
-        : { classroom: toClassroom(record.classroom), joinedAt: instantToDate(record.joinedAt) },
-    );
+    ).map((record) => (record === null ? null : toChildMembership(record)));
   }
 
   addMember(input: NewMembership): AppResultAsync<Date, ConflictAppError | InfrastructureAppError> {
     return fromThrowableAsync(
       async () =>
-        db.orm.public.ClassMembership.select('joinedAt').create({
+        db.orm.public.ClassMembership.select(...JOINED_AT_SELECT).create({
           tenantId: input.tenantId,
           classroomId: input.classroomId,
           childProfileId: input.childProfileId,
         }),
       failures.orConflict('addMember', childAlreadyInClassroom),
-    ).map((record) => instantToDate(record.joinedAt));
+    ).map(toJoinedAt);
   }
 
   removeMemberOfChild(

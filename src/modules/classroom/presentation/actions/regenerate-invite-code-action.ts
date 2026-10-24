@@ -8,7 +8,7 @@ import type { ActionResult } from '@lib/result';
 import { classroomCommands } from '../../composition';
 import { toClassroomWithInviteCodeDto } from '../dto/classroom-dto';
 import { classroomRoutes } from '../routes';
-import { classroomIdSchema } from '../schemas/classroom-schemas';
+import { classroomIdSchema } from '../schemas/classroom-schema';
 import { parseClassroomInput } from '../schemas/parse-classroom-input';
 
 import type { ClassroomWithInviteCodeDto } from '../dto/classroom-dto';

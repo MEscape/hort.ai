@@ -5,7 +5,7 @@ import type { ActionResult } from '@lib/result';
 
 import { classroomCommands } from '../../composition';
 import { toChildClassroomDto } from '../dto/classroom-dto';
-import { joinClassroomSchema } from '../schemas/classroom-schemas';
+import { joinClassroomSchema } from '../schemas/classroom-schema';
 import { parseClassroomInput } from '../schemas/parse-classroom-input';
 
 import type { ChildClassroomDto } from '../dto/classroom-dto';
