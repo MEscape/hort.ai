@@ -111,7 +111,7 @@ decision or a migration:
 decisions where the codebase is inconsistent. Change a template only together with that.
 
 ```bash
-npm test                 # includes __tests__/scripts
+npm run test:scripts      # generator and maintenance-script tests
 npm run test:architecture
 ```
 

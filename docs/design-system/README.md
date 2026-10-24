@@ -1,6 +1,8 @@
 # Hort.ai Design System v1
 
-Hort.ai's child-facing UI uses the existing design tokens, fonts, and localized copy to make learning screens clear, playful, and reassuring. The gallery shows the real shared components alongside a local-only lesson specimen.
+Hort.ai's child-facing UI uses the existing design tokens, fonts, and localized copy to make homework help clear, playful, and reassuring. The [product vision](../product/vision.md) defines the experience; the [concept overview](../product/flows.md) distinguishes requirements from proposals.
+
+The gallery shows real shared components alongside a local-only counting specimen. The `/lesson` route and its sample copy demonstrate presentation, not an approved lesson, exercise offering or backend workflow. Do not use them to infer product requirements or implement learning paths, XP or rewards.
 
 Start the app with `npm run dev` to open the pages:
 

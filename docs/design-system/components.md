@@ -30,15 +30,15 @@ The variant values are app-owned conventions, not a claim of a verbatim shadcn-g
 
 ## `FeedbackPanel` (`src/components/shared/feedback-panel.tsx`)
 
-`success`, `nudge` and `hint` communicate meaning through the border/background, a symbol, title and explanation. Keep titles action-oriented and age-appropriate. A wrong answer should lead to a clue or a chance to try again. Do not show system danger or deduct XP for a learning mistake.
+`success`, `nudge` and `hint` communicate meaning through the border/background, a symbol, title and explanation. Keep titles action-oriented and age-appropriate. A wrong answer should lead to a thinking prompt or a chance to try again, never the solution or a punishing message. Hort.ai has no XP or reward system; see the [product vision](../product/vision.md).
 
 For dynamically appearing feedback, the enclosing lesson flow must manage announcements and focus so screen-reader users know the next step. Do not assume that adding visual feedback alone announces it. The counting specimen provides an `output` live region for count changes.
 
 ## Planned components — not implemented in v1
 
 - **Dialog:** install a real accessible shadcn dialog primitive before designing celebrations or parent controls.
-- **Activity selection and object movement:** build a typed learning-scene component only after the Zod contract and the first lesson goal are chosen.
-- **Progress/XP and audio affordance:** define meaningful server-driven states before promoting these into reusable widgets.
-- **Mascot reactions:** choose a consistent vector/illustration system and define emotional states before shipping final assets.
+- **Task entry and hint controls:** compose the child's own task, teacher assignments and contextual help; do not create an exercise or lesson catalog.
+- **Session status and audio affordance:** represent actual pending, saved, speaking and listening states. Learning evidence is not an XP counter or reward mechanic.
+- **Companion reactions:** use the predefined Max, Lili and Fina companions. Appearance, personality and voice are maintained as fixed combinations; expressions must not imply automatic emotional inference, which is outside the MVP.
 
-The v1 gallery's apple interaction is a **local-only presentation specimen**, not a learning module, backend API or AI output renderer. It uses click/tap and keyboard activation; no drag-only dependency.
+The v1 gallery's apple interaction is a **local-only presentation specimen**, not a learning module, backend API or AI output renderer. It uses click/tap and keyboard activation; no drag-only dependency. Its wording and local state are not templates for task generation, answer checking or real session persistence. The [concept overview](../product/flows.md) describes the intended product without prescribing those implementations.

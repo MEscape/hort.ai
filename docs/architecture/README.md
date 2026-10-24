@@ -2,6 +2,8 @@
 
 How the larger subsystems work, one document per subsystem. The rules in [`../rules/`](../rules/README.md) say what is allowed; these notes explain the decisions behind a subsystem so it can be changed safely.
 
+The [product vision](../product/vision.md) defines the agreed behavior. The [concept overview](../product/flows.md) illustrates it separately from implementation notes; its proposed data and interaction models are not architecture decisions. Session persistence and the concrete AI processing chain remain undecided.
+
 | Subsystem     | Document                               |
 | ------------- | -------------------------------------- |
 | Rate limiting | [`rate-limiting.md`](rate-limiting.md) |

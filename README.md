@@ -1,5 +1,9 @@
 # HortAi
 
+HortAi helps primary-school children with homework and test preparation through thinking prompts, graduated hints and comprehension questions. The child brings a school task or chooses a teacher-written assignment; HortAi never solves it and offers no exercises or gamification of its own.
+
+Before planning features, read the [product vision](docs/product/vision.md) and the [concept overview with Mermaid diagrams](docs/product/flows.md). They distinguish agreed requirements from proposals and undecided technical details; a diagram or gallery does not prove implementation.
+
 A [Next.js](https://nextjs.org) App Router application with TypeScript, PostgreSQL ([Prisma](https://www.prisma.io)) and [Better Auth](https://www.better-auth.com). Production runs on Vercel.
 
 Before changing code, read [`AI_RULES.md`](AI_RULES.md), [`docs/rules/`](docs/rules/README.md) and [`docs/conventions/`](docs/conventions/README.md).
@@ -87,7 +91,7 @@ migrations/auth/  authentication migrations (applied by npm run db:migrate:auth)
 docker/           init scripts for the local containers
 eslint/           repository-specific lint rules
 scripts/          code generators (npm run gen) and maintenance scripts
-docs/             rules/, conventions/, architecture/, agents/
+docs/             product/, rules/, conventions/, architecture/, agents/, design-system/
 public/           static assets
 __tests__/        tests mirroring src/, plus architecture/, eslint/ and scripts/
 ```

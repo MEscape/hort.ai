@@ -50,7 +50,7 @@ Default buttons in v1 have a **56 CSS-pixel minimum height** (`min-h-14`), small
 
 ## Layout and motion
 
-The product concept uses a **landscape learning stage around 16:10**, with the task as the visual focus and the companion in a supporting position. The gallery demonstrates this proportion on wide screens and lets content grow naturally on narrow ones. Do not impose `overflow: hidden` on the whole app without checking zoom, text scaling and small-viewport clipping.
+The gallery explores a landscape stage around 16:10, with the task as the visual focus and the companion in a supporting position. This is a layout example, not a fixed product requirement. Real homework-help screens must support their content and the [product vision](../product/vision.md), growing naturally on narrow screens. Do not impose `overflow: hidden` on the whole app without checking zoom, text scaling and small-viewport clipping.
 
 Existing `data-world` styles change backgrounds only, preserving consistent foreground contrast. Meaningful state changes may use brief pop/lift motion, but default animations must obey `prefers-reduced-motion` and `data-motion="calm"`. No continuous confetti, flashing feedback, or animation that delays the next action.
 
