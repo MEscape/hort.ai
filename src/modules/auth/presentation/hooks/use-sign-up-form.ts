@@ -10,6 +10,7 @@ import type { HortMood } from '@components/brand/hort';
 
 import { applyActionError } from '@lib/actions';
 
+import { PARENT_ROLE } from '../../application/contracts/auth-constraints';
 import { signUpAction } from '../actions/sign-up-action';
 import { hortMoodOf } from '../forms/hort-mood';
 import { assessPassword, STRENGTH } from '../password/password-strength';
@@ -45,7 +46,7 @@ export interface SignUpFormState {
  * the length is enforced), and Hort cheers once it is good. After the server accepted the request
  * the form is emptied, because the password is not kept around once it has been sent.
  */
-// @unsaved-work none One-step parent registration holds credentials, not a persistent draft.
+// @unsaved-work none One-step registration holds credentials, not a persistent draft.
 export function useSignUpForm(): SignUpFormState {
   const errorText = useAuthErrorText();
   const [isPending, startTransition] = useTransition();
@@ -56,6 +57,7 @@ export function useSignUpForm(): SignUpFormState {
     resolver: zodResolver(signUpSchema),
     mode: 'onTouched',
     defaultValues: {
+      role: PARENT_ROLE,
       name: '',
       email: '',
       password: '',

@@ -14,7 +14,8 @@ import { signUpSchema } from '../schemas/sign-up-schema';
  */
 export async function signUpAction(input: unknown): Promise<ActionResult<void>> {
   const result = await parseAuthInput(signUpSchema, input).asyncAndThen(
-    ({ name, email, password }) => getAuthCommands().signUp.execute({ name, email, password }),
+    ({ name, email, password, role }) =>
+      getAuthCommands().signUp.execute({ name, email, password, role }),
   );
 
   return toActionResult(result);

@@ -80,7 +80,7 @@ export class BetterAuthCurrentActorProvider implements CurrentActorProvider {
     // The role was chosen at registration and is read from the stored account only. An unknown or
     // missing value grants nothing: the session is treated as signed out (fail closed).
     const { role } = session.user;
-    if (!isRole(role)) {
+    if (typeof role !== 'string' || !isRole(role)) {
       return errAsync(unauthenticated());
     }
 
