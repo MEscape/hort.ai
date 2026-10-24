@@ -1,7 +1,9 @@
+import type { ActorId, TenantId } from '@modules/auth';
+
 /** Who a ticket is for: the signed-in parent it was issued to. */
 export interface TicketHolder {
-  readonly tenantId: string;
-  readonly actorId: string;
+  readonly tenantId: TenantId;
+  readonly actorId: ActorId;
 }
 
 /**

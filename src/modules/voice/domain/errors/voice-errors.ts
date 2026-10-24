@@ -44,6 +44,7 @@ export const VOICE_VALIDATION_CODES = {
   freeTextRefused: 'voice.validation.free_text_refused',
   /** The ticket is forged, expired or was issued to another parent. */
   ticketInvalid: 'voice.validation.ticket_invalid',
+  /** No child profile id, or not one the learner module could have issued. */
   childProfileRequired: 'voice.validation.child_profile_required',
 } as const;
 

@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import { SPEECH_LIMITS } from '@modules/voice/application/contracts/voice-constraints';
+import type { SpeechSource } from '@modules/voice/application/contracts/voice-inputs';
 import { SynthesizeSpeech } from '@modules/voice/application/queries/synthesize-speech';
 import { VOICE_RATE_LIMITS } from '@modules/voice/application/rate-limits';
 
 import { createBrokenRateLimiter, createTestRateLimiter } from '../../../support/rate-limiting';
 import { actor, allowing, denying, fakeSpeech, voiceDependencies } from '../fakes';
-
-import type { SpeechSource } from '@modules/voice/application/contracts/voice-inputs';
 
 /** A ticket the fake ticket store redeems for `text`, as if issued for a validated hint. */
 function said(text: string): SpeechSource {

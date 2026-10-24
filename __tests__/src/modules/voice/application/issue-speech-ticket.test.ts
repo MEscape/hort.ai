@@ -3,9 +3,9 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { SPEECH_LIMITS } from '@modules/voice/application/contracts/voice-constraints';
 import { IssueSpeechTicket } from '@modules/voice/application/queries/issue-speech-ticket';
 import type { ValidatedHint } from '@modules/voice/application/queries/issue-speech-ticket';
-import { SPEECH_LIMITS } from '@modules/voice/application/contracts/voice-constraints';
 
 import { denying, voiceDependencies } from '../fakes';
 

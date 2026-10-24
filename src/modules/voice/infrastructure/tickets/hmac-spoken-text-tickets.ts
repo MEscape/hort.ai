@@ -5,8 +5,9 @@ import { MS_PER_MINUTE } from '@lib/utils';
 
 import type { SpokenTextTickets, TicketHolder } from '../../domain/ports/spoken-text-tickets.port';
 
+const TICKET_TTL_MINUTES = 30;
 /** Long enough to listen to a hint again during one homework session, short enough to go stale. */
-export const SPEECH_TICKET_TTL_MS = 30 * MS_PER_MINUTE;
+const SPEECH_TICKET_TTL_MS = TICKET_TTL_MINUTES * MS_PER_MINUTE;
 /** Separates this key from every other use of the same server secret. */
 const KEY_LABEL = 'hort.ai/voice/speech-ticket/v1';
 const VERSION = 1;

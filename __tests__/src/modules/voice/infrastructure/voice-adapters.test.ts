@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest';
 
+import { toActorId, toTenantId } from '@modules/auth';
+import type { ChildProfileView } from '@modules/learner';
 import { tutorCatalog } from '@modules/tutors';
 import type { TutorCatalog } from '@modules/tutors';
 import { toSpeakerId } from '@modules/voice/domain/models/ids';
 import { catalogSystemPhrases } from '@modules/voice/infrastructure/catalog/catalog-system-phrases';
-import { hmacSpokenTextTickets } from '@modules/voice/infrastructure/tickets/hmac-spoken-text-tickets';
 import { learnerChildVoiceConsent } from '@modules/voice/infrastructure/learner/learner-child-voice-consent';
-
-import type { ChildProfileView } from '@modules/learner';
+import { hmacSpokenTextTickets } from '@modules/voice/infrastructure/tickets/hmac-spoken-text-tickets';
 
 import { notFoundError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 
 const SECRET = 'a-test-secret-that-is-at-least-32-characters';
-const parent = { tenantId: 'default', actorId: 'parent-1' };
+const parent = { tenantId: toTenantId('default'), actorId: toActorId('parent-1') };
 
 function clockAt(ms: number) {
   return { now: () => new Date(ms) };
@@ -25,8 +25,8 @@ describe('hmacSpokenTextTickets', () => {
     const ticket = tickets.issue('Was weißt du schon über die Aufgabe?', parent);
 
     expect(tickets.redeem(ticket, parent)).toBe('Was weißt du schon über die Aufgabe?');
-    expect(tickets.redeem(ticket, { ...parent, actorId: 'parent-2' })).toBeNull();
-    expect(tickets.redeem(ticket, { ...parent, tenantId: 'other' })).toBeNull();
+    expect(tickets.redeem(ticket, { ...parent, actorId: toActorId('parent-2') })).toBeNull();
+    expect(tickets.redeem(ticket, { ...parent, tenantId: toTenantId('other') })).toBeNull();
   });
 
   it('refuses a ticket whose text was changed, a foreign key and garbage', () => {

@@ -24,6 +24,8 @@ import { createVoiceRouteHandlers } from './presentation/http/voice-route-handle
 import type { VoiceRouteHandlers } from './presentation/http/voice-route-handlers';
 
 const log = logger.withContext({ module: 'voice' });
+/** Size of the per-process key used when no `AUTH_SECRET` is set. */
+const TICKET_KEY_BYTES = 32;
 
 /**
  * The module's composition root. Built on first use, so a build that imports a voice route needs
@@ -54,7 +56,9 @@ export const getVoiceQueries = once(() => {
  */
 function ticketSecret(): string {
   const secret = serverEnv.AUTH_SECRET;
-  return secret !== undefined && secret !== '' ? secret : randomBytes(32).toString('hex');
+  return secret !== undefined && secret !== ''
+    ? secret
+    : randomBytes(TICKET_KEY_BYTES).toString('hex');
 }
 
 /**

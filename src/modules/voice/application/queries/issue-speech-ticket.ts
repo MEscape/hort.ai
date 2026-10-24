@@ -23,7 +23,7 @@ export type IssueSpeechTicketError = AuthorizationError | ValidationAppError;
  * is refused here rather than at playback.
  */
 export class IssueSpeechTicket {
-  constructor(private readonly deps: Pick<VoiceDependencies, 'authorization' | 'tickets'>) {}
+  constructor(private readonly deps: VoiceDependencies) {}
 
   execute(hint: ValidatedHint): AppResultAsync<SpeechTicketView, IssueSpeechTicketError> {
     return this.deps.authorization.requireInTenant('voice.use').andThen((actor) =>

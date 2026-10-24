@@ -15,6 +15,7 @@ import {
   voiceConsentRequired,
   voiceDisabled,
 } from '../../domain/errors/voice-errors';
+import { parseChildProfileId } from '../../domain/models/ids';
 import { SPEECH_LIMITS } from '../../domain/models/speech-limits';
 import { transcribableRecording } from '../../domain/models/utterance';
 import { VOICE_RATE_LIMITS } from '../rate-limits';
@@ -51,8 +52,8 @@ export class TranscribeSpeech {
         if (speech === null) {
           return errAsync(voiceDisabled());
         }
-        return this.deps.consent
-          .voiceConsentOf(input.childProfileId)
+        return parseChildProfileId(input.childProfileId)
+          .asyncAndThen((childProfileId) => this.deps.consent.voiceConsentOf(childProfileId))
           .andThen((consented) => (consented ? okAsync(input) : errAsync(voiceConsentRequired())))
           .andThen((consented) => transcribableRecording(consented))
           .andThen((recording) =>

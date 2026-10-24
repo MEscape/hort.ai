@@ -7,10 +7,10 @@ and what happens with a transcript.
 
 ## Endpoints
 
-| Route                           | In                                     | Out                |
-| ------------------------------- | -------------------------------------- | ------------------ |
-| `POST /api/voice/speech`        | JSON `{ speakerId, text }`             | `audio/mpeg` (MP3) |
-| `POST /api/voice/transcription` | multipart, field `audio` (a recording) | JSON `{ text }`    |
+| Route                           | In                                                         | Out                |
+| ------------------------------- | ---------------------------------------------------------- | ------------------ |
+| `POST /api/voice/speech`        | JSON `{ speakerId, phrase }` or `{ speakerId, ticket }`    | `audio/mpeg` (MP3) |
+| `POST /api/voice/transcription` | multipart, fields `childProfileId` and `audio` (recording) | JSON `{ text }`    |
 
 Route Handlers rather than Server Actions because both carry binary audio. Both answer
 `Cache-Control: no-store`; errors use the shared shape `{ code, message, fieldErrors?,
@@ -30,9 +30,22 @@ limiter store is down), and only then call the provider.
   `audio/wav` (`codecs=` parameters are stripped). Transcribed as German (`deu`, model
   `scribe_v1`, audio-event tags off). The recording is held in memory for the one request and
   never stored, neither by us nor as a file.
-- **Transcript** is a suggestion: the child corrects it before sending, and the sent text goes
-  through the same server-side validation as typed text (issue #34). Only validated text should be
-  passed to `/api/voice/speech`.
+- **Consent**: a recording leaves the session only for the signed-in parent's own child (checked by
+  the learner module, `GetChildProfileById`) and only while that child profile has `voiceConsent`
+  (set and withdrawn by the parent through `UpdateChildProfile`). Otherwise `voice.consent_required`
+  (403) and the interface stays with text. Another parent's child is refused by the learner module.
+- **Transcript** is only returned, as a suggestion the child corrects; nothing is sent on. Wherever
+  the corrected text is submitted, it goes through the same validation as typed text
+  (`parseChildTaskText`, guidance module, #11).
+- **Spoken text is never chosen by the client.** A body with `text` is refused
+  (`voice.validation.free_text_refused`). Speakable are only:
+  - `phrase`: a fixed line of a ready tutor from `tutors.json` (`greeting` = `begruessung`, `praise` =
+    `lob_beispiel`, `tip` = `tipp_beispiel`); unknown lines answer `voice.unknown_phrase`.
+  - `ticket`: issued by server code for a hint the guidance orchestrator validated
+    (`getVoiceQueries().issueSpeechTicket.execute(outcome)` with a `generated` `HintOutcome`) and
+    handed to the browser next to the text. It is `base64url(payload).HMAC-SHA256`, the key derived
+    from `AUTH_SECRET`, bound to the parent (tenant and actor) and valid for 30 minutes. Forged,
+    expired or foreign tickets answer `voice.validation.ticket_invalid`. Nothing is stored.
 
 ## Speakers and voices
 
@@ -71,6 +84,8 @@ interface falls back to text, as it must when the microphone is refused.
 | --------------------------- | ------ | ------------------------------------------------------- |
 | `voice.validation_failed`   | 422    | Text or recording broke a rule (see `fieldErrors`)      |
 | `voice.unknown_speaker`     | 404    | No speaker with a voice has this id                     |
+| `voice.unknown_phrase`      | 404    | The speaker has no such catalog line                    |
+| `voice.consent_required`    | 403    | No `voiceConsent` on this child profile: use text       |
 | `voice.rate_limited`        | 429    | Budget spent; `Retry-After` says when to try again      |
 | `voice.disabled`            | 502    | No `ELEVENLABS_API_KEY`                                 |
 | `voice.rate_limiter_failed` | 502    | The limiter store is down                               |

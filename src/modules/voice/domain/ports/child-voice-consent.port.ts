@@ -3,6 +3,8 @@ import type { AuthorizationError } from '@modules/auth';
 import type { InfrastructureAppError, NotFoundAppError, ValidationAppError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
 
+import type { ChildProfileId } from '../models/ids';
+
 export type ChildVoiceConsentError =
   AuthorizationError | ValidationAppError | NotFoundAppError | InfrastructureAppError;
 
@@ -12,5 +14,5 @@ export type ChildVoiceConsentError =
  * tenant's, is an error, never `false`.
  */
 export interface ChildVoiceConsent {
-  voiceConsentOf(childProfileId: string): AppResultAsync<boolean, ChildVoiceConsentError>;
+  voiceConsentOf(childProfileId: ChildProfileId): AppResultAsync<boolean, ChildVoiceConsentError>;
 }
