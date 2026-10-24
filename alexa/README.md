@@ -47,6 +47,10 @@ The channel handles only channel matters itself: Stop/Cancel/Home ("Tschüss"), 
 5. Keep conversation state on the tutor side, keyed by `conversationId`; Alexa sends no history. A session ends
    when the child stays silent after the re-prompt or says "stopp"; the next "öffne hort" is a new conversation.
 6. Answer within the time budget below; return plain text without markup, emojis or links.
+7. Put the rate limit into the tutor use case (it is the public, cost-incurring operation): a global and/or
+   per-`conversationId` budget. Not per client address: all Alexa traffic arrives from a few Amazon addresses.
+   A refusal comes back as an error and is spoken as the short apology. The endpoint itself has no budget yet;
+   unsigned or forged requests stop at the timestamp/signature checks before any tutor work.
 
 ## Interaction model
 
@@ -89,7 +93,8 @@ The skill id is not a secret, but it is environment-specific and therefore not c
 - Today: a cloudflared Quick Tunnel to a small Node host on the Hermes VM. Its URL is **ephemeral**: a restart of
   the tunnel yields a new URL that must be entered in the console (step 3). `skill.json` records the current one.
 - Target: the Vercel deployment (`https://<project>.vercel.app/api/alexa`) with `ALEXA_SKILL_ID` set there.
-  Switch the console endpoint only after the simulator answers through Vercel.
+  Switch the console endpoint only after the simulator answers through Vercel. Preview deployments are behind
+  Vercel Authentication (401 "Protected deployment"), so Alexa cannot reach them; only an unprotected deployment works.
 
 ## Known limits
 
