@@ -2,15 +2,15 @@
 
 import type { ReactNode } from 'react';
 
-import { Lumi } from '@components/brand/lumi';
-import type { LumiMood } from '@components/brand/lumi';
+import { Hort } from '@components/brand/hort';
+import type { HortMood } from '@components/brand/hort';
 import { Card, CardContent, CardFooter, CardHeader } from '@components/ui/card';
 
 import { useFocusOnMount } from '@hooks/use-focus-on-mount';
 
 export interface AuthPanelProps {
-  /** How Lumi looks while this screen is in front of the person. */
-  readonly mood?: LumiMood;
+  /** How Hort looks while this screen is in front of the person. */
+  readonly mood?: HortMood;
   /** The page's one heading. */
   readonly title: string;
   readonly description?: string;
@@ -22,7 +22,7 @@ export interface AuthPanelProps {
 }
 
 /**
- * The frame of every sign-in screen: Lumi sitting on the top edge of a white "storybook page",
+ * The frame of every sign-in screen: Hort sitting on the top edge of a white "storybook page",
  * the heading, a short sentence in reading size, the content, and a quiet footer for the way
  * out. It holds the page's `h1`.
  */
@@ -39,7 +39,7 @@ export function AuthPanel({
   return (
     <Card>
       <CardHeader className="pt-0">
-        <Lumi mood={mood} isAmbient className="-mt-16 size-28" />
+        <Hort mood={mood} isAmbient className="-mt-16 size-28" />
         <h1 ref={headingRef} tabIndex={-1} className="text-3xl sm:text-4xl">
           {title}
         </h1>

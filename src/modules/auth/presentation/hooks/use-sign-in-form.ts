@@ -6,14 +6,14 @@ import type { BaseSyntheticEvent } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch } from 'react-hook-form';
 
-import type { LumiMood } from '@components/brand/lumi';
+import type { HortMood } from '@components/brand/hort';
 
 import { useRouter } from '@i18n';
 
 import { applyActionError } from '@lib/actions';
 
 import { signInAction } from '../actions/sign-in-action';
-import { lumiMoodOf } from '../forms/lumi-mood';
+import { hortMoodOf } from '../forms/hort-mood';
 import { signInSchema } from '../schemas/sign-in-schema';
 
 import { useAuthErrorText } from './use-auth-error-text';
@@ -29,7 +29,7 @@ export interface SignInFormState {
   /** What is in the email field now (it decides when to offer "did you mean"). */
   readonly email: string;
   readonly isPending: boolean;
-  readonly mood: LumiMood;
+  readonly mood: HortMood;
   readonly onSubmit: (event?: BaseSyntheticEvent) => Promise<void>;
 }
 
@@ -75,7 +75,7 @@ export function useSignInForm(returnTo: string | undefined): SignInFormState {
     formError,
     email,
     isPending,
-    mood: lumiMoodOf({ isPending, hasError: formError !== undefined }),
+    mood: hortMoodOf({ isPending, hasError: formError !== undefined }),
     onSubmit,
   };
 }

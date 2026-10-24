@@ -39,7 +39,7 @@ describe('DevCurrentActorProvider', () => {
   });
 
   it.each([
-    'https://lumio.example',
+    'https://hortai.example',
     'http://staging.internal:3000',
     'http://localhost.evil.example',
     'not a url',
@@ -48,7 +48,7 @@ describe('DevCurrentActorProvider', () => {
     expect(() => new DevCurrentActorProvider({ ...LOCAL, appUrl })).toThrow(/loopback/);
   });
 
-  it.each(['http://127.0.0.1:3000', 'http://[::1]:3000', 'http://lumio.localhost:3000'])(
+  it.each(['http://127.0.0.1:3000', 'http://[::1]:3000', 'http://hortai.localhost:3000'])(
     'accepts the loopback address %s',
     (appUrl) => {
       expect(() => new DevCurrentActorProvider({ ...LOCAL, appUrl })).not.toThrow();

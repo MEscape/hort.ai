@@ -13,7 +13,7 @@ import type { PasswordAssessment } from '../password/password-strength';
 export interface PasswordGuidanceProps {
   /** The id the password input points at with `aria-describedby`. */
   readonly id: string;
-  /** How the password rates; worked out once by the form, which also lets Lumi react to it. */
+  /** How the password rates; worked out once by the form, which also lets Hort react to it. */
   readonly assessment: PasswordAssessment;
   readonly hasPassword: boolean;
 }

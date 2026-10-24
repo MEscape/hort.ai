@@ -9,7 +9,7 @@ import { infrastructureError } from '@lib/errors';
 import type { MailTransport, OutboundMail } from '@lib/mail';
 import { errAsync, okAsync } from '@lib/result';
 
-const LINK = 'https://lumio.example/en/reset-password?token=SINGLE-USE-TOKEN&x=1';
+const LINK = 'https://hortai.example/en/reset-password?token=SINGLE-USE-TOKEN&x=1';
 const KINDS: readonly AuthEmailKind[] = ['verification', 'password_reset', 'existing_account'];
 
 describe('renderAuthEmail', () => {
@@ -18,7 +18,7 @@ describe('renderAuthEmail', () => {
   )(
     'renders %s in %s completely: a subject, the link in both parts, no placeholder left',
     (kind, locale) => {
-      const mail = renderAuthEmail({ kind, locale, appName: 'Lumio', url: LINK });
+      const mail = renderAuthEmail({ kind, locale, appName: 'Hort.ai', url: LINK });
 
       expect(mail.subject.length).toBeGreaterThan(0);
       expect(mail.text).toContain(LINK);
@@ -31,10 +31,10 @@ describe('renderAuthEmail', () => {
 
   it('states how long a verification or reset link stays valid', () => {
     expect(
-      renderAuthEmail({ kind: 'verification', locale: 'en', appName: 'Lumio', url: LINK }).text,
+      renderAuthEmail({ kind: 'verification', locale: 'en', appName: 'Hort.ai', url: LINK }).text,
     ).toContain('60 minutes');
     expect(
-      renderAuthEmail({ kind: 'password_reset', locale: 'de', appName: 'Lumio', url: LINK }).text,
+      renderAuthEmail({ kind: 'password_reset', locale: 'de', appName: 'Hort.ai', url: LINK }).text,
     ).toContain('60 Minuten');
   });
 
@@ -42,14 +42,14 @@ describe('renderAuthEmail', () => {
     const named = renderAuthEmail({
       kind: 'verification',
       locale: 'en',
-      appName: 'Lumio',
+      appName: 'Hort.ai',
       url: LINK,
       name: 'Mara',
     });
     const anonymous = renderAuthEmail({
       kind: 'verification',
       locale: 'en',
-      appName: 'Lumio',
+      appName: 'Hort.ai',
       url: LINK,
     });
 
@@ -61,7 +61,7 @@ describe('renderAuthEmail', () => {
     const mail = renderAuthEmail({
       kind: 'verification',
       locale: 'en',
-      appName: 'Lumio',
+      appName: 'Hort.ai',
       url: LINK,
       name: '<script>alert(1)</script>',
     });
@@ -72,7 +72,7 @@ describe('renderAuthEmail', () => {
 
   it('never mentions a password or a way to learn one', () => {
     for (const kind of KINDS) {
-      const { text } = renderAuthEmail({ kind, locale: 'en', appName: 'Lumio', url: LINK });
+      const { text } = renderAuthEmail({ kind, locale: 'en', appName: 'Hort.ai', url: LINK });
       expect(text).not.toMatch(/your password is/i);
     }
   });
@@ -90,8 +90,8 @@ function recordingTransport(failure: ReturnType<typeof infrastructureError> | nu
 }
 
 const SETTINGS = {
-  appName: 'Lumio',
-  signInLink: (locale: string) => `https://lumio.example/${locale}/sign-in`,
+  appName: 'Hort.ai',
+  signInLink: (locale: string) => `https://hortai.example/${locale}/sign-in`,
 };
 
 describe('TransactionalAuthMailer', () => {
@@ -131,7 +131,7 @@ describe('TransactionalAuthMailer', () => {
       locale: 'de',
     });
 
-    expect(sent[0]?.text).toContain('https://lumio.example/de/sign-in');
+    expect(sent[0]?.text).toContain('https://hortai.example/de/sign-in');
     expect(sent[0]?.text).not.toContain('token=');
   });
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Lumi } from '@components/brand/lumi';
+import { Hort } from '@components/brand/hort';
 import { Button } from '@components/ui/button';
 import { Card, CardContent, CardHeader } from '@components/ui/card';
 
@@ -12,7 +12,7 @@ export interface RouteErrorPanelProps {
 }
 
 /**
- * What every `error.tsx` shows: a gentle "something went wrong", Lumi looking a little puzzled,
+ * What every `error.tsx` shows: a gentle "something went wrong", Hort looking a little puzzled,
  * and one way forward. It never prints the error's own message (that is for logs, not people).
  */
 export function RouteErrorPanel({ onRetry }: RouteErrorPanelProps) {
@@ -21,7 +21,7 @@ export function RouteErrorPanel({ onRetry }: RouteErrorPanelProps) {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <Lumi mood="oops" className="size-24" />
+        <Hort mood="oops" className="size-24" />
         <h1 className="text-3xl">{t('routeError.title')}</h1>
       </CardHeader>
       <CardContent>

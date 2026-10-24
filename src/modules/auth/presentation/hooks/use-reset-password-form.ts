@@ -6,12 +6,12 @@ import type { BaseSyntheticEvent } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch } from 'react-hook-form';
 
-import type { LumiMood } from '@components/brand/lumi';
+import type { HortMood } from '@components/brand/hort';
 
 import { applyActionError } from '@lib/actions';
 
 import { resetPasswordAction } from '../actions/reset-password-action';
-import { lumiMoodOf } from '../forms/lumi-mood';
+import { hortMoodOf } from '../forms/hort-mood';
 import { assessPassword, STRENGTH } from '../password/password-strength';
 import { resetPasswordFormSchema } from '../schemas/reset-password-schema';
 
@@ -30,7 +30,7 @@ export interface ResetPasswordFormState {
   /** True once the server saved the new password. */
   readonly isDone: boolean;
   readonly isPending: boolean;
-  readonly mood: LumiMood;
+  readonly mood: HortMood;
   readonly onSubmit: (event?: BaseSyntheticEvent) => Promise<void>;
 }
 
@@ -75,7 +75,7 @@ export function useResetPasswordForm(token: string): ResetPasswordFormState {
     assessment,
     isDone,
     isPending,
-    mood: lumiMoodOf({
+    mood: hortMoodOf({
       isPending,
       hasError: formError !== undefined,
       isCheering: assessment.level >= STRENGTH.good,

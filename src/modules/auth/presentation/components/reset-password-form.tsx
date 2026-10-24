@@ -23,7 +23,7 @@ export interface ResetPasswordFormProps {
   readonly token: string;
 }
 
-/** Chooses a new password from an emailed link; Lumi cheers once the password is good. */
+/** Chooses a new password from an emailed link; Hort cheers once the password is good. */
 export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const t = useTranslations('auth');
   const id = useId();

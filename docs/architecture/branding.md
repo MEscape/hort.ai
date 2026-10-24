@@ -1,12 +1,12 @@
 # Brand identity and assets
 
-The identity follows the supplied owl reference: Hort.ai in chestnut brown, an amber smile, a brown owl with a cream face, a blue book and an amber backpack. The application artwork is an SVG adaptation of that reference. Its editable sources live in `public/brand/`. The background uses warm paper and layered peach hills; it contains no buildings.
+The owl companion is named **Hort**. The identity follows the supplied owl reference: Hort.ai in chestnut brown, an amber smile, a brown owl with a cream face, a blue book and an amber backpack. The application artwork is an SVG adaptation of that reference. Its editable sources live in `public/brand/`. The background uses warm paper and layered peach hills; it contains no buildings.
 
 ## Sources of truth
 
 - `src/app/globals.css` owns interface colors, typography, surfaces, shadows, focus and motion. Status colors retain their established meaning. Background worlds change atmosphere only.
 - `src/lib/config/app-identity.ts` owns the displayed brand name and asset URLs. Its literal colors are pinned to CSS by tests and feed email, metadata and the manifest.
-- `public/brand/owl.svg` owns the owl geometry and the `hello`, `think`, `happy`, `oops` and `mail` expressions. `Lumi` composes the referenced SVG groups; mail replaces the book with an envelope. Decorative poses stay hidden from assistive technology. A meaningful use can supply a label. Ambient motion uses the existing reduced-motion and calm-mode rules.
+- `public/brand/owl.svg` owns the owl geometry and the `hello`, `think`, `happy`, `oops` and `mail` expressions. `Hort` composes the referenced SVG groups; mail replaces the book with an envelope. Decorative poses stay hidden from assistive technology. A meaningful use can supply a label. Ambient motion uses the existing reduced-motion and calm-mode rules.
 - `public/brand/wordmark.svg` contains outlined lettering and the amber smile. It requires no installed fonts to render.
 
 ## Asset generation

@@ -19,7 +19,7 @@ function color(name: string): string {
   return match[1];
 }
 
-function luminance(hex: string): number {
+function relativeBrightness(hex: string): number {
   const rgb = [1, 3, 5].map((start) => {
     const channel = Number.parseInt(hex.slice(start, start + 2), 16) / 255;
     return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
@@ -28,7 +28,7 @@ function luminance(hex: string): number {
 }
 
 function contrast(a: string, b: string): number {
-  const values = [luminance(a), luminance(b)].sort((left, right) => right - left);
+  const values = [relativeBrightness(a), relativeBrightness(b)].sort((left, right) => right - left);
   return ((values[0] ?? 0) + 0.05) / ((values[1] ?? 0) + 0.05);
 }
 

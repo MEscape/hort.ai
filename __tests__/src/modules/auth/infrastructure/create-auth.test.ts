@@ -13,7 +13,7 @@ import { TENANT, recordingAudit } from '../fakes';
 
 const SETTINGS: AuthSettings = {
   tenantId: TENANT,
-  baseUrl: 'https://lumio.example',
+  baseUrl: 'https://hortai.example',
   secret: 's'.repeat(48),
   isProduction: true,
   trustedProxies: ['10.0.0.0/8'],
@@ -68,8 +68,8 @@ describe('createAuth security defaults', () => {
 
   it('trusts only its own origin and sets the base URL explicitly', () => {
     expect(options()).toMatchObject({
-      baseURL: 'https://lumio.example',
-      trustedOrigins: ['https://lumio.example'],
+      baseURL: 'https://hortai.example',
+      trustedOrigins: ['https://hortai.example'],
     });
   });
 

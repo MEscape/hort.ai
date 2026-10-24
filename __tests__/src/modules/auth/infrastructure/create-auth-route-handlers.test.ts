@@ -6,7 +6,7 @@ import { createAuthRouteHandlers } from '@modules/auth/infrastructure/better-aut
 import { infrastructureError, rateLimitedError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 
-const ORIGIN = 'https://lumio.example';
+const ORIGIN = 'https://hortai.example';
 
 /** What the provider's own handler would answer; the test only needs to know it was reached. */
 function build(options: { isEnabled?: boolean; admit?: 'allow' | 'rate_limited' | 'broken' } = {}) {

@@ -1,4 +1,4 @@
-import { Lumi } from '@components/brand/lumi';
+import { Hort } from '@components/brand/hort';
 import { Button } from '@components/ui/button';
 import { Card, CardContent, CardHeader } from '@components/ui/card';
 
@@ -11,14 +11,14 @@ export interface NotFoundPanelProps {
   readonly homeHref: string;
 }
 
-/** What every `not-found.tsx` shows: a lost Lumi and the way back. Works as a Server Component. */
+/** What every `not-found.tsx` shows: a lost Hort and the way back. Works as a Server Component. */
 export function NotFoundPanel({ homeHref }: NotFoundPanelProps) {
   const t = useTranslations('app');
 
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <Lumi mood="think" className="size-24" />
+        <Hort mood="think" className="size-24" />
         <h1 className="text-3xl">{t('notFound.title')}</h1>
       </CardHeader>
       <CardContent>

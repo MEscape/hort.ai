@@ -13,7 +13,7 @@ export interface AuthShellProps {
 
 /**
  * The world around every sign-in screen: the sky and hills, the logo (a way back to the front
- * door) and the screen's card in the middle. Generous room above the card is on purpose: Lumi
+ * door) and the screen's card in the middle. Generous room above the card is on purpose: Hort
  * sits on its edge.
  */
 export function AuthShell({ children }: AuthShellProps) {

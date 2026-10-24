@@ -6,12 +6,12 @@ import type { BaseSyntheticEvent } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch } from 'react-hook-form';
 
-import type { LumiMood } from '@components/brand/lumi';
+import type { HortMood } from '@components/brand/hort';
 
 import { applyActionError } from '@lib/actions';
 
 import { requestPasswordResetAction } from '../actions/request-password-reset-action';
-import { lumiMoodOf } from '../forms/lumi-mood';
+import { hortMoodOf } from '../forms/hort-mood';
 import { requestPasswordResetSchema } from '../schemas/request-password-reset-schema';
 
 import { useAuthErrorText } from './use-auth-error-text';
@@ -29,7 +29,7 @@ export interface ForgotPasswordFormState {
   /** Back to the form, to correct the address. */
   readonly changeAddress: () => void;
   readonly isPending: boolean;
-  readonly mood: LumiMood;
+  readonly mood: HortMood;
   readonly onSubmit: (event?: BaseSyntheticEvent) => Promise<void>;
 }
 
@@ -71,7 +71,7 @@ export function useForgotPasswordForm(): ForgotPasswordFormState {
       setSentTo(null);
     },
     isPending,
-    mood: lumiMoodOf({ isPending, hasError: formError !== undefined }),
+    mood: hortMoodOf({ isPending, hasError: formError !== undefined }),
     onSubmit,
   };
 }

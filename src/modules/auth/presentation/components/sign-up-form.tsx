@@ -22,7 +22,7 @@ import { NewPasswordFields } from './new-password-fields';
 import { NextSteps } from './next-steps';
 
 /**
- * A parent sets up an account: a name to greet them by, an address, a password Lumi cheers for,
+ * A parent sets up an account: a name to greet them by, an address, a password Hort cheers for,
  * and helpful password guidance. The answer is the same whether or not the address already had an account, so the
  * form cannot be used to find out who is registered; it says "check your inbox" either way.
  */

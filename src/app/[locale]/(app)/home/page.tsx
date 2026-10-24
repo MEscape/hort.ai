@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { AuthFormSkeleton, AuthShell, isAuthEnabled, requireSignedIn } from '@modules/auth';
 import { SignOutButton } from '@modules/auth/client';
 
-import { Lumi } from '@components/brand/lumi';
+import { Hort } from '@components/brand/hort';
 import { I18nProvider } from '@components/providers/i18n-provider';
 import { Card, CardContent, CardHeader } from '@components/ui/card';
 
@@ -29,7 +29,7 @@ async function ParentHome() {
   return (
     <Card>
       <CardHeader>
-        <Lumi mood="happy" />
+        <Hort mood="happy" />
         <h1 className="text-3xl">{t('home.title')}</h1>
       </CardHeader>
       <CardContent>

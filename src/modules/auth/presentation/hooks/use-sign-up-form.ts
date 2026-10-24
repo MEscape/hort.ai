@@ -6,12 +6,12 @@ import type { BaseSyntheticEvent } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch } from 'react-hook-form';
 
-import type { LumiMood } from '@components/brand/lumi';
+import type { HortMood } from '@components/brand/hort';
 
 import { applyActionError } from '@lib/actions';
 
 import { signUpAction } from '../actions/sign-up-action';
-import { lumiMoodOf } from '../forms/lumi-mood';
+import { hortMoodOf } from '../forms/hort-mood';
 import { assessPassword, STRENGTH } from '../password/password-strength';
 import { signUpSchema } from '../schemas/sign-up-schema';
 
@@ -36,13 +36,13 @@ export interface SignUpFormState {
   /** The address the confirmation link went to; `null` until the account was created. */
   readonly sentTo: string | null;
   readonly isPending: boolean;
-  readonly mood: LumiMood;
+  readonly mood: HortMood;
   readonly onSubmit: (event?: BaseSyntheticEvent) => Promise<void>;
 }
 
 /**
  * The state of the sign-up form. The password is judged as it is typed (advice, never a rule: only
- * the length is enforced), and Lumi cheers once it is good. After the server accepted the request
+ * the length is enforced), and Hort cheers once it is good. After the server accepted the request
  * the form is emptied, because the password is not kept around once it has been sent.
  */
 // @unsaved-work none One-step parent registration holds credentials, not a persistent draft.
@@ -92,7 +92,7 @@ export function useSignUpForm(): SignUpFormState {
     assessment,
     sentTo,
     isPending,
-    mood: lumiMoodOf({
+    mood: hortMoodOf({
       isPending,
       hasError: formError !== undefined,
       isCheering: assessment.level >= STRENGTH.good,

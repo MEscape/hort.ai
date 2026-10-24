@@ -1,6 +1,6 @@
-import type { LumiMood } from '@components/brand/lumi';
+import type { HortMood } from '@components/brand/hort';
 
-export interface LumiMoodState {
+export interface HortMoodState {
   /** A request is running. */
   readonly isPending: boolean;
   /** The form was refused as a whole (wrong credentials, too many attempts, a service failure). */
@@ -10,11 +10,11 @@ export interface LumiMoodState {
 }
 
 /**
- * How Lumi feels while a form is in front of the person. The order is the story: working beats
- * everything, a refusal is met gently, a good choice is cheered, otherwise Lumi simply waits.
+ * How Hort feels while a form is in front of the person. The order is the story: working beats
+ * everything, a refusal is met gently, a good choice is cheered, otherwise Hort simply waits.
  * Every mood is also said in words on the screen, so the picture is never the only message.
  */
-export function lumiMoodOf({ isPending, hasError, isCheering = false }: LumiMoodState): LumiMood {
+export function hortMoodOf({ isPending, hasError, isCheering = false }: HortMoodState): HortMood {
   if (isPending) {
     return 'think';
   }

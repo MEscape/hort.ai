@@ -1,4 +1,4 @@
-import { Lumi } from '@components/brand/lumi';
+import { Hort } from '@components/brand/hort';
 import { Button } from '@components/ui/button';
 import { Card, CardContent, CardHeader } from '@components/ui/card';
 import { UserPlus } from '@components/ui/icons';
@@ -10,7 +10,7 @@ import { getTranslations } from '@i18n/server';
 import { authRoutes } from '../routes';
 
 /**
- * The front door of the story (the first step of the mockups): Lumi waves, one sentence says what
+ * The front door of the story (the first step of the mockups): Hort waves, one sentence says what
  * this is, and there are two clear ways in. The main one is a parent registering; the second is for
  * someone who already has an account. A Server Component.
  */
@@ -20,7 +20,7 @@ export async function WelcomePanel() {
   return (
     <Card>
       <CardHeader className="pt-0">
-        <Lumi mood="hello" isAmbient className="-mt-20 size-36" />
+        <Hort mood="hello" isAmbient className="-mt-20 size-36" />
         <h1 className="text-4xl">{t('welcome.title')}</h1>
         <p className="measure text-lead text-copy-muted">{t('welcome.description')}</p>
       </CardHeader>
