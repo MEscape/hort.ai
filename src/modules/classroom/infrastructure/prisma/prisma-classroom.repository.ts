@@ -44,6 +44,7 @@ const failures = createPersistenceFailures({
   subject: 'Classroom',
 });
 
+/** @owner-scope builder `listByOwner` pins ownerId; every id lookup's caller checks the stored owner (`requireOnResource`); the invite-code lookup is a capability. */
 const classrooms = () => db.orm.public.Classroom.select(...CLASSROOM_SELECT);
 
 /**
@@ -144,6 +145,7 @@ export class PrismaClassroomRepository implements ClassroomRepository {
       .map(toClassroom);
   }
 
+  /** @owner-scope builder The use case loaded this class and checked its stored owner (`requireOnResource`) before archiving it and its memberships. */
   archive(
     id: ClassroomId,
     tenantId: TenantId,
@@ -169,6 +171,7 @@ export class PrismaClassroomRepository implements ClassroomRepository {
       .map(toClassroom);
   }
 
+  /** @owner-scope builder The caller first has the learner module confirm the child is the signed-in parent's own (`requireOwnChild`). */
   findMembershipOfChild(
     childProfileId: ChildProfileId,
     tenantId: TenantId,
@@ -183,6 +186,7 @@ export class PrismaClassroomRepository implements ClassroomRepository {
     ).map((record) => (record === null ? null : toChildMembership(record)));
   }
 
+  /** @owner-scope capability The class is reached by its invite code (hash lookup); the caller confirmed the child is the parent's own. */
   addMember(input: NewMembership): AppResultAsync<Date, ConflictAppError | InfrastructureAppError> {
     const { tenantId, classroomId, childProfileId } = input;
     return fromThrowableAsync(
@@ -209,6 +213,7 @@ export class PrismaClassroomRepository implements ClassroomRepository {
     );
   }
 
+  /** @owner-scope builder The caller first has the learner module confirm the child is the signed-in parent's own (`requireOwnChild`). */
   removeMemberOfChild(
     childProfileId: ChildProfileId,
     tenantId: TenantId,
@@ -220,6 +225,7 @@ export class PrismaClassroomRepository implements ClassroomRepository {
     ).map((count) => count > 0);
   }
 
+  /** @owner-scope builder The use case checked the class's stored owner (`requireOnResource`) before listing its members. */
   listMembers(
     classroomId: ClassroomId,
     tenantId: TenantId,
