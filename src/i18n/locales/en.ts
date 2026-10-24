@@ -1,4 +1,5 @@
 import { enAuth as auth } from '@modules/auth';
+import { enLearner as learner } from '@modules/learner';
 
 import enApp from '../messages/en.json';
 
@@ -11,6 +12,7 @@ import enApp from '../messages/en.json';
 const messages = {
   app: enApp,
   auth: auth.auth,
+  learner: learner.learner,
 } as const;
 
 export default messages;

@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'8db5f60cf8e0fb19d3d2a7b9ebb18c733aa05cae9dd7ecbd9b96916d538df7e8'>;
+  StorageHashBase<'fc105dec9ca1656b4d8cacd0524fa429234a3214a4bdb3ec70fafbbcc1d98622'>;
 export type ExecutionHash =
-  ExecutionHashBase<'9e682105523b52360966eee6249e3deb8d3091aa7a80822c9f413fd350056ec3'>;
+  ExecutionHashBase<'c34472bff7c2b7010a1a9feb8891bd65a47095469dac87679d33d2107642809b'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -241,12 +241,217 @@ type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 type FieldTypeOverrides = {
   readonly public: {
     readonly models: {
+      readonly AnswerAssessment: {
+        readonly result: {
+          readonly output: 'CORRECT' | 'PARTLY_CORRECT' | 'NOT_YET';
+          readonly input: 'CORRECT' | 'PARTLY_CORRECT' | 'NOT_YET';
+        };
+      };
       readonly AuditEntry: {
         readonly actorKind: {
           readonly output: 'MEMBER' | 'VISITOR' | 'SYSTEM';
           readonly input: 'MEMBER' | 'VISITOR' | 'SYSTEM';
         };
         readonly severity: { readonly output: 'INFO' | 'WARN'; readonly input: 'INFO' | 'WARN' };
+      };
+      readonly ChildProfile: {
+        readonly companion: {
+          readonly output: 'MAX' | 'LILI' | 'FINA';
+          readonly input: 'MAX' | 'LILI' | 'FINA';
+        };
+        readonly federalState: {
+          readonly output:
+            | 'BW'
+            | 'BY'
+            | 'BE'
+            | 'BB'
+            | 'HB'
+            | 'HH'
+            | 'HE'
+            | 'MV'
+            | 'NI'
+            | 'NW'
+            | 'RP'
+            | 'SL'
+            | 'SN'
+            | 'ST'
+            | 'SH'
+            | 'TH';
+          readonly input:
+            | 'BW'
+            | 'BY'
+            | 'BE'
+            | 'BB'
+            | 'HB'
+            | 'HH'
+            | 'HE'
+            | 'MV'
+            | 'NI'
+            | 'NW'
+            | 'RP'
+            | 'SL'
+            | 'SN'
+            | 'ST'
+            | 'SH'
+            | 'TH';
+        };
+      };
+      readonly Classroom: {
+        readonly federalState: {
+          readonly output:
+            | 'BW'
+            | 'BY'
+            | 'BE'
+            | 'BB'
+            | 'HB'
+            | 'HH'
+            | 'HE'
+            | 'MV'
+            | 'NI'
+            | 'NW'
+            | 'RP'
+            | 'SL'
+            | 'SN'
+            | 'ST'
+            | 'SH'
+            | 'TH';
+          readonly input:
+            | 'BW'
+            | 'BY'
+            | 'BE'
+            | 'BB'
+            | 'HB'
+            | 'HH'
+            | 'HE'
+            | 'MV'
+            | 'NI'
+            | 'NW'
+            | 'RP'
+            | 'SL'
+            | 'SN'
+            | 'ST'
+            | 'SH'
+            | 'TH';
+        };
+        readonly status: {
+          readonly output: 'ACTIVE' | 'ARCHIVED';
+          readonly input: 'ACTIVE' | 'ARCHIVED';
+        };
+        readonly subject: {
+          readonly output: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+          readonly input: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+        };
+      };
+      readonly Competency: {
+        readonly federalState: {
+          readonly output:
+            | 'BW'
+            | 'BY'
+            | 'BE'
+            | 'BB'
+            | 'HB'
+            | 'HH'
+            | 'HE'
+            | 'MV'
+            | 'NI'
+            | 'NW'
+            | 'RP'
+            | 'SL'
+            | 'SN'
+            | 'ST'
+            | 'SH'
+            | 'TH';
+          readonly input:
+            | 'BW'
+            | 'BY'
+            | 'BE'
+            | 'BB'
+            | 'HB'
+            | 'HH'
+            | 'HE'
+            | 'MV'
+            | 'NI'
+            | 'NW'
+            | 'RP'
+            | 'SL'
+            | 'SN'
+            | 'ST'
+            | 'SH'
+            | 'TH';
+        };
+        readonly subject: {
+          readonly output: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+          readonly input: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+        };
+      };
+      readonly CurriculumDocument: {
+        readonly federalState: {
+          readonly output:
+            | 'BW'
+            | 'BY'
+            | 'BE'
+            | 'BB'
+            | 'HB'
+            | 'HH'
+            | 'HE'
+            | 'MV'
+            | 'NI'
+            | 'NW'
+            | 'RP'
+            | 'SL'
+            | 'SN'
+            | 'ST'
+            | 'SH'
+            | 'TH';
+          readonly input:
+            | 'BW'
+            | 'BY'
+            | 'BE'
+            | 'BB'
+            | 'HB'
+            | 'HH'
+            | 'HE'
+            | 'MV'
+            | 'NI'
+            | 'NW'
+            | 'RP'
+            | 'SL'
+            | 'SN'
+            | 'ST'
+            | 'SH'
+            | 'TH';
+        };
+        readonly subject: {
+          readonly output: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+          readonly input: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+        };
+      };
+      readonly HelpSession: {
+        readonly currentHintLevel: {
+          readonly output:
+            'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
+          readonly input:
+            'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
+        };
+        readonly status: {
+          readonly output: 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
+          readonly input: 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
+        };
+      };
+      readonly HintEvent: {
+        readonly level: {
+          readonly output:
+            'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
+          readonly input:
+            'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
+        };
+      };
+      readonly TeacherMaterial: {
+        readonly contentType: { readonly output: 'PDF' | 'TEXT'; readonly input: 'PDF' | 'TEXT' };
+        readonly status: {
+          readonly output: 'UPLOADED' | 'PROCESSED' | 'FAILED' | 'DELETED';
+          readonly input: 'UPLOADED' | 'PROCESSED' | 'FAILED' | 'DELETED';
+        };
       };
     };
   };
@@ -267,12 +472,217 @@ export type FieldInputTypes = FieldTypesFromDomain<
 >;
 type ColumnTypeOverrides = {
   readonly public: {
+    readonly AnswerAssessment: {
+      readonly result: {
+        readonly output: 'CORRECT' | 'PARTLY_CORRECT' | 'NOT_YET';
+        readonly input: 'CORRECT' | 'PARTLY_CORRECT' | 'NOT_YET';
+      };
+    };
     readonly AuditEntry: {
       readonly actorKind: {
         readonly output: 'MEMBER' | 'VISITOR' | 'SYSTEM';
         readonly input: 'MEMBER' | 'VISITOR' | 'SYSTEM';
       };
       readonly severity: { readonly output: 'INFO' | 'WARN'; readonly input: 'INFO' | 'WARN' };
+    };
+    readonly ChildProfile: {
+      readonly companion: {
+        readonly output: 'MAX' | 'LILI' | 'FINA';
+        readonly input: 'MAX' | 'LILI' | 'FINA';
+      };
+      readonly federalState: {
+        readonly output:
+          | 'BW'
+          | 'BY'
+          | 'BE'
+          | 'BB'
+          | 'HB'
+          | 'HH'
+          | 'HE'
+          | 'MV'
+          | 'NI'
+          | 'NW'
+          | 'RP'
+          | 'SL'
+          | 'SN'
+          | 'ST'
+          | 'SH'
+          | 'TH';
+        readonly input:
+          | 'BW'
+          | 'BY'
+          | 'BE'
+          | 'BB'
+          | 'HB'
+          | 'HH'
+          | 'HE'
+          | 'MV'
+          | 'NI'
+          | 'NW'
+          | 'RP'
+          | 'SL'
+          | 'SN'
+          | 'ST'
+          | 'SH'
+          | 'TH';
+      };
+    };
+    readonly Classroom: {
+      readonly federalState: {
+        readonly output:
+          | 'BW'
+          | 'BY'
+          | 'BE'
+          | 'BB'
+          | 'HB'
+          | 'HH'
+          | 'HE'
+          | 'MV'
+          | 'NI'
+          | 'NW'
+          | 'RP'
+          | 'SL'
+          | 'SN'
+          | 'ST'
+          | 'SH'
+          | 'TH';
+        readonly input:
+          | 'BW'
+          | 'BY'
+          | 'BE'
+          | 'BB'
+          | 'HB'
+          | 'HH'
+          | 'HE'
+          | 'MV'
+          | 'NI'
+          | 'NW'
+          | 'RP'
+          | 'SL'
+          | 'SN'
+          | 'ST'
+          | 'SH'
+          | 'TH';
+      };
+      readonly status: {
+        readonly output: 'ACTIVE' | 'ARCHIVED';
+        readonly input: 'ACTIVE' | 'ARCHIVED';
+      };
+      readonly subject: {
+        readonly output: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+        readonly input: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+      };
+    };
+    readonly Competency: {
+      readonly federalState: {
+        readonly output:
+          | 'BW'
+          | 'BY'
+          | 'BE'
+          | 'BB'
+          | 'HB'
+          | 'HH'
+          | 'HE'
+          | 'MV'
+          | 'NI'
+          | 'NW'
+          | 'RP'
+          | 'SL'
+          | 'SN'
+          | 'ST'
+          | 'SH'
+          | 'TH';
+        readonly input:
+          | 'BW'
+          | 'BY'
+          | 'BE'
+          | 'BB'
+          | 'HB'
+          | 'HH'
+          | 'HE'
+          | 'MV'
+          | 'NI'
+          | 'NW'
+          | 'RP'
+          | 'SL'
+          | 'SN'
+          | 'ST'
+          | 'SH'
+          | 'TH';
+      };
+      readonly subject: {
+        readonly output: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+        readonly input: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+      };
+    };
+    readonly CurriculumDocument: {
+      readonly federalState: {
+        readonly output:
+          | 'BW'
+          | 'BY'
+          | 'BE'
+          | 'BB'
+          | 'HB'
+          | 'HH'
+          | 'HE'
+          | 'MV'
+          | 'NI'
+          | 'NW'
+          | 'RP'
+          | 'SL'
+          | 'SN'
+          | 'ST'
+          | 'SH'
+          | 'TH';
+        readonly input:
+          | 'BW'
+          | 'BY'
+          | 'BE'
+          | 'BB'
+          | 'HB'
+          | 'HH'
+          | 'HE'
+          | 'MV'
+          | 'NI'
+          | 'NW'
+          | 'RP'
+          | 'SL'
+          | 'SN'
+          | 'ST'
+          | 'SH'
+          | 'TH';
+      };
+      readonly subject: {
+        readonly output: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+        readonly input: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+      };
+    };
+    readonly HelpSession: {
+      readonly currentHintLevel: {
+        readonly output:
+          'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
+        readonly input:
+          'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
+      };
+      readonly status: {
+        readonly output: 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
+        readonly input: 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
+      };
+    };
+    readonly HintEvent: {
+      readonly level: {
+        readonly output:
+          'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
+        readonly input:
+          'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
+      };
+    };
+    readonly TeacherMaterial: {
+      readonly contentType: { readonly output: 'PDF' | 'TEXT'; readonly input: 'PDF' | 'TEXT' };
+      readonly status: {
+        readonly output: 'UPLOADED' | 'PROCESSED' | 'FAILED' | 'DELETED';
+        readonly input: 'UPLOADED' | 'PROCESSED' | 'FAILED' | 'DELETED';
+      };
     };
   };
 };
@@ -292,6 +702,33 @@ export type StorageColumnInputTypes = ColumnTypesFromStorage<
 >;
 
 export namespace Models {
+  export type public_AnswerAssessment = {
+    answerId: FieldOutputTypes['public']['AnswerAssessment']['answerId'];
+    id: FieldOutputTypes['public']['AnswerAssessment']['id'];
+    idempotencyKey: FieldOutputTypes['public']['AnswerAssessment']['idempotencyKey'];
+    occurredAt: FieldOutputTypes['public']['AnswerAssessment']['occurredAt'];
+    result: FieldOutputTypes['public']['AnswerAssessment']['result'];
+    sessionId: FieldOutputTypes['public']['AnswerAssessment']['sessionId'];
+    text: FieldOutputTypes['public']['AnswerAssessment']['text'];
+    answer: public_ChildAnswer;
+    session: public_HelpSession;
+    readonly [RelationKeys]?: 'answer' | 'session';
+  };
+  export type public_Assignment = {
+    classroomId: FieldOutputTypes['public']['Assignment']['classroomId'];
+    createdAt: FieldOutputTypes['public']['Assignment']['createdAt'];
+    dueDate: FieldOutputTypes['public']['Assignment']['dueDate'];
+    id: FieldOutputTypes['public']['Assignment']['id'];
+    ownerId: FieldOutputTypes['public']['Assignment']['ownerId'];
+    solutionKey: FieldOutputTypes['public']['Assignment']['solutionKey'];
+    taskText: FieldOutputTypes['public']['Assignment']['taskText'];
+    tenantId: FieldOutputTypes['public']['Assignment']['tenantId'];
+    title: FieldOutputTypes['public']['Assignment']['title'];
+    updatedAt: FieldOutputTypes['public']['Assignment']['updatedAt'];
+    classroom: public_Classroom;
+    helpSessions: public_HelpSession[];
+    readonly [RelationKeys]?: 'classroom' | 'helpSessions';
+  };
   export type public_AuditEntry = {
     actorId: FieldOutputTypes['public']['AuditEntry']['actorId'];
     actorKind: FieldOutputTypes['public']['AuditEntry']['actorKind'];
@@ -304,11 +741,183 @@ export namespace Models {
     type: FieldOutputTypes['public']['AuditEntry']['type'];
     readonly [RelationKeys]?: never;
   };
+  export type public_ChildAnswer = {
+    id: FieldOutputTypes['public']['ChildAnswer']['id'];
+    idempotencyKey: FieldOutputTypes['public']['ChildAnswer']['idempotencyKey'];
+    occurredAt: FieldOutputTypes['public']['ChildAnswer']['occurredAt'];
+    sessionId: FieldOutputTypes['public']['ChildAnswer']['sessionId'];
+    text: FieldOutputTypes['public']['ChildAnswer']['text'];
+    assessment: public_AnswerAssessment | null;
+    session: public_HelpSession;
+    readonly [RelationKeys]?: 'assessment' | 'session';
+  };
+  export type public_ChildProfile = {
+    companion: FieldOutputTypes['public']['ChildProfile']['companion'];
+    createdAt: FieldOutputTypes['public']['ChildProfile']['createdAt'];
+    displayName: FieldOutputTypes['public']['ChildProfile']['displayName'];
+    federalState: FieldOutputTypes['public']['ChildProfile']['federalState'];
+    grade: FieldOutputTypes['public']['ChildProfile']['grade'];
+    id: FieldOutputTypes['public']['ChildProfile']['id'];
+    ownerId: FieldOutputTypes['public']['ChildProfile']['ownerId'];
+    tenantId: FieldOutputTypes['public']['ChildProfile']['tenantId'];
+    updatedAt: FieldOutputTypes['public']['ChildProfile']['updatedAt'];
+    voiceConsent: FieldOutputTypes['public']['ChildProfile']['voiceConsent'];
+    helpSessions: public_HelpSession[];
+    membership: public_ClassMembership | null;
+    readonly [RelationKeys]?: 'helpSessions' | 'membership';
+  };
+  export type public_ClassMembership = {
+    childProfileId: FieldOutputTypes['public']['ClassMembership']['childProfileId'];
+    classroomId: FieldOutputTypes['public']['ClassMembership']['classroomId'];
+    id: FieldOutputTypes['public']['ClassMembership']['id'];
+    joinedAt: FieldOutputTypes['public']['ClassMembership']['joinedAt'];
+    tenantId: FieldOutputTypes['public']['ClassMembership']['tenantId'];
+    childProfile: public_ChildProfile;
+    classroom: public_Classroom;
+    readonly [RelationKeys]?: 'childProfile' | 'classroom';
+  };
+  export type public_Classroom = {
+    createdAt: FieldOutputTypes['public']['Classroom']['createdAt'];
+    federalState: FieldOutputTypes['public']['Classroom']['federalState'];
+    grade: FieldOutputTypes['public']['Classroom']['grade'];
+    id: FieldOutputTypes['public']['Classroom']['id'];
+    inviteCodeHash: FieldOutputTypes['public']['Classroom']['inviteCodeHash'];
+    inviteCodeIssuedAt: FieldOutputTypes['public']['Classroom']['inviteCodeIssuedAt'];
+    name: FieldOutputTypes['public']['Classroom']['name'];
+    ownerId: FieldOutputTypes['public']['Classroom']['ownerId'];
+    status: FieldOutputTypes['public']['Classroom']['status'];
+    subject: FieldOutputTypes['public']['Classroom']['subject'];
+    tenantId: FieldOutputTypes['public']['Classroom']['tenantId'];
+    updatedAt: FieldOutputTypes['public']['Classroom']['updatedAt'];
+    assignments: public_Assignment[];
+    materials: public_TeacherMaterial[];
+    memberships: public_ClassMembership[];
+    readonly [RelationKeys]?: 'assignments' | 'materials' | 'memberships';
+  };
+  export type public_Competency = {
+    code: FieldOutputTypes['public']['Competency']['code'];
+    createdAt: FieldOutputTypes['public']['Competency']['createdAt'];
+    documentId: FieldOutputTypes['public']['Competency']['documentId'];
+    federalState: FieldOutputTypes['public']['Competency']['federalState'];
+    gradeFrom: FieldOutputTypes['public']['Competency']['gradeFrom'];
+    gradeTo: FieldOutputTypes['public']['Competency']['gradeTo'];
+    id: FieldOutputTypes['public']['Competency']['id'];
+    page: FieldOutputTypes['public']['Competency']['page'];
+    section: FieldOutputTypes['public']['Competency']['section'];
+    subject: FieldOutputTypes['public']['Competency']['subject'];
+    text: FieldOutputTypes['public']['Competency']['text'];
+    document: public_CurriculumDocument;
+    readonly [RelationKeys]?: 'document';
+  };
+  export type public_ComprehensionQuestion = {
+    id: FieldOutputTypes['public']['ComprehensionQuestion']['id'];
+    idempotencyKey: FieldOutputTypes['public']['ComprehensionQuestion']['idempotencyKey'];
+    occurredAt: FieldOutputTypes['public']['ComprehensionQuestion']['occurredAt'];
+    repliedAt: FieldOutputTypes['public']['ComprehensionQuestion']['repliedAt'];
+    replyText: FieldOutputTypes['public']['ComprehensionQuestion']['replyText'];
+    sessionId: FieldOutputTypes['public']['ComprehensionQuestion']['sessionId'];
+    text: FieldOutputTypes['public']['ComprehensionQuestion']['text'];
+    session: public_HelpSession;
+    readonly [RelationKeys]?: 'session';
+  };
+  export type public_CurriculumDocument = {
+    createdAt: FieldOutputTypes['public']['CurriculumDocument']['createdAt'];
+    federalState: FieldOutputTypes['public']['CurriculumDocument']['federalState'];
+    gradeFrom: FieldOutputTypes['public']['CurriculumDocument']['gradeFrom'];
+    gradeTo: FieldOutputTypes['public']['CurriculumDocument']['gradeTo'];
+    id: FieldOutputTypes['public']['CurriculumDocument']['id'];
+    sourceKey: FieldOutputTypes['public']['CurriculumDocument']['sourceKey'];
+    sourceUrl: FieldOutputTypes['public']['CurriculumDocument']['sourceUrl'];
+    subject: FieldOutputTypes['public']['CurriculumDocument']['subject'];
+    title: FieldOutputTypes['public']['CurriculumDocument']['title'];
+    version: FieldOutputTypes['public']['CurriculumDocument']['version'];
+    competencies: public_Competency[];
+    readonly [RelationKeys]?: 'competencies';
+  };
+  export type public_HelpSession = {
+    assignmentId: FieldOutputTypes['public']['HelpSession']['assignmentId'];
+    childProfileId: FieldOutputTypes['public']['HelpSession']['childProfileId'];
+    currentHintLevel: FieldOutputTypes['public']['HelpSession']['currentHintLevel'];
+    endedAt: FieldOutputTypes['public']['HelpSession']['endedAt'];
+    id: FieldOutputTypes['public']['HelpSession']['id'];
+    ownerId: FieldOutputTypes['public']['HelpSession']['ownerId'];
+    startedAt: FieldOutputTypes['public']['HelpSession']['startedAt'];
+    status: FieldOutputTypes['public']['HelpSession']['status'];
+    taskText: FieldOutputTypes['public']['HelpSession']['taskText'];
+    tenantId: FieldOutputTypes['public']['HelpSession']['tenantId'];
+    updatedAt: FieldOutputTypes['public']['HelpSession']['updatedAt'];
+    version: FieldOutputTypes['public']['HelpSession']['version'];
+    answerAssessments: public_AnswerAssessment[];
+    assignment: public_Assignment | null;
+    childAnswers: public_ChildAnswer[];
+    childProfile: public_ChildProfile;
+    comprehensionQuestions: public_ComprehensionQuestion[];
+    hintEvents: public_HintEvent[];
+    readonly [RelationKeys]?:
+      | 'answerAssessments'
+      | 'assignment'
+      | 'childAnswers'
+      | 'childProfile'
+      | 'comprehensionQuestions'
+      | 'hintEvents';
+  };
+  export type public_HintEvent = {
+    competencyCode: FieldOutputTypes['public']['HintEvent']['competencyCode'];
+    id: FieldOutputTypes['public']['HintEvent']['id'];
+    idempotencyKey: FieldOutputTypes['public']['HintEvent']['idempotencyKey'];
+    level: FieldOutputTypes['public']['HintEvent']['level'];
+    occurredAt: FieldOutputTypes['public']['HintEvent']['occurredAt'];
+    sessionId: FieldOutputTypes['public']['HintEvent']['sessionId'];
+    text: FieldOutputTypes['public']['HintEvent']['text'];
+    session: public_HelpSession;
+    readonly [RelationKeys]?: 'session';
+  };
+  export type public_MaterialSection = {
+    code: FieldOutputTypes['public']['MaterialSection']['code'];
+    createdAt: FieldOutputTypes['public']['MaterialSection']['createdAt'];
+    id: FieldOutputTypes['public']['MaterialSection']['id'];
+    materialId: FieldOutputTypes['public']['MaterialSection']['materialId'];
+    page: FieldOutputTypes['public']['MaterialSection']['page'];
+    position: FieldOutputTypes['public']['MaterialSection']['position'];
+    section: FieldOutputTypes['public']['MaterialSection']['section'];
+    text: FieldOutputTypes['public']['MaterialSection']['text'];
+    material: public_TeacherMaterial;
+    readonly [RelationKeys]?: 'material';
+  };
+  export type public_TeacherMaterial = {
+    classroomId: FieldOutputTypes['public']['TeacherMaterial']['classroomId'];
+    contentType: FieldOutputTypes['public']['TeacherMaterial']['contentType'];
+    createdAt: FieldOutputTypes['public']['TeacherMaterial']['createdAt'];
+    id: FieldOutputTypes['public']['TeacherMaterial']['id'];
+    objectKey: FieldOutputTypes['public']['TeacherMaterial']['objectKey'];
+    ownerId: FieldOutputTypes['public']['TeacherMaterial']['ownerId'];
+    sizeBytes: FieldOutputTypes['public']['TeacherMaterial']['sizeBytes'];
+    status: FieldOutputTypes['public']['TeacherMaterial']['status'];
+    tenantId: FieldOutputTypes['public']['TeacherMaterial']['tenantId'];
+    title: FieldOutputTypes['public']['TeacherMaterial']['title'];
+    updatedAt: FieldOutputTypes['public']['TeacherMaterial']['updatedAt'];
+    classroom: public_Classroom;
+    sections: public_MaterialSection[];
+    readonly [RelationKeys]?: 'classroom' | 'sections';
+  };
 }
 
 export declare const models: {
   public: {
+    AnswerAssessment: Models.public_AnswerAssessment;
+    Assignment: Models.public_Assignment;
     AuditEntry: Models.public_AuditEntry;
+    ChildAnswer: Models.public_ChildAnswer;
+    ChildProfile: Models.public_ChildProfile;
+    ClassMembership: Models.public_ClassMembership;
+    Classroom: Models.public_Classroom;
+    Competency: Models.public_Competency;
+    ComprehensionQuestion: Models.public_ComprehensionQuestion;
+    CurriculumDocument: Models.public_CurriculumDocument;
+    HelpSession: Models.public_HelpSession;
+    HintEvent: Models.public_HintEvent;
+    MaterialSection: Models.public_MaterialSection;
+    TeacherMaterial: Models.public_TeacherMaterial;
   };
 };
 
@@ -330,6 +939,194 @@ type ContractBase = Omit<
         readonly kind: 'postgres-schema';
         readonly entries: {
           readonly table: {
+            readonly AnswerAssessment: {
+              columns: {
+                readonly answerId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly idempotencyKey: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly occurredAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly result: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly sessionId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly text: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [
+                { readonly columns: readonly ['answerId'] },
+                { readonly columns: readonly ['sessionId', 'idempotencyKey'] },
+              ];
+              indexes: readonly [
+                {
+                  readonly name: 'AnswerAssessment_sessionId_idx_29f415d4';
+                  readonly prefix: 'AnswerAssessment_sessionId_idx';
+                  readonly columns: readonly ['sessionId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'AnswerAssessment';
+                    readonly columns: readonly ['sessionId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'HelpSession';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'AnswerAssessment';
+                    readonly columns: readonly ['answerId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'ChildAnswer';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly Assignment: {
+              columns: {
+                readonly classroomId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly dueDate: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly ownerId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly solutionKey: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly taskText: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly tenantId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly title: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'Assignment_classroomId_createdAt_idx_076fa421';
+                  readonly prefix: 'Assignment_classroomId_createdAt_idx';
+                  readonly columns: readonly ['classroomId', 'createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Assignment_classroomId_idx_e4a392d3';
+                  readonly prefix: 'Assignment_classroomId_idx';
+                  readonly columns: readonly ['classroomId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Assignment_tenantId_ownerId_createdAt_idx_6658b794';
+                  readonly prefix: 'Assignment_tenantId_ownerId_createdAt_idx';
+                  readonly columns: readonly ['tenantId', 'ownerId', 'createdAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Assignment';
+                    readonly columns: readonly ['classroomId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Classroom';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
             readonly AuditEntry: {
               columns: {
                 readonly actorId: {
@@ -418,8 +1215,982 @@ type ContractBase = Omit<
               ];
               foreignKeys: readonly [];
             };
+            readonly ChildAnswer: {
+              columns: {
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly idempotencyKey: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly occurredAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly sessionId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly text: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['sessionId', 'idempotencyKey'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'ChildAnswer_sessionId_idx_29f415d4';
+                  readonly prefix: 'ChildAnswer_sessionId_idx';
+                  readonly columns: readonly ['sessionId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'ChildAnswer_sessionId_occurredAt_idx_13b29b85';
+                  readonly prefix: 'ChildAnswer_sessionId_occurredAt_idx';
+                  readonly columns: readonly ['sessionId', 'occurredAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'ChildAnswer';
+                    readonly columns: readonly ['sessionId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'HelpSession';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly ChildProfile: {
+              columns: {
+                readonly companion: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly displayName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly federalState: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly grade: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly ownerId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly tenantId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly voiceConsent: {
+                  readonly dataType: 'pg/bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
+                  };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'ChildProfile_tenantId_ownerId_createdAt_idx_6658b794';
+                  readonly prefix: 'ChildProfile_tenantId_ownerId_createdAt_idx';
+                  readonly columns: readonly ['tenantId', 'ownerId', 'createdAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
+            readonly ClassMembership: {
+              columns: {
+                readonly childProfileId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly classroomId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly joinedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly tenantId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['childProfileId'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'ClassMembership_classroomId_idx_e4a392d3';
+                  readonly prefix: 'ClassMembership_classroomId_idx';
+                  readonly columns: readonly ['classroomId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'ClassMembership_classroomId_joinedAt_idx_5dba71cd';
+                  readonly prefix: 'ClassMembership_classroomId_joinedAt_idx';
+                  readonly columns: readonly ['classroomId', 'joinedAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'ClassMembership';
+                    readonly columns: readonly ['classroomId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Classroom';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'ClassMembership';
+                    readonly columns: readonly ['childProfileId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'ChildProfile';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly Classroom: {
+              columns: {
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly federalState: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly grade: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly inviteCodeHash: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly inviteCodeIssuedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly name: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly ownerId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'ACTIVE'>;
+                  };
+                  readonly many: false;
+                };
+                readonly subject: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly tenantId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['inviteCodeHash'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'Classroom_tenantId_ownerId_createdAt_idx_6658b794';
+                  readonly prefix: 'Classroom_tenantId_ownerId_createdAt_idx';
+                  readonly columns: readonly ['tenantId', 'ownerId', 'createdAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
+            readonly Competency: {
+              columns: {
+                readonly code: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly documentId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly federalState: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly gradeFrom: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly gradeTo: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly page: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly section: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly subject: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly text: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['documentId', 'code'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'Competency_documentId_idx_825ef746';
+                  readonly prefix: 'Competency_documentId_idx';
+                  readonly columns: readonly ['documentId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Competency_subject_gradeFrom_gradeTo_federalState_idx_6ef5ead8';
+                  readonly prefix: 'Competency_subject_gradeFrom_gradeTo_federalState_idx';
+                  readonly columns: readonly ['subject', 'gradeFrom', 'gradeTo', 'federalState'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Competency';
+                    readonly columns: readonly ['documentId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'CurriculumDocument';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly ComprehensionQuestion: {
+              columns: {
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly idempotencyKey: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly occurredAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly repliedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly replyText: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly sessionId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly text: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['sessionId', 'idempotencyKey'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'ComprehensionQuestion_sessionId_idx_29f415d4';
+                  readonly prefix: 'ComprehensionQuestion_sessionId_idx';
+                  readonly columns: readonly ['sessionId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'ComprehensionQuestion_sessionId_occurredAt_idx_13b29b85';
+                  readonly prefix: 'ComprehensionQuestion_sessionId_occurredAt_idx';
+                  readonly columns: readonly ['sessionId', 'occurredAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'ComprehensionQuestion';
+                    readonly columns: readonly ['sessionId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'HelpSession';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly CurriculumDocument: {
+              columns: {
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly federalState: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly gradeFrom: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly gradeTo: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly sourceKey: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly sourceUrl: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly subject: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly title: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly version: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['sourceKey', 'version'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly HelpSession: {
+              columns: {
+                readonly assignmentId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly childProfileId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly currentHintLevel: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly endedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly ownerId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly startedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'ACTIVE'>;
+                  };
+                  readonly many: false;
+                };
+                readonly taskText: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly tenantId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly version: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 1>;
+                  };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'HelpSession_assignmentId_idx_8cfb4ac4';
+                  readonly prefix: 'HelpSession_assignmentId_idx';
+                  readonly columns: readonly ['assignmentId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'HelpSession_childProfileId_idx_afadb118';
+                  readonly prefix: 'HelpSession_childProfileId_idx';
+                  readonly columns: readonly ['childProfileId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'HelpSession_childProfileId_status_updatedAt_idx_9bd9ef24';
+                  readonly prefix: 'HelpSession_childProfileId_status_updatedAt_idx';
+                  readonly columns: readonly ['childProfileId', 'status', 'updatedAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'HelpSession_tenantId_ownerId_updatedAt_idx_f60bcd45';
+                  readonly prefix: 'HelpSession_tenantId_ownerId_updatedAt_idx';
+                  readonly columns: readonly ['tenantId', 'ownerId', 'updatedAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'HelpSession';
+                    readonly columns: readonly ['childProfileId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'ChildProfile';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'HelpSession';
+                    readonly columns: readonly ['assignmentId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Assignment';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly HintEvent: {
+              columns: {
+                readonly competencyCode: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly idempotencyKey: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly level: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly occurredAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly sessionId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly text: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['sessionId', 'idempotencyKey'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'HintEvent_sessionId_idx_29f415d4';
+                  readonly prefix: 'HintEvent_sessionId_idx';
+                  readonly columns: readonly ['sessionId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'HintEvent_sessionId_occurredAt_idx_13b29b85';
+                  readonly prefix: 'HintEvent_sessionId_occurredAt_idx';
+                  readonly columns: readonly ['sessionId', 'occurredAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'HintEvent';
+                    readonly columns: readonly ['sessionId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'HelpSession';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly MaterialSection: {
+              columns: {
+                readonly code: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly materialId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly page: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly position: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly section: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly text: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['materialId', 'position'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'MaterialSection_materialId_idx_e0f85a6d';
+                  readonly prefix: 'MaterialSection_materialId_idx';
+                  readonly columns: readonly ['materialId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'MaterialSection';
+                    readonly columns: readonly ['materialId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'TeacherMaterial';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly TeacherMaterial: {
+              columns: {
+                readonly classroomId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly contentType: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly objectKey: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly ownerId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly sizeBytes: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'UPLOADED'>;
+                  };
+                  readonly many: false;
+                };
+                readonly tenantId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly title: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['objectKey'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'TeacherMaterial_classroomId_createdAt_idx_076fa421';
+                  readonly prefix: 'TeacherMaterial_classroomId_createdAt_idx';
+                  readonly columns: readonly ['classroomId', 'createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'TeacherMaterial_classroomId_idx_e4a392d3';
+                  readonly prefix: 'TeacherMaterial_classroomId_idx';
+                  readonly columns: readonly ['classroomId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'TeacherMaterial_tenantId_ownerId_createdAt_idx_6658b794';
+                  readonly prefix: 'TeacherMaterial_tenantId_ownerId_createdAt_idx';
+                  readonly columns: readonly ['tenantId', 'ownerId', 'createdAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'TeacherMaterial';
+                    readonly columns: readonly ['classroomId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Classroom';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
           };
           readonly valueSet: {
+            readonly AssessmentResult: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['CORRECT', 'PARTLY_CORRECT', 'NOT_YET'];
+            };
             readonly AuditActorKind: {
               readonly kind: 'valueSet';
               readonly values: readonly ['MEMBER', 'VISITOR', 'SYSTEM'];
@@ -427,6 +2198,60 @@ type ContractBase = Omit<
             readonly AuditSeverity: {
               readonly kind: 'valueSet';
               readonly values: readonly ['INFO', 'WARN'];
+            };
+            readonly ClassroomStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['ACTIVE', 'ARCHIVED'];
+            };
+            readonly Companion: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['MAX', 'LILI', 'FINA'];
+            };
+            readonly FederalState: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'BW',
+                'BY',
+                'BE',
+                'BB',
+                'HB',
+                'HH',
+                'HE',
+                'MV',
+                'NI',
+                'NW',
+                'RP',
+                'SL',
+                'SN',
+                'ST',
+                'SH',
+                'TH',
+              ];
+            };
+            readonly HelpSessionStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['ACTIVE', 'COMPLETED', 'ABANDONED'];
+            };
+            readonly HintLevel: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'UNDERSTAND_TASK',
+                'ACTIVATE_PRIOR_KNOWLEDGE',
+                'NEXT_STEP',
+                'SIMILAR_EXAMPLE',
+              ];
+            };
+            readonly MaterialContentType: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['PDF', 'TEXT'];
+            };
+            readonly MaterialStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['UPLOADED', 'PROCESSED', 'FAILED', 'DELETED'];
+            };
+            readonly Subject: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['MATH', 'GERMAN', 'GENERAL_STUDIES', 'ENGLISH'];
             };
           };
         };
@@ -439,15 +2264,226 @@ type ContractBase = Omit<
   readonly target: 'postgres';
   readonly targetFamily: 'sql';
   readonly roots: {
+    readonly AnswerAssessment: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'AnswerAssessment';
+    };
+    readonly Assignment: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'Assignment';
+    };
     readonly AuditEntry: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'AuditEntry';
+    };
+    readonly ChildAnswer: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'ChildAnswer';
+    };
+    readonly ChildProfile: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'ChildProfile';
+    };
+    readonly ClassMembership: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'ClassMembership';
+    };
+    readonly Classroom: { readonly namespace: 'public' & NamespaceId; readonly model: 'Classroom' };
+    readonly Competency: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'Competency';
+    };
+    readonly ComprehensionQuestion: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'ComprehensionQuestion';
+    };
+    readonly CurriculumDocument: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'CurriculumDocument';
+    };
+    readonly HelpSession: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'HelpSession';
+    };
+    readonly HintEvent: { readonly namespace: 'public' & NamespaceId; readonly model: 'HintEvent' };
+    readonly MaterialSection: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'MaterialSection';
+    };
+    readonly TeacherMaterial: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'TeacherMaterial';
     };
   };
   readonly domain: {
     readonly namespaces: {
       readonly public: {
         readonly models: {
+          readonly AnswerAssessment: {
+            readonly fields: {
+              readonly answerId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly idempotencyKey: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly occurredAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly result: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly sessionId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly text: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly answer: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'ChildAnswer';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['answerId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly session: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'HelpSession';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['sessionId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'AnswerAssessment';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly answerId: { readonly column: 'answerId' };
+                readonly id: { readonly column: 'id' };
+                readonly idempotencyKey: { readonly column: 'idempotencyKey' };
+                readonly occurredAt: { readonly column: 'occurredAt' };
+                readonly result: { readonly column: 'result' };
+                readonly sessionId: { readonly column: 'sessionId' };
+                readonly text: { readonly column: 'text' };
+              };
+            };
+          };
+          readonly Assignment: {
+            readonly fields: {
+              readonly classroomId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly dueDate: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly ownerId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly solutionKey: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly taskText: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly tenantId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly title: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly classroom: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Classroom';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['classroomId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly helpSessions: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'HelpSession';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['assignmentId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'Assignment';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly classroomId: { readonly column: 'classroomId' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly dueDate: { readonly column: 'dueDate' };
+                readonly id: { readonly column: 'id' };
+                readonly ownerId: { readonly column: 'ownerId' };
+                readonly solutionKey: { readonly column: 'solutionKey' };
+                readonly taskText: { readonly column: 'taskText' };
+                readonly tenantId: { readonly column: 'tenantId' };
+                readonly title: { readonly column: 'title' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
           readonly AuditEntry: {
             readonly fields: {
               readonly actorId: {
@@ -507,8 +2543,946 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly ChildAnswer: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly idempotencyKey: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly occurredAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly sessionId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly text: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly assessment: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'AnswerAssessment';
+                };
+                readonly cardinality: '1:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['answerId'];
+                };
+              };
+              readonly session: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'HelpSession';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['sessionId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'ChildAnswer';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly idempotencyKey: { readonly column: 'idempotencyKey' };
+                readonly occurredAt: { readonly column: 'occurredAt' };
+                readonly sessionId: { readonly column: 'sessionId' };
+                readonly text: { readonly column: 'text' };
+              };
+            };
+          };
+          readonly ChildProfile: {
+            readonly fields: {
+              readonly companion: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly displayName: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly federalState: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly grade: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly ownerId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly tenantId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly voiceConsent: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+            };
+            readonly relations: {
+              readonly helpSessions: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'HelpSession';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['childProfileId'];
+                };
+              };
+              readonly membership: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'ClassMembership';
+                };
+                readonly cardinality: '1:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['childProfileId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'ChildProfile';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly companion: { readonly column: 'companion' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly displayName: { readonly column: 'displayName' };
+                readonly federalState: { readonly column: 'federalState' };
+                readonly grade: { readonly column: 'grade' };
+                readonly id: { readonly column: 'id' };
+                readonly ownerId: { readonly column: 'ownerId' };
+                readonly tenantId: { readonly column: 'tenantId' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly voiceConsent: { readonly column: 'voiceConsent' };
+              };
+            };
+          };
+          readonly ClassMembership: {
+            readonly fields: {
+              readonly childProfileId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly classroomId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly joinedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly tenantId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly childProfile: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'ChildProfile';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['childProfileId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly classroom: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Classroom';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['classroomId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'ClassMembership';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly childProfileId: { readonly column: 'childProfileId' };
+                readonly classroomId: { readonly column: 'classroomId' };
+                readonly id: { readonly column: 'id' };
+                readonly joinedAt: { readonly column: 'joinedAt' };
+                readonly tenantId: { readonly column: 'tenantId' };
+              };
+            };
+          };
+          readonly Classroom: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly federalState: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly grade: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly inviteCodeHash: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly inviteCodeIssuedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly name: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly ownerId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly subject: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly tenantId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly assignments: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Assignment';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['classroomId'];
+                };
+              };
+              readonly materials: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'TeacherMaterial';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['classroomId'];
+                };
+              };
+              readonly memberships: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'ClassMembership';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['classroomId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'Classroom';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly federalState: { readonly column: 'federalState' };
+                readonly grade: { readonly column: 'grade' };
+                readonly id: { readonly column: 'id' };
+                readonly inviteCodeHash: { readonly column: 'inviteCodeHash' };
+                readonly inviteCodeIssuedAt: { readonly column: 'inviteCodeIssuedAt' };
+                readonly name: { readonly column: 'name' };
+                readonly ownerId: { readonly column: 'ownerId' };
+                readonly status: { readonly column: 'status' };
+                readonly subject: { readonly column: 'subject' };
+                readonly tenantId: { readonly column: 'tenantId' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly Competency: {
+            readonly fields: {
+              readonly code: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly documentId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly federalState: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly gradeFrom: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly gradeTo: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly page: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly section: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly subject: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly text: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly document: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'CurriculumDocument';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['documentId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'Competency';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly code: { readonly column: 'code' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly documentId: { readonly column: 'documentId' };
+                readonly federalState: { readonly column: 'federalState' };
+                readonly gradeFrom: { readonly column: 'gradeFrom' };
+                readonly gradeTo: { readonly column: 'gradeTo' };
+                readonly id: { readonly column: 'id' };
+                readonly page: { readonly column: 'page' };
+                readonly section: { readonly column: 'section' };
+                readonly subject: { readonly column: 'subject' };
+                readonly text: { readonly column: 'text' };
+              };
+            };
+          };
+          readonly ComprehensionQuestion: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly idempotencyKey: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly occurredAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly repliedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly replyText: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly sessionId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly text: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly session: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'HelpSession';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['sessionId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'ComprehensionQuestion';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly idempotencyKey: { readonly column: 'idempotencyKey' };
+                readonly occurredAt: { readonly column: 'occurredAt' };
+                readonly repliedAt: { readonly column: 'repliedAt' };
+                readonly replyText: { readonly column: 'replyText' };
+                readonly sessionId: { readonly column: 'sessionId' };
+                readonly text: { readonly column: 'text' };
+              };
+            };
+          };
+          readonly CurriculumDocument: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly federalState: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly gradeFrom: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly gradeTo: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly sourceKey: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly sourceUrl: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly subject: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly title: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly version: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly competencies: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Competency';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['documentId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'CurriculumDocument';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly federalState: { readonly column: 'federalState' };
+                readonly gradeFrom: { readonly column: 'gradeFrom' };
+                readonly gradeTo: { readonly column: 'gradeTo' };
+                readonly id: { readonly column: 'id' };
+                readonly sourceKey: { readonly column: 'sourceKey' };
+                readonly sourceUrl: { readonly column: 'sourceUrl' };
+                readonly subject: { readonly column: 'subject' };
+                readonly title: { readonly column: 'title' };
+                readonly version: { readonly column: 'version' };
+              };
+            };
+          };
+          readonly HelpSession: {
+            readonly fields: {
+              readonly assignmentId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly childProfileId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly currentHintLevel: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly endedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly ownerId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly startedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly taskText: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly tenantId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly version: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: {
+              readonly answerAssessments: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'AnswerAssessment';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['sessionId'];
+                };
+              };
+              readonly assignment: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Assignment';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['assignmentId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly childAnswers: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'ChildAnswer';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['sessionId'];
+                };
+              };
+              readonly childProfile: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'ChildProfile';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['childProfileId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly comprehensionQuestions: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'ComprehensionQuestion';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['sessionId'];
+                };
+              };
+              readonly hintEvents: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'HintEvent';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['sessionId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'HelpSession';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly assignmentId: { readonly column: 'assignmentId' };
+                readonly childProfileId: { readonly column: 'childProfileId' };
+                readonly currentHintLevel: { readonly column: 'currentHintLevel' };
+                readonly endedAt: { readonly column: 'endedAt' };
+                readonly id: { readonly column: 'id' };
+                readonly ownerId: { readonly column: 'ownerId' };
+                readonly startedAt: { readonly column: 'startedAt' };
+                readonly status: { readonly column: 'status' };
+                readonly taskText: { readonly column: 'taskText' };
+                readonly tenantId: { readonly column: 'tenantId' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly version: { readonly column: 'version' };
+              };
+            };
+          };
+          readonly HintEvent: {
+            readonly fields: {
+              readonly competencyCode: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly idempotencyKey: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly level: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly occurredAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly sessionId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly text: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly session: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'HelpSession';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['sessionId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'HintEvent';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly competencyCode: { readonly column: 'competencyCode' };
+                readonly id: { readonly column: 'id' };
+                readonly idempotencyKey: { readonly column: 'idempotencyKey' };
+                readonly level: { readonly column: 'level' };
+                readonly occurredAt: { readonly column: 'occurredAt' };
+                readonly sessionId: { readonly column: 'sessionId' };
+                readonly text: { readonly column: 'text' };
+              };
+            };
+          };
+          readonly MaterialSection: {
+            readonly fields: {
+              readonly code: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly materialId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly page: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly position: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly section: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly text: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly material: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'TeacherMaterial';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['materialId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'MaterialSection';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly code: { readonly column: 'code' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly materialId: { readonly column: 'materialId' };
+                readonly page: { readonly column: 'page' };
+                readonly position: { readonly column: 'position' };
+                readonly section: { readonly column: 'section' };
+                readonly text: { readonly column: 'text' };
+              };
+            };
+          };
+          readonly TeacherMaterial: {
+            readonly fields: {
+              readonly classroomId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly contentType: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly objectKey: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly ownerId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly sizeBytes: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly tenantId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly title: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly classroom: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Classroom';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['classroomId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly sections: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'MaterialSection';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['materialId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'TeacherMaterial';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly classroomId: { readonly column: 'classroomId' };
+                readonly contentType: { readonly column: 'contentType' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly objectKey: { readonly column: 'objectKey' };
+                readonly ownerId: { readonly column: 'ownerId' };
+                readonly sizeBytes: { readonly column: 'sizeBytes' };
+                readonly status: { readonly column: 'status' };
+                readonly tenantId: { readonly column: 'tenantId' };
+                readonly title: { readonly column: 'title' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
         };
         readonly enum: {
+          readonly AssessmentResult: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'CORRECT'; readonly value: 'CORRECT' },
+              { readonly name: 'PARTLY_CORRECT'; readonly value: 'PARTLY_CORRECT' },
+              { readonly name: 'NOT_YET'; readonly value: 'NOT_YET' },
+            ];
+          };
           readonly AuditActorKind: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -524,8 +3498,94 @@ type ContractBase = Omit<
               { readonly name: 'WARN'; readonly value: 'WARN' },
             ];
           };
+          readonly ClassroomStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+              { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
+            ];
+          };
+          readonly Companion: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'MAX'; readonly value: 'MAX' },
+              { readonly name: 'LILI'; readonly value: 'LILI' },
+              { readonly name: 'FINA'; readonly value: 'FINA' },
+            ];
+          };
+          readonly FederalState: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'BW'; readonly value: 'BW' },
+              { readonly name: 'BY'; readonly value: 'BY' },
+              { readonly name: 'BE'; readonly value: 'BE' },
+              { readonly name: 'BB'; readonly value: 'BB' },
+              { readonly name: 'HB'; readonly value: 'HB' },
+              { readonly name: 'HH'; readonly value: 'HH' },
+              { readonly name: 'HE'; readonly value: 'HE' },
+              { readonly name: 'MV'; readonly value: 'MV' },
+              { readonly name: 'NI'; readonly value: 'NI' },
+              { readonly name: 'NW'; readonly value: 'NW' },
+              { readonly name: 'RP'; readonly value: 'RP' },
+              { readonly name: 'SL'; readonly value: 'SL' },
+              { readonly name: 'SN'; readonly value: 'SN' },
+              { readonly name: 'ST'; readonly value: 'ST' },
+              { readonly name: 'SH'; readonly value: 'SH' },
+              { readonly name: 'TH'; readonly value: 'TH' },
+            ];
+          };
+          readonly HelpSessionStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+              { readonly name: 'COMPLETED'; readonly value: 'COMPLETED' },
+              { readonly name: 'ABANDONED'; readonly value: 'ABANDONED' },
+            ];
+          };
+          readonly HintLevel: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'UNDERSTAND_TASK'; readonly value: 'UNDERSTAND_TASK' },
+              {
+                readonly name: 'ACTIVATE_PRIOR_KNOWLEDGE';
+                readonly value: 'ACTIVATE_PRIOR_KNOWLEDGE';
+              },
+              { readonly name: 'NEXT_STEP'; readonly value: 'NEXT_STEP' },
+              { readonly name: 'SIMILAR_EXAMPLE'; readonly value: 'SIMILAR_EXAMPLE' },
+            ];
+          };
+          readonly MaterialContentType: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'PDF'; readonly value: 'PDF' },
+              { readonly name: 'TEXT'; readonly value: 'TEXT' },
+            ];
+          };
+          readonly MaterialStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'UPLOADED'; readonly value: 'UPLOADED' },
+              { readonly name: 'PROCESSED'; readonly value: 'PROCESSED' },
+              { readonly name: 'FAILED'; readonly value: 'FAILED' },
+              { readonly name: 'DELETED'; readonly value: 'DELETED' },
+            ];
+          };
+          readonly Subject: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'MATH'; readonly value: 'MATH' },
+              { readonly name: 'GERMAN'; readonly value: 'GERMAN' },
+              { readonly name: 'GENERAL_STUDIES'; readonly value: 'GENERAL_STUDIES' },
+              { readonly name: 'ENGLISH'; readonly value: 'ENGLISH' },
+            ];
+          };
         };
         readonly enumMemberTypes?: {
+          readonly AssessmentResult: readonly [
+            { readonly name: 'CORRECT'; readonly value: 'CORRECT' },
+            { readonly name: 'PARTLY_CORRECT'; readonly value: 'PARTLY_CORRECT' },
+            { readonly name: 'NOT_YET'; readonly value: 'NOT_YET' },
+          ];
           readonly AuditActorKind: readonly [
             { readonly name: 'MEMBER'; readonly value: 'MEMBER' },
             { readonly name: 'VISITOR'; readonly value: 'VISITOR' },
@@ -534,6 +3594,63 @@ type ContractBase = Omit<
           readonly AuditSeverity: readonly [
             { readonly name: 'INFO'; readonly value: 'INFO' },
             { readonly name: 'WARN'; readonly value: 'WARN' },
+          ];
+          readonly ClassroomStatus: readonly [
+            { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+            { readonly name: 'ARCHIVED'; readonly value: 'ARCHIVED' },
+          ];
+          readonly Companion: readonly [
+            { readonly name: 'MAX'; readonly value: 'MAX' },
+            { readonly name: 'LILI'; readonly value: 'LILI' },
+            { readonly name: 'FINA'; readonly value: 'FINA' },
+          ];
+          readonly FederalState: readonly [
+            { readonly name: 'BW'; readonly value: 'BW' },
+            { readonly name: 'BY'; readonly value: 'BY' },
+            { readonly name: 'BE'; readonly value: 'BE' },
+            { readonly name: 'BB'; readonly value: 'BB' },
+            { readonly name: 'HB'; readonly value: 'HB' },
+            { readonly name: 'HH'; readonly value: 'HH' },
+            { readonly name: 'HE'; readonly value: 'HE' },
+            { readonly name: 'MV'; readonly value: 'MV' },
+            { readonly name: 'NI'; readonly value: 'NI' },
+            { readonly name: 'NW'; readonly value: 'NW' },
+            { readonly name: 'RP'; readonly value: 'RP' },
+            { readonly name: 'SL'; readonly value: 'SL' },
+            { readonly name: 'SN'; readonly value: 'SN' },
+            { readonly name: 'ST'; readonly value: 'ST' },
+            { readonly name: 'SH'; readonly value: 'SH' },
+            { readonly name: 'TH'; readonly value: 'TH' },
+          ];
+          readonly HelpSessionStatus: readonly [
+            { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+            { readonly name: 'COMPLETED'; readonly value: 'COMPLETED' },
+            { readonly name: 'ABANDONED'; readonly value: 'ABANDONED' },
+          ];
+          readonly HintLevel: readonly [
+            { readonly name: 'UNDERSTAND_TASK'; readonly value: 'UNDERSTAND_TASK' },
+            {
+              readonly name: 'ACTIVATE_PRIOR_KNOWLEDGE';
+              readonly value: 'ACTIVATE_PRIOR_KNOWLEDGE';
+            },
+            { readonly name: 'NEXT_STEP'; readonly value: 'NEXT_STEP' },
+            { readonly name: 'SIMILAR_EXAMPLE'; readonly value: 'SIMILAR_EXAMPLE' },
+          ];
+          readonly MaterialContentType: readonly [
+            { readonly name: 'PDF'; readonly value: 'PDF' },
+            { readonly name: 'TEXT'; readonly value: 'TEXT' },
+          ];
+          readonly MaterialStatus: readonly [
+            { readonly name: 'UPLOADED'; readonly value: 'UPLOADED' },
+            { readonly name: 'PROCESSED'; readonly value: 'PROCESSED' },
+            { readonly name: 'FAILED'; readonly value: 'FAILED' },
+            { readonly name: 'DELETED'; readonly value: 'DELETED' },
+          ];
+          readonly Subject: readonly [
+            { readonly name: 'MATH'; readonly value: 'MATH' },
+            { readonly name: 'GERMAN'; readonly value: 'GERMAN' },
+            { readonly name: 'GENERAL_STUDIES'; readonly value: 'GENERAL_STUDIES' },
+            { readonly name: 'ENGLISH'; readonly value: 'ENGLISH' },
           ];
         };
       };
@@ -574,7 +3691,111 @@ type ContractBase = Omit<
         {
           readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
           readonly ref: {
+            readonly entry: 'AnswerAssessment';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'Assignment';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
             readonly entry: 'AuditEntry';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'ChildAnswer';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'ChildProfile';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'ClassMembership';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'Classroom';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'Competency';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'ComprehensionQuestion';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'CurriculumDocument';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'HelpSession';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'HintEvent';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'MaterialSection';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'TeacherMaterial';
             readonly field: 'id';
             readonly namespace: 'public';
           };

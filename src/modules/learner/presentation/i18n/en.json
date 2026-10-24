@@ -1,0 +1,17 @@
+{
+  "learner": {
+    "errors": {
+      "notFound": "The entry was not found.",
+      "validation": "Please check your input.",
+      "infrastructure": "A service error occurred. Please try again later.",
+      "unexpected": "An unexpected error occurred."
+    },
+    "validation": {
+      "idInvalid": "The identifier is invalid.",
+      "required": "This field is required.",
+      "tooLong": "This value is too long.",
+      "numberInvalid": "Enter a valid number.",
+      "optionUnknown": "Choose one of the available options."
+    }
+  }
+}
