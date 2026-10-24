@@ -20,7 +20,7 @@
     "apis": {
       "custom": {
         "endpoint": {
-          "uri": "https://wall-frog-whose-broke.trycloudflare.com/api/alexa",
+          "uri": "https://implies-cio-ciao-solving.trycloudflare.com/api/alexa",
           "sslCertificateType": "Wildcard"
         }
       }

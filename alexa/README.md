@@ -49,8 +49,24 @@ The channel handles only channel matters itself: Stop/Cancel/Home ("Tschüss"), 
 6. Answer within the time budget below; return plain text without markup, emojis or links.
 7. Put the rate limit into the tutor use case (it is the public, cost-incurring operation): a global and/or
    per-`conversationId` budget. Not per client address: all Alexa traffic arrives from a few Amazon addresses.
-   A refusal comes back as an error and is spoken as the short apology. The endpoint itself has no budget yet;
-   unsigned or forged requests stop at the timestamp/signature checks before any tutor work.
+   A refusal comes back as an error and is spoken as the short apology. Unsigned or forged requests never
+   reach the tutor (see "Request verification").
+
+## Request verification
+
+`infrastructure/ask-sdk/ask-request-verifier.ts` wraps the official ASK SDK verifiers (no own certificate code)
+in cheap guards that run first, so a forged request cannot make the server fetch certificates at will:
+
+1. Timestamp within ±150 s of the server clock (the SDK alone only rejects old dates).
+2. `SignatureCertChainUrl` of the form `https://s3.amazonaws.com/echo.api/echo-api-cert-<letters/digits>.pem` (today
+   `echo-api-cert-EUAmazon-prod-…pem`): no query, fragment, port, encoding, host case variants or dot segments.
+   The SDK caches certificates per URL string, so a certificate has exactly one cache key.
+3. Download budget: a URL that has not yet verified a request costs a download from S3; such downloads run one at
+   a time and at most 5 per 10 minutes per server instance. A URL that verified a request skips the budget.
+4. Then the SDK: timestamp verifier, certificate chain, signature (`Signature-256`), and finally the skill id.
+
+If Amazon rotates its certificate while an attacker keeps the budget exhausted, real requests fail until the
+window passes (at most 10 minutes); that trades availability for a hard cap on outbound downloads.
 
 ## Interaction model
 
@@ -99,7 +115,7 @@ The skill id is not a secret, but it is environment-specific and therefore not c
 ## Known limits
 
 - **8-second answer limit.** Alexa abandons a request after 8 s. Measured today: ~0.4 s for the first request
-  after a (re)start (certificate download from Amazon's S3, cached per certificate URL afterwards), 1–3 ms warm,
+  after a (re)start (certificate download from Amazon's S3, cached per certificate URL afterwards; up to ~2 s under load), 1–3 ms warm,
   plus ~0.1 s tunnel. A 5.3 s outlier coincided with heavy memory pressure and swapping on the host; the host
   process now runs without swap. An LLM tutor must stay well below 8 s end-to-end including a cold start
   on Vercel; for longer work send an Alexa **Progressive Response** ("Moment, ich überlege…") first and keep the
@@ -120,8 +136,8 @@ The skill id is not a secret, but it is environment-specific and therefore not c
 has advisory **GHSA-86w9-cpqp-85rv** (RSA PKCS#1 v1.5 signature verification, `<= 1.4.0`, no patched release).
 node-forge is used only for the certificate-chain check of Amazon's signing certificate, whose URL is pinned to
 `https://s3.amazonaws.com/echo.api/`; the request signature itself is verified with `node:crypto`. The advisory is
-accepted as a reviewed, time-boxed exception until **2027-01-24** (decision B S, 2026-10-24). The repository
-currently has no automated dependency audit (GitHub Actions were replaced by the Vercel build pipeline), so
-`npm audit --omit=dev` reports exactly this one high advisory and nothing enforces the date; if an audit gate is
-reintroduced, allow only `GHSA-86w9-cpqp-85rv` and only until that date. Exit: a patched node-forge or SDK
-release, or replacing the SDK verifier with a `node:crypto` certificate-chain check.
+accepted as a reviewed, time-boxed exception until **2027-01-24** (decision B S, 2026-10-24). It is enforced by
+`npm run audit:prod` (`scripts/audit-production.ts`), the first step of `npm run build:vercel` and `npm run check`:
+every high or critical advisory in production dependencies fails the build, except this GHSA through its expiry
+date; from 2027-01-25 it fails too. The team replaced GitHub Actions with the Vercel build, so the gate lives
+there. Exit: a patched node-forge or SDK release, or replacing the SDK verifier with a `node:crypto` certificate-chain check.
