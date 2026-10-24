@@ -154,4 +154,5 @@ async function main(): Promise<void> {
   process.stdout.write(`${uploads.length} objects, ${tutorCatalog.tutoren.length} tutors.\n`);
 }
 
-await main();
+// Never render a raw transport exception: it may contain the signed upload URL.
+await main().catch(() => fail('sync failed; check input files, storage access and network.'));

@@ -21,7 +21,7 @@
         "tts": { "provider": "azure", "voiceId": "de-DE-KillianNeural", "style": null }
       },
       "quelle": "hort_ai_hund_blau",
-      "status": "entwurf"
+      "status": "bereit"
     },
     {
       "id": "lili",
@@ -43,7 +43,7 @@
         "tts": { "provider": "azure", "voiceId": "de-DE-GiselaNeural", "style": null }
       },
       "quelle": "hort_ai_hase",
-      "status": "entwurf"
+      "status": "bereit"
     },
     {
       "id": "fina",
@@ -65,7 +65,7 @@
         "tts": { "provider": "azure", "voiceId": "de-DE-MajaNeural", "style": null }
       },
       "quelle": "hort_ai_drache",
-      "status": "entwurf"
+      "status": "bereit"
     }
   ]
 }

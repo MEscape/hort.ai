@@ -7,6 +7,14 @@ describe('tutor catalog', () => {
     expect(tutorCatalog.tutoren.map((tutor) => tutor.id)).toEqual(['max', 'lili', 'fina']);
   });
 
+  it('ships the three approved personas as ready', () => {
+    expect(tutorCatalog.tutoren.map((tutor) => tutor.status)).toEqual([
+      'bereit',
+      'bereit',
+      'bereit',
+    ]);
+  });
+
   it('maps a tutor picture to its storage key', () => {
     expect(tutorImageKey('max', 'mund_zu')).toBe('tutors/max/mund-zu.svg');
     expect(tutorImageKey('max', 'mund_auf')).toBe('tutors/max/mund-auf.svg');

@@ -33,8 +33,12 @@ The browser loads the pictures directly from `STORAGE_PUBLIC_BASE_URL/tutors/<id
 
 The sync is idempotent: it overwrites the same keys, sets `Content-Type: image/svg+xml` and
 `Cache-Control: public, max-age=86400` (manifest: 5 minutes) and checks size and type with `head`
-after each upload. It never prints the account key or a signed URL. Locally it runs against
-Azurite (`docker compose up`) with the values from `.env.example`.
+after each upload. It never prints the account key or a signed URL. Inputs are all read before
+writing; the manifest is published last, but this is not an atomic multi-blob deployment. Overwrites
+may remain cached for up to one day; use versioned URLs/cache busting in a future asset rollout if
+immediate replacement is required. Original SVGs are kept byte-for-byte (no unverified optimization).
+Locally it runs against Azurite (`docker compose --env-file .env.docker up -d`) with the values
+from `.env.example`.
 
 ## Voice (`stimme.tts`)
 
@@ -43,7 +47,30 @@ concrete provider voice. Recommendation: Azure AI Speech (same subscription, Ger
 SSML for rate and pitch). Child-friendly candidates: `de-DE-KillianNeural` (Max),
 `de-DE-GiselaNeural` (child voice, Lili), `de-DE-MajaNeural` (Fina); alternatives
 `de-DE-AmalaNeural`, `de-DE-ConradNeural`. Map `tempo`/`tonhoehe` to SSML `prosody` when TTS is
-built. Listen before choosing; nothing calls a TTS provider yet.
+built. Listen before choosing; nothing calls a TTS provider yet. These are candidates, not
+an acoustic acceptance test. Microsoft's [voice list](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)
+marks Gisela as a child voice; Killian and Maja are not listed as child voices. Check regional
+availability and credit eligibility when provisioning Speech; no Speech resource is created here.
+
+## Integration handoff (not implemented here)
+
+- #12 (start screen): offer only tutors with `status === 'bereit'`; show name, animal and closed-mouth
+  image. Store the selected stable `id` on the authorized child profile, not the image URL or display
+  name. After reload/sign-in restore it; reject unknown/draft ids server-side and offer a new selection
+  if a previously selected tutor is removed. A local-only choice cannot meet cross-device persistence.
+- #34 (voice): resolve `stimme.tts` from that id on the server. Animate only while actual audio plays,
+  alternating the two images; reset to closed on end, pause, cancel, error, profile/tutor change and
+  unmount. Preload both pictures. No provider keys in browser code, no new image upload during speech.
+  Text remains usable when audio fails. Two images approximate speech, not phoneme-accurate lip sync.
+- #20 (design): carry the selected companion consistently across screens; use visible selection and
+  reduced-motion behaviour. Personas remain editorial content, not a substitute for global safety rules.
+- #18 (E2E): cover choosing each tutor, restored selection, child-profile isolation, unknown/draft
+  rejection and image states on play/end/cancel/error with a fake audio adapter. These criteria need
+  to be added by the respective issue owners; this PR does not implement selection, persistence or TTS.
+
+Use the checked-in catalog through the module API on the server; pass only needed data to Client
+Components. Alternatively, `tutors/manifest.json` is a public delivery artifact with absolute URLs,
+not the editing source. Source mapping (`quelle`) is intentionally absent there.
 
 ## Cleanup after the hackathon
 
