@@ -2,32 +2,16 @@ import * as React from 'react';
 
 import { cn } from '@lib/utils';
 
-type CardTone = 'surface' | 'sunken' | 'highlight';
-
-/** `surface` is the default look; the other tones mark a quieter or a highlighted panel. */
-const TONE_CLASSES: Record<CardTone, string> = {
-  surface: '',
-  sunken: 'bg-sunken border-highlight-border shadow-soft',
-  highlight: 'bg-highlight border-highlight-border shadow-soft',
-};
-
-type CardProps = React.ComponentProps<'div'> & {
-  readonly tone?: CardTone;
-};
-
 /**
  * shadcn's Card, as Hortai's "storybook page": a white surface on the world, large radius, soft
- * lift. The one container for a screen's main content; never nest cards inside cards. A card is a
- * visual panel, never clickable on its own: compose it with a real link or button.
+ * lift. The one container for a screen's main content; never nest cards inside cards.
  */
-function Card({ className, tone = 'surface', ...props }: CardProps) {
+function Card({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="card"
-      data-tone={tone}
       className={cn(
         'relative flex flex-col rounded-token-xl border border-border bg-surface text-copy shadow-lift',
-        TONE_CLASSES[tone],
         className,
       )}
       {...props}

@@ -100,7 +100,7 @@ flowchart LR
   Rules[The same safety and access requirements] -. apply to every companion .-> Style
 ```
 
-Exact prompt assembly, voice-provider selection and animation assets are implementation decisions. A gallery mascot or catalog entry does not authorize a different product policy. Related work: #10, #11, #31, #34 and PR #37.
+Exact prompt assembly, voice-provider selection and animation assets are implementation decisions. A catalog entry does not authorize a different product policy. Related work: #10, #11, #31, #34 and PR #37.
 
 ## 6. Companion presence in the interface
 
@@ -142,7 +142,6 @@ Alexa is a future concept, not a required MVP adapter. This diagram approves no 
 
 ## Relationship to existing work
 
-- [PR #36](https://github.com/MEscape/hort.ai/pull/36) introduced the homework-companion vision. This documentation carries that direction forward with the later confirmed profile and scope decisions; its overlapping product text must be reconciled when merging.
-- [PR #38](https://github.com/MEscape/hort.ai/pull/38) introduces a component gallery. Its examples demonstrate presentation only, not approved lessons, learning paths, rewards or application state handling.
+- [PR #36](https://github.com/MEscape/hort.ai/pull/36) introduced the homework-companion vision. This documentation adds the later confirmed profile and scope decisions on top of it.
 - The earlier demo-learning-path proposal in closed PR #26 and the exercise, reward and streak issues #13, #15, #16 and #19 do not define current requirements.
 - Personal agent files and external mockups are context, not substitutes for these shared documents. No local PDF path is required to understand the agreed product.

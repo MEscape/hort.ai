@@ -95,7 +95,7 @@ migrations/auth/  authentication migrations (applied by npm run db:migrate:auth)
 docker/           init scripts for the local containers
 eslint/           repository-specific lint rules
 scripts/          code generators (npm run gen) and maintenance scripts
-docs/             product/, rules/, conventions/, architecture/, agents/, design-system/
+docs/             product/, rules/, conventions/, architecture/, agents/
 public/           static assets
 __tests__/        tests mirroring src/, plus architecture/, eslint/ and scripts/
 ```
