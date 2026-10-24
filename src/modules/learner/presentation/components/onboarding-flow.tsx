@@ -102,8 +102,10 @@ function CurrentStage({ context, tutors }: StageProps) {
 }
 
 /**
- * The parent's setup: welcome, child, interests, companion, controls, review, done. Each screen is
- * left only after the backend stored it, and a visit resumes at the first step that is still open.
+ * The parent's setup: welcome, child, interests, companion, Alexa, controls, review, done. Each
+ * screen is left only after the backend stored it, and a visit resumes at the first step that is
+ * still open. A step arrives with a short rise and fade (only transform and opacity, so it costs
+ * nothing, and calm mode turns it off).
  */
 export function OnboardingFlow({ initial, tutors }: OnboardingFlowProps) {
   const flow = useOnboardingFlow(initial);
@@ -111,7 +113,12 @@ export function OnboardingFlow({ initial, tutors }: OnboardingFlowProps) {
 
   return (
     <OnboardingLayout stage={flow.stage} stepNumber={flow.stepNumber}>
-      <CurrentStage context={context} tutors={tutors} />
+      <div
+        key={flow.stage}
+        className="motion-safe:animate-in motion-safe:duration-300 motion-safe:fade-in motion-safe:slide-in-from-bottom-2"
+      >
+        <CurrentStage context={context} tutors={tutors} />
+      </div>
     </OnboardingLayout>
   );
 }

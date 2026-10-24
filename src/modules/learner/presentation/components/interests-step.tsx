@@ -81,7 +81,7 @@ export function InterestsStep({
                 const isLocked = field.value.length >= max && !field.value.includes(interest);
                 return (
                   <ToggleGroupItem key={interest} value={interest} disabled={isLocked}>
-                    <Icon className="size-5 text-secondary-copy" aria-hidden="true" />
+                    <Icon className="size-5 text-copy-muted" aria-hidden="true" />
                     {t(`interests.items.${interest}`)}
                     <Check
                       className="hidden size-4 text-primary-copy in-data-[state=on]:block"

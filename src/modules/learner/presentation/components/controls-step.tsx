@@ -24,9 +24,9 @@ export interface ControlsStepProps {
 }
 
 /**
- * The parent's controls for the child: voice, learning time, and whether Hort may note where help
- * was needed. The safest value of each is already chosen. What Hort always does is listed without a
- * switch, and the parent confirms guardianship before anything is kept.
+ * The parent's controls for the child, in groups with a heading each: voice, learning time, notes
+ * for the summary, what always applies, and the guardian's confirmation. The safest value of every
+ * control is already chosen, and nothing is kept before the confirmation.
  */
 export function ControlsStep({
   stepNumber,

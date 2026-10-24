@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 
+import { Character } from '@components/brand/character';
 import { Button } from '@components/ui/button';
 import { Pencil } from '@components/ui/icons';
 
@@ -11,7 +12,6 @@ import { useCompleteSetup } from '../hooks/use-complete-setup';
 
 import { StepFrame } from './step-frame';
 import { formatMinute } from './time-options';
-import { TutorAvatar } from './tutor-avatar';
 
 import type { TutorOption } from './tutor-option';
 import type { ChildProfileDto } from '../dto/learner-dto';
@@ -132,11 +132,10 @@ export function ReviewStep({
       >
         {tutor !== null && (
           <p className="flex items-center gap-3">
-            <TutorAvatar
+            <Character
               imageUrl={tutor.imageUrl}
-              tone={tutor.tone}
               alt={t('tutor.imageAlt', { name: tutor.name, animal: tutor.animal })}
-              className="size-14"
+              className="size-16 overflow-hidden rounded-token bg-surface shadow-soft"
             />
             <span>
               <span className="font-heading text-lg font-semibold">{tutor.name}</span>{' '}

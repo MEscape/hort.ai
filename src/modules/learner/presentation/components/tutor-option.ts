@@ -1,5 +1,3 @@
-import type { Tone } from './tones';
-
 /** A companion the parent can choose, as the page prepared it from the tutor catalog. */
 export interface TutorOption {
   readonly id: string;
@@ -10,8 +8,6 @@ export interface TutorOption {
   readonly topics: readonly string[];
   readonly greeting: string;
   readonly voice: string;
-  /** The tone of the picture's tile, from the catalog colour (blue, red, none). */
-  readonly tone: Tone;
   /** Absolute URL of the closed-mouth picture; the picture may be missing, the card still works. */
   readonly imageUrl: string;
   /** Absolute URL of the open-mouth picture, shown while the introduction plays. */

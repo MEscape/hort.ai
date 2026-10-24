@@ -134,7 +134,6 @@
     "alexa": {
       "title": "Connect Alexa (optional)",
       "description": "Later, your child can start Hort by voice through Alexa. You can disconnect it at any time.",
-      "hero": "Hort for Alexa",
       "status": {
         "unavailable": "Not available yet",
         "not_linked": "Not connected",
@@ -145,7 +144,16 @@
       "connect": "Connect with Alexa",
       "disconnect": "Disconnect Alexa",
       "later": "Connect later",
-      "continue": "Continue"
+      "continue": "Continue",
+      "command": "“Alexa, open Hort.”",
+      "how": {
+        "title": "How it will work",
+        "steps": {
+          "link": "You connect your Alexa account with Hort once.",
+          "say": "Your child says the sentence above to start.",
+          "help": "Hort helps your child think the task through, and never gives the solution."
+        }
+      }
     },
     "controls": {
       "title": "Safety and settings",
@@ -168,7 +176,8 @@
         "windowOff": "Any time of day",
         "from": "From",
         "until": "Until",
-        "note": "Times apply from the first homework help. The daily limit is saved now and applied once Hort can measure learning time."
+        "note": "Times apply from the first homework help. The daily limit is saved now and applied once Hort can measure learning time.",
+        "limitHint": "How long Hort helps per day."
       },
       "insights": {
         "title": "Notes for your summary",
@@ -177,7 +186,7 @@
         "off": "Notes are off"
       },
       "always": {
-        "title": "Always on, you cannot turn these off",
+        "title": "What always applies",
         "items": {
           "solution": "Hort never gives the solution to a task. Your child does the thinking.",
           "checks": "Text for your child goes through safety checks first.",
@@ -188,7 +197,13 @@
         "label": "I am the parent or legal guardian of {name}, and I allow Hort to store the details from this setup.",
         "hint": "Required to continue. Privacy notice version {version}."
       },
-      "submit": "Continue"
+      "submit": "Continue",
+      "groups": {
+        "voice": "Voice",
+        "time": "Learning time",
+        "notes": "Summary for you",
+        "guardian": "Your confirmation"
+      }
     },
     "review": {
       "title": "Is everything right?",

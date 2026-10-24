@@ -4,11 +4,13 @@ import { useWatch } from 'react-hook-form';
 
 import { FieldMessage } from '@components/shared/field-message';
 
+import { useCharacterVoice } from '@hooks/use-character-voice';
+
 import { useTranslations } from '@i18n/client';
 
+import { TutorDetails } from './tutor-details';
+import { TutorFigure } from './tutor-figure';
 import { bestFits } from './tutor-fit';
-import { TutorStage } from './tutor-stage';
-import { TutorTile } from './tutor-tile';
 
 import type { TutorOption } from './tutor-option';
 import type { TutorForm } from '../schemas/onboarding-schema';
@@ -26,9 +28,11 @@ export interface TutorPickerProps {
 }
 
 /**
- * The companions as a row of big tiles (a swipeable row on a phone, three columns from `sm`), and
- * below it the chosen one up close with the spoken introduction. Nothing is chosen at first: the
- * area below says "tap a companion" until the parent does.
+ * The companions standing in a stage (they rise above its box), and below it the chosen one up
+ * close with a button for the spoken introduction. Nothing is chosen at first: the area below says
+ * "tap a companion". The voice lives here because the figure (its mouth) and the details (the
+ * button) both need it; it re-renders this screen only when the sound starts or stops, while the
+ * mouth moves inside the chosen figure alone.
  */
 export function TutorPicker({
   tutors,
@@ -41,19 +45,24 @@ export function TutorPicker({
 }: TutorPickerProps) {
   const t = useTranslations('learner');
   const selectedId = useWatch({ control, name: 'tutorId' });
-  const fits = bestFits(tutors, interests);
   const selected = tutors.find((tutor) => tutor.id === selectedId);
+  const voice = useCharacterVoice(selected?.introUrl ?? '');
+  const fits = bestFits(tutors, interests);
+  const fitLabels = (id: string) =>
+    (fits.get(id) ?? []).map((interest) => t(`interests.items.${interest}`));
 
   return (
-    <fieldset className="flex min-w-0 flex-col gap-5">
+    <fieldset className="flex min-w-0 flex-col gap-6">
       <legend className="sr-only">{t('tutor.groupLabel', { name })}</legend>
       <p className="text-sm text-copy-muted">{t('tutor.languageNote')}</p>
-      <div className="-mx-6 flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 pt-1 pb-3 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0">
+      <div className="mt-14 flex items-end justify-center gap-2 rounded-token-xl border border-border bg-highlight/70 px-3 pb-5 sm:mt-24 sm:gap-8 sm:px-8">
         {tutors.map((tutor) => (
-          <TutorTile
+          <TutorFigure
             key={tutor.id}
             tutor={tutor}
-            fits={(fits.get(tutor.id) ?? []).map((interest) => t(`interests.items.${interest}`))}
+            isSelected={tutor.id === selectedId}
+            isSpeaking={voice.status === 'playing'}
+            fits={fitLabels(tutor.id)}
             radioProps={registration}
           />
         ))}
@@ -64,7 +73,7 @@ export function TutorPicker({
           {t('tutor.pick')}
         </p>
       ) : (
-        <TutorStage key={selected.id} tutor={selected} />
+        <TutorDetails tutor={selected} fits={fitLabels(selected.id)} voice={voice} />
       )}
     </fieldset>
   );

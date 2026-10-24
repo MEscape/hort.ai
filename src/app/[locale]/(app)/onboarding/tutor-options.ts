@@ -5,12 +5,6 @@ import { tutorCatalog, tutorImageKey, tutorIntroKey } from '@modules/tutors';
 
 import { serverEnv } from '@lib/config/server';
 
-/** The tutor catalog names a main colour; the tile behind the picture takes the matching tone. */
-const TONE_BY_COLOUR: Readonly<Record<string, TutorOption['tone']>> = {
-  blau: 'sky',
-  rot: 'bloom',
-};
-
 /**
  * The companions a parent can choose, taken from the checked-in tutor catalog: only those marked
  * ready, with just what the setup shows. Pictures and the spoken introduction live in the public
@@ -33,7 +27,6 @@ export function buildTutorOptions(): readonly TutorOption[] {
       topics: tutor.lieblingsthemen,
       greeting: tutor.begruessung,
       voice: tutor.stimme.charakter,
-      tone: TONE_BY_COLOUR[tutor.farbe ?? ''] ?? 'amber',
       imageUrl: url(tutorImageKey(tutor.id, 'mund_zu')),
       imageOpenUrl: url(tutorImageKey(tutor.id, 'mund_auf')),
       introUrl: url(tutorIntroKey(tutor.id)),

@@ -4,8 +4,16 @@ import { useId } from 'react';
 
 import { Controller, useWatch } from 'react-hook-form';
 
+import { FieldMessage } from '@components/shared/field-message';
 import { SelectField } from '@components/shared/select-field';
-import { Clock } from '@components/ui/icons';
+import { Label } from '@components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@components/ui/select';
 import { Switch } from '@components/ui/switch';
 
 import { useTranslations } from '@i18n/client';
@@ -14,6 +22,7 @@ import { DAILY_LIMIT_MINUTES } from '../../application/contracts/learner-constra
 import { NO_LIMIT } from '../schemas/onboarding-schema';
 
 import { SettingRow } from './setting-row';
+import { SettingsGroup } from './settings-group';
 import { FROM_OPTIONS, UNTIL_OPTIONS } from './time-options';
 
 import type { ControlsForm } from '../schemas/onboarding-schema';
@@ -25,50 +34,60 @@ export interface TimeSettingsProps {
   readonly errorText: (code: string | undefined) => string | undefined;
 }
 
-/** The daily limit and the optional window of the day in which Hort is available. */
+/** The daily limit and the optional window of the day in which Hort is available, as one group. */
 export function TimeSettings({ control, errors, errorText }: TimeSettingsProps) {
   const t = useTranslations('learner');
   const id = useId();
   const isWindowOn = useWatch({ control, name: 'windowEnabled' });
+  const limitError = errorText(errors.dailyLimitMinutes?.message);
 
   return (
-    <section aria-labelledby={`${id}-heading`} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <h2 id={`${id}-heading`} className="font-heading text-lg font-semibold">
-          {t('controls.time.title')}
-        </h2>
-        <p className="text-copy-muted">{t('controls.time.description')}</p>
+    <SettingsGroup title={t('controls.groups.time')} description={t('controls.time.description')}>
+      <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <Label htmlFor={`${id}-limit`} className="font-semibold">
+            {t('controls.time.limit')}
+          </Label>
+          <p id={`${id}-limit-hint`} className="text-copy-muted">
+            {t('controls.time.limitHint')}
+          </p>
+        </div>
+        <Controller
+          control={control}
+          name="dailyLimitMinutes"
+          render={({ field }) => (
+            <Select name={field.name} value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger
+                id={`${id}-limit`}
+                onBlur={field.onBlur}
+                aria-invalid={limitError === undefined ? undefined : true}
+                aria-describedby={`${id}-limit-hint`}
+                className="sm:w-48"
+              >
+                <SelectValue placeholder={t('controls.time.limitNone')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_LIMIT}>{t('controls.time.limitNone')}</SelectItem>
+                {DAILY_LIMIT_MINUTES.map((minutes) => (
+                  <SelectItem key={minutes} value={String(minutes)}>
+                    {t('controls.time.limitOption', { minutes })}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
       </div>
-      <Controller
-        control={control}
-        name="dailyLimitMinutes"
-        render={({ field }) => (
-          <SelectField
-            id={`${id}-limit`}
-            name={field.name}
-            label={t('controls.time.limit')}
-            placeholder={t('controls.time.limitNone')}
-            options={[
-              { value: NO_LIMIT, label: t('controls.time.limitNone') },
-              ...DAILY_LIMIT_MINUTES.map((minutes) => ({
-                value: String(minutes),
-                label: t('controls.time.limitOption', { minutes }),
-              })),
-            ]}
-            value={field.value}
-            onValueChange={field.onChange}
-            onBlur={field.onBlur}
-            error={errorText(errors.dailyLimitMinutes?.message)}
-          />
-        )}
-      />
+      {limitError !== undefined && (
+        <div className="px-4 py-3">
+          <FieldMessage id={`${id}-limit-error`}>{limitError}</FieldMessage>
+        </div>
+      )}
       <Controller
         control={control}
         name="windowEnabled"
         render={({ field }) => (
           <SettingRow
-            icon={Clock}
-            tone="amber"
             titleId={`${id}-window-title`}
             descriptionId={`${id}-window-description`}
             title={t('controls.time.windowTitle')}
@@ -85,7 +104,7 @@ export function TimeSettings({ control, errors, errorText }: TimeSettingsProps) 
         )}
       />
       {isWindowOn && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 p-4">
           <Controller
             control={control}
             name="windowFrom"
@@ -121,7 +140,7 @@ export function TimeSettings({ control, errors, errorText }: TimeSettingsProps) 
           />
         </div>
       )}
-      <p className="text-sm text-copy-muted">{t('controls.time.note')}</p>
-    </section>
+      <p className="p-4 text-sm text-copy-muted">{t('controls.time.note')}</p>
+    </SettingsGroup>
   );
 }

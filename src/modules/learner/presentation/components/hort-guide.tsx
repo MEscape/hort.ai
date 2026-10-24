@@ -24,18 +24,21 @@ export interface HortGuideProps {
 }
 
 /**
- * Hort beside the steps, with one short sentence about the screen in front of the parent. It
- * guides; every instruction a parent needs is also in the card itself.
+ * Hort beside the steps, with one short sentence about the screen in front of the parent. On every
+ * new screen the bubble pops up and Hort hops once, so a step feels like it was noticed. It guides;
+ * every instruction a parent needs is also in the card itself.
  */
 export function HortGuide({ stage }: HortGuideProps) {
   const t = useTranslations('learner');
 
   return (
-    <div className="flex flex-col items-center gap-1">
-      <p className="relative flex min-h-20 w-full items-center justify-center rounded-token-xl bg-secondary px-5 py-4 text-center text-base font-semibold text-secondary-foreground shadow-soft after:absolute after:-bottom-2 after:left-1/2 after:size-4 after:-translate-x-1/2 after:rotate-45 after:rounded-sm after:bg-secondary after:content-['']">
+    <div key={stage} className="flex flex-col items-center gap-1">
+      <p className="relative flex min-h-20 w-full animate-pop items-center justify-center rounded-token-xl bg-secondary px-5 py-4 text-center text-base font-semibold text-secondary-foreground shadow-soft after:absolute after:-bottom-2 after:left-1/2 after:size-4 after:-translate-x-1/2 after:rotate-45 after:rounded-sm after:bg-secondary after:content-['']">
         {t(`guide.${stage}`)}
       </p>
-      <Hort mood={MOOD_BY_STAGE[stage]} isAmbient className="mt-2 size-36" />
+      <span className="mt-2 inline-block origin-bottom animate-hop">
+        <Hort mood={MOOD_BY_STAGE[stage]} isAmbient className="size-36" />
+      </span>
     </div>
   );
 }

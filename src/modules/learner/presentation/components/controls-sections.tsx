@@ -6,7 +6,7 @@ import { Controller } from 'react-hook-form';
 
 import { FieldMessage } from '@components/shared/field-message';
 import { Checkbox } from '@components/ui/checkbox';
-import { BookOpen, Mic, ShieldCheck } from '@components/ui/icons';
+import { Check } from '@components/ui/icons';
 import { Label } from '@components/ui/label';
 import { Switch } from '@components/ui/switch';
 
@@ -15,6 +15,7 @@ import { useTranslations } from '@i18n/client';
 import { GUARDIAN_CONSENT_VERSION } from '../../application/contracts/learner-constraints';
 
 import { SettingRow } from './setting-row';
+import { SettingsGroup } from './settings-group';
 
 import type { ControlsForm } from '../schemas/onboarding-schema';
 import type { Control, FieldErrors } from 'react-hook-form';
@@ -32,28 +33,28 @@ export function VoiceSetting({ control, name }: Pick<ControlsSectionProps, 'cont
   const id = useId();
 
   return (
-    <Controller
-      control={control}
-      name="voiceEnabled"
-      render={({ field }) => (
-        <SettingRow
-          icon={Mic}
-          tone="sky"
-          titleId={`${id}-title`}
-          descriptionId={`${id}-description`}
-          title={t('controls.voice.title')}
-          description={t('controls.voice.description', { name })}
-          stateText={field.value ? t('controls.voice.on') : t('controls.voice.off')}
-        >
-          <Switch
-            checked={field.value}
-            onCheckedChange={field.onChange}
-            aria-labelledby={`${id}-title`}
-            aria-describedby={`${id}-description`}
-          />
-        </SettingRow>
-      )}
-    />
+    <SettingsGroup title={t('controls.groups.voice')}>
+      <Controller
+        control={control}
+        name="voiceEnabled"
+        render={({ field }) => (
+          <SettingRow
+            titleId={`${id}-title`}
+            descriptionId={`${id}-description`}
+            title={t('controls.voice.title')}
+            description={t('controls.voice.description', { name })}
+            stateText={field.value ? t('controls.voice.on') : t('controls.voice.off')}
+          >
+            <Switch
+              checked={field.value}
+              onCheckedChange={field.onChange}
+              aria-labelledby={`${id}-title`}
+              aria-describedby={`${id}-description`}
+            />
+          </SettingRow>
+        )}
+      />
+    </SettingsGroup>
   );
 }
 
@@ -63,28 +64,28 @@ export function InsightsSetting({ control, name }: Pick<ControlsSectionProps, 'c
   const id = useId();
 
   return (
-    <Controller
-      control={control}
-      name="learningInsights"
-      render={({ field }) => (
-        <SettingRow
-          icon={BookOpen}
-          tone="bloom"
-          titleId={`${id}-title`}
-          descriptionId={`${id}-description`}
-          title={t('controls.insights.title')}
-          description={t('controls.insights.description', { name })}
-          stateText={field.value ? t('controls.insights.on') : t('controls.insights.off')}
-        >
-          <Switch
-            checked={field.value}
-            onCheckedChange={field.onChange}
-            aria-labelledby={`${id}-title`}
-            aria-describedby={`${id}-description`}
-          />
-        </SettingRow>
-      )}
-    />
+    <SettingsGroup title={t('controls.groups.notes')}>
+      <Controller
+        control={control}
+        name="learningInsights"
+        render={({ field }) => (
+          <SettingRow
+            titleId={`${id}-title`}
+            descriptionId={`${id}-description`}
+            title={t('controls.insights.title')}
+            description={t('controls.insights.description', { name })}
+            stateText={field.value ? t('controls.insights.on') : t('controls.insights.off')}
+          >
+            <Switch
+              checked={field.value}
+              onCheckedChange={field.onChange}
+              aria-labelledby={`${id}-title`}
+              aria-describedby={`${id}-description`}
+            />
+          </SettingRow>
+        )}
+      />
+    </SettingsGroup>
   );
 }
 
@@ -94,21 +95,21 @@ export function AlwaysOnNote() {
   const id = useId();
 
   return (
-    <section
-      aria-labelledby={`${id}-heading`}
-      className="flex flex-col gap-3 rounded-token-lg bg-success-subtle p-4"
-    >
-      <h2
-        id={`${id}-heading`}
-        className="flex items-center gap-2 font-heading text-lg font-semibold text-success"
-      >
-        <ShieldCheck className="size-5 shrink-0" aria-hidden="true" />
+    <section aria-labelledby={`${id}-heading`} className="flex flex-col gap-3">
+      <h2 id={`${id}-heading`} className="font-heading text-xl font-semibold text-copy">
         {t('controls.always.title')}
       </h2>
-      <ul className="flex list-disc flex-col gap-1.5 pl-6 text-copy marker:text-success">
-        <li>{t('controls.always.items.solution')}</li>
-        <li>{t('controls.always.items.checks')}</li>
-        <li>{t('controls.always.items.private')}</li>
+      <ul className="flex flex-col gap-2 rounded-token-lg bg-sunken p-4">
+        {(['solution', 'checks', 'private'] as const).map((key) => (
+          <li key={key} className="flex items-start gap-3 text-copy">
+            <Check
+              className="mt-1 size-4 shrink-0 text-copy-muted"
+              strokeWidth={3}
+              aria-hidden="true"
+            />
+            {t(`controls.always.items.${key}`)}
+          </li>
+        ))}
       </ul>
     </section>
   );
@@ -121,34 +122,39 @@ export function GuardianConfirmation({ control, errors, errorText, name }: Contr
   const error = errorText(errors.guardianConfirmed?.message);
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-start gap-3">
-        <Controller
-          control={control}
-          name="guardianConfirmed"
-          render={({ field }) => (
-            <Checkbox
-              id={`${id}-guardian`}
-              checked={field.value}
-              onCheckedChange={(checked) => {
-                field.onChange(checked === true);
-              }}
-              aria-invalid={error === undefined ? undefined : true}
-              aria-describedby={`${id}-hint${error === undefined ? '' : ` ${id}-error`}`}
-              className="mt-0.5"
-            />
-          )}
-        />
-        <div className="flex flex-col gap-1">
-          <Label htmlFor={`${id}-guardian`} className="items-start text-base font-semibold">
-            {t('controls.guardian.label', { name })}
-          </Label>
-          <FieldMessage id={`${id}-hint`} tone="hint">
-            {t('controls.guardian.hint', { version: GUARDIAN_CONSENT_VERSION })}
-          </FieldMessage>
+    <section aria-labelledby={`${id}-heading`} className="flex flex-col gap-3">
+      <h2 id={`${id}-heading`} className="font-heading text-xl font-semibold text-copy">
+        {t('controls.groups.guardian')}
+      </h2>
+      <div className="flex flex-col gap-2 rounded-token-lg border-2 border-border-strong bg-surface p-4">
+        <div className="flex items-start gap-3">
+          <Controller
+            control={control}
+            name="guardianConfirmed"
+            render={({ field }) => (
+              <Checkbox
+                id={`${id}-guardian`}
+                checked={field.value}
+                onCheckedChange={(checked) => {
+                  field.onChange(checked === true);
+                }}
+                aria-invalid={error === undefined ? undefined : true}
+                aria-describedby={`${id}-hint${error === undefined ? '' : ` ${id}-error`}`}
+                className="mt-0.5"
+              />
+            )}
+          />
+          <div className="flex flex-col gap-1">
+            <Label htmlFor={`${id}-guardian`} className="items-start text-base font-semibold">
+              {t('controls.guardian.label', { name })}
+            </Label>
+            <FieldMessage id={`${id}-hint`} tone="hint">
+              {t('controls.guardian.hint', { version: GUARDIAN_CONSENT_VERSION })}
+            </FieldMessage>
+          </div>
         </div>
+        <FieldMessage id={`${id}-error`}>{error}</FieldMessage>
       </div>
-      <FieldMessage id={`${id}-error`}>{error}</FieldMessage>
-    </div>
+    </section>
   );
 }

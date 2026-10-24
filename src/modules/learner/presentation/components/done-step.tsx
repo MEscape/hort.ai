@@ -2,6 +2,7 @@
 
 import type { BaseSyntheticEvent } from 'react';
 
+import { Character } from '@components/brand/character';
 import { Hort } from '@components/brand/hort';
 import { Button } from '@components/ui/button';
 import { ArrowRight, Sparkles } from '@components/ui/icons';
@@ -15,7 +16,6 @@ import { isDefined } from '@lib/utils';
 import { learnerRoutes } from '../routes';
 
 import { StepFrame } from './step-frame';
-import { TutorAvatar } from './tutor-avatar';
 
 import type { TutorOption } from './tutor-option';
 import type { ChildProfileDto } from '../dto/learner-dto';
@@ -28,9 +28,9 @@ export interface DoneStepProps {
 }
 
 /**
- * Shown only after the backend confirmed the setup. On a phone Hort celebrates here (the side column
- * is hidden); the chosen companion says hello in their own words, and what was set up is read back
- * as a few chips. The one thing left is the way into the parent's home.
+ * Shown only after the backend confirmed the setup. The chosen companion pops in and hops once,
+ * says hello in their own words, and what was set up is read back as a few chips. On a phone Hort
+ * celebrates too (the side column is hidden there). The one thing left is the way into the home.
  */
 export function DoneStep({ stepNumber, shouldTakeFocus, profile, tutor }: DoneStepProps) {
   const t = useTranslations('learner');
@@ -64,22 +64,29 @@ export function DoneStep({ stepNumber, shouldTakeFocus, profile, tutor }: DoneSt
         </Button>
       }
     >
-      <div className="flex items-center justify-center gap-4 lg:hidden" aria-hidden="true">
-        <Sparkles className="size-6 text-accent-copy" />
-        <Hort mood="happy" isAmbient className="size-28" />
-        <Sparkles className="size-6 text-accent-copy" />
-      </div>
-      {tutor !== null && (
-        <div className="flex items-center gap-4 rounded-token-lg bg-secondary/60 p-4">
-          <TutorAvatar
-            imageUrl={tutor.imageUrl}
-            tone={tutor.tone}
-            alt={t('tutor.imageAlt', { name: tutor.name, animal: tutor.animal })}
-            className="size-16 sm:size-20"
-          />
-          <p lang="de" className="font-semibold text-secondary-foreground">
-            {tutor.greeting}
-          </p>
+      {tutor === null ? (
+        <div className="flex items-center justify-center gap-4 lg:hidden" aria-hidden="true">
+          <Sparkles className="size-6 text-accent-copy" />
+          <Hort mood="happy" isAmbient className="size-28" />
+          <Sparkles className="size-6 text-accent-copy" />
+        </div>
+      ) : (
+        <div className="relative mt-10 rounded-token-xl border border-border bg-highlight/70 px-5 pb-5">
+          <div className="-mt-12 flex flex-col items-center gap-3 sm:flex-row sm:items-end sm:gap-5">
+            <span className="block origin-bottom animate-hop">
+              <Character
+                imageUrl={tutor.imageUrl}
+                alt={t('tutor.imageAlt', { name: tutor.name, animal: tutor.animal })}
+                className="size-32 overflow-hidden rounded-token-lg bg-surface shadow-soft sm:size-36"
+              />
+            </span>
+            <p
+              lang="de"
+              className="relative flex-1 animate-pop rounded-token-xl bg-secondary px-4 py-3 font-semibold text-secondary-foreground before:absolute before:-top-2 before:left-1/2 before:size-4 before:-translate-x-1/2 before:rotate-45 before:rounded-sm before:bg-secondary before:content-[''] sm:before:top-auto sm:before:-left-2 sm:before:bottom-6 sm:before:translate-x-0"
+            >
+              {tutor.greeting}
+            </p>
+          </div>
         </div>
       )}
       <section aria-label={t('done.recapLabel')} className="flex flex-col gap-2">

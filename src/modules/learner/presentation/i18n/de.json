@@ -134,7 +134,6 @@
     "alexa": {
       "title": "Alexa verbinden (optional)",
       "description": "Später kann dein Kind Hort per Sprachbefehl über Alexa starten. Du kannst die Verbindung jederzeit trennen.",
-      "hero": "Hort für Alexa",
       "status": {
         "unavailable": "Noch nicht verfügbar",
         "not_linked": "Nicht verbunden",
@@ -145,7 +144,16 @@
       "connect": "Mit Alexa verbinden",
       "disconnect": "Alexa trennen",
       "later": "Später verbinden",
-      "continue": "Weiter"
+      "continue": "Weiter",
+      "command": "„Alexa, öffne Hort.“",
+      "how": {
+        "title": "So wird es funktionieren",
+        "steps": {
+          "link": "Du verbindest dein Alexa-Konto einmal mit Hort.",
+          "say": "Dein Kind sagt den Satz oben, um zu starten.",
+          "help": "Hort hilft deinem Kind beim Nachdenken über die Aufgabe und verrät nie die Lösung."
+        }
+      }
     },
     "controls": {
       "title": "Sicherheit und Einstellungen",
@@ -168,7 +176,8 @@
         "windowOff": "Zu jeder Tageszeit",
         "from": "Von",
         "until": "Bis",
-        "note": "Die Zeiten gelten ab der ersten Hausaufgabenhilfe. Das Tageslimit wird jetzt gespeichert und angewendet, sobald Hort die Lernzeit messen kann."
+        "note": "Die Zeiten gelten ab der ersten Hausaufgabenhilfe. Das Tageslimit wird jetzt gespeichert und angewendet, sobald Hort die Lernzeit messen kann.",
+        "limitHint": "Wie lange Hort pro Tag hilft."
       },
       "insights": {
         "title": "Notizen für deine Zusammenfassung",
@@ -177,7 +186,7 @@
         "off": "Notizen sind aus"
       },
       "always": {
-        "title": "Immer aktiv, das kannst du nicht ausschalten",
+        "title": "Das gilt immer",
         "items": {
           "solution": "Hort verrät nie die Lösung einer Aufgabe. Dein Kind denkt selbst mit.",
           "checks": "Texte für dein Kind laufen zuerst durch Sicherheitsprüfungen.",
@@ -188,7 +197,13 @@
         "label": "Ich bin Elternteil oder Erziehungsberechtigte/r von {name} und erlaube Hort, die Angaben aus dieser Einrichtung zu speichern.",
         "hint": "Nötig zum Weitermachen. Datenschutzhinweis, Version {version}."
       },
-      "submit": "Weiter"
+      "submit": "Weiter",
+      "groups": {
+        "voice": "Sprache",
+        "time": "Lernzeit",
+        "notes": "Zusammenfassung für dich",
+        "guardian": "Deine Bestätigung"
+      }
     },
     "review": {
       "title": "Stimmt alles?",
