@@ -4,8 +4,4 @@ export type {
   TutorReply,
   TutorTurn,
 } from '../../domain/ports/tutor-conversation.port';
-export {
-  CONVERSATION_ID_MAX_LENGTH,
-  parseConversationId,
-  type ConversationId,
-} from '../../domain/models/ids';
+export { parseConversationId, type ConversationId } from '../../domain/models/ids';
