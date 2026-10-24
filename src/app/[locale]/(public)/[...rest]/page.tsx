@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 
 /**
- * Turns every unmatched URL below a locale into a 404 that is rendered inside
+ * Turns every unmatched nonempty URL below a locale into a 404 that is rendered inside
  * the locale layout (translated, themed). Without it the framework's bare
  * not-found page would answer instead.
  *

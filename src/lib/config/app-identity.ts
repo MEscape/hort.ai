@@ -8,15 +8,21 @@
  * The name is a brand, so it is not translated.
  */
 export const APP_IDENTITY = {
-  name: 'HortAi',
+  name: 'Hort.ai',
+  assets: {
+    owl: '/brand/owl.svg',
+    logo: '/brand/logo.svg',
+    emailLogo: '/email/hortai.png',
+    socialImage: '/brand/social.png',
+  },
   colors: {
-    primary: '#4a33b5',
+    primary: '#7b421f',
     primaryForeground: '#ffffff',
-    primaryCopy: '#4a33b5',
-    background: '#f4f2fc',
-    surface: '#ffffff',
-    text: '#1f1a3d',
-    textMuted: '#55507a',
-    border: '#ddd8f0',
+    primaryCopy: '#7b421f',
+    background: '#fff8f0',
+    surface: '#fffdf9',
+    text: '#38271d',
+    textMuted: '#69513f',
+    border: '#ebd9c5',
   },
 } as const;

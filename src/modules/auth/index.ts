@@ -48,3 +48,21 @@ export type { ActorView, Role } from './application/contracts/auth-views';
 /** Framework entry points: the auth Route Handler (emailed links) and the addresses the interface serves. */
 export { authRouteHandlers } from './composition';
 export { authRoutes } from './presentation/routes';
+export { AuthShell } from './presentation/components/auth-shell';
+export { AuthFormSkeleton } from './presentation/components/auth-form-skeleton';
+export { WelcomePanel } from './presentation/components/welcome-panel';
+export { SignInForm } from './presentation/components/sign-in-form';
+export { SignUpForm } from './presentation/components/sign-up-form';
+export { ForgotPasswordForm } from './presentation/components/forgot-password-form';
+export { ResetPasswordForm } from './presentation/components/reset-password-form';
+export { ResetPasswordLinkMissing } from './presentation/components/reset-password-link-missing';
+export { EmailVerificationResult } from './presentation/components/email-verification-result';
+export { SignOutButton } from './presentation/components/sign-out-button';
+export { default as enAuth } from './presentation/i18n/en.json';
+export { default as deAuth } from './presentation/i18n/de.json';
+export { requireSignedIn } from './presentation/guards/require-signed-in';
+export {
+  parseSignInPageParams,
+  parseResetPasswordPageParams,
+  parseEmailVerifiedPageParams,
+} from './presentation/schemas/page-params-schema';

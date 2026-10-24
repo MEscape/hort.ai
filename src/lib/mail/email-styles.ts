@@ -28,8 +28,8 @@ const PREHEADER = css({
   color: 'transparent',
 });
 
-export const LOGO_WIDTH = 120;
-export const LOGO_HEIGHT = 81;
+export const LOGO_WIDTH = 248;
+export const LOGO_HEIGHT = 80;
 
 /** The inline style of each element of a message, for one brand. */
 export function emailStyles(brand: EmailBrand) {
@@ -64,7 +64,13 @@ export function emailStyles(brand: EmailBrand) {
     }),
     outer: css({ padding: '40px 16px' }),
     column: css({ 'max-width': '560px', margin: '0 auto' }),
-    logo: css({ display: 'block', margin: '0 auto 24px', border: '0', height: 'auto' }),
+    logo: css({
+      display: 'block',
+      margin: '0 auto 24px',
+      border: '0',
+      height: 'auto',
+      'max-width': '100%',
+    }),
     /** A flat card with the brand colour as its top edge: a message without a button still looks like its sender. */
     card: css({
       padding,

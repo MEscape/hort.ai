@@ -1,3 +1,5 @@
+import { deAuth as auth } from '@modules/auth';
+
 import deApp from '../messages/de.json';
 
 import type { MessageCatalog, TranslationSchema } from '../config';
@@ -10,6 +12,7 @@ import type { MessageCatalog, TranslationSchema } from '../config';
  */
 const messages = {
   app: deApp,
+  auth: auth.auth,
 } as const satisfies TranslationSchema<MessageCatalog>;
 
 export default messages;
