@@ -38,15 +38,13 @@
       "keep": "Keep the draft",
       "confirm": "Discard draft"
     },
-    "errors": {
-      "unexpected": "Please check your assignment details and try again."
-    },
     "validation": {
       "titleRequired": "Enter an assignment title.",
       "titleTooLong": "The title must be 120 characters or fewer.",
       "taskRequired": "Enter the task text.",
       "taskTooLong": "The task text must be 4,000 characters or fewer.",
       "dateInvalid": "Choose a valid date.",
+      "invalid": "Check this entry.",
       "solutionTooLong": "The solution key must be 4,000 characters or fewer."
     }
   }

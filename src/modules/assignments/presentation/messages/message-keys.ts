@@ -5,11 +5,14 @@ import type { NestedKeyOf } from '@lib/errors';
 
 import { ASSIGNMENT_VALIDATION_CODES as VALIDATION } from '../schemas/assignment-draft-schema';
 
-import type { AssignmentValidationCode } from '../schemas/assignment-draft-schema';
+import type { AssignmentCode } from '../schemas/assignment-draft-schema';
 
 type ValidKeys = NestedKeyOf<MessageCatalog['assignments']>;
 
-/** Every local validation code must map to an existing key in the assignments namespace. */
+/**
+ * Codes -> translation keys, relative to the `assignments` namespace.
+ * `satisfies Record<AssignmentCode, ...>` makes a new code fail to compile until it has a message.
+ */
 export const MESSAGE_KEY_BY_CODE = {
   [VALIDATION.titleRequired]: fieldPath('validation', 'titleRequired'),
   [VALIDATION.titleTooLong]: fieldPath('validation', 'titleTooLong'),
@@ -17,18 +20,18 @@ export const MESSAGE_KEY_BY_CODE = {
   [VALIDATION.taskTooLong]: fieldPath('validation', 'taskTooLong'),
   [VALIDATION.dateInvalid]: fieldPath('validation', 'dateInvalid'),
   [VALIDATION.solutionTooLong]: fieldPath('validation', 'solutionTooLong'),
-} as const satisfies Record<AssignmentValidationCode, ValidKeys>;
+} as const satisfies Record<AssignmentCode, ValidKeys>;
 
-export const GENERIC_ERROR_MESSAGE_KEY = fieldPath('errors', 'unexpected');
+export const GENERIC_ERROR_MESSAGE_KEY = fieldPath('validation', 'invalid');
 
-type MessageKey =
-  (typeof MESSAGE_KEY_BY_CODE)[AssignmentValidationCode] | typeof GENERIC_ERROR_MESSAGE_KEY;
+export type MessageKey =
+  (typeof MESSAGE_KEY_BY_CODE)[AssignmentCode] | typeof GENERIC_ERROR_MESSAGE_KEY;
 
-function isAssignmentValidationCode(code: string): code is AssignmentValidationCode {
+function isAssignmentCode(code: string): code is AssignmentCode {
   return Object.hasOwn(MESSAGE_KEY_BY_CODE, code);
 }
 
-/** Unknown codes and Zod's structural messages get a translated generic message. */
+/** Codes from Zod's own structural messages are unknown here and get the generic message. */
 export function messageKeyForCode(code: string): MessageKey {
-  return isAssignmentValidationCode(code) ? MESSAGE_KEY_BY_CODE[code] : GENERIC_ERROR_MESSAGE_KEY;
+  return isAssignmentCode(code) ? MESSAGE_KEY_BY_CODE[code] : GENERIC_ERROR_MESSAGE_KEY;
 }

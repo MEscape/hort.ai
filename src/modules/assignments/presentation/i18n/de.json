@@ -38,15 +38,13 @@
       "keep": "Entwurf behalten",
       "confirm": "Entwurf verwerfen"
     },
-    "errors": {
-      "unexpected": "Bitte überprüfe deine Angaben und versuche es noch einmal."
-    },
     "validation": {
       "titleRequired": "Bitte gib einen Titel ein.",
       "titleTooLong": "Der Titel darf höchstens 120 Zeichen enthalten.",
       "taskRequired": "Bitte gib einen Aufgabentext ein.",
       "taskTooLong": "Der Aufgabentext darf höchstens 4.000 Zeichen enthalten.",
       "dateInvalid": "Bitte wähle ein gültiges Datum.",
+      "invalid": "Bitte prüfe diese Eingabe.",
       "solutionTooLong": "Der Lösungsschlüssel darf höchstens 4.000 Zeichen enthalten."
     }
   }
