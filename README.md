@@ -1,5 +1,7 @@
 # HortAi
 
+HortAi is an AI companion that helps primary-school children with their homework and test preparation when their parents do not have the time. The child works on a real task from school; HortAi gives thinking prompts and graduated hints grounded in the curriculum, and never solves the task for the child. Teachers can take part and post their own assignments. HortAi offers no exercises of its own. Read [`docs/product/vision.md`](docs/product/vision.md) before planning features.
+
 A [Next.js](https://nextjs.org) App Router application with TypeScript, PostgreSQL ([Prisma](https://www.prisma.io)) and [Better Auth](https://www.better-auth.com). Production runs on Vercel.
 
 Before changing code, read [`AI_RULES.md`](AI_RULES.md), [`docs/rules/`](docs/rules/README.md) and [`docs/conventions/`](docs/conventions/README.md).
@@ -55,7 +57,7 @@ The application runs on your machine. Docker Compose runs only its local depende
 | Command                           | What it does                                                         |
 | --------------------------------- | -------------------------------------------------------------------- |
 | `npm run dev` / `build` / `start` | Development server, production build, production server              |
-| `npm run check`                   | Everything CI runs: types, lint, format, i18n, dead code, all tests  |
+| `npm run check`                   | Types, lint, format, i18n, dead code, all tests (incl. integration)  |
 | `npm test`                        | Unit tests (`npm run test:watch` while developing)                   |
 | `npm run test:integration`        | Integration tests; need the containers and a migrated database       |
 | `npm run lint:fix` / `format`     | Fix lint and formatting                                              |
@@ -66,11 +68,16 @@ The application runs on your machine. Docker Compose runs only its local depende
 
 Run the narrowest tests while iterating and `npm run check` before opening a pull request.
 
-## Continuous integration
+## Build and deploy (Vercel)
 
-- Pull requests: lint, types, database contract and migrations, tests, license check, security scan, build. The `CI success` job is the single required check.
-- `main`: re-runs CI, builds, migrates both databases, deploys to Vercel and smoke-tests `/api/health`.
-- CI starts `redis-rest` and `azurite` from `docker-compose.yml` with the values of `.env.docker.example`, next to a Postgres service, then runs the one-off `azurite-init` task and checks its exit status. Actions are pinned to commit SHAs; Dependabot keeps them and the container images current.
+There is no GitHub Actions workflow. Vercel builds every push and pull request with `npm run build:vercel` (set in `vercel.json`), which fails the deployment at the first failing step:
+
+1. types, lint, format, i18n catalogs, dead code
+2. unit tests with coverage, architecture and script tests
+3. Prisma contract, migration check, `next build`
+4. app and auth migrations, then `db:verify`
+
+The migrations run against the `DATABASE_URL` / `AUTH_DATABASE_URL` of the Vercel environment being built, so Production and Preview must point at their own databases, with a role allowed to migrate. Integration tests need the Docker containers and are not part of the Vercel build: run `npm run check` locally before merging.
 
 ## Project layout
 

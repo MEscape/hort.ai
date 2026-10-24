@@ -1,0 +1,37 @@
+{
+  "manifest": {
+    "manifestVersion": "1.0",
+    "publishingInformation": {
+      "locales": {
+        "de-DE": {
+          "name": "hort.ai",
+          "summary": "Privater Entwicklungs-Verbindungstest für hort.ai.",
+          "description": "Privater Entwicklungs-Verbindungstest für hort.ai. Nicht zur Veröffentlichung bestimmt.",
+          "examplePhrases": ["Alexa, öffne hort"],
+          "keywords": []
+        }
+      },
+      "isAvailableWorldwide": false,
+      "distributionCountries": ["DE"],
+      "distributionMode": "PRIVATE",
+      "testingInstructions": "Private development skill; not submitted for certification.",
+      "category": "EDUCATION_AND_REFERENCE"
+    },
+    "apis": {
+      "custom": {
+        "endpoint": {
+          "uri": "https://wall-frog-whose-broke.trycloudflare.com/api/alexa",
+          "sslCertificateType": "Wildcard"
+        }
+      }
+    },
+    "privacyAndCompliance": {
+      "allowsPurchases": false,
+      "usesPersonalInfo": false,
+      "isChildDirected": false,
+      "isExportCompliant": true,
+      "containsAds": false,
+      "locales": { "de-DE": {} }
+    }
+  }
+}

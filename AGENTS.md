@@ -141,6 +141,24 @@ For each task:
 
 Do not broaden the task without a clear reason. If an adjacent issue must be addressed for correctness or security, explain why it is necessary.
 
+## Agent Skills
+
+The repository ships agent skills in `.agents/skills/` (Codex, Gemini CLI and other agents that read `.agents/skills`) and an identical copy in `.claude/skills/` (Claude Code). `__tests__/architecture/agent-skills.test.ts` keeps both trees in step; change a skill in both places.
+
+Load the matching skill before you start:
+
+| Skill                     | Use when                                                                         |
+| ------------------------- | -------------------------------------------------------------------------------- |
+| `test-driven-development` | implementing a feature, fixing a bug or changing behavior (default for all code) |
+| `systematic-debugging`    | a test, the build or CI fails, or the app misbehaves                             |
+| `writing-plans`           | before a multi-file change or parallel work; includes time-boxed spikes          |
+| `lean-code`               | writing or reviewing code; keeps diffs small and reuses what exists              |
+| `code-review`             | before committing or opening a PR, or when reviewing one; drives `docs/agents/`  |
+| `demo-flow-qa`            | after a user-facing feature, before a demo or merge; real browser, DE/EN, mobile |
+| `ui-polish`               | building or refining a screen within the existing design system                  |
+
+Skills are working procedures. Rules, conventions and architecture documents take precedence over them.
+
 ## Next.js Version-Specific Instructions
 
 <!-- BEGIN:nextjs-agent-rules -->
