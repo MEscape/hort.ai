@@ -32,11 +32,11 @@ export const SHARED_LIB_ALLOW = {
 };
 
 /**
- * Shared libraries that define a PORT shared by every module (`Clock`, `RateLimiter`, `ObjectStore`). Any layer
- * may `import type` the port; the implementation (`systemClock`, `getRateLimiter`, `getObjectStore`) is runtime state
+ * Shared libraries that define a PORT shared by every module (`Clock`, `RateLimiter`, `ObjectStore`, `SpeechProvider`). Any layer
+ * may `import type` the port; the implementation (`systemClock`, `getRateLimiter`, `getObjectStore`, `getSpeechProvider`) is runtime state
  * and is wired by composition.ts only, so a runtime import from a layer is still reported.
  */
-export const SHARED_PORT_LIBS = ['clock', 'rate-limit', 'storage'];
+export const SHARED_PORT_LIBS = ['clock', 'rate-limit', 'speech', 'storage'];
 
 /** Packages that may never appear in a layer, regardless of how they are imported. */
 export const FORBIDDEN_PACKAGES = {
@@ -64,7 +64,7 @@ export const SERVER_ONLY_SPECIFIERS = [
   /^next\/headers$/,
   /^@prisma\//,
   /^@lib\/db($|\/)/,
-  /^@lib\/(config|mail|storage)\/server$/,
+  /^@lib\/(config|mail|speech|storage)\/server$/,
 ];
 
 /**

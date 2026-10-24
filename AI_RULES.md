@@ -63,7 +63,7 @@ Allowed direction:
 - Domain and application may `import type` from another module's public API; at runtime they may call only the pure functions the architecture policy lists (`CROSS_MODULE_RUNTIME_ALLOW`).
 - Presentation may import another module's browser-safe API (`client.ts`: routes, vocabulary, Server Actions) or its types; another module's server-side parts are handed in by `composition.ts`.
 - Repositories and record mappers may import only trusted brand constructors (`to<Name>Id`) from another module.
-- A port defined in shared code (`Clock`, `RateLimiter`, `ObjectStore`) may be imported as a type by every layer; its implementation is wired only by composition roots.
+- A port defined in shared code (`Clock`, `RateLimiter`, `ObjectStore`, `SpeechProvider`) may be imported as a type by every layer; its implementation is wired only by composition roots.
 
 ## Shared code
 

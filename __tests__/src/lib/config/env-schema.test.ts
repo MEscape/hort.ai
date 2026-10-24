@@ -130,6 +130,13 @@ describe('serverEnvSchema', () => {
     ]);
   });
 
+  it('sends the speech key and recordings only over https in production', () => {
+    expect(problems({ ...production, ELEVENLABS_API_URL: 'http://speech.example.org' })).toEqual([
+      'ELEVENLABS_API_URL: ELEVENLABS_API_URL must be an https URL in production.',
+    ]);
+    expect(problems({ ...development, ELEVENLABS_API_URL: 'http://localhost:9000' })).toEqual([]);
+  });
+
   it('does not require https for storage URLs outside production', () => {
     expect(
       problems({
