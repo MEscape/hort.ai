@@ -1,5 +1,15 @@
 import { configDefaults, defineConfig } from 'vitest/config';
 
+// Unit tests must not see the host's own settings: a Vercel build exports the project's
+// environment variables (and `VERCEL`), which would change what the config layer validates.
+const HOST_APP_ENV =
+  /^(AUTH_|DATABASE_|LOG_LEVEL$|MAIL_|NEXT_PUBLIC_|RATE_LIMIT_|STORAGE_|UPSTASH_|VERCEL)/;
+for (const key of Object.keys(process.env)) {
+  if (HOST_APP_ENV.test(key)) {
+    Reflect.deleteProperty(process.env, key);
+  }
+}
+
 export default defineConfig({
   test: {
     environment: 'happy-dom',
