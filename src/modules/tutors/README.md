@@ -14,6 +14,7 @@ In the public container (`STORAGE_AZURE_PUBLIC_CONTAINER`, served from `STORAGE_
 ```
 tutors/<id>/mund-zu.svg     mouth closed
 tutors/<id>/mund-auf.svg    mouth open (shown while the tutor speaks)
+tutors/<id>/vorstellung.mp3 spoken introduction (15 to 19 s), plays without any speech provider
 tutors/manifest.json        the catalog with absolute picture URLs (`bilder`)
 ```
 
