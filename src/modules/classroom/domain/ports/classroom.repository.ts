@@ -87,7 +87,9 @@ export interface ClassroomRepository {
 
   /**
    * Adds the child and returns when it joined. Refused with `childAlreadyInClassroom` when the
-   * child already has a class (unique key), which also settles two joins racing each other.
+   * child already has a class (unique key), which also settles two joins racing each other, and
+   * with `classroomArchived` when the class is no longer active at that moment (a join racing an
+   * archive must not leave a member in an archived class).
    */
   addMember(input: NewMembership): AppResultAsync<Date, ConflictAppError | InfrastructureAppError>;
 

@@ -3,12 +3,13 @@ import type { ActorId, TenantId } from '@modules/auth';
 import type { Clock } from '@lib/clock';
 import { db, createPersistenceFailures } from '@lib/db';
 import type { ConflictAppError, InfrastructureAppError, NotFoundAppError } from '@lib/errors';
-import { fromThrowableAsync } from '@lib/result';
+import { errAsync, fromThrowableAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
 import {
   CLASSROOM_ERROR_CODES,
   childAlreadyInClassroom,
+  classroomArchived,
   classroomNotFound,
 } from '../../domain/errors/classroom-errors';
 
@@ -183,15 +184,29 @@ export class PrismaClassroomRepository implements ClassroomRepository {
   }
 
   addMember(input: NewMembership): AppResultAsync<Date, ConflictAppError | InfrastructureAppError> {
+    const { tenantId, classroomId, childProfileId } = input;
     return fromThrowableAsync(
-      async () =>
-        db.orm.public.ClassMembership.select(...JOINED_AT_SELECT).create({
-          tenantId: input.tenantId,
-          classroomId: input.classroomId,
-          childProfileId: input.childProfileId,
+      () =>
+        db.transaction(async (tx) => {
+          // Row-locks the class while it is still active: an archive running at the same time
+          // either finishes first (no row, refused here) or waits and then deletes this
+          // membership too. A plain insert only takes a key-share lock and would slip through.
+          const active = await tx.orm.public.Classroom.select('id')
+            .where({ id: classroomId, tenantId, status: CLASSROOM_STATUS_RECORD.active })
+            .update({ status: CLASSROOM_STATUS_RECORD.active });
+          if (active === null) {
+            return null;
+          }
+          return tx.orm.public.ClassMembership.select(...JOINED_AT_SELECT).create({
+            tenantId,
+            classroomId,
+            childProfileId,
+          });
         }),
       failures.orConflict('addMember', childAlreadyInClassroom),
-    ).map(toJoinedAt);
+    ).andThen((record) =>
+      record === null ? errAsync(classroomArchived()) : okAsync(toJoinedAt(record)),
+    );
   }
 
   removeMemberOfChild(
