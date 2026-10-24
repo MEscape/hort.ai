@@ -91,14 +91,68 @@ describe('downloadCertChain', () => {
 
   it.each([
     ['a non-200 status', 404, 'x'],
-    ['an oversized body', 200, 'x'.repeat(65 * 1024)],
+    ['a Content-Length above 64 KiB', 200, 'x'.repeat(65_537)],
   ])('rejects %s', async (_label, status, body) => {
     const bad = await serve((_request, response) => {
-      response.writeHead(status);
+      response.writeHead(status, { 'content-length': Buffer.byteLength(body) });
       response.end(body);
     });
 
-    expect((await downloadCertChain(bad.url)).isErr()).toBe(true);
+    expect((await downloadCertChain(bad.url))._unsafeUnwrapErr().message).toContain(
+      'unusable response',
+    );
+  });
+
+  /** A chunked response (no Content-Length) that sends `chunk` until the client hangs up or `total` is sent. */
+  async function serveChunked(chunk: string, total = Number.POSITIVE_INFINITY) {
+    let sentBytes = 0;
+    const server = await serve((_request, response) => {
+      response.writeHead(200, { 'content-type': 'application/x-pem-file' });
+      const pump = () => {
+        while (sentBytes < total && !response.destroyed) {
+          sentBytes += Buffer.byteLength(chunk);
+          if (!response.write(chunk)) {
+            response.once('drain', pump);
+            return;
+          }
+        }
+        if (sentBytes >= total) {
+          response.end();
+        }
+      };
+      pump();
+    });
+    return server;
+  }
+
+  it('stops reading an endless body without Content-Length at the byte limit', async () => {
+    const endless = await serveChunked('x'.repeat(4_096));
+    const started = Date.now();
+
+    const result = await downloadCertChain(endless.url, { timeoutMs: 10_000 });
+
+    expect(result._unsafeUnwrapErr().message).toContain('too large');
+    expect(Date.now() - started).toBeLessThan(5_000);
+    await vi.waitFor(() => {
+      expect(endless.sockets.every((socket) => socket.destroyed)).toBe(true);
+    });
+  });
+
+  it('counts bytes, not characters, without Content-Length', async () => {
+    // 22,000 × '€' is 22,000 UTF-16 characters but 66,000 UTF-8 bytes.
+    const multibyte = await serveChunked('€'.repeat(1_000), 66_000);
+
+    const result = await downloadCertChain(multibyte.url);
+
+    expect(result._unsafeUnwrapErr().message).toContain('too large');
+  });
+
+  it('accepts exactly 64 KiB without Content-Length and decodes it as UTF-8', async () => {
+    const exact = await serveChunked('ä'.repeat(1_024), 65_536);
+
+    const result = await downloadCertChain(exact.url);
+
+    expect(result._unsafeUnwrap()).toBe('ä'.repeat(32_768));
   });
 });
 
