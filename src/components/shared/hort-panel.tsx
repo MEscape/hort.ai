@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@components/ui/card';
 
 import { useFocusOnMount } from '@hooks/use-focus-on-mount';
 
-export interface AuthPanelProps {
+export interface HortPanelProps {
   /** How Hort looks while this screen is in front of the person. */
   readonly mood?: HortMood;
   /** The page's one heading. */
@@ -22,18 +22,18 @@ export interface AuthPanelProps {
 }
 
 /**
- * The frame of every sign-in screen: Hort sitting on the top edge of a white "storybook page",
+ * The frame of every Hort screen that is a single card (sign-in, onboarding): Hort sitting on the top edge of a white "storybook page",
  * the heading, a short sentence in reading size, the content, and a quiet footer for the way
  * out. It holds the page's `h1`.
  */
-export function AuthPanel({
+export function HortPanel({
   mood = 'hello',
   title,
   description,
   shouldTakeFocus = false,
   footer,
   children,
-}: AuthPanelProps) {
+}: HortPanelProps) {
   const headingRef = useFocusOnMount<HTMLHeadingElement>(shouldTakeFocus);
 
   return (
