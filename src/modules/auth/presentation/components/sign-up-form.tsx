@@ -2,8 +2,8 @@
 
 import { useId } from 'react';
 
-import { TextField } from '@components/shared/text-field';
 import { FieldMessage } from '@components/shared/field-message';
+import { TextField } from '@components/shared/text-field';
 import { Button } from '@components/ui/button';
 import { ShieldCheck } from '@components/ui/icons';
 
@@ -94,10 +94,12 @@ export function SignUpForm() {
               {t('signUp.role')}
             </legend>
             {ROLE_OPTIONS.map((option) => (
+              // @ui-plain label A radio choice: the design system has no radio group yet.
               <label
                 key={option.role}
                 className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 has-[:checked]:border-primary"
               >
+                {/* @ui-plain input A radio button; `Input` is a text field. */}
                 <input
                   type="radio"
                   value={option.role}
