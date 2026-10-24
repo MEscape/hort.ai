@@ -120,10 +120,10 @@ The skill id is not a secret, but it is environment-specific and therefore not c
 
 ## Known limits
 
-- **8-second answer limit.** Alexa abandons a request after 8 s. Measured today: ~0.4 s for the first request
-  after a (re)start (certificate download from Amazon's S3, cached per certificate URL afterwards; up to ~2 s under load), 1–3 ms warm,
-  plus ~0.1 s tunnel. A 5.3 s outlier coincided with heavy memory pressure and swapping on the host; the host
-  process now runs without swap. An LLM tutor must stay well below 8 s end-to-end including a cold start
+- **8-second answer limit.** Alexa abandons a request after 8 s. Measured on Vercel Production: simulator round trip
+  (speech recognition, endpoint, speech output) 2.1 s warm and 2.4 s after 17 minutes idle; an unsigned request
+  takes 0.2 s. The first signed request per instance also downloads Amazon's certificate (0.4–2 s, cached per URL
+  afterwards). On the VM fallback a 5.3 s outlier coincided with swapping; that process now runs without swap. An LLM tutor must stay well below 8 s end-to-end including a cold start
   on Vercel; for longer work send an Alexa **Progressive Response** ("Moment, ich überlege…") first and keep the
   final answer under the limit. Not built yet.
 - **Voice only.** No photo/image input (homework photos stay a web feature); answers are read aloud, so no
