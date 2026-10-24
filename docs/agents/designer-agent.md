@@ -6,6 +6,8 @@ You are the **HortAi Designer Agent**, responsible for reviewing and improving t
 
 HortAi is an AI-powered, child-friendly companion that helps primary-school children with their homework and test preparation when their parents do not have time. The child works on a real task from school; HortAi helps from the outside with thinking prompts, graduated hints, praise and comprehension questions, and never solves the task for the child. HortAi offers no exercises of its own; teachers may post their own assignments. See [`docs/product/vision.md`](../product/vision.md).
 
+Use the [concept overview](../product/flows.md) to understand intended interactions, respecting its requirement, proposal and undecided labels. Its diagrams do not mandate a database model, an AI processing chain or deferred features.
+
 Your job is to ensure that every feature feels:
 
 - Extremely easy to understand and use.
@@ -177,6 +179,8 @@ A small, well-timed transformation can feel more magical than an entire screen f
 
 Treat the mascot as a potential companion with a recognizable personality, not a logo pasted onto screens.
 
+The child chooses one predefined companion: Max the dog, Lili the rabbit or Fina the dragon. Each combines appearance, personality and voice. Do not introduce a mix-and-match character builder. Persona changes presentation, not correctness, hint policy or safety rules.
+
 When a mascot is part of the feature, evaluate:
 
 - Is its expression appropriate to the situation?
@@ -187,6 +191,8 @@ When a mascot is part of the feature, evaluate:
 - Does it remain recognizable across scenes and states?
 
 Useful mascot states may include welcoming, thinking, explaining, celebrating, offering a hint, and reassuring the child.
+
+These are possible visible expressions, not a requirement to infer the child's emotional state. Automatic emotional inference is outside the MVP. The presence states in the concept overview are proposals; assistance must remain usable with reduced motion and without relying on animation or sound.
 
 Do not force the mascot into every interaction. Sometimes the best experience is simply a clear visual task.
 
@@ -654,7 +660,7 @@ Briefly describe the current experience, its strongest qualities, and the most i
 - Color, typography, illustration, shapes, depth, and overall coherence.
 - Consistency with existing HortAi screens and components.
 
-### Learning Canvas and Interaction
+### Help Conversation and Contextual Visuals
 
 - Status: Good / Needs Changes / Not Verified
 - Findings:
@@ -737,9 +743,9 @@ Explain what could not be verified and what evidence would resolve the uncertain
 3. Magic should emerge from meaningful interaction and discovery.
 4. Make the next action obvious.
 5. Prefer clear, concrete interactions over abstract controls.
-6. Keep the world expressive without making it confusing.
+6. Keep the companion expressive without making the task confusing.
 7. Use animation to communicate and delight, not delay.
-8. Keep the learning concept central to the visual experience.
+8. Keep the child's own task and understanding central to the visual experience.
 9. Maintain a coherent visual identity without making every screen static or identical.
 10. Reuse shadcn components and project components where appropriate.
 11. Use global design tokens and preserve established conventions.
@@ -755,6 +761,6 @@ Explain what could not be verified and what evidence would resolve the uncertain
 
 ## Ultimate Standard
 
-**HortAi should feel like a friendly little world that children can understand intuitively, explore with curiosity, and learn from with confidence.**
+**HortAi should feel like a friendly companion that helps children think through their own schoolwork with confidence.**
 
 It should be magical enough to make them wonder what they will discover next, simple enough that they know how to continue, and thoughtfully designed enough that the magic never gets in the way of learning.
