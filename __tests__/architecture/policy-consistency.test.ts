@@ -33,6 +33,14 @@ const hookNames = [
   .flatMap((match) => (match[1] === undefined ? [] : [match[1]]))
   .filter((name) => UNSAVED_WORK_GUARD.test(name));
 
+// Credentials and single-field forms may explicitly opt out under react.md. A shared hook's
+// directory existing does not imply that an editor or an unsaved-work guard is needed yet.
+const formsRequiringGuard = filesUnder(join(ROOT, 'src/modules'))
+  .filter((file) => /[\\/]presentation[\\/](?:components|hooks)[\\/].*\.tsx?$/.test(file))
+  .map((file) => readFileSync(file, 'utf8'))
+  .filter((source) => /\buseForm\s*(?:<|\()/.test(source))
+  .filter((source) => !/@unsaved-work\s+none\s+\S/.test(source));
+
 describe('policy consistency', () => {
   // The authorization service belongs to the first module that has one; until then there is nothing to compare.
   it.skipIf(authServiceFiles.length === 0)(
@@ -45,11 +53,10 @@ describe('policy consistency', () => {
     },
   );
 
-  // Forms (and their guard hook) arrive with the first module that edits stored data.
-  it.skipIf(
-    !existsSync(join(ROOT, 'src/hooks')) && !existsSync(join(ROOT, 'src/components/shared')),
-  )('ensures at least one unsaved-work guard hook exists in src/hooks or src/components', () => {
-    expect(hookNames.length).toBeGreaterThan(0);
+  it('ensures an unsaved-work guard exists when a form requires one', () => {
+    if (formsRequiringGuard.length > 0) {
+      expect(hookNames.length).toBeGreaterThan(0);
+    }
   });
 
   it('ensures all shared libs in SHARED_LIB_ALLOW and SHARED_PORT_LIBS exist in src/lib', () => {

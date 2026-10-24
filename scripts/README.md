@@ -16,6 +16,10 @@ The command registry is `scripts/commands/index.ts`. A test (`__tests__/scripts/
 keeps it in step with `docs/conventions`: every convention carries a `Generator:` line naming its
 command (or `none`), and every command names the convention it automates.
 
+## Brand assets
+
+`npm run brand:generate` exports the canonical owl and wordmark SVG sources to the app, browser, Apple, manifest, email and social formats. Generated files are checked in. The script uses Sharp from Next.js's installed dependencies; it calls no network service. See [branding](../docs/architecture/branding.md) for the asset inventory and editing workflow.
+
 ## Dead code
 
 `npm run dead-code` is not a generator but the same kind of repository tool: it fails (exit 1) on
@@ -102,6 +106,7 @@ decision or a migration:
   (for example an integration module), naming what is missing. Write those use cases by hand.
 - Not generated, on purpose: repositories for additional entities, route handlers, shared
   utilities, migrations. Follow the checklists in `docs/conventions`.
+- The generated `scopeOf` returns `{ tenantId }` only, but the auth module's `ResourceScope` also requires the resource's `ownerId` (the parent it belongs to), so generated modules do not compile against it until the entity carries an owner and `scopeOf` returns it ([`authentication.md`](../docs/architecture/authentication.md)).
 - Enum fields become Prisma enums with explicit mapper tables. Soft delete is not supported
   (no module uses it).
 

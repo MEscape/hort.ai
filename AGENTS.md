@@ -145,13 +145,12 @@ Do not broaden the task without a clear reason. If an adjacent issue must be add
 
 <!-- BEGIN:nextjs-agent-rules -->
 
-**This is NOT the Next.js you know.**
+## This is NOT the Next.js you know
 
-Before writing or modifying Next.js code, consult the documentation installed with the current version of Next.js in `node_modules/next/dist/docs/`. Do not rely on remembered APIs, outdated examples, or assumptions from earlier Next.js versions.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
-Read the relevant guides for the APIs and features being changed. Follow the installed documentation and established project patterns.
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
-If a task requires understanding Next.js behavior, locate the relevant documentation before implementing the change.
 <!-- END:nextjs-agent-rules -->
 
 ## Completion Requirements
