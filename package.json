@@ -30,7 +30,8 @@
     "db:studio": "prisma studio",
     "i18n:check": "vitest run __tests__/architecture/i18n-catalogs.test.ts",
     "gen": "tsx scripts/gen.ts",
-    "dead-code": "tsx scripts/dead-code.ts"
+    "dead-code": "tsx scripts/dead-code.ts",
+    "tutors:sync": "tsx scripts/sync-tutors.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
