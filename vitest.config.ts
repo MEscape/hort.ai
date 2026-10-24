@@ -11,6 +11,10 @@ export default defineConfig({
     // Form tests type and click through real components; with every worker busy a single one
     // can take several times its time alone (1-2 s), so the default 5 s is too tight to be a signal.
     testTimeout: 15_000,
+    // The transformed-module cache lives in node_modules, which Vercel restores between builds.
+    // A cached `import.meta.glob` keeps the file list of the build that filled it, so a module
+    // added later (its message-keys.ts) is missing from the architecture tests. Transform fresh.
+    fsModuleCache: false,
     // `npm run test:coverage` runs every unit test and measures all of `src`; the report is the
     // overall figure. Each key of `thresholds` is a glob that fails the run on its own files; add
     // one per area that must stay covered (the shared layer is held to 100%, '*.d.ts' excepted).
