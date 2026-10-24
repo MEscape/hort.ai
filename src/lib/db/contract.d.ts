@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'8db5f60cf8e0fb19d3d2a7b9ebb18c733aa05cae9dd7ecbd9b96916d538df7e8'>;
+  StorageHashBase<'1863863b67edd6749659a9ad9a1e312cbede78ca8be88952e2c146a38fc427ef'>;
 export type ExecutionHash =
   ExecutionHashBase<'9e682105523b52360966eee6249e3deb8d3091aa7a80822c9f413fd350056ec3'>;
 export type ProfileHash =
@@ -304,11 +304,19 @@ export namespace Models {
     type: FieldOutputTypes['public']['AuditEntry']['type'];
     readonly [RelationKeys]?: never;
   };
+  export type public_VoiceConsent = {
+    grantedAt: FieldOutputTypes['public']['VoiceConsent']['grantedAt'];
+    parentId: FieldOutputTypes['public']['VoiceConsent']['parentId'];
+    revokedAt: FieldOutputTypes['public']['VoiceConsent']['revokedAt'];
+    tenantId: FieldOutputTypes['public']['VoiceConsent']['tenantId'];
+    readonly [RelationKeys]?: never;
+  };
 }
 
 export declare const models: {
   public: {
     AuditEntry: Models.public_AuditEntry;
+    VoiceConsent: Models.public_VoiceConsent;
   };
 };
 
@@ -418,6 +426,38 @@ type ContractBase = Omit<
               ];
               foreignKeys: readonly [];
             };
+            readonly VoiceConsent: {
+              columns: {
+                readonly grantedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly parentId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly revokedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly tenantId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['tenantId', 'parentId'] };
+              uniques: readonly [];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
           };
           readonly valueSet: {
             readonly AuditActorKind: {
@@ -442,6 +482,10 @@ type ContractBase = Omit<
     readonly AuditEntry: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'AuditEntry';
+    };
+    readonly VoiceConsent: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'VoiceConsent';
     };
   };
   readonly domain: {
@@ -504,6 +548,43 @@ type ContractBase = Omit<
                 readonly source: { readonly column: 'source' };
                 readonly tenantId: { readonly column: 'tenantId' };
                 readonly type: { readonly column: 'type' };
+              };
+            };
+          };
+          readonly VoiceConsent: {
+            readonly fields: {
+              readonly grantedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly parentId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly revokedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly tenantId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'VoiceConsent';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly grantedAt: { readonly column: 'grantedAt' };
+                readonly parentId: { readonly column: 'parentId' };
+                readonly revokedAt: { readonly column: 'revokedAt' };
+                readonly tenantId: { readonly column: 'tenantId' };
               };
             };
           };

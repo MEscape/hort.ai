@@ -7,6 +7,10 @@
     "AuditEntry": {
       "model": "AuditEntry",
       "namespace": "public"
+    },
+    "VoiceConsent": {
+      "model": "VoiceConsent",
+      "namespace": "public"
     }
   },
   "domain": {
@@ -157,6 +161,57 @@
               "namespaceId": "public",
               "table": "AuditEntry"
             }
+          },
+          "VoiceConsent": {
+            "fields": {
+              "grantedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "parentId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "revokedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "tenantId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "grantedAt": {
+                  "column": "grantedAt"
+                },
+                "parentId": {
+                  "column": "parentId"
+                },
+                "revokedAt": {
+                  "column": "revokedAt"
+                },
+                "tenantId": {
+                  "column": "tenantId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "VoiceConsent"
+            }
           }
         }
       }
@@ -290,6 +345,39 @@
                 ]
               },
               "uniques": []
+            },
+            "VoiceConsent": {
+              "columns": {
+                "grantedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "parentId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "revokedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "tenantId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "tenantId",
+                  "parentId"
+                ]
+              },
+              "uniques": []
             }
           },
           "valueSet": {
@@ -314,7 +402,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "8db5f60cf8e0fb19d3d2a7b9ebb18c733aa05cae9dd7ecbd9b96916d538df7e8"
+    "storageHash": "1863863b67edd6749659a9ad9a1e312cbede78ca8be88952e2c146a38fc427ef"
   },
   "execution": {
     "executionHash": "9e682105523b52360966eee6249e3deb8d3091aa7a80822c9f413fd350056ec3",

@@ -29,3 +29,15 @@ model AuditEntry {
   @@index([tenantId, actorId, occurredAt])
   @@index([occurredAt])
 }
+
+/// The voice module's record of a parent's explicit, revocable consent that their child's recordings
+/// may be transcribed. One row per parent and tenant: revoking stamps `revokedAt`, granting again
+/// starts a new `grantedAt` and clears it. Holds ids and timestamps only.
+model VoiceConsent {
+  tenantId  String
+  parentId  String
+  grantedAt DateTime
+  revokedAt DateTime?
+
+  @@id([tenantId, parentId])
+}
