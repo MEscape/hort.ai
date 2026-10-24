@@ -1,48 +1,9 @@
 import { cn } from '@lib/utils';
 
 const ARTWORK = {
-  companion: (
-    <g strokeLinecap="round" strokeLinejoin="round">
-      <ellipse cx="124" cy="181" rx="71" ry="10" className="fill-sunken" />
-      <path
-        d="M77 118c-29 7-39-11-32-24 5-8 12 1 16 5M170 109c24-9 21-29 31-30 13-1 17 31-17 48"
-        className="fill-secondary stroke-secondary-copy"
-        strokeWidth="4"
-      />
-      <path
-        d="M70 112c-2-48 14-74 51-74 39 0 61 29 61 77 0 41-21 61-57 61-38 0-54-21-55-64Z"
-        className="fill-secondary stroke-secondary-copy"
-        strokeWidth="3"
-      />
-      <path
-        d="M118 39C99 37 94 21 97 14c19-1 30 11 27 25M125 38c-1-19 13-30 28-28 2 16-7 28-28 28"
-        className="fill-accent stroke-accent-copy"
-        strokeWidth="3"
-      />
-      <ellipse cx="98" cy="88" rx="20" ry="24" className="fill-surface" />
-      <ellipse cx="145" cy="88" rx="20" ry="24" className="fill-surface" />
-      <ellipse cx="103" cy="92" rx="7" ry="10" className="fill-secondary-foreground" />
-      <ellipse cx="140" cy="92" rx="7" ry="10" className="fill-secondary-foreground" />
-      <circle cx="105" cy="88" r="2" className="fill-surface" />
-      <circle cx="142" cy="88" r="2" className="fill-surface" />
-      <ellipse cx="83" cy="116" rx="11" ry="6" className="fill-bloom" />
-      <ellipse cx="160" cy="116" rx="11" ry="6" className="fill-bloom" />
-      <path
-        d="M110 117q12 15 24-1"
-        className="stroke-secondary-foreground"
-        strokeWidth="4"
-        fill="none"
-      />
-      <path
-        d="M90 170c-13 2-16 10-5 12h21M144 173c8 11 28 10 28 2"
-        className="fill-secondary stroke-secondary-copy"
-        strokeWidth="4"
-      />
-    </g>
-  ),
   task: (
     <g strokeLinecap="round" strokeLinejoin="round">
-      <ellipse cx="120" cy="178" rx="84" ry="9" className="fill-focus" />
+      <ellipse cx="120" cy="178" rx="84" ry="9" className="fill-copy/20" />
       <g transform="rotate(-7 112 103)">
         <rect
           x="49"
@@ -169,7 +130,7 @@ interface StartIllustrationProps {
   readonly className?: string;
 }
 
-/** Provisional original artwork: decorative, token-colored, and replaceable independently of UI. */
+/** Original homework objects; the companion comes from the shared Hort component. */
 export function StartIllustration({ kind, className }: StartIllustrationProps) {
   return (
     <svg

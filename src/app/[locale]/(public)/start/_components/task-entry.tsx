@@ -2,7 +2,8 @@ import { useRef, useState, type ChangeEvent, type Ref, type SubmitEvent } from '
 
 import { FeedbackPanel } from '@components/shared/feedback-panel';
 import { Button } from '@components/ui/button';
-import { Card } from '@components/ui/card';
+import { Card, CardContent, CardHeader } from '@components/ui/card';
+import { Label } from '@components/ui/label';
 
 import { useTranslations } from '@i18n/client';
 
@@ -16,7 +17,6 @@ interface TaskEntryProps {
   readonly headingRef: Ref<HTMLHeadingElement>;
 }
 
-// @ui-plain label No shared Label primitive is installed yet.
 // @ui-plain textarea No shared Textarea primitive is installed yet.
 // @unsaved-work none This frontend-only draft is never submitted or persisted.
 export function TaskEntry({ draft, onDraftChange, headingRef }: TaskEntryProps) {
@@ -47,52 +47,61 @@ export function TaskEntry({ draft, onDraftChange, headingRef }: TaskEntryProps) 
   }
 
   return (
-    <Card className="space-y-6 p-6 sm:p-8">
-      <h1 ref={headingRef} tabIndex={-1} className="font-heading text-3xl text-copy sm:text-4xl">
-        {t('start.entry.title')}
-      </h1>
-      <form onSubmit={handleSubmit} noValidate className="space-y-4">
-        <label
-          htmlFor="homework-task"
-          className="block font-heading text-xl font-semibold text-copy"
-        >
-          {t('start.entry.label')}
-        </label>
-        <textarea
-          ref={inputRef}
-          id="homework-task"
-          rows={5}
-          maxLength={TASK_CHARACTER_LIMIT}
-          value={draft}
-          onChange={handleChange}
-          placeholder={t('start.entry.placeholder')}
-          aria-invalid={status === 'invalid'}
-          aria-describedby={status === 'invalid' ? 'task-note task-error' : 'task-note'}
-          autoComplete="off"
-          className="block min-h-48 w-full resize-y rounded-token-lg border-2 border-border-strong bg-surface p-4 text-lead text-copy placeholder:text-copy-muted"
-        />
-        <p id="task-note" className="text-sm text-copy-muted">
-          {t('start.entry.note', { limit: TASK_CHARACTER_LIMIT })}
-        </p>
-        {status === 'invalid' && (
-          <p id="task-error" role="alert" className="font-semibold text-nudge">
-            {t('start.entry.empty')}
+    <Card>
+      <CardHeader className="items-start text-left">
+        <h1 ref={headingRef} tabIndex={-1} className="font-heading text-3xl text-copy sm:text-4xl">
+          {t('start.entry.title')}
+        </h1>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <Label
+            htmlFor="homework-task"
+            className="block font-heading text-xl font-semibold text-copy"
+          >
+            {t('start.entry.label')}
+          </Label>
+          <textarea
+            ref={inputRef}
+            id="homework-task"
+            rows={5}
+            maxLength={TASK_CHARACTER_LIMIT}
+            value={draft}
+            onChange={handleChange}
+            placeholder={t('start.entry.placeholder')}
+            aria-invalid={status === 'invalid'}
+            aria-describedby={status === 'invalid' ? 'task-note task-error' : 'task-note'}
+            autoComplete="off"
+            className="block min-h-48 w-full resize-y rounded-token-lg border-2 border-border-strong bg-surface p-4 text-lead text-copy placeholder:text-copy-muted"
+          />
+          <p id="task-note" className="text-sm text-copy-muted">
+            {t('start.entry.note', { limit: TASK_CHARACTER_LIMIT })}
           </p>
-        )}
-        <div className="flex flex-wrap gap-3">
-          <Button type="submit" size="lg">
-            {t('start.entry.review')}
-          </Button>
-          <Button variant="ghost" onClick={handleClear} disabled={draft.length === 0}>
-            {t('start.entry.clear')}
-          </Button>
-        </div>
-        {status === 'unavailable' && (
-          <FeedbackPanel tone="hint" announce title={t('start.entry.unavailableTitle')}>
-            {t('start.entry.unavailableBody')}
-          </FeedbackPanel>
-        )}
-      </form>
+          {status === 'invalid' && (
+            <p id="task-error" role="alert" className="font-semibold text-nudge">
+              {t('start.entry.empty')}
+            </p>
+          )}
+          <div className="flex flex-wrap gap-3">
+            <Button type="submit" size="lg">
+              {t('start.entry.review')}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleClear}
+              disabled={draft.length === 0}
+            >
+              {t('start.entry.clear')}
+            </Button>
+          </div>
+          {status === 'unavailable' && (
+            <FeedbackPanel tone="hint" announce title={t('start.entry.unavailableTitle')}>
+              {t('start.entry.unavailableBody')}
+            </FeedbackPanel>
+          )}
+        </form>
+      </CardContent>
     </Card>
   );
 }

@@ -42,6 +42,7 @@ export function StartScreen() {
   ) : (
     <div className="mx-auto mt-6 max-w-3xl space-y-5 sm:mt-10">
       <Button
+        type="button"
         variant="ghost"
         onClick={() => {
           handleNavigate('home');
