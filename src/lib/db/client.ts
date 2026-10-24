@@ -1,5 +1,6 @@
 import postgres from '@prisma/orm-postgres/runtime';
 import { contractFromJson } from '@prisma/orm-postgres/static';
+import { Pool } from 'pg';
 // Prisma 8 reads and writes `DateTime` through the global `Temporal`, which Node 24 (pinned in
 // `.nvmrc`) lacks. The `global` entry installs the polyfill only when there is no native
 // implementation, and it must run before the first query decodes a row or fills a `now()` default.
@@ -33,33 +34,34 @@ const globalForPrisma = globalThis as unknown as {
 
 const dbLogger = logger.withContext({ module: 'infrastructure.prisma' });
 
+const MS_PER_SECOND = 1000;
+
 /**
- * Builds the database connection URL with pool parameters derived from
- * the validated server configuration.
+ * Builds the connection pool the client runs on, sized from the validated server configuration.
  *
- * `DATABASE_URL`, `DATABASE_POOL_SIZE`, and
- * `DATABASE_POOL_TIMEOUT_SECONDS` are read from `serverEnv`, not directly
- * from `process.env`. This keeps configuration access centralized in
- * `@lib/config` and follows configuration.md:
- * "do not access process.env throughout application code".
+ * Prisma 8's runtime creates its own `pg` pool from a URL and reads none of the pool parameters
+ * the earlier Prisma versions took in the connection string (`connection_limit`, `pool_timeout`),
+ * so the pool is made here and handed over: `DATABASE_POOL_SIZE` is `max` (connections per
+ * process), `DATABASE_POOL_TIMEOUT_SECONDS` is how long a query waits for a free connection
+ * before failing. Each serverless instance owns one pool, so keep the size small there.
  *
- * The pool parameters are appended using Prisma's standard
- * `connection_limit` and `pool_timeout` connection-string parameters.
- * This allows pool sizing to differ between environments without changing
- * this infrastructure module.
+ * `DATABASE_URL` is required by the configuration schema, so missing database configuration fails
+ * during application startup rather than falling back to an implicit database. The URL itself is
+ * never logged: it can carry the database credentials.
  *
- * `serverEnv.DATABASE_URL` is required by the configuration schema, so
- * missing database configuration fails during application startup rather
- * than falling back to a local or otherwise implicit database.
+ * An idle connection that the server drops emits `error` on the pool; unhandled, that would crash
+ * the process, so it is logged once here (observability.md: unexpected errors at the boundary).
  */
-function buildConnectionUrl(): string {
-  const url = new URL(serverEnv.DATABASE_URL);
-
-  url.searchParams.set('connection_limit', String(serverEnv.DATABASE_POOL_SIZE));
-
-  url.searchParams.set('pool_timeout', String(serverEnv.DATABASE_POOL_TIMEOUT_SECONDS));
-
-  return url.toString();
+function createPool(): Pool {
+  const pool = new Pool({
+    connectionString: serverEnv.DATABASE_URL,
+    max: serverEnv.DATABASE_POOL_SIZE,
+    connectionTimeoutMillis: serverEnv.DATABASE_POOL_TIMEOUT_SECONDS * MS_PER_SECOND,
+  });
+  pool.on('error', (error) => {
+    dbLogger.error('db.pool_error', error);
+  });
+  return pool;
 }
 
 /**
@@ -67,20 +69,18 @@ function buildConnectionUrl(): string {
  * contract and the environment-specific connection configuration.
  *
  * `contractFromJson` validates the emitted `contract.json` once and types it as
- * the generated `Contract`; the Prisma 8 ORM Postgres runtime takes it as `contract`, while the connection URL supplies the
- * database endpoint and pool configuration.
+ * the generated `Contract`; the Prisma 8 ORM Postgres runtime takes it as `contract`, and
+ * the pool from `createPool` supplies the database endpoint and pool configuration.
  *
  * `queryLogger` is registered here rather than left for callers to add,
  * so every query on this client is observed the same way in every
  * environment — observability.md: "log at application/infrastructure
- * boundaries". The connection URL itself is never logged: it can carry
- * embedded database credentials, so only `buildConnectionUrl`'s caller
- * (this function) ever sees it.
+ * boundaries".
  */
 function createPrismaClient(): ReturnType<typeof postgres<Contract>> {
   return postgres<Contract>({
     contract: contractFromJson<Contract>(contractJson),
-    url: buildConnectionUrl(),
+    pg: createPool(),
     middleware: [queryLogger()],
   });
 }

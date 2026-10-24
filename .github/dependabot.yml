@@ -29,6 +29,10 @@ updates:
     labels:
       - "dependencies"
       - "npm"
+    # @types/pg is pinned to the version @prisma/orm-target-postgres uses: the pool handed to Prisma
+    # (src/lib/db/client.ts) must type-check against both. Bump it together with Prisma.
+    ignore:
+      - dependency-name: "@types/pg"
     groups:
       minor-and-patch:
         update-types:

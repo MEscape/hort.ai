@@ -4,8 +4,14 @@ interface FakeClient {
   close: () => Promise<void>;
 }
 
+interface PoolOptions {
+  connectionString: string;
+  max: number;
+  connectionTimeoutMillis: number;
+}
+
 interface ClientOptions {
-  url: string;
+  pg: { options: PoolOptions; handlers: Map<string, (error: Error) => void> };
   middleware: ReadonlyArray<{ name: string }>;
 }
 
@@ -16,6 +22,18 @@ let stderr: ReturnType<typeof vi.spyOn>;
 /** Loads `@lib/db/client` fresh, with the Prisma runtime replaced by a client that never connects. */
 async function loadClient() {
   vi.resetModules();
+  vi.doMock('pg', () => ({
+    Pool: class FakePool {
+      readonly handlers = new Map<string, (error: Error) => void>();
+
+      constructor(readonly options: PoolOptions) {}
+
+      on(event: string, handler: (error: Error) => void): this {
+        this.handlers.set(event, handler);
+        return this;
+      }
+    },
+  }));
   vi.doMock('@prisma/orm-postgres/runtime', () => ({
     default: (options: ClientOptions): FakeClient => {
       created.push(options);
@@ -38,11 +56,21 @@ beforeEach(() => {
 afterEach(() => {
   Reflect.deleteProperty(globalThis, 'prisma');
   vi.doUnmock('@prisma/orm-postgres/runtime');
+  vi.doUnmock('pg');
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
 });
 
 describe('db client', () => {
+  it('logs an error of an idle pool connection instead of letting it crash the process', async () => {
+    await loadClient();
+
+    created[0]?.pg.handlers.get('error')?.(new Error('connection terminated'));
+
+    expect(stderr).toHaveBeenCalledOnce();
+    expect(String(stderr.mock.calls[0]?.[0])).toContain('db.pool_error');
+  });
+
   it('connects to DATABASE_URL with the configured pool settings and the query logger', async () => {
     vi.stubEnv('DATABASE_POOL_SIZE', '7');
     vi.stubEnv('DATABASE_POOL_TIMEOUT_SECONDS', '3');
@@ -50,11 +78,13 @@ describe('db client', () => {
     await loadClient();
 
     expect(created).toHaveLength(1);
-    const url = new URL(created[0]?.url ?? '');
+    const pool = created[0]?.pg.options;
+    const url = new URL(pool?.connectionString ?? '');
     expect(url.host).toBe('localhost:5432');
     expect(url.pathname).toBe('/test');
-    expect(url.searchParams.get('connection_limit')).toBe('7');
-    expect(url.searchParams.get('pool_timeout')).toBe('3');
+    // The pool is sized here: Prisma 8 would ignore size and timeout given in the URL.
+    expect(pool?.max).toBe(7);
+    expect(pool?.connectionTimeoutMillis).toBe(3000);
     expect(created[0]?.middleware.map((middleware) => middleware.name)).toEqual(['query-logger']);
   });
 
