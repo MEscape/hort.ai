@@ -18,7 +18,8 @@ cp .env.example .env                # app settings, ready for local development
 cp .env.docker.example .env.docker  # settings of the local containers
 npm ci
 docker compose --env-file .env.docker config   # optional: validate the interpolation
-docker compose --env-file .env.docker up -d --wait
+docker compose --env-file .env.docker up -d --wait postgres redis-rest mailpit azurite
+docker compose --env-file .env.docker run --rm azurite-init
 npm run db:generate
 npm run db:migrate
 npm run dev                         # http://localhost:3000
@@ -71,7 +72,7 @@ Run the narrowest tests while iterating and `npm run check` before opening a pul
 
 - Pull requests: lint, types, database contract and migrations, tests, license check, security scan, build. The `CI success` job is the single required check.
 - `main`: re-runs CI, builds, migrates both databases, deploys to Vercel and smoke-tests `/api/health`.
-- CI starts the emulators (`redis-rest`, `azurite`, `azurite-init`) from `docker-compose.yml` with the values of `.env.docker.example`, next to a Postgres service. Actions are pinned to commit SHAs; Dependabot keeps them and the container images current.
+- CI starts `redis-rest` and `azurite` from `docker-compose.yml` with the values of `.env.docker.example`, next to a Postgres service, then runs the one-off `azurite-init` task and checks its exit status. Actions are pinned to commit SHAs; Dependabot keeps them and the container images current.
 
 ## Project layout
 

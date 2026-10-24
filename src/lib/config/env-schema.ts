@@ -17,6 +17,7 @@ const DEFAULT_NODE_ENV = 'development' as const;
 const DEFAULT_DATABASE_POOL_SIZE = 10;
 const DEFAULT_DATABASE_POOL_TIMEOUT_SECONDS = 10;
 const DEFAULT_LOG_LEVEL = 'info' as const;
+const DEFAULT_AUDIT_RETENTION_DAYS = 365;
 
 const serverEnvBaseSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default(DEFAULT_NODE_ENV),
@@ -28,6 +29,9 @@ const serverEnvBaseSchema = z.object({
   DATABASE_POOL_TIMEOUT_SECONDS: integerSetting(DEFAULT_DATABASE_POOL_TIMEOUT_SECONDS),
 
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default(DEFAULT_LOG_LEVEL),
+
+  /** How many days the audit trail keeps an entry before the daily retention sweep deletes it. */
+  AUDIT_RETENTION_DAYS: integerSetting(DEFAULT_AUDIT_RETENTION_DAYS),
 });
 
 /** Everything the server schema validates, as one value: what the rules below read. */

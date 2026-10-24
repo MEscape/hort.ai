@@ -38,6 +38,6 @@ describe('publicEnv', () => {
   it('exposes the app identity through the barrel', async () => {
     const { APP_IDENTITY } = await importConfig();
 
-    expect(APP_IDENTITY.name).toBe('HortAi');
+    expect(APP_IDENTITY.name).toBe('Hort.ai');
   });
 });

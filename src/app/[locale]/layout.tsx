@@ -23,7 +23,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(publicEnv.NEXT_PUBLIC_APP_URL),
   applicationName: APP_IDENTITY.name,
   title: { template: `%s | ${APP_IDENTITY.name}`, default: APP_IDENTITY.name },
-  twitter: { card: 'summary' },
+  appleWebApp: { capable: true, title: APP_IDENTITY.name, statusBarStyle: 'default' },
+  openGraph: {
+    images: [
+      { url: APP_IDENTITY.assets.socialImage, width: 1200, height: 630, alt: APP_IDENTITY.name },
+    ],
+  },
+  twitter: { card: 'summary_large_image', images: [APP_IDENTITY.assets.socialImage] },
   formatDetection: { telephone: false, email: false, address: false },
 };
 
