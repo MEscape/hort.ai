@@ -33,12 +33,12 @@ const SAMPLES = [
   {
     id: 'S3',
     task: 'Ein Heft kostet 2 € 50 ct. Tim kauft 3 Hefte. Wie viel muss er bezahlen?',
-    expect: /Geldwert|Größen/,
+    expect: /Geldwert/,
   },
   {
     id: 'S4',
     task: 'Der Film beginnt um 15:45 Uhr und dauert 50 Minuten. Wann ist er zu Ende?',
-    expect: /Zeitspannen|Größen/,
+    expect: /Zeitspannen|Dauer/,
   },
   {
     id: 'S5',

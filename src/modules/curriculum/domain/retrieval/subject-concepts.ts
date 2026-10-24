@@ -27,7 +27,8 @@ const MATH_CONCEPTS: readonly Concept[] = [
     terms: 'multiplikation einmaleins grundrechenarten rechenoperationen',
   },
   {
-    signal: /\d\s*[:÷]\s*\d|geteilt|dividier|verteil|gerecht|aufteil/,
+    // "36 : 4" is a division, "15:45" (no spaces) a clock time.
+    signal: /\d\s+:\s+\d|÷|geteilt|dividier|verteil|gerecht|aufteil/,
     terms: 'division umkehroperationen grundrechenarten rechenoperationen operationsverständnis',
   },
   {
