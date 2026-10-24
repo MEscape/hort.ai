@@ -13,6 +13,7 @@ import { parseClassroomInput } from '../schemas/parse-classroom-input';
 
 import type { ClassroomWithInviteCodeDto } from '../dto/classroom-dto';
 
+/** @keep Server Action for the class screens (teacher: create/rename/archive/new code; parent: join/leave), wired by the UI work. */
 export async function regenerateInviteCodeAction(
   input: unknown,
 ): Promise<ActionResult<ClassroomWithInviteCodeDto>> {

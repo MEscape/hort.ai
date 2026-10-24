@@ -23,6 +23,12 @@ import type { ChildClassroomView, JoinClassroomInput } from '../contracts/classr
 export type JoinClassroomError =
   ChildProfileAccessError | RateLimitedAppError | ConflictAppError | InfrastructureAppError;
 
+/** `isNew` is false when the child already was in this very class. */
+interface JoinOutcome {
+  readonly view: ChildClassroomView;
+  readonly isNew: boolean;
+}
+
 /** The address budget first, then the parent's own (adding-a-rate-limit.md). */
 function enforceJoinBudget(
   deps: ClassroomDependencies,
@@ -79,15 +85,15 @@ function joinOnce(
   deps: ClassroomDependencies,
   actor: Actor,
   target: { readonly childProfileId: ChildProfileId; readonly classroom: Classroom },
-): AppResultAsync<ChildClassroomView, JoinClassroomError> {
+): AppResultAsync<JoinOutcome, JoinClassroomError> {
   const { classrooms, childProfiles, audit } = deps;
   const { childProfileId, classroom } = target;
   return classrooms
     .findMembershipOfChild(childProfileId, actor.tenantId)
-    .andThen((current): AppResultAsync<ChildClassroomView, JoinClassroomError> => {
+    .andThen((current): AppResultAsync<JoinOutcome, JoinClassroomError> => {
       if (current !== null) {
         if (current.classroom.id === classroom.id) {
-          return okAsync(toChildClassroomView(current));
+          return okAsync({ view: toChildClassroomView(current), isNew: false });
         }
         audit.record({
           type: 'classroom.join_refused',
@@ -112,16 +118,7 @@ function joinOnce(
             )
             .map(() => joinedAt),
         )
-        .map((joinedAt) => {
-          audit.record({
-            type: 'classroom.child_joined',
-            actorId: actor.id,
-            tenantId: actor.tenantId,
-            classroomId: classroom.id,
-            childProfileId,
-          });
-          return toChildClassroomView({ classroom, joinedAt });
-        });
+        .map((joinedAt) => ({ view: toChildClassroomView({ classroom, joinedAt }), isNew: true }));
     });
 }
 
@@ -135,7 +132,7 @@ export class JoinClassroom {
   constructor(private readonly deps: ClassroomDependencies) {}
 
   execute(input: JoinClassroomInput): AppResultAsync<ChildClassroomView, JoinClassroomError> {
-    const { authorization, childProfiles } = this.deps;
+    const { authorization, childProfiles, audit } = this.deps;
 
     return authorization.requireInTenant('learner.update').andThen((actor) =>
       enforceJoinBudget(this.deps, actor)
@@ -145,7 +142,18 @@ export class JoinClassroom {
         )
         .andThen((childProfileId) =>
           findClassroomByCode(this.deps, actor, input.inviteCode).andThen((classroom) =>
-            joinOnce(this.deps, actor, { childProfileId, classroom }),
+            joinOnce(this.deps, actor, { childProfileId, classroom }).map(({ view, isNew }) => {
+              if (isNew) {
+                audit.record({
+                  type: 'classroom.child_joined',
+                  actorId: actor.id,
+                  tenantId: actor.tenantId,
+                  classroomId: classroom.id,
+                  childProfileId,
+                });
+              }
+              return view;
+            }),
           ),
         ),
     );

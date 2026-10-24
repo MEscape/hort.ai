@@ -5,7 +5,6 @@ import type {
 } from '../../application/contracts/classroom-constraints';
 import type {
   ChildClassroomView,
-  ClassMemberView,
   ClassroomView,
   ClassroomWithInviteCodeView,
 } from '../../application/contracts/classroom-views';
@@ -26,12 +25,6 @@ export interface ClassroomDto {
 export interface ClassroomWithInviteCodeDto {
   readonly classroom: ClassroomDto;
   readonly inviteCode: string;
-}
-
-export interface ClassMemberDto {
-  readonly childProfileId: string;
-  readonly displayName: string;
-  readonly joinedAt: string;
 }
 
 export interface ChildClassroomDto {
@@ -61,14 +54,6 @@ export function toClassroomWithInviteCodeDto(
   view: ClassroomWithInviteCodeView,
 ): ClassroomWithInviteCodeDto {
   return { classroom: toClassroomDto(view.classroom), inviteCode: view.inviteCode };
-}
-
-export function toClassMemberDto(view: ClassMemberView): ClassMemberDto {
-  return {
-    childProfileId: view.childProfileId,
-    displayName: view.displayName,
-    joinedAt: view.joinedAt.toISOString(),
-  };
 }
 
 export function toChildClassroomDto(view: ChildClassroomView): ChildClassroomDto {

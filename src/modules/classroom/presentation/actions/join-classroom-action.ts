@@ -10,6 +10,7 @@ import { parseClassroomInput } from '../schemas/parse-classroom-input';
 
 import type { ChildClassroomDto } from '../dto/classroom-dto';
 
+/** @keep Server Action for the class screens (teacher: create/rename/archive/new code; parent: join/leave), wired by the UI work. */
 export async function joinClassroomAction(
   input: unknown,
 ): Promise<ActionResult<ChildClassroomDto>> {

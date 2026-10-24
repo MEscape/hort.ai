@@ -13,6 +13,7 @@ import { parseClassroomInput } from '../schemas/parse-classroom-input';
 
 import type { ClassroomDto } from '../dto/classroom-dto';
 
+/** @keep Server Action for the class screens (teacher: create/rename/archive/new code; parent: join/leave), wired by the UI work. */
 export async function archiveClassroomAction(input: unknown): Promise<ActionResult<ClassroomDto>> {
   const result = await parseClassroomInput(classroomIdSchema, input).asyncAndThen((command) =>
     classroomCommands.archiveClassroom.execute(command),

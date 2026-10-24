@@ -42,6 +42,7 @@ function isClassroomCode(code: string): code is ClassroomCode {
 }
 
 /** Codes from other modules (authorization, learner) get the generic message. */
+/** @keep Used by the class screens to translate an action error. */
 export function messageKeyForCode(code: string): MessageKey {
   return isClassroomCode(code) ? MESSAGE_KEY_BY_CODE[code] : GENERIC_ERROR_MESSAGE_KEY;
 }
