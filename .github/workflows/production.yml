@@ -87,10 +87,12 @@ jobs:
       - name: Check migration files
         run: npm run db:migrate:check
 
-      # `deploy` fails with "Project not found" when linked via env vars (while `pull`
-      # works with them). `pull` writes .vercel/project.json, so deploy links by file.
+      # `deploy` fails with "Project not found" when linked via the env ids, so link
+      # by file instead. Only the two ids are written; no env vars are pulled.
       - name: Link Vercel project
-        run: npx --yes "vercel@${VERCEL_CLI_VERSION}" pull --yes --environment=production --token="$VERCEL_TOKEN"
+        run: |
+          mkdir -p .vercel
+          printf '{"orgId":"%s","projectId":"%s"}' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
 
       # 1) BUILD FIRST (STAGED).
       # Vercel builds remotely with the real Production env vars.
