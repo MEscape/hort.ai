@@ -1,6 +1,6 @@
+import type { ValidationAppError } from '@lib/errors';
 import { err, ok } from '@lib/result';
 import type { AppResult } from '@lib/result';
-import type { ValidationAppError } from '@lib/errors';
 
 import { curriculumInvalid, CURRICULUM_VALIDATION_CODES } from '../errors/curriculum-errors';
 import {
@@ -29,13 +29,19 @@ function readHeader(block: string): Header {
   for (const line of block.split('\n')) {
     const separator = line.indexOf(':');
     if (separator > 0) {
-      header[line.slice(0, separator).trim().toLowerCase()] = toCleanLine(line.slice(separator + 1));
+      header[line.slice(0, separator).trim().toLowerCase()] = toCleanLine(
+        line.slice(separator + 1),
+      );
     }
   }
   return header;
 }
 
-function required(header: Header, field: string, max: number): AppResult<string, ValidationAppError> {
+function required(
+  header: Header,
+  field: string,
+  max: number,
+): AppResult<string, ValidationAppError> {
   const value = header[field] ?? '';
   if (value.length === 0) {
     return err(curriculumInvalid(field, CODES.required));
@@ -91,7 +97,9 @@ function sourceOf(header: Header): AppResult<CurriculumSource, ValidationAppErro
  * `title`, `federal-state` (`he`, … or `all`), `subject`, `grades` (`3-4`) and `source-url`, then the
  * body `extractStatements` reads. The whole text is untrusted and bounded before anything is read.
  */
-export function parseCurriculumText(raw: string): AppResult<CurriculumDocumentDraft, ValidationAppError> {
+export function parseCurriculumText(
+  raw: string,
+): AppResult<CurriculumDocumentDraft, ValidationAppError> {
   if (raw.length > CURRICULUM_TEXT_LIMITS.sourceTextMax) {
     return err(curriculumInvalid('text', CODES.tooLong));
   }

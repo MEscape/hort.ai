@@ -14,6 +14,11 @@ const STOPWORDS = new Set(
 
 const SUFFIXES = ['ungen', 'ungs', 'ung', 'ern', 'en', 'er', 'es', 'em', 'e', 'n', 's'];
 const MIN_STEM = 4;
+/** Shorter words ("um", "zu") carry no subject meaning. */
+const MIN_WORD = 3;
+/** A stem may match a longer word it starts at this length, or anywhere inside it at the next. */
+const MIN_PREFIX_MATCH = 5;
+const MIN_INFIX_MATCH = 6;
 
 /** A crude German stem: lower case, `ß` as `ss`, one common inflection suffix removed. */
 export function stem(word: string): string {
@@ -30,7 +35,7 @@ export function stem(word: string): string {
 export function termsOf(text: string): Set<string> {
   const terms = new Set<string>();
   for (const word of text.toLowerCase().split(/[^\p{L}\p{N}]+/u)) {
-    if (word.length >= 3 && !STOPWORDS.has(word) && !/^\d+$/.test(word)) {
+    if (word.length >= MIN_WORD && !STOPWORDS.has(word) && !/^\d+$/.test(word)) {
       terms.add(stem(word));
     }
   }
@@ -43,5 +48,8 @@ export function stemsMatch(query: string, candidate: string): boolean {
     return true;
   }
   const [short, long] = query.length <= candidate.length ? [query, candidate] : [candidate, query];
-  return short.length >= 5 && (long.startsWith(short) || (short.length >= 6 && long.includes(short)));
+  return (
+    short.length >= MIN_PREFIX_MATCH &&
+    (long.startsWith(short) || (short.length >= MIN_INFIX_MATCH && long.includes(short)))
+  );
 }

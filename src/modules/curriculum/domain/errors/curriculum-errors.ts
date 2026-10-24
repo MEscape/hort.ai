@@ -19,8 +19,15 @@ export const CURRICULUM_VALIDATION_CODES = {
 export type CurriculumValidationCode =
   (typeof CURRICULUM_VALIDATION_CODES)[keyof typeof CURRICULUM_VALIDATION_CODES];
 
-export function curriculumInvalid(field: string, code: CurriculumValidationCode): ValidationAppError {
-  return validationError(CURRICULUM_ERROR_CODES.validationFailed, 'The curriculum input is invalid.', {
-    [field]: [code],
-  });
+export function curriculumInvalid(
+  field: string,
+  code: CurriculumValidationCode,
+): ValidationAppError {
+  return validationError(
+    CURRICULUM_ERROR_CODES.validationFailed,
+    'The curriculum input is invalid.',
+    {
+      [field]: [code],
+    },
+  );
 }

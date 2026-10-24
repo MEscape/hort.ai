@@ -106,9 +106,10 @@ export class PrismaCompetencyRepository implements CompetencyRepository {
         .where((row) => row.gradeFrom.lte(grade))
         .where((row) => row.gradeTo.gte(grade));
       const documents = newestPerSource(
-        await (federalState === null
-          ? matching.where((row) => row.federalState.isNull())
-          : matching.where({ federalState: toFederalStateRecord(federalState) })
+        await (
+          federalState === null
+            ? matching.where((row) => row.federalState.isNull())
+            : matching.where({ federalState: toFederalStateRecord(federalState) })
         ).all(),
       );
       if (documents.length === 0) {

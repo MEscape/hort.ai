@@ -14,7 +14,8 @@ const SOURCE_DIRECTORY = join(process.cwd(), 'prisma/curriculum');
 const curriculumSeed: SeedModule = {
   name: 'curriculum',
   order: 10,
-  async run({ say, tally }) {
+  async run(context) {
+    const counts = context.tally;
     const files = readdirSync(SOURCE_DIRECTORY)
       .filter((file) => file.endsWith('.curriculum.txt'))
       .sort();
@@ -26,14 +27,15 @@ const curriculumSeed: SeedModule = {
         throw new Error(`Curriculum ${file} was not ingested: ${result.error.code}`);
       }
       const { sourceKey, outcome, statementCount } = result.value;
-      say(`curriculum ${sourceKey}: ${outcome} (${statementCount} statements)`);
+      context.say(`curriculum ${sourceKey}: ${outcome} (${statementCount} statements)`);
       if (outcome === 'unchanged') {
-        tally.skipped += 1;
+        counts.skipped += 1;
       } else {
-        tally.created += 1;
+        counts.created += 1;
       }
     }
   },
 };
 
+// eslint-disable-next-line import/no-default-export -- the seed runner loads each seed module's default export
 export default curriculumSeed;

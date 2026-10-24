@@ -2,6 +2,7 @@ import type { InfrastructureAppError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
 
 import type { TeacherMaterialStatement } from '../models/competency';
+import type { ClassroomId } from '../models/ids';
 
 /**
  * Teacher material that may ground a child (#29). The caller passes the class the CHILD belongs to;
@@ -11,7 +12,7 @@ import type { TeacherMaterialStatement } from '../models/competency';
  */
 export interface TeacherMaterialSource {
   listForClassroom(
-    classroomId: string,
+    classroomId: ClassroomId,
     limit: number,
   ): AppResultAsync<readonly TeacherMaterialStatement[], InfrastructureAppError>;
 }

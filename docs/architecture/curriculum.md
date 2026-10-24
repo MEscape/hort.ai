@@ -6,10 +6,10 @@ never instructions.
 
 ## Sources and licence
 
-| State             | Document                                                                         | File                                                             |
-| ----------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| HE                | Kerncurriculum Hessen Primarstufe Mathematik (2011), ch. 6.1 and 6.3, pp. 16–21  | `prisma/curriculum/he-kc-mathematik-primarstufe.curriculum.txt`  |
-| all (fallback)    | KMK Bildungsstandards Mathematik Primarbereich (2022), Leitideen, pp. 14–18      | `prisma/curriculum/kmk-bista-mathematik-primarbereich.curriculum.txt` |
+| State          | Document                                                                        | File                                                                  |
+| -------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| HE             | Kerncurriculum Hessen Primarstufe Mathematik (2011), ch. 6.1 and 6.3, pp. 16–21 | `prisma/curriculum/he-kc-mathematik-primarstufe.curriculum.txt`       |
+| all (fallback) | KMK Bildungsstandards Mathematik Primarbereich (2022), Leitideen, pp. 14–18     | `prisma/curriculum/kmk-bista-mathematik-primarbereich.curriculum.txt` |
 
 Neither document states a licence. The repository therefore holds only short competency statements
 with their source (document, chapter, page) and a link to the original; the documents themselves

@@ -75,7 +75,7 @@ export const CURRICULUM_DOCUMENT_SELECT = [
   'title',
   'sourceUrl',
   'createdAt',
-] as const satisfies readonly (keyof CurriculumDocumentRecord)[];
+] as const satisfies ReadonlyArray<keyof CurriculumDocumentRecord>;
 
 export interface CompetencyRecord {
   readonly documentId: string;
@@ -99,7 +99,7 @@ export const COMPETENCY_SELECT = [
   'text',
   'section',
   'page',
-] as const satisfies readonly (keyof CompetencyRecord)[];
+] as const satisfies ReadonlyArray<keyof CompetencyRecord>;
 
 export function toDocumentCreateData(source: CurriculumSource) {
   return {
@@ -151,7 +151,8 @@ export function toCompetency(
     text: record.text,
     section: record.section,
     page: record.page,
-    federalState: record.federalState === null ? null : FEDERAL_STATE_BY_RECORD[record.federalState],
+    federalState:
+      record.federalState === null ? null : FEDERAL_STATE_BY_RECORD[record.federalState],
     subject: SUBJECT_BY_RECORD[record.subject],
     gradeFrom: record.gradeFrom,
     gradeTo: record.gradeTo,

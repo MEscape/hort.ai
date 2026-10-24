@@ -19,14 +19,13 @@ import { curriculumCommands } from '@modules/curriculum';
 import { disconnectDb } from '@lib/db';
 
 const SOURCE_DIRECTORY = join(process.cwd(), 'prisma/curriculum');
-const SOURCE_FILE = /\.curriculum\.txt$/;
 
 function sourceFiles(args: readonly string[]): string[] {
   if (args.length > 0) {
     return [...args];
   }
   return readdirSync(SOURCE_DIRECTORY)
-    .filter((file) => SOURCE_FILE.test(file))
+    .filter((file) => file.endsWith('.curriculum.txt'))
     .sort()
     .map((file) => join(SOURCE_DIRECTORY, file));
 }

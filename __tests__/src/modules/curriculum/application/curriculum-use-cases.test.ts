@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { IngestCurriculumDocument } from '@modules/curriculum/application/commands/ingest-curriculum-document';
-import { FindRelevantCompetencies } from '@modules/curriculum/application/queries/find-relevant-competencies';
 import type { CurriculumDependencies } from '@modules/curriculum/application/curriculum-dependencies';
+import { FindRelevantCompetencies } from '@modules/curriculum/application/queries/find-relevant-competencies';
 import type {
   Competency,
   TeacherMaterialStatement,
@@ -50,9 +50,13 @@ const MATERIAL: TeacherMaterialStatement = {
 };
 
 function deps() {
-  const listCandidates = vi.fn((filter: CompetencyFilter) =>
-    okAsync(filter.federalState === 'he' ? HE : filter.federalState === null ? KMK : []),
-  );
+  const byState = (filter: CompetencyFilter): readonly Competency[] => {
+    if (filter.federalState === null) {
+      return KMK;
+    }
+    return filter.federalState === 'he' ? HE : [];
+  };
+  const listCandidates = vi.fn((filter: CompetencyFilter) => okAsync(byState(filter)));
   const listForClassroom = vi.fn(() => okAsync([MATERIAL]));
   const record = vi.fn();
   const saveDocument = vi.fn(() => okAsync('created' as const));
@@ -64,7 +68,8 @@ function deps() {
   return { dependencies, listCandidates, listForClassroom, record, saveDocument };
 }
 
-const S1 = 'Lisa hat 36 Murmeln. Sie verteilt sie gerecht an 4 Kinder. Wie viele bekommt jedes Kind?';
+const S1 =
+  'Lisa hat 36 Murmeln. Sie verteilt sie gerecht an 4 Kinder. Wie viele bekommt jedes Kind?';
 
 describe('FindRelevantCompetencies', () => {
   it("ranks the child's state curriculum and cites the source", async () => {

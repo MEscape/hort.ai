@@ -68,7 +68,9 @@ describe('extractStatements', () => {
   });
 
   it('advances the page on a form feed', () => {
-    const statements = extractStatements('[Seite 3]\n- erste Aussage hier\n\f- zweite Aussage hier');
+    const statements = extractStatements(
+      '[Seite 3]\n- erste Aussage hier\n\f- zweite Aussage hier',
+    );
     expect(statements.map((s) => s.page)).toEqual([3, 4]);
   });
 
@@ -134,7 +136,9 @@ describe('parseCurriculumText', () => {
     expect(parseCurriculumText('- eine Kompetenzaussage').isErr()).toBe(true);
     expect(parseCurriculumText(`${HEADER}\n# nur eine Überschrift`).isErr()).toBe(true);
     expect(
-      parseCurriculumText(`${HEADER}\n- ${'x'.repeat(CURRICULUM_TEXT_LIMITS.sourceTextMax)}`).isErr(),
+      parseCurriculumText(
+        `${HEADER}\n- ${'x'.repeat(CURRICULUM_TEXT_LIMITS.sourceTextMax)}`,
+      ).isErr(),
     ).toBe(true);
   });
 

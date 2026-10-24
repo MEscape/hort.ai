@@ -97,12 +97,16 @@ describe.skipIf(!isEnabled)('PrismaCompetencyRepository against Postgres', () =>
 
   it('replaces the statements of a changed version and reads only the newest version', async () => {
     expect(
-      (await repository.saveDocument(draft(stateKey, 'v1', 'sl', ['Nur noch eine Aussage'])))._unsafeUnwrap(),
+      (
+        await repository.saveDocument(draft(stateKey, 'v1', 'sl', ['Nur noch eine Aussage']))
+      )._unsafeUnwrap(),
     ).toBe('updated');
     expect((await ours('sl')).map((c) => c.text)).toEqual(['Nur noch eine Aussage']);
 
     expect(
-      (await repository.saveDocument(draft(stateKey, 'v2', 'sl', ['Neue Fassung'])))._unsafeUnwrap(),
+      (
+        await repository.saveDocument(draft(stateKey, 'v2', 'sl', ['Neue Fassung']))
+      )._unsafeUnwrap(),
     ).toBe('created');
     expect((await ours('sl')).map((c) => [c.document.version, c.text])).toEqual([
       ['v2', 'Neue Fassung'],

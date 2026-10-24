@@ -12,10 +12,12 @@ import { rankTexts } from '@modules/curriculum/domain/retrieval/rank-texts';
  */
 function load(file: string) {
   const raw = readFileSync(join(process.cwd(), 'prisma/curriculum', file), 'utf8');
-  return parseCurriculumText(raw)._unsafeUnwrap().statements.map((statement) => ({
-    ...statement,
-    code: `${file}:${statement.code}`,
-  }));
+  return parseCurriculumText(raw)
+    ._unsafeUnwrap()
+    .statements.map((statement) => ({
+      ...statement,
+      code: `${file}:${statement.code}`,
+    }));
 }
 
 const hessen = load('he-kc-mathematik-primarstufe.curriculum.txt');
@@ -38,7 +40,11 @@ const SAMPLES = [
     task: 'Der Film beginnt um 15:45 Uhr und dauert 50 Minuten. Wann ist er zu Ende?',
     expect: /Zeitspannen|Größen/,
   },
-  { id: 'S5', task: 'Setze die Zahlenfolge fort: 4, 8, 12, 16, __, __', expect: /Muster|Zahlenfolgen/ },
+  {
+    id: 'S5',
+    task: 'Setze die Zahlenfolge fort: 4, 8, 12, 16, __, __',
+    expect: /Muster|Zahlenfolgen/,
+  },
 ];
 
 describe('retrieval for the MVP sample tasks', () => {
@@ -48,7 +54,7 @@ describe('retrieval for the MVP sample tasks', () => {
   ] as const) {
     for (const sample of SAMPLES) {
       it(`${name} ${sample.id}: the top three include the expected area`, () => {
-        const ranked = rankTexts(sample.task, 'math', statements, 3);
+        const ranked = rankTexts({ task: sample.task, subject: 'math', limit: 3 }, statements);
         expect(ranked.length).toBeGreaterThan(0);
         const joined = ranked.map(({ item }) => `${item.section} ${item.text}`).join(' | ');
         expect(joined).toMatch(sample.expect);
@@ -57,10 +63,14 @@ describe('retrieval for the MVP sample tasks', () => {
   }
 
   it('returns nothing for a task without any mathematical signal', () => {
-    expect(rankTexts('Hallo, wie geht es dir heute?', 'math', hessen, 3)).toEqual([]);
+    expect(
+      rankTexts({ task: 'Hallo, wie geht es dir heute?', subject: 'math', limit: 3 }, hessen),
+    ).toEqual([]);
   });
 
   it('never returns more than the limit', () => {
-    expect(rankTexts(SAMPLES[0]?.task ?? '', 'math', kmk, 2).length).toBeLessThanOrEqual(2);
+    expect(
+      rankTexts({ task: SAMPLES[0]?.task ?? '', subject: 'math', limit: 2 }, kmk).length,
+    ).toBeLessThanOrEqual(2);
   });
 });

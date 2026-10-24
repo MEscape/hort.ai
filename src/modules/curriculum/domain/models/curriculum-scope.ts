@@ -31,9 +31,7 @@ export const CURRICULUM_GRADE_MIN = 1;
 export const CURRICULUM_GRADE_MAX = 4;
 
 export function isCurriculumGrade(value: number): boolean {
-  return (
-    Number.isInteger(value) && value >= CURRICULUM_GRADE_MIN && value <= CURRICULUM_GRADE_MAX
-  );
+  return Number.isInteger(value) && value >= CURRICULUM_GRADE_MIN && value <= CURRICULUM_GRADE_MAX;
 }
 
 /** Where a text comes from: an official curriculum (#28) or a teacher's upload for one class (#29). */

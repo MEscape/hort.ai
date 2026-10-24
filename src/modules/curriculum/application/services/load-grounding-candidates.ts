@@ -5,8 +5,8 @@ import type { AppResultAsync } from '@lib/result';
 import { CANDIDATES_MAX, MATERIAL_SECTIONS_MAX } from '../curriculum-limits';
 import { fromCompetency, fromTeacherMaterial } from '../curriculum-view-mappers';
 
-import type { GroundingCandidate } from '../curriculum-view-mappers';
 import type { CurriculumDependencies } from '../curriculum-dependencies';
+import type { GroundingCandidate } from '../curriculum-view-mappers';
 import type { RelevanceQuery } from './parse-relevance-query';
 
 export interface GroundingCandidates {

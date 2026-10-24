@@ -3,12 +3,16 @@ import { err, ok } from '@lib/result';
 import type { AppResult } from '@lib/result';
 import { clamp, isDefined } from '@lib/utils';
 
-import { curriculumInvalid, CURRICULUM_VALIDATION_CODES } from '../../domain/errors/curriculum-errors';
+import {
+  curriculumInvalid,
+  CURRICULUM_VALIDATION_CODES,
+} from '../../domain/errors/curriculum-errors';
 import {
   isCurriculumFederalState,
   isCurriculumGrade,
   isCurriculumSubject,
 } from '../../domain/models/curriculum-scope';
+import { parseClassroomId } from '../../domain/models/ids';
 import { toCleanLine } from '../../domain/parsing/untrusted-text';
 import {
   RELEVANT_COMPETENCIES_DEFAULT,
@@ -20,6 +24,7 @@ import type {
   CurriculumFederalState,
   CurriculumSubject,
 } from '../../domain/models/curriculum-scope';
+import type { ClassroomId } from '../../domain/models/ids';
 import type { RelevantCompetenciesRequest } from '../contracts/curriculum-inputs';
 
 export interface RelevanceQuery {
@@ -27,12 +32,11 @@ export interface RelevanceQuery {
   readonly grade: number;
   readonly subject: CurriculumSubject;
   readonly task: string;
-  readonly classroomId: string | null;
+  readonly classroomId: ClassroomId | null;
   readonly limit: number;
 }
 
 const CODES = CURRICULUM_VALIDATION_CODES;
-const CLASSROOM_ID_MAX = 128;
 
 /** Checks a retrieval request; the task is cleaned and cut to what retrieval reads. */
 export function parseRelevanceQuery(
@@ -40,7 +44,6 @@ export function parseRelevanceQuery(
 ): AppResult<RelevanceQuery, ValidationAppError> {
   const federalState = request.federalState.toLowerCase();
   const subject = request.subject.toLowerCase();
-  const classroomId = request.classroomId ?? null;
   if (!isCurriculumFederalState(federalState)) {
     return err(curriculumInvalid('federalState', CODES.invalid));
   }
@@ -50,8 +53,11 @@ export function parseRelevanceQuery(
   if (!isCurriculumGrade(request.grade)) {
     return err(curriculumInvalid('grade', CODES.invalid));
   }
-  if (classroomId !== null && (classroomId.length === 0 || classroomId.length > CLASSROOM_ID_MAX)) {
-    return err(curriculumInvalid('classroomId', CODES.invalid));
+  const classroomId = isDefined(request.classroomId)
+    ? parseClassroomId(request.classroomId)
+    : ok(null);
+  if (classroomId.isErr()) {
+    return err(classroomId.error);
   }
   const requested =
     isDefined(request.limit) && Number.isInteger(request.limit)
@@ -62,7 +68,7 @@ export function parseRelevanceQuery(
     subject,
     grade: request.grade,
     task: toCleanLine(Array.from(request.task).slice(0, TASK_TEXT_MAX).join('')),
-    classroomId,
+    classroomId: classroomId.value,
     limit: clamp(requested, 1, RELEVANT_COMPETENCIES_MAX),
   });
 }

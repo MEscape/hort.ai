@@ -19,7 +19,8 @@ const MATH_CONCEPTS: readonly Concept[] = [
   },
   {
     signal: /\d\s*[-−]\s*\d|\bminus\b|subtrahier|weniger|abzieh/,
-    terms: 'subtraktion rechenverfahren rechenstrategien grundrechenarten schriftlich halbschriftlich',
+    terms:
+      'subtraktion rechenverfahren rechenstrategien grundrechenarten schriftlich halbschriftlich',
   },
   {
     signal: /\d\s*[·×*]\s*\d|\bmal\b|multiplizier|\bje\b|jeweils|kauft\s+\d/,
@@ -46,11 +47,13 @@ const MATH_CONCEPTS: readonly Concept[] = [
     terms: 'muster gesetzmäßigkeiten zahlenfolgen strukturen arithmetische',
   },
   {
-    signal: /dreieck|viereck|quadrat|rechteck|kreis|würfel\b|quader|kugel|spiegel|symmetr|umfang|fläche/,
+    signal:
+      /dreieck|viereck|quadrat|rechteck|kreis|würfel\b|quader|kugel|spiegel|symmetr|umfang|fläche/,
     terms: 'figuren geometrische körper raum form achsensymmetrie flächeninhalt umfang',
   },
   {
-    signal: /tabelle|diagramm|schaubild|strichliste|würfeln|wahrscheinlich|zufall|münze|möglichkeiten/,
+    signal:
+      /tabelle|diagramm|schaubild|strichliste|würfeln|wahrscheinlich|zufall|münze|möglichkeiten/,
     terms: 'daten diagramme tabellen zufallsexperimenten wahrscheinlichkeit kombinatorische',
   },
   {
@@ -60,10 +63,8 @@ const MATH_CONCEPTS: readonly Concept[] = [
 ];
 
 /** A question about a situation ("Wie viele … bekommt jedes Kind?") is a word problem. */
-const WORD_PROBLEM: Concept = {
-  signal: /\?/,
-  terms: 'sachaufgaben sachsituationen sachprobleme sachtexten sachzusammenhängen informationen',
-};
+const WORD_PROBLEM_TERMS =
+  'sachaufgaben sachsituationen sachprobleme sachtexten sachzusammenhängen informationen';
 const WORD_PROBLEM_MIN_WORDS = 8;
 
 const CONCEPTS_BY_SUBJECT: Readonly<Record<CurriculumSubject, readonly Concept[]>> = {
@@ -80,8 +81,11 @@ export function conceptTermsOf(task: string, subject: CurriculumSubject): string
     .filter((concept) => concept.signal.test(text))
     .map((concept) => concept.terms);
   const words = text.split(/\s+/).filter((word) => word.length > 0).length;
-  if (subject === 'math' && WORD_PROBLEM.signal.test(text) && words >= WORD_PROBLEM_MIN_WORDS) {
-    terms.push(WORD_PROBLEM.terms);
+  if (subject === 'math' && text.includes('?') && words >= WORD_PROBLEM_MIN_WORDS) {
+    terms.push(WORD_PROBLEM_TERMS);
   }
-  return terms.join(' ').split(' ').filter((term) => term.length > 0);
+  return terms
+    .join(' ')
+    .split(' ')
+    .filter((term) => term.length > 0);
 }

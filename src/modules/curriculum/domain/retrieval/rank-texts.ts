@@ -10,6 +10,15 @@ export interface RankableText {
   readonly section: string | null;
 }
 
+export interface RankingQuery {
+  readonly task: string;
+  readonly subject: CurriculumSubject;
+  readonly limit: number;
+}
+
+/** Scores are rounded to three decimals so equal matches tie exactly. */
+const SCORE_PRECISION = 1000;
+
 export interface RankedText<T extends RankableText> {
   readonly item: T;
   readonly score: number;
@@ -40,11 +49,9 @@ function matches(term: string, candidate: ReadonlySet<string>): boolean {
  * grounding is better than unrelated grounding. Ties keep a stable order by code.
  */
 export function rankTexts<T extends RankableText>(
-  task: string,
-  subject: CurriculumSubject,
+  { task, subject, limit }: RankingQuery,
   candidates: readonly T[],
-  limit: number,
-): RankedText<T>[] {
+): Array<RankedText<T>> {
   const query = queryTermsOf(task, subject);
   const termSets = candidates.map((item) => termsOf(`${item.section ?? ''} ${item.text}`));
   const weight = new Map<string, number>();
@@ -59,7 +66,7 @@ export function rankTexts<T extends RankableText>(
       for (const term of query) {
         score += matches(term, terms) ? (weight.get(term) ?? 0) : 0;
       }
-      return { item, score: Math.round(score * 1000) / 1000 };
+      return { item, score: Math.round(score * SCORE_PRECISION) / SCORE_PRECISION };
     })
     .filter((ranked) => ranked.score > 0)
     .sort((a, b) => b.score - a.score || a.item.code.localeCompare(b.item.code))

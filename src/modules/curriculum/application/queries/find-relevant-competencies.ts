@@ -31,9 +31,7 @@ export class FindRelevantCompetencies {
     }
     const query = parsed.value;
     return loadGroundingCandidates(this.deps, query).map(({ candidates, usedFallback }) => ({
-      competencies: rankTexts(query.task, query.subject, candidates, query.limit).map(
-        toRelevantCompetencyView,
-      ),
+      competencies: rankTexts(query, candidates).map(toRelevantCompetencyView),
       usedFallback,
     }));
   }
