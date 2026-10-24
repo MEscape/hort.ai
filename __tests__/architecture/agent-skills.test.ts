@@ -9,11 +9,12 @@ import { describe, expect, it } from 'vitest';
  * break on Windows checkouts. This keeps the two trees identical and every skill loadable.
  */
 const ROOT = process.cwd();
-const TREES = ['.agents/skills', '.claude/skills'] as const;
 
 function skillsIn(tree: string): Record<string, string> {
   const dir = join(ROOT, tree);
-  if (!existsSync(dir)) return {};
+  if (!existsSync(dir)) {
+    return {};
+  }
   return Object.fromEntries(
     readdirSync(dir, { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
@@ -21,7 +22,8 @@ function skillsIn(tree: string): Record<string, string> {
   );
 }
 
-const [agents, claude] = TREES.map(skillsIn);
+const agents = skillsIn('.agents/skills');
+const claude = skillsIn('.claude/skills');
 
 describe('agent skills', () => {
   it('ships the same skills, byte for byte, in both trees', () => {
