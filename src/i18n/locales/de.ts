@@ -1,5 +1,6 @@
 import { deAssignments as assignments } from '@modules/assignments';
 import { deAuth as auth } from '@modules/auth';
+import { deLearner as learner } from '@modules/learner';
 
 import deApp from '../messages/de.json';
 
@@ -15,6 +16,7 @@ const messages = {
   app: deApp,
   assignments: assignments.assignments,
   auth: auth.auth,
+  learner: learner.learner,
 } as const satisfies TranslationSchema<MessageCatalog>;
 
 export default messages;
