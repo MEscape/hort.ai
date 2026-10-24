@@ -33,6 +33,9 @@
     "intro": "Eine spielerische, einheitliche Designsprache zum Entdecken, Nachdenken und Weiterprobieren. Diese Galerie verwendet die echten Design-Tokens des Projekts.",
     "draft": "Arbeitsentwurf",
     "note": "Designbeispiele, noch keine fertigen Lerninhalte. Über die endgültige Figur und die Lektionsdaten wird noch entschieden.",
+    "sectionNavigation": "Bereiche des Designsystems",
+    "backToOverview": "Zurück zur Designsystem-Übersicht",
+    "sourceFile": "Komponentenquelle",
     "colors": {
       "title": "Jede Farbe hat eine Aufgabe",
       "description": "Lila führt. Türkis beruhigt. Gold würdigt Entdeckungen. Pink verleiht Charakter. Farbe allein vermittelt nie eine Rückmeldung.",
@@ -59,7 +62,9 @@
       "ghost": "Nicht jetzt",
       "disabled": "Bald verfügbar",
       "selected": "Du hast gewählt: {name}",
-      "initial": "Probiere einen Knopf aus."
+      "initial": "Probiere einen Knopf aus.",
+      "sizes": "Button-Größen",
+      "iconLabel": "Aktivität hinzufügen"
     },
     "cards": {
       "title": "Drei Wege, eine einladende Welt",

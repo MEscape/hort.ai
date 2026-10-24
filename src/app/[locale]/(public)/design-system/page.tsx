@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import { requireLocale } from '@i18n';
+import { Link, requireLocale } from '@i18n';
 
 import { getTranslations } from '@i18n/server';
 
@@ -10,6 +10,9 @@ import { buildPrivateMetadata } from '@lib/seo';
 import { ComponentShowcase } from './_components/component-showcase';
 import { FoundationsShowcase } from './_components/foundations-showcase';
 import { LessonSpecimen } from './_components/lesson-specimen';
+
+const SECTION_LINK_CLASSES =
+  'inline-flex min-h-12 items-center rounded-token border border-border bg-surface px-4 font-heading font-semibold text-primary-copy shadow-soft transition-colors hover:bg-highlight';
 
 interface DesignSystemPageProps {
   readonly params: Promise<{ locale: string }>;
@@ -56,6 +59,31 @@ export default async function DesignSystemPage({ params }: DesignSystemPageProps
             </div>
           </div>
         </header>
+
+        <nav aria-label={t('designSystem.sectionNavigation')}>
+          <ul className="flex flex-wrap gap-3">
+            <li>
+              <Link href="/design-system/buttons" locale={locale} className={SECTION_LINK_CLASSES}>
+                {t('designSystem.buttons.title')}
+              </Link>
+            </li>
+            <li>
+              <Link href="/design-system/cards" locale={locale} className={SECTION_LINK_CLASSES}>
+                {t('designSystem.cards.title')}
+              </Link>
+            </li>
+            <li>
+              <Link href="/design-system/feedback" locale={locale} className={SECTION_LINK_CLASSES}>
+                {t('designSystem.feedback.title')}
+              </Link>
+            </li>
+            <li>
+              <Link href="/design-system/lesson" locale={locale} className={SECTION_LINK_CLASSES}>
+                {t('designSystem.lesson.title')}
+              </Link>
+            </li>
+          </ul>
+        </nav>
 
         <FoundationsShowcase locale={locale} />
         <ComponentShowcase locale={locale} />

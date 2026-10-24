@@ -9,6 +9,7 @@ import { useTranslations } from '@i18n/client';
 /** Only this small specimen needs state; the rest of the component gallery remains server-rendered. */
 export function ButtonPlayground() {
   const t = useTranslations('app');
+  const secondaryLabel = t('designSystem.buttons.secondary');
   const [lastPressed, setLastPressed] = useState<string | null>(null);
 
   return (
@@ -24,10 +25,10 @@ export function ButtonPlayground() {
         <Button
           variant="secondary"
           onClick={() => {
-            setLastPressed(t('designSystem.buttons.secondary'));
+            setLastPressed(secondaryLabel);
           }}
         >
-          {t('designSystem.buttons.secondary')}
+          {secondaryLabel}
         </Button>
         <Button
           variant="accent"
@@ -54,6 +55,25 @@ export function ButtonPlayground() {
           {t('designSystem.buttons.ghost')}
         </Button>
         <Button disabled>{t('designSystem.buttons.disabled')}</Button>
+      </div>
+      <div className="mt-6 border-t border-border pt-5">
+        <h3 className="font-heading text-base font-semibold text-copy">
+          {t('designSystem.buttons.sizes')}
+        </h3>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <Button size="sm" variant="outline">
+            {secondaryLabel}
+          </Button>
+          <Button size="default" variant="outline">
+            {secondaryLabel}
+          </Button>
+          <Button size="lg" variant="outline">
+            {secondaryLabel}
+          </Button>
+          <Button size="icon" variant="outline" aria-label={t('designSystem.buttons.iconLabel')}>
+            <span aria-hidden="true">+</span>
+          </Button>
+        </div>
       </div>
       <output aria-live="polite" className="mt-5 block text-sm text-copy-muted">
         {lastPressed === null

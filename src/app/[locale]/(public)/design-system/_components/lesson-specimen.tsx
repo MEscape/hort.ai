@@ -62,8 +62,12 @@ function CompanionSketch() {
   );
 }
 
+interface LessonSpecimenProps {
+  readonly showHeading?: boolean;
+}
+
 /** Tap-to-move is a gallery-only interaction; it does not evaluate or persist learning answers. */
-export function LessonSpecimen() {
+export function LessonSpecimen({ showHeading = true }: LessonSpecimenProps) {
   const t = useTranslations('app');
   const [selectedApples, setSelectedApples] = useState<readonly number[]>([]);
   const isComplete = selectedApples.length === APPLE_COUNT;
@@ -76,12 +80,18 @@ export function LessonSpecimen() {
 
   return (
     <section aria-labelledby="lesson-title" className="space-y-5">
-      <div className="max-w-2xl">
-        <h2 id="lesson-title" className="font-heading text-3xl text-copy">
+      {showHeading ? (
+        <div className="max-w-2xl">
+          <h2 id="lesson-title" className="font-heading text-3xl text-copy">
+            {t('designSystem.lesson.title')}
+          </h2>
+          <p className="mt-3 text-copy-muted">{t('designSystem.lesson.description')}</p>
+        </div>
+      ) : (
+        <h2 id="lesson-title" className="sr-only">
           {t('designSystem.lesson.title')}
         </h2>
-        <p className="mt-3 text-copy-muted">{t('designSystem.lesson.description')}</p>
-      </div>
+      )}
 
       <div
         data-world="meadow"

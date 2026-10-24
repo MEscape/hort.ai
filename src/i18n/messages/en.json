@@ -33,6 +33,9 @@
     "intro": "A playful, consistent visual language for exploring, thinking and trying again. This working gallery uses the project's real design tokens.",
     "draft": "Working draft",
     "note": "Design specimens, not production learning content. The final mascot and lesson contract are still open decisions.",
+    "sectionNavigation": "Design system sections",
+    "backToOverview": "Back to design system overview",
+    "sourceFile": "Component source",
     "colors": {
       "title": "Our colors have jobs",
       "description": "Purple leads. Teal reassures. Gold celebrates discoveries. Pink brings character. Color never carries feedback alone.",
@@ -59,7 +62,9 @@
       "ghost": "Not now",
       "disabled": "Coming soon",
       "selected": "You pressed: {name}",
-      "initial": "Choose a button to try its response."
+      "initial": "Choose a button to try its response.",
+      "sizes": "Button sizes",
+      "iconLabel": "Add an activity"
     },
     "cards": {
       "title": "Three paths, one welcoming world",
