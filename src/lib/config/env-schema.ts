@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { authEnvSchema } from './auth-env-schema';
-import { integerSetting, postgresUrl } from './env-primitives';
+import { booleanFlag, integerSetting, postgresUrl } from './env-primitives';
 import { refineEnv } from './env-rules';
 import { mailEnvSchema } from './mail-env-schema';
 import { rateLimitEnvRules, rateLimitEnvSchema } from './rate-limit-env-schema';
@@ -19,6 +19,8 @@ const DEFAULT_NODE_ENV = 'development' as const;
 const DEFAULT_DATABASE_POOL_SIZE = 10;
 const DEFAULT_DATABASE_POOL_TIMEOUT_SECONDS = 10;
 const DEFAULT_LOG_LEVEL = 'info' as const;
+/** Max, the dog: the first tutor of the catalog. */
+const DEFAULT_ALEXA_TUTOR_ID = 'max';
 const DEFAULT_AUDIT_RETENTION_DAYS = 365;
 
 const serverEnvBaseSchema = z.object({
@@ -31,6 +33,15 @@ const serverEnvBaseSchema = z.object({
     .string()
     .regex(/^amzn1\.ask\.skill\.[a-zA-Z0-9-]+$/)
     .optional(),
+
+  /** `false` keeps Alexa's standard voice for every answer; `true` speaks tutor answers in a tutor's voice. */
+  ALEXA_TUTOR_VOICE: booleanFlag(true),
+
+  /** Catalog id of the tutor whose voice Alexa uses. An id without a voice falls back to Alexa's voice. */
+  ALEXA_TUTOR_ID: z
+    .string()
+    .regex(/^[a-z][a-z0-9-]{1,30}$/)
+    .default(DEFAULT_ALEXA_TUTOR_ID),
 
   DATABASE_POOL_SIZE: integerSetting(DEFAULT_DATABASE_POOL_SIZE),
 

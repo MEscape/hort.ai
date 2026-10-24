@@ -1,7 +1,8 @@
 # Alexa voice channel (Development stage only)
 
 `POST /api/alexa` makes Alexa a second channel onto hort.ai's tutor: the child speaks, Alexa transcribes,
-this endpoint hands the free text to the tutor and reads the tutor's answer back in Alexa's standard voice.
+this endpoint hands the free text to the tutor and plays the tutor's answer in the tutor's own (ElevenLabs) voice,
+falling back to Alexa's standard voice whenever that voice is not available in time.
 Alexa holds **no learning logic**. Today a connection-test stub answers every turn with
 `Lennart wann holen wir uns draußen Suppe` and ends the session.
 
@@ -12,8 +13,10 @@ Echo / simulator ─HTTPS─▶ src/app/api/alexa/route.ts            (framework
                            └─ modules/alexa/composition.ts       (wiring: skill id, verifier, tutor adapter)
                                ├─ infrastructure/ask-sdk/…       official ASK SDK signature + timestamp verifiers
                                ├─ presentation/routes.ts         Alexa JSON ⇄ TutorTurn / TutorReply, skill-id check
-                               └─ domain/ports/tutor-conversation.port.ts   ◀── the only seam to the tutor
-                                    implemented today by infrastructure/connection-test/connection-test-tutor.ts (stub)
+                               ├─ domain/ports/tutor-conversation.port.ts   ◀── the only seam to the tutor
+                               │    implemented today by infrastructure/connection-test/connection-test-tutor.ts (stub)
+                               └─ domain/ports/tutor-voice.port.ts          ◀── the tutor's voice
+                                    implemented by infrastructure/voice/voice-module-tutor-voice.ts → @modules/voice
 ```
 
 The port is channel-neutral:
@@ -26,7 +29,7 @@ The port is channel-neutral:
 
 | `TutorReply` (out) | meaning                                                                        |
 | ------------------ | ------------------------------------------------------------------------------ |
-| `speech`           | plain text (no SSML), read in Alexa's standard voice                           |
+| `speech`           | plain text (no SSML), spoken in the tutor's voice (see below) or Alexa's voice |
 | `conversation`     | `open`: Alexa keeps listening (with the same text as re-prompt); `closed`: end |
 
 `respond(turn)` returns `AppResultAsync<TutorReply>`. An error is spoken as a short apology and ends the session;
@@ -52,6 +55,36 @@ The channel handles only channel matters itself: Stop/Cancel/Home ("Tschüss"), 
    A refusal comes back as an error and is spoken as the short apology. The endpoint itself has no budget yet;
    unsigned or forged requests stop at the timestamp/signature checks before any tutor work.
 
+## Tutor voice
+
+A successful tutor reply is played as an audio clip in a tutor's ElevenLabs voice (default `max`, the dog), via
+an **APL for Audio** directive (`Alexa.Presentation.APLA.RenderDocument`, one `Audio` component). Channel phrases
+(Tschüss, help, not understood) and the failure apology stay in Alexa's voice.
+
+1. `voice-module-tutor-voice.ts` calls `getHostedSpeech()` from `@modules/voice` (the channel never calls
+   ElevenLabs). The voice module keys a clip by a SHA-256 of voice and text, looks it up in the **private**
+   storage container (`speech-clips/<hash>.mp3`), synthesizes and uploads only on a miss (global budget
+   `voice.hosted-synthesize`, 60 per 10 minutes) and returns a **15-minute read-only SAS URL**. A fixed sentence
+   is therefore synthesized once; every later answer is a HEAD plus a local signature.
+2. `routes.ts` waits at most **4 s** for that URL (`withTimeout`), then answers with plain text instead. Any error
+   (no key, no storage, unknown tutor, budget spent, provider or upload failure, timeout) has the same outcome:
+   Alexa's voice, HTTP 200. Only the reason code is logged (`Alexa tutor voice unavailable`), never text or URL.
+3. Format: ElevenLabs `mp3_44100_128` is played as is (APLA allows MP3 up to 48 kHz; SSML `<audio>` would need
+   48 kbps / ≤24 kHz and a transcode). An open conversation re-prompts with the same text in Alexa's voice.
+4. APLA plays on every Alexa device and needs **no interface in the console or manifest**; Alexa does not list it
+   in `supportedInterfaces` (checked in the simulator), so there is no per-device check. Alexa reports a clip it
+   could not play with `Alexa.Presentation.APLA.RuntimeError`; the endpoint acknowledges it (empty response) and
+   logs `apla_runtime_error`.
+
+Content rule: clips are fetched by Amazon from a public (signed) URL, so they must never contain data about a
+child. The connection-test sentence is fixed text. Before real tutor answers are voiced, the tutor must keep
+names and personal details out of `speech` (or switch `ALEXA_TUTOR_VOICE=false`). Clips live until removed:
+add a storage lifecycle rule (delete `hortai-private/speech-clips/` after 1 day) before dynamic answers are voiced.
+
+Cost: one synthesis per distinct text and voice. The test sentence is 40 characters, billed once (ElevenLabs
+Starter: 40,000 characters a month); cached answers cost nothing at ElevenLabs. Dynamic answers cost their length
+each (about 100–300 characters for a short tutor reply).
+
 ## Interaction model
 
 `alexa/skill-package/interactionModels/custom/de-DE.json` (invocation name `hort`):
@@ -67,9 +100,14 @@ The model in the repository is the one imported in the Developer Console. Change
 
 ## Environment
 
-| Name             | Required | Notes                                                               |
-| ---------------- | -------- | ------------------------------------------------------------------- |
-| `ALEXA_SKILL_ID` | yes      | `amzn1.ask.skill.…` from the console. Unset → endpoint answers 503. |
+| Name                | Required | Notes                                                                  |
+| ------------------- | -------- | ---------------------------------------------------------------------- |
+| `ALEXA_SKILL_ID`    | yes      | `amzn1.ask.skill.…` from the console. Unset → endpoint answers 503.    |
+| `ALEXA_TUTOR_VOICE` | no       | `true` (default) speaks tutor replies in a tutor's voice; `false` off. |
+| `ALEXA_TUTOR_ID`    | no       | Tutor catalog id whose voice is used; default `max`.                   |
+
+The tutor voice also needs `ELEVENLABS_API_KEY` and object storage with `STORAGE_AZURE_PRIVATE_CONTAINER`
+(`STORAGE_PROVIDER=azure`); without them every answer uses Alexa's voice.
 
 The skill id is not a secret, but it is environment-specific and therefore not committed.
 
