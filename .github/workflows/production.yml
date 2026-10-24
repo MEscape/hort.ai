@@ -87,13 +87,6 @@ jobs:
       - name: Check migration files
         run: npm run db:migrate:check
 
-      # `deploy` fails with "Project not found" when linked via the env ids, so link
-      # by file instead. Only the two ids are written; no env vars are pulled.
-      - name: Link Vercel project
-        run: |
-          mkdir -p .vercel
-          printf '{"orgId":"%s","projectId":"%s"}' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
-
       # 1) BUILD FIRST (STAGED).
       # Vercel builds remotely with the real Production env vars.
       # --skip-domain: the production domain is NOT switched yet.
@@ -101,7 +94,6 @@ jobs:
       - name: Build & stage production deployment
         id: deploy
         run: |
-          unset VERCEL_ORG_ID VERCEL_PROJECT_ID
           url="$(npx --yes "vercel@${VERCEL_CLI_VERSION}" deploy --prod --skip-domain --yes --token="$VERCEL_TOKEN")"
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
