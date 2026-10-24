@@ -1,0 +1,50 @@
+{
+  "assignments": {
+    "overview": {
+      "title": "Meine Aufgaben",
+      "create": "Neue Aufgabe",
+      "emptyTitle": "Noch keine Aufgaben",
+      "emptyBody": "Hier erscheinen später die Aufgaben für deine Klasse, sobald das Speichern verbunden ist."
+    },
+    "development": {
+      "title": "Entwicklungsvorschau",
+      "body": "Speichern ist noch nicht verbunden. Entwürfe bleiben nur auf dieser Seite. Bitte nur Beispieltexte verwenden, keine privaten Daten."
+    },
+    "form": {
+      "title": "Neue Aufgabe",
+      "requiredNote": "Titel und Aufgabentext sind Pflichtfelder.",
+      "titleLabel": "Titel der Aufgabe",
+      "titleHint": "Bis zu {limit} Zeichen.",
+      "taskLabel": "Aufgabentext",
+      "taskHint": "Schreibe die Aufgabe für deine Klasse. Bis zu {limit} Zeichen.",
+      "dueLabel": "Abgabedatum (optional)",
+      "dueHint": "Ein Kalendertag ohne Uhrzeit.",
+      "teacherOnly": "Nur für die Lehrkraft",
+      "solutionLabel": "Lösungsschlüssel (optional)",
+      "solutionHint": "Wird in der Kindervorschau nicht gezeigt. Bis zu {limit} Zeichen.",
+      "cancel": "Abbrechen",
+      "preview": "Kindervorschau ansehen"
+    },
+    "preview": {
+      "title": "Kindervorschau",
+      "description": "Eine vorübergehende Vorschau. Diese Aufgabe wurde nicht gespeichert.",
+      "edit": "Weiter bearbeiten",
+      "overview": "Zur Übersicht"
+    },
+    "child": { "due": "Abgabe: {date}" },
+    "discard": {
+      "title": "Entwurf verwerfen?",
+      "body": "Dein Text geht verloren. Es wurde nichts gespeichert.",
+      "keep": "Entwurf behalten",
+      "confirm": "Entwurf verwerfen"
+    },
+    "validation": {
+      "titleRequired": "Bitte gib einen Titel ein.",
+      "titleTooLong": "Der Titel darf höchstens 120 Zeichen enthalten.",
+      "taskRequired": "Bitte gib einen Aufgabentext ein.",
+      "taskTooLong": "Der Aufgabentext darf höchstens 4.000 Zeichen enthalten.",
+      "dateInvalid": "Bitte wähle ein gültiges Datum.",
+      "solutionTooLong": "Der Lösungsschlüssel darf höchstens 4.000 Zeichen enthalten."
+    }
+  }
+}
