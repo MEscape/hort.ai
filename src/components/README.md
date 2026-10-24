@@ -32,4 +32,4 @@ Create a folder with its first component; do not add empty ones.
 - `ui/`: token-styled shadcn `Button`, `Input`, `Label`, `Alert`, `Card`, and `Skeleton`. Curated Lucide icons are exported by `ui/icons.tsx`.
 - `brand/`: `HortaiLogo`, the five-mood owl companion `Hort`, and the decorative warm-paper landscape `WorldScene`. Hort references the canonical artwork in `public/brand/owl.svg`; `npm run brand:generate` exports matching icons and email assets. Interface colors come from semantic tokens; ambient motion respects calm mode and the OS preference. See [branding](../../docs/architecture/branding.md).
 - `shared/`: `TextField` associates labels, hints and errors; `PasswordField` adds visibility and Caps Lock feedback; `FieldMessage` supplies consistent field feedback. `RouteErrorPanel` and `NotFoundPanel` provide translated recovery states.
-- `src/hooks/`: `usePasswordField`, `useCountdown` and `useFocusOnMount` hold reusable browser interaction state.
+- `src/hooks/`: `usePasswordField`, `useCountdown`, `useFocusOnMount` and `useBeforeUnloadGuard` (unsaved-work guard for editors) hold reusable browser interaction state.
