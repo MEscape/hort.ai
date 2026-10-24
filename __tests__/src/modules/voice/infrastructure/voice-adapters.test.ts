@@ -4,7 +4,7 @@ import { toActorId, toTenantId } from '@modules/auth';
 import type { ChildProfileView } from '@modules/learner';
 import { tutorCatalog } from '@modules/tutors';
 import type { TutorCatalog } from '@modules/tutors';
-import { toSpeakerId } from '@modules/voice/domain/models/ids';
+import { toChildProfileId, toSpeakerId } from '@modules/voice/domain/models/ids';
 import { catalogSystemPhrases } from '@modules/voice/infrastructure/catalog/catalog-system-phrases';
 import { learnerChildVoiceConsent } from '@modules/voice/infrastructure/learner/learner-child-voice-consent';
 import { hmacSpokenTextTickets } from '@modules/voice/infrastructure/tickets/hmac-spoken-text-tickets';
@@ -95,9 +95,11 @@ describe('learnerChildVoiceConsent', () => {
       id === 'child-1' ? okAsync(profile) : errAsync(missing),
     );
 
-    expect((await consent.voiceConsentOf('child-1'))._unsafeUnwrap()).toBe(true);
-    expect((await consent.voiceConsentOf('child-of-another-parent'))._unsafeUnwrapErr()).toBe(
-      missing,
-    );
+    expect((await consent.voiceConsentOf(toChildProfileId('child-1')))._unsafeUnwrap()).toBe(true);
+    expect(
+      (
+        await consent.voiceConsentOf(toChildProfileId('child-of-another-parent'))
+      )._unsafeUnwrapErr(),
+    ).toBe(missing);
   });
 });

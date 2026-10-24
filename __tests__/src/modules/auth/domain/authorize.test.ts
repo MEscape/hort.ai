@@ -73,10 +73,15 @@ describe('the roles', () => {
     expect([...new Set(granted)].sort()).toEqual([...PERMISSIONS].sort());
   });
 
-  it('give a parent the learner permissions and nothing of a class', () => {
+  it('give a parent the learner permissions, voice, and nothing of a class', () => {
     const permissions = permissionsForRole('parent');
 
-    expect(permissions.every((permission) => permission.startsWith('learner.'))).toBe(true);
+    expect(
+      permissions.every(
+        (permission) => permission.startsWith('learner.') || permission === 'voice.use',
+      ),
+    ).toBe(true);
+    expect(permissions).toContain('voice.use');
     expect(permissions).not.toContain('classroom.read');
   });
 

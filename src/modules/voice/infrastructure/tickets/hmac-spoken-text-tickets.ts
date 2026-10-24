@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 import type { Clock } from '@lib/clock';
-import { MS_PER_MINUTE } from '@lib/utils';
+import { isFiniteNumber, isString, MS_PER_MINUTE, objectOf } from '@lib/utils';
 
 import type { SpokenTextTickets, TicketHolder } from '../../domain/ports/spoken-text-tickets.port';
 
@@ -22,19 +22,13 @@ interface TicketPayload {
   readonly exp: number;
 }
 
-function isPayload(value: unknown): value is TicketPayload {
-  if (typeof value !== 'object' || value === null) {
-    return false;
-  }
-  const payload = value as Record<string, unknown>;
-  return (
-    payload.v === VERSION &&
-    typeof payload.t === 'string' &&
-    typeof payload.ten === 'string' &&
-    typeof payload.sub === 'string' &&
-    typeof payload.exp === 'number'
-  );
-}
+const isPayload = objectOf<TicketPayload>({
+  v: (value): value is number => value === VERSION,
+  t: isString,
+  ten: isString,
+  sub: isString,
+  exp: isFiniteNumber,
+});
 
 function decode(part: string): unknown {
   try {
