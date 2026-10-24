@@ -87,6 +87,11 @@ jobs:
       - name: Check migration files
         run: npm run db:migrate:check
 
+      # `deploy` alone fails with "Project not found" when linked only via env vars;
+      # `pull` writes .vercel/project.json so the link is file-based.
+      - name: Link Vercel project
+        run: npx --yes "vercel@${VERCEL_CLI_VERSION}" pull --yes --environment=production --token="$VERCEL_TOKEN"
+
       # 1) BUILD FIRST (STAGED).
       # Vercel builds remotely with the real Production env vars.
       # --skip-domain: the production domain is NOT switched yet.
