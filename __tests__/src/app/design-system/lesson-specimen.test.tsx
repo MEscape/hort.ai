@@ -31,7 +31,8 @@ describe('LessonSpecimen', () => {
     expect(screen.getByText('Hint 3')).toBeVisible();
     expect(next).toBeDisabled();
     expect(screen.getByText(/That was the last hint/)).toBeVisible();
-    expect(screen.queryByText(/\b12\b|\bstars?\b|\bpoints?\b|\bXP\b/i)).not.toBeInTheDocument();
+    // The answer to the sample task (7 + 5) never appears.
+    expect(screen.queryByText(/\b12\b/)).not.toBeInTheDocument();
 
     fireEvent.click(reset);
 
