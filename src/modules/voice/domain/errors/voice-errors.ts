@@ -1,5 +1,12 @@
-import { infrastructureError, notFoundError, rateLimitedError, validationError } from '@lib/errors';
+import {
+  forbiddenError,
+  infrastructureError,
+  notFoundError,
+  rateLimitedError,
+  validationError,
+} from '@lib/errors';
 import type {
+  ForbiddenAppError,
   InfrastructureAppError,
   NotFoundAppError,
   RateLimitedAppError,
@@ -19,6 +26,9 @@ export const VOICE_ERROR_CODES = {
   validationFailed: 'voice.validation_failed',
   rateLimited: 'voice.rate_limited',
   rateLimiterFailed: 'voice.rate_limiter_failed',
+  /** The parent has not consented (or revoked consent) to sending recordings for transcription. */
+  consentRequired: 'voice.consent_required',
+  persistenceFailed: 'voice.persistence_failed',
 } as const;
 
 /** Field-level codes, carried in `fieldErrors`. */
@@ -39,6 +49,14 @@ export type VoiceValidationCode =
 
 export function voiceDisabled(): InfrastructureAppError {
   return infrastructureError(VOICE_ERROR_CODES.disabled, 'Speech is not available.');
+}
+
+/** No transcription without the signed-in parent's explicit, unrevoked consent. */
+export function consentRequired(): ForbiddenAppError {
+  return forbiddenError(
+    VOICE_ERROR_CODES.consentRequired,
+    'A parent must allow speech input before recordings are transcribed.',
+  );
 }
 
 /** The id names no tutor that is ready to speak and is not the narrator. */

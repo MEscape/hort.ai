@@ -7,7 +7,15 @@ import { errAsync } from '@lib/result';
 import { speechQuotaExceeded } from '@lib/speech';
 
 import { createBrokenRateLimiter } from '../../../support/rate-limiting';
-import { denying, fakeSpeech, voiceDependencies } from '../fakes';
+import {
+  NOW,
+  actor,
+  denying,
+  fakeConsents,
+  fakeSpeech,
+  unreadableConsents,
+  voiceDependencies,
+} from '../fakes';
 
 const recording = { audio: new Uint8Array([1, 2, 3]), contentType: 'audio/webm' };
 
@@ -28,6 +36,40 @@ describe('TranscribeSpeech', () => {
 
     expect((await query.execute(recording))._unsafeUnwrapErr().kind).toBe('forbidden');
     expect(speech.transcribe).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['was never given', () => fakeConsents(null)],
+    ['was revoked', () => fakeConsents({ grantedAt: NOW, revokedAt: NOW })],
+  ])('refuses without calling the provider when consent %s', async (_case, consents) => {
+    const speech = fakeSpeech();
+    const query = new TranscribeSpeech(voiceDependencies({ speech, consents: consents() }));
+
+    const error = (await query.execute(recording))._unsafeUnwrapErr();
+
+    expect(error).toMatchObject({ kind: 'forbidden', code: 'voice.consent_required' });
+    expect(speech.transcribe).not.toHaveBeenCalled();
+  });
+
+  it('fails closed without calling the provider when consent cannot be read', async () => {
+    const speech = fakeSpeech();
+    const query = new TranscribeSpeech(
+      voiceDependencies({ speech, consents: unreadableConsents() }),
+    );
+
+    const error = (await query.execute(recording))._unsafeUnwrapErr();
+
+    expect(error).toMatchObject({ kind: 'infrastructure', code: 'voice.persistence_failed' });
+    expect(speech.transcribe).not.toHaveBeenCalled();
+  });
+
+  it("checks the signed-in parent's own consent", async () => {
+    const consents = fakeConsents();
+    const query = new TranscribeSpeech(voiceDependencies({ consents }));
+
+    await query.execute(recording);
+
+    expect(consents.find).toHaveBeenCalledWith({ tenantId: 'default', parentId: actor().id });
   });
 
   it('answers voice.disabled while no provider is configured', async () => {

@@ -2,8 +2,10 @@ import { vi } from 'vitest';
 
 import type { Actor, AuthorizationService } from '@modules/auth';
 import type { VoiceDependencies } from '@modules/voice/application/voice-dependencies';
+import type { VoiceConsent } from '@modules/voice/domain/models/voice-consent';
+import type { VoiceConsentRepository } from '@modules/voice/domain/ports/voice-consent.repository';
 
-import { forbiddenError } from '@lib/errors';
+import { forbiddenError, infrastructureError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 import type { SpeechProvider } from '@lib/speech';
 
@@ -41,6 +43,38 @@ export function fakeSpeech(): FakeSpeech {
   };
 }
 
+export const NOW = new Date('2026-10-24T10:00:00.000Z');
+
+interface FakeConsents extends VoiceConsentRepository {
+  readonly find: ReturnType<typeof vi.fn<VoiceConsentRepository['find']>>;
+}
+
+/** A consent store holding one record (`null` = never granted); grant and revoke update it. */
+export function fakeConsents(initial: VoiceConsent | null = { grantedAt: NOW, revokedAt: null }) {
+  let stored = initial;
+  const consents: FakeConsents = {
+    find: vi.fn<VoiceConsentRepository['find']>(() => okAsync(stored)),
+    grant: vi.fn<VoiceConsentRepository['grant']>((_holder, at) => {
+      stored = { grantedAt: at, revokedAt: null };
+      return okAsync(stored);
+    }),
+    revoke: vi.fn<VoiceConsentRepository['revoke']>((_holder, at) => {
+      if (stored !== null && stored.revokedAt === null) {
+        stored = { ...stored, revokedAt: at };
+      }
+      return okAsync(stored);
+    }),
+  };
+  return consents;
+}
+
+/** A consent store that cannot be read. */
+export function unreadableConsents(): VoiceConsentRepository {
+  const failure = () =>
+    errAsync(infrastructureError('voice.persistence_failed', 'VoiceConsent persistence failed.'));
+  return { find: vi.fn(failure), grant: vi.fn(failure), revoke: vi.fn(failure) };
+}
+
 const VOICES = new Map([
   ['max', 'VoiceMax'],
   ['eule', 'VoiceOwl'],
@@ -56,6 +90,9 @@ export function voiceDependencies(overrides: Partial<VoiceDependencies> = {}): V
       isFixedLine: (id, text) => id === 'eule' && text === 'Willkommen bei Hort.ai!',
     },
     textGuard: { isSafe: (text) => !/geheimnis|https?:/i.test(text) },
+    consents: fakeConsents(),
+    audit: { record: vi.fn() },
+    clock: { now: () => NOW },
     ...overrides,
   };
 }

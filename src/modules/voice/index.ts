@@ -3,7 +3,7 @@
  * and a child's recording becomes text (speech-to-text). Framework entry points mount the route
  * handlers; nothing here is browser code.
  */
-export { getVoiceQueries, getVoiceRouteHandlers } from './composition';
+export { getVoiceCommands, getVoiceQueries, getVoiceRouteHandlers } from './composition';
 export type { VoiceRouteHandlers } from './presentation/http/voice-route-handlers';
 export {
   SPEECH_LIMITS,
@@ -18,4 +18,8 @@ export type {
   SynthesizeSpeechInput,
   TranscribeSpeechInput,
 } from './application/contracts/voice-inputs';
-export type { SpeechAudioView, TranscriptView } from './application/contracts/voice-views';
+export type {
+  SpeechAudioView,
+  TranscriptView,
+  VoiceConsentView,
+} from './application/contracts/voice-views';
