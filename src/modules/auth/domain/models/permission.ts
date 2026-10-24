@@ -8,12 +8,16 @@
  *
  * `learner.*` is the child profile's: a parent manages the learners they are the guardian of.
  * The profile itself belongs to the learner module; authentication only decides who may touch it.
+ *
+ * `voice.use` lets the tutors speak and turns the child's speech into text (paid provider calls).
+ * The child speaks within the guardian's session, so it is the parent's permission.
  */
 export const PERMISSIONS = [
   'learner.create',
   'learner.read',
   'learner.update',
   'learner.delete',
+  'voice.use',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

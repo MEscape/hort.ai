@@ -14,6 +14,7 @@ The shared infrastructure and utilities every module builds on. It is generic (n
 | [`mail`](#lib-mail)             | Outgoing e-mail: layout, transports, the one delivery error      |
 | [`clock`](#lib-clock)           | The time port                                                    |
 | [`rate-limit`](#lib-rate-limit) | Budgets for operations anyone can repeat                         |
+| [`speech`](#lib-speech)         | The speech port: text-to-speech and speech-to-text (ElevenLabs)  |
 | [`db`](#lib-db)                 | The Prisma client and persistence failure translators            |
 | [`errors`](#lib-errors)         | Typed application errors                                         |
 | [`result`](#lib-result)         | The `Result` wrapper and what crosses the Server Action boundary |
@@ -77,6 +78,16 @@ Like `Clock`, it is a port every module shares: domain, application and presenta
 - `getClientAddressProvider(() => headers())`: who is calling by network address, from `x-vercel-forwarded-for` or the trusted-proxy chain of `x-forwarded-for`; an address that cannot be trusted is `unresolved-client`, never a guess.
 - `createRateLimiter(deps)`: the limiter over any `RateLimitStore`; tests pass a store they control (`createTestRateLimiter` in `__tests__/src/support/rate-limiting.ts`, backed by an in-memory double that lives only in the tests). `UpstashRateLimitStore` is the only store the application uses (one `EVAL` per attempt).
 - `policyProblem(policy)`, `buildBucketKey(policyId, subject, secret)`: the validator behind the policy checks, and the keyed hash every counter is stored under.
+
+<a id="lib-speech"></a>
+
+### `@lib/speech` (Speech port)
+
+Text-to-speech and speech-to-text behind one port, like `ObjectStore`: every layer may `import type` it; only `composition.ts` files call `getSpeechProvider()` from `@lib/speech/server` (`null` while `ELEVENLABS_API_KEY` is unset, so speech is off). Nothing is stored: a recording lives only as long as the request. The voice module (`src/modules/voice`) is its consumer.
+
+- **Types**: `SpeechProvider` (`synthesize({ text, voiceId })` → MP3 bytes, `transcribe({ audio, contentType, languageCode })` → `{ text, languageCode }`), `SpeechError`.
+- `ElevenLabsSpeechProvider`: plain `fetch` against `/v1/text-to-speech/{voiceId}` and `/v1/speech-to-text`, with a timeout; the key goes only into the `xi-api-key` header, never into an error.
+- Errors: `speech.unavailable` (timeout, 5xx, network) and `speech.throttled` (429) are retryable (`isRetryableSpeechError`); `speech.quota_exceeded` (402, `quota_exceeded`, `paid_plan_required`) and `speech.rejected` (key, voice, request) need an operator.
 
 <a id="lib-db"></a>
 
