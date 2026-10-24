@@ -33,7 +33,7 @@ function ToggleGroupItem({
       data-slot="toggle-group-item"
       className={cn(
         'inline-flex min-h-12 items-center gap-2 rounded-token border-2 border-border-strong bg-surface px-4 py-2 text-base font-semibold text-copy',
-        'transition-[border-color,background-color,transform] duration-150 ease-soft hover:border-primary-copy active:translate-y-px',
+        'transition-[border-color,background-color,transform] duration-150 ease-soft hover:border-primary-copy active:scale-95 motion-safe:data-[state=on]:animate-pop',
         'data-[state=on]:border-primary-copy data-[state=on]:bg-highlight',
         'disabled:pointer-events-none disabled:opacity-60',
         className,
