@@ -9,7 +9,7 @@ import { catalogSystemPhrases } from '@modules/voice/infrastructure/catalog/cata
 import { learnerChildVoiceConsent } from '@modules/voice/infrastructure/learner/learner-child-voice-consent';
 import { hmacSpokenTextTickets } from '@modules/voice/infrastructure/tickets/hmac-spoken-text-tickets';
 
-import { notFoundError } from '@lib/errors';
+import { forbiddenError, infrastructureError, notFoundError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 
 const SECRET = 'a-test-secret-that-is-at-least-32-characters';
@@ -88,18 +88,32 @@ describe('catalogSystemPhrases', () => {
 });
 
 describe('learnerChildVoiceConsent', () => {
-  it("answers from the child profile and passes the learner module's refusal on", async () => {
+  it('answers from the child profile', async () => {
     const profile = { id: 'child-1', voiceConsent: true } as unknown as ChildProfileView;
-    const missing = notFoundError('learner.child_profile_not_found', 'Not found.');
-    const consent = learnerChildVoiceConsent((id) =>
-      id === 'child-1' ? okAsync(profile) : errAsync(missing),
-    );
+    const consent = learnerChildVoiceConsent(() => okAsync(profile));
 
     expect((await consent.voiceConsentOf(toChildProfileId('child-1')))._unsafeUnwrap()).toBe(true);
-    expect(
-      (
-        await consent.voiceConsentOf(toChildProfileId('child-of-another-parent'))
-      )._unsafeUnwrapErr(),
-    ).toBe(missing);
+  });
+
+  it("answers another parent's child exactly like a missing one, so ids cannot be probed", async () => {
+    const foreign = learnerChildVoiceConsent(() =>
+      errAsync(forbiddenError('auth.permission_denied', 'Not yours.')),
+    );
+    const missing = learnerChildVoiceConsent(() =>
+      errAsync(notFoundError('learner.child_profile_not_found', 'Not found.')),
+    );
+
+    const fromForeign = (await foreign.voiceConsentOf(toChildProfileId('a')))._unsafeUnwrapErr();
+    const fromMissing = (await missing.voiceConsentOf(toChildProfileId('b')))._unsafeUnwrapErr();
+
+    expect(fromForeign).toEqual(fromMissing);
+    expect(fromForeign).toMatchObject({ kind: 'not_found', code: 'voice.child_profile_not_found' });
+  });
+
+  it('passes infrastructure failures on unchanged', async () => {
+    const down = infrastructureError('learner.persistence_failed', 'Down.', new Error('db'));
+    const consent = learnerChildVoiceConsent(() => errAsync(down));
+
+    expect((await consent.voiceConsentOf(toChildProfileId('a')))._unsafeUnwrapErr()).toBe(down);
   });
 });

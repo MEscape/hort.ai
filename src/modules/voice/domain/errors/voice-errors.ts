@@ -27,6 +27,8 @@ export const VOICE_ERROR_CODES = {
   unknownPhrase: 'voice.unknown_phrase',
   /** The parent has not allowed this child's recordings to be transcribed: the interface uses text. */
   consentRequired: 'voice.consent_required',
+  /** No child profile of the signed-in parent has this id: missing and foreign look the same. */
+  childProfileNotFound: 'voice.child_profile_not_found',
   validationFailed: 'voice.validation_failed',
   rateLimited: 'voice.rate_limited',
   rateLimiterFailed: 'voice.rate_limiter_failed',
@@ -64,6 +66,14 @@ export function unknownSpeaker(): NotFoundAppError {
 /** The speaker exists but has no such fixed line. */
 export function unknownPhrase(): NotFoundAppError {
   return notFoundError(VOICE_ERROR_CODES.unknownPhrase, 'This speaker has no such line.');
+}
+
+/**
+ * Another parent's child and a child that does not exist answer alike, so the endpoint cannot be
+ * used to probe which child profile ids exist.
+ */
+export function childProfileNotFound(): NotFoundAppError {
+  return notFoundError(VOICE_ERROR_CODES.childProfileNotFound, 'This child profile was not found.');
 }
 
 /** Sending a recording to the provider leaves the session, so it needs the parent's consent. */

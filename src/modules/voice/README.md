@@ -33,7 +33,8 @@ limiter store is down), and only then call the provider.
 - **Consent**: a recording leaves the session only for the signed-in parent's own child (checked by
   the learner module, `GetChildProfileById`) and only while that child profile has `voiceConsent`
   (set and withdrawn by the parent through `UpdateChildProfile`). Otherwise `voice.consent_required`
-  (403) and the interface stays with text. Another parent's child is refused by the learner module.
+  (403) and the interface stays with text. Another parent's child answers like a missing one
+  (`voice.child_profile_not_found`, 404), so ids cannot be probed.
 - **Transcript** is only returned, as a suggestion the child corrects; nothing is sent on. Wherever
   the corrected text is submitted, it goes through the same validation as typed text
   (`parseChildTaskText`, guidance module, #11).
@@ -80,19 +81,20 @@ interface falls back to text, as it must when the microphone is refused.
 
 ## Errors
 
-| Code                        | Status | Meaning                                                 |
-| --------------------------- | ------ | ------------------------------------------------------- |
-| `voice.validation_failed`   | 422    | Text or recording broke a rule (see `fieldErrors`)      |
-| `voice.unknown_speaker`     | 404    | No speaker with a voice has this id                     |
-| `voice.unknown_phrase`      | 404    | The speaker has no such catalog line                    |
-| `voice.consent_required`    | 403    | No `voiceConsent` on this child profile: use text       |
-| `voice.rate_limited`        | 429    | Budget spent; `Retry-After` says when to try again      |
-| `voice.disabled`            | 502    | No `ELEVENLABS_API_KEY`                                 |
-| `voice.rate_limiter_failed` | 502    | The limiter store is down                               |
-| `speech.unavailable`        | 502    | Provider timeout, 5xx or network failure: retry later   |
-| `speech.throttled`          | 502    | Provider 429 (too many concurrent requests): retry soon |
-| `speech.quota_exceeded`     | 502    | Plan quota used up or the voice needs another plan      |
-| `speech.rejected`           | 502    | Bad key, unknown voice, malformed request: fix config   |
+| Code                            | Status | Meaning                                                 |
+| ------------------------------- | ------ | ------------------------------------------------------- |
+| `voice.validation_failed`       | 422    | Text or recording broke a rule (see `fieldErrors`)      |
+| `voice.unknown_speaker`         | 404    | No speaker with a voice has this id                     |
+| `voice.unknown_phrase`          | 404    | The speaker has no such catalog line                    |
+| `voice.consent_required`        | 403    | No `voiceConsent` on this child profile: use text       |
+| `voice.child_profile_not_found` | 404    | Not a child profile of this parent (missing or foreign) |
+| `voice.rate_limited`            | 429    | Budget spent; `Retry-After` says when to try again      |
+| `voice.disabled`                | 502    | No `ELEVENLABS_API_KEY`                                 |
+| `voice.rate_limiter_failed`     | 502    | The limiter store is down                               |
+| `speech.unavailable`            | 502    | Provider timeout, 5xx or network failure: retry later   |
+| `speech.throttled`              | 502    | Provider 429 (too many concurrent requests): retry soon |
+| `speech.quota_exceeded`         | 502    | Plan quota used up or the voice needs another plan      |
+| `speech.rejected`               | 502    | Bad key, unknown voice, malformed request: fix config   |
 
 Infrastructure failures are logged once by the composition root (code and status only, never the
 key, text or audio).
