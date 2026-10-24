@@ -6,6 +6,7 @@ How the larger subsystems work, one document per subsystem. The rules in [`../ru
 | --------------------------------- | ------------------------------------------------ |
 | Rate limiting                     | [`rate-limiting.md`](rate-limiting.md)           |
 | Authentication and access control | [`authentication.md`](authentication.md)         |
+| Child profiles and onboarding     | [`learner.md`](learner.md)                       |
 | Brand identity and assets         | [`branding.md`](branding.md)                     |
 | AI output contract                | [`ai-output-contract.md`](ai-output-contract.md) |
 

@@ -1,7 +1,7 @@
 import type { ActorId, TenantId } from './ids';
 
 /** The modules that keep a trail, as the areas a reader filters by. Closed: a new one is added here on purpose. */
-export const AUDIT_SOURCES = ['auth'] as const;
+export const AUDIT_SOURCES = ['auth', 'learner'] as const;
 export type AuditSource = (typeof AUDIT_SOURCES)[number];
 
 /** `warn` marks failures, denials and security signals, as each module's log levels already do. */
