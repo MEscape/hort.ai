@@ -14,6 +14,8 @@ export default defineConfig({
     // test that touches module code needs a valid one. These are placeholders, not services:
     // nothing here connects to a database.
     env: {
+      // Vercel builds run with NODE_ENV=production; React then has no `act` and config validation is strict.
+      NODE_ENV: 'test',
       DATABASE_URL: 'postgresql://user:pass@localhost:5432/test',
       AUTH_DATABASE_URL: 'postgresql://user:pass@localhost:5432/test_auth',
       AUTH_SECRET: 'x'.repeat(40),
