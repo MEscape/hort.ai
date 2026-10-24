@@ -1,4 +1,4 @@
-import type { TenantId } from '@modules/auth';
+import type { ActorId, TenantId } from '@modules/auth';
 
 import type { InfrastructureAppError, NotFoundAppError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
@@ -8,13 +8,16 @@ import type { ChildProfileId } from '../models/ids';
 
 export interface NewChildProfile {
   readonly tenantId: TenantId;
+  /** The parent creating the profile: the authorized actor, never a request field. */
+  readonly ownerId: ActorId;
   readonly draft: ChildProfileDraft;
 }
 
 /**
  * Persistence for child profiles. Every read and write takes the tenant and
  * matches on (id, tenantId), so another tenant's id behaves exactly like
- * an id that does not exist.
+ * an id that does not exist. Whether the parent owns the profile is checked by the use case on the
+ * loaded record (`requireOnResource`); the list is pinned to the owner.
  *
  * Finders return `null` for "absent"; deciding that absence is an error is
  * the use case's job. Adapters translate every driver failure into our own
@@ -26,9 +29,10 @@ export interface ChildProfileRepository {
     tenantId: TenantId,
   ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
 
-  /** Bounded: never returns more than `limit` items (performance.md). */
-  listByTenant(
+  /** The owner's profiles. Bounded: never returns more than `limit` items (performance.md). */
+  listByOwner(
     tenantId: TenantId,
+    ownerId: ActorId,
     limit: number,
   ): AppResultAsync<readonly ChildProfile[], InfrastructureAppError>;
 

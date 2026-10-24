@@ -12,7 +12,7 @@ export class GetChildProfileById {
   constructor(private readonly deps: LearnerDependencies) {}
 
   execute(id: string): AppResultAsync<ChildProfileView, LoadChildProfileError> {
-    return loadAuthorizedChildProfile(this.deps, id, 'childprofile.read').map(({ childProfile }) =>
+    return loadAuthorizedChildProfile(this.deps, id, 'learner.read').map(({ childProfile }) =>
       toChildProfileView(childProfile),
     );
   }

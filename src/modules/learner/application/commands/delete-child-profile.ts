@@ -13,7 +13,7 @@ export class DeleteChildProfile {
   execute(input: DeleteChildProfileInput): AppResultAsync<void, LoadChildProfileError> {
     const { childProfiles, audit } = this.deps;
 
-    return loadAuthorizedChildProfile(this.deps, input.id, 'childprofile.delete').andThen(
+    return loadAuthorizedChildProfile(this.deps, input.id, 'learner.delete').andThen(
       ({ actor, childProfile }) =>
         childProfiles.deleteById(childProfile.id, actor.tenantId).map(() => {
           audit.record({

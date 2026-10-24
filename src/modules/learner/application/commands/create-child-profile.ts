@@ -9,7 +9,7 @@ import { toChildProfileView } from '../learner-view-mappers';
 import type { CreateChildProfileInput, ChildProfileView } from '../contracts/learner-views';
 import type { LearnerDependencies } from '../learner-dependencies';
 
-/** Creates a child profile in the actor's own tenant. */
+/** Creates a child profile owned by the signed-in parent (the authorized actor is the owner). */
 export class CreateChildProfile {
   constructor(private readonly deps: LearnerDependencies) {}
 
@@ -21,9 +21,9 @@ export class CreateChildProfile {
   > {
     const { authorization, childProfiles, audit } = this.deps;
 
-    return authorization.requireInTenant('childprofile.create').andThen((actor) =>
+    return authorization.requireInTenant('learner.create').andThen((actor) =>
       createChildProfileDraft(input)
-        .asyncAndThen((draft) => childProfiles.create({ tenantId: actor.tenantId, draft }))
+        .asyncAndThen((draft) => childProfiles.create({ tenantId: actor.tenantId, ownerId: actor.id, draft }))
         .map((childProfile) => {
           audit.record({
             type: 'child_profile.created',

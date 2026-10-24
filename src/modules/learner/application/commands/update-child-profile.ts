@@ -19,7 +19,7 @@ export class UpdateChildProfile {
   execute(input: UpdateChildProfileInput): AppResultAsync<ChildProfileView, LoadChildProfileError> {
     const { childProfiles, audit } = this.deps;
 
-    return loadAuthorizedChildProfile(this.deps, input.id, 'childprofile.update').andThen(
+    return loadAuthorizedChildProfile(this.deps, input.id, 'learner.update').andThen(
       ({ actor, childProfile }) =>
         parseChildProfileChanges(input)
           .asyncAndThen(

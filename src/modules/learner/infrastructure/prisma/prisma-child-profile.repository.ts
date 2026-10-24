@@ -1,4 +1,4 @@
-import type { TenantId } from '@modules/auth';
+import type { ActorId, TenantId } from '@modules/auth';
 
 import type { Clock } from '@lib/clock';
 import { db, createPersistenceFailures } from '@lib/db';
@@ -53,26 +53,27 @@ export class PrismaChildProfileRepository implements ChildProfileRepository {
     ).map((record) => record && toChildProfile(record));
   }
 
-  listByTenant(
+  listByOwner(
     tenantId: TenantId,
+    ownerId: ActorId,
     limit: number,
   ): AppResultAsync<readonly ChildProfile[], InfrastructureAppError> {
     return fromThrowableAsync(
       async () =>
         childProfiles()
-          .where({ tenantId })
+          .where({ tenantId, ownerId })
           // `id` breaks ties so the order is stable between requests.
           .orderBy([(row) => row.updatedAt.desc(), (row) => row.id.asc()])
           .limit(limit)
           .all(),
-      failures.infraOnly('listByTenant'),
+      failures.infraOnly('listByOwner'),
     ).map((records) => records.map(toChildProfile));
   }
 
   create(input: NewChildProfile): AppResultAsync<ChildProfile, InfrastructureAppError> {
-    const { tenantId, draft } = input;
+    const { tenantId, ownerId, draft } = input;
     return fromThrowableAsync(
-      async () => childProfiles().create({ tenantId, ...toChildProfileCreateData(draft) }),
+      async () => childProfiles().create({ tenantId, ownerId, ...toChildProfileCreateData(draft) }),
       failures.infraOnly('create'),
     ).map(toChildProfile);
   }

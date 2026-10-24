@@ -1,4 +1,4 @@
-import type { TenantId } from '@modules/auth';
+import type { ActorId, TenantId } from '@modules/auth';
 
 import type { FieldErrorBag, ValidationAppError } from '@lib/errors';
 import { err, ok } from '@lib/result';
@@ -13,8 +13,19 @@ const CODES = LEARNER_VALIDATION_CODES;
 
 /** Field bounds. Presentation reads them through the application's constraints contract. */
 export const CHILD_PROFILE_LIMITS = {
-  displayNameMax: 200,
+  displayNameMax: 40,
+  gradeMin: 1,
+  gradeMax: 4,
 } as const;
+
+/** Primary school: grades 1 to 4 (#5). A whole number in that range, nothing else. */
+function isValidGrade(value: number): boolean {
+  return (
+    Number.isInteger(value) &&
+    value >= CHILD_PROFILE_LIMITS.gradeMin &&
+    value <= CHILD_PROFILE_LIMITS.gradeMax
+  );
+}
 
 export const CHILD_PROFILE_FEDERAL_STATES = [
   'bw',
@@ -41,10 +52,15 @@ export const CHILD_PROFILE_COMPANIONS = ['max', 'lili', 'fina'] as const;
 export type ChildProfileCompanion = (typeof CHILD_PROFILE_COMPANIONS)[number];
 export const isChildProfileCompanion = literalGuard(CHILD_PROFILE_COMPANIONS);
 
-/** A stored child profile. The tenant is internal and never leaves the module's views. */
+/**
+ * A stored child profile. It holds only what the product needs (#9): a display name, federal state,
+ * grade, the chosen companion and the voice consent. `ownerId` is the parent (guardian) it belongs
+ * to; tenant and owner are internal and never leave the module's views.
+ */
 export interface ChildProfile {
   readonly id: ChildProfileId;
   readonly tenantId: TenantId;
+  readonly ownerId: ActorId;
   readonly displayName: string;
   readonly federalState: ChildProfileFederalState;
   readonly grade: number;
@@ -60,7 +76,8 @@ export interface ChildProfileDraftInput {
   readonly federalState: string;
   readonly grade: number;
   readonly companion?: string | null | undefined;
-  readonly voiceConsent: boolean;
+  /** Off unless the parent turns it on (#34). */
+  readonly voiceConsent?: boolean | undefined;
 }
 
 /** A validated child profile, ready to be stored. */
@@ -122,7 +139,7 @@ function readFederalState(
 
 function readGrade(input: ChildProfileDraftInput, bag: FieldErrorBag): number {
   const value = input.grade;
-  if (!Number.isFinite(value)) {
+  if (!isValidGrade(value)) {
     bag.add('grade', CODES.numberInvalid);
   }
   return value;
@@ -173,7 +190,7 @@ function changeGrade(input: ChildProfileChangesInput, bag: FieldErrorBag): Child
   if (input.grade === undefined) {
     return {};
   }
-  if (!Number.isFinite(input.grade)) {
+  if (!isValidGrade(input.grade)) {
     bag.add('grade', CODES.numberInvalid);
   }
   return { grade: input.grade };
@@ -209,7 +226,7 @@ export function createChildProfileDraft(
   const federalState = readFederalState(input, bag);
   const grade = readGrade(input, bag);
   const companion = readCompanion(input, bag);
-  const voiceConsent = input.voiceConsent;
+  const voiceConsent = input.voiceConsent ?? false;
 
   if (bag.hasErrors || federalState === null) {
     return err(bag.toError());

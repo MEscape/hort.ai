@@ -1,4 +1,4 @@
-import { toTenantId } from '@modules/auth';
+import { toActorId, toTenantId } from '@modules/auth';
 
 import { dateToInstant, instantToDate } from '@lib/db';
 import type { InstantRecord } from '@lib/db';
@@ -22,6 +22,7 @@ import type {
 export interface ChildProfileRecord {
   readonly id: string;
   readonly tenantId: string;
+  readonly ownerId: string;
   readonly displayName: string;
   readonly federalState: ChildProfileFederalStateRecord;
   readonly grade: number;
@@ -42,6 +43,7 @@ export interface ChildProfileRecord {
 export const CHILD_PROFILE_SELECT = [
   'id',
   'tenantId',
+  'ownerId',
   'displayName',
   'federalState',
   'grade',
@@ -121,6 +123,7 @@ export function toChildProfile(record: ChildProfileRecord): ChildProfile {
   return {
     id: toChildProfileId(record.id),
     tenantId: toTenantId(record.tenantId),
+    ownerId: toActorId(record.ownerId),
     displayName: record.displayName,
     federalState: CHILD_PROFILE_FEDERAL_STATE_BY_RECORD[record.federalState],
     grade: record.grade,

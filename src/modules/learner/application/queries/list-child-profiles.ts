@@ -18,7 +18,7 @@ export interface ListChildProfilesOptions {
   readonly limit?: number;
 }
 
-/** Lists the actor's own tenant, most recently changed first. Always bounded. */
+/** Lists the signed-in parent's own child profiles, most recently changed first. Always bounded. */
 export class ListChildProfiles {
   constructor(private readonly deps: LearnerDependencies) {}
 
@@ -32,8 +32,8 @@ export class ListChildProfiles {
     const limit = clamp(requested, MIN_CHILD_PROFILE_LIST_LIMIT, MAX_CHILD_PROFILE_LIST_LIMIT);
 
     return this.deps.authorization
-      .requireInTenant('childprofile.read')
-      .andThen((actor) => this.deps.childProfiles.listByTenant(actor.tenantId, limit))
+      .requireInTenant('learner.read')
+      .andThen((actor) => this.deps.childProfiles.listByOwner(actor.tenantId, actor.id, limit))
       .map((childProfiles) => childProfiles.map(toChildProfileView));
   }
 }
