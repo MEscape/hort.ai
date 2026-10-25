@@ -15,9 +15,9 @@ import { createLearnerChildAccess } from '@modules/progression/infrastructure/ch
 
 import { unauthorizedError } from '@lib/errors';
 
-import { TENANT, failingWith, recordingAudit } from '../fakes';
 import { build as buildLearner, setupDoneProfile } from '../../learner/fakes';
 import { build as buildProgression } from '../../progression/fakes';
+import { TENANT, failingWith, recordingAudit } from '../fakes';
 
 /**
  * The child channel through the REAL learner and progression use cases (in-memory stores): the
@@ -49,7 +49,7 @@ function channelWorld() {
   const progressionDeps = {
     ...progression.deps,
     authorization,
-    children: createLearnerChildAccess({ getChildProfileById } as never),
+    children: createLearnerChildAccess({ getChildProfileById }),
   };
   return {
     securityAudit,

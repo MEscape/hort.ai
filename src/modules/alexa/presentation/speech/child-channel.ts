@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { TimeoutError, withTimeout } from '@lib/utils';
+import { TimeoutError, clamp, withTimeout } from '@lib/utils';
 
 import { VOICE_DEADLINE_MS, renderAudio, speak, voiced } from './alexa-speech';
 import { childDialog, needsBackend, timedOutReply } from './child-dialog';
@@ -130,12 +130,9 @@ export async function respondToChild(
         Promise.resolve(companion.companion()),
         childDialog(intent, surface, companion),
       ]),
-      Math.max(
-        0,
-        Math.min(backendDeadlineMs ?? CHILD_BACKEND_DEADLINE_MS, timeLeft(deps) - VOICE_RESERVE_MS),
-      ),
+      clamp(timeLeft(deps) - VOICE_RESERVE_MS, 0, backendDeadlineMs ?? CHILD_BACKEND_DEADLINE_MS),
     );
-    return render(reply, (own.isOk() ? own.value : null) ?? fallbackSpeaker, deps);
+    return await render(reply, (own.isOk() ? own.value : null) ?? fallbackSpeaker, deps);
   } catch (thrown) {
     if (!(thrown instanceof TimeoutError)) {
       throw thrown;
