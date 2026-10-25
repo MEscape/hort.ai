@@ -16,6 +16,11 @@ export type GuidanceEvent =
       readonly codes: readonly string[];
     }
   | {
+      readonly type: 'guidance.grounding_unavailable';
+      readonly level: HintLevel;
+      readonly code: string;
+    }
+  | {
       readonly type: 'guidance.hint_requested';
       readonly tenantId: TenantId;
       readonly actorId: ActorId;

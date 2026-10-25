@@ -6,6 +6,7 @@ import { getRateLimiter } from '@lib/rate-limit';
 import { RequestHint } from './application/commands/request-hint';
 import { HintOrchestrator } from './application/services/hint-orchestrator';
 import { loggerGuidanceAuditLog } from './infrastructure/audit/logger-guidance-audit-log';
+import { curriculumCompetencyRetrieval } from './infrastructure/curriculum/curriculum-competency-retrieval';
 import { learnerChildProfileAccess } from './infrastructure/learner/learner-child-profile-access';
 
 import type { HintProvider } from './domain/ports/hint-provider.port';
@@ -26,6 +27,7 @@ export function createGuidanceCommands(provider: HintProvider) {
     requestHint: new RequestHint({
       authorization: getAccessControl(),
       childProfiles: learnerChildProfileAccess,
+      competencies: curriculumCompetencyRetrieval,
       rateLimiter: getRateLimiter(),
       hints: createHintOrchestrator(provider),
       audit: loggerGuidanceAuditLog,
