@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import { SaveControls } from '@modules/learner/application/commands/save-controls';
 import type { SaveControlsInput } from '@modules/learner/application/contracts/learner-inputs';
-import { GUARDIAN_CONSENT_VERSION } from '@modules/learner/domain/models/parent-controls';
+import {
+  GUARDIAN_CONSENT_VERSION,
+  VOICE_NOTICE_VERSION,
+} from '@modules/learner/domain/models/parent-controls';
 
 import { okAsync } from '@lib/result';
 
@@ -13,6 +16,7 @@ const OWN = profileOf({ id: 'own', setupStep: 'controls' });
 const INPUT: SaveControlsInput = {
   profileId: 'own',
   voiceEnabled: true,
+  voiceNoticeVersion: VOICE_NOTICE_VERSION,
   dailyLimitMinutes: 45,
   allowedWindow: { fromMinute: 900, untilMinute: 1140 },
   learningInsights: true,
@@ -51,8 +55,52 @@ describe('SaveControls', () => {
         allowedWindowChanged: true,
       },
       { type: 'learner.guardian_consent_recorded', ...IDS, consentVersion: '2026-10-24' },
+      {
+        type: 'learner.voice_consent_changed',
+        ...IDS,
+        allowed: true,
+        noticeVersion: VOICE_NOTICE_VERSION,
+      },
     ]);
   });
+
+  it('gives a current voice consent when the parent allows voice, so speech input works at once', async () => {
+    const { deps, childProfiles } = build(PARENT_A, OWN);
+
+    const view = (await new SaveControls(deps).execute(INPUT))._unsafeUnwrap();
+
+    expect(view.voiceConsent).toBe(true);
+    expect(childProfiles.rows[0]?.voiceNotice).toEqual({
+      confirmedAt: NOW,
+      version: VOICE_NOTICE_VERSION,
+    });
+  });
+
+  it('gives no voice consent with voice off, and clears an earlier one', async () => {
+    const { deps, childProfiles } = build(PARENT_A, OWN);
+    const save = new SaveControls(deps);
+    await save.execute(INPUT);
+
+    const view = (
+      await save.execute({ ...INPUT, voiceEnabled: false, voiceNoticeVersion: null })
+    )._unsafeUnwrap();
+
+    expect(view.voiceConsent).toBe(false);
+    expect(childProfiles.rows[0]?.voiceNotice).toBeNull();
+  });
+
+  it.each([null, '2000-01-01'])(
+    'refuses voice on without the current notice (%s) and stores nothing',
+    async (voiceNoticeVersion) => {
+      const { deps, childProfiles, audit } = build(PARENT_A, OWN);
+
+      const result = await new SaveControls(deps).execute({ ...INPUT, voiceNoticeVersion });
+
+      expect(result._unsafeUnwrapErr()).toMatchObject({ code: 'learner.voice_notice_outdated' });
+      expect(childProfiles.writes).toBe(0);
+      expect(audit.events).toEqual([]);
+    },
+  );
 
   it('accepts the restrictive defaults and then audits only the confirmation', async () => {
     const { deps, audit } = build(PARENT_A, OWN);
@@ -95,6 +143,7 @@ describe('SaveControls', () => {
         dailyLimitChanged: true,
         allowedWindowChanged: false,
       },
+      { type: 'learner.voice_consent_changed', ...IDS, allowed: false, noticeVersion: null },
     ]);
   });
 
