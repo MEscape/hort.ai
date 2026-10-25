@@ -16,7 +16,7 @@ import { AccountMenu } from './account-menu';
  * is not authorization; the account query authorizes itself, and without a session (or with
  * authentication off in development) nothing shows.
  */
-export async function AccountControl({ showHome }: { readonly showHome?: boolean }) {
+export async function AccountControl({ showHome = true }: { readonly showHome?: boolean }) {
   const result = isAuthEnabled ? await getAuthQueries().getAccount.execute() : null;
   const account = result?.isOk() === true ? result.value : null;
   return account === null ? null : (
