@@ -23,6 +23,8 @@ const CHILD_SIDE: readonly Permission[] = [
   'learner.read',
   'progression.read',
   'progression.daily_reward',
+  'voice.use',
+  'hint.request',
 ];
 const binding = {
   channel: 'alexa',
@@ -48,7 +50,7 @@ describe('child channel role', () => {
     expect(allowed).toEqual(CHILD_SIDE);
   });
 
-  it('is denied every parent and teacher operation (settings, consent, onboarding, voice, hints)', () => {
+  it('is denied every parent and teacher operation (settings, consent, onboarding)', () => {
     for (const permission of PERMISSIONS.filter((p) => !CHILD_SIDE.includes(p))) {
       expect(decide(channelActor, permission, OWN_CHILD)).toEqual({
         isAllowed: false,

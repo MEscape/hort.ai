@@ -18,14 +18,15 @@ export interface SynthesizeSpeechInput {
 }
 
 /**
- * What hosted speech (a clip behind a URL, for channels without a signed-in actor) should say: a
- * fixed line of the tutor catalog, or a fixed channel sentence that must match `channel-lines.json`
- * exactly; any other text is refused. Validated hints need a ticket and therefore an actor, so they
- * are not speakable here.
+ * What hosted speech (a clip behind a URL, for server channels) should say: a fixed line of the tutor
+ * catalog, a fixed channel sentence that must match `channel-lines.json` exactly, or a read-aloud
+ * ticket (`IssueReadAloudTicket`) a channel acting for a child redeemed as that child's channel actor;
+ * any other text is refused.
  */
 export type HostedSpeechSource =
   | { readonly kind: 'phrase'; readonly phrase: SystemPhrase }
-  | { readonly kind: 'channel-line'; readonly text: string };
+  | { readonly kind: 'channel-line'; readonly text: string }
+  | { readonly kind: 'ticket'; readonly ticket: string; readonly childProfileId: string };
 
 export interface HostedSpeechInput {
   readonly speakerId: string;

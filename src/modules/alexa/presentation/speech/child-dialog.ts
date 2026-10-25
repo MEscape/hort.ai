@@ -8,15 +8,29 @@ import type {
   ChildTasks,
   FeedResult,
   LevelStatus,
+  TutorMessage,
 } from '../../application/contracts/child-companion-model';
 
 /**
- * One piece of a reply: a fixed line (spoken in the companion's voice), or a dynamic sentence (numbers,
- * teacher titles) that Alexa speaks itself.
+ * One piece of a reply: a fixed line (spoken in the companion's voice), a dynamic sentence (numbers,
+ * teacher titles) that Alexa speaks itself, or a text of the help session (spoken in the companion's
+ * voice from the stored, validated session; in Alexa's voice when that fails).
  */
 export type SpokenPart =
   | { readonly kind: 'line'; readonly text: string }
-  | { readonly kind: 'alexa'; readonly text: string };
+  | { readonly kind: 'alexa'; readonly text: string }
+  | { readonly kind: 'tutor'; readonly text: string; readonly message: TutorMessage };
+
+/**
+ * A help-session step that did not finish within the turn: "weiter" runs it again with the same
+ * request id, so the backend answers with the stored step instead of a second one.
+ */
+export interface PendingStep {
+  readonly op: 'start' | 'pick' | 'hint' | 'check' | 'reply';
+  readonly requestId: string;
+  /** The task, answer or reply as the child said it; the spoken position for `pick`. */
+  readonly text: string;
+}
 
 /** The only yes/no question of phase 1: the snack offer. */
 export type OpenQuestion = 'feed';
@@ -27,12 +41,16 @@ export interface DialogSurface {
   readonly last: readonly SpokenPart[];
 }
 
+/** Help-session intents (interaction model v2) and `learn`, any other free input. */
+export type LearnIntent =
+  'learn' | 'task' | 'newTask' | 'hint' | 'answer' | 'readTask' | 'resume' | 'pick';
+
 export type ChildIntent =
+  | LearnIntent
   | 'launch'
   | 'feed'
   | 'level'
   | 'tasks'
-  | 'soon'
   | 'yes'
   | 'no'
   | 'help'
@@ -44,6 +62,11 @@ export interface ChildReply {
   readonly parts: readonly SpokenPart[];
   readonly open: boolean;
   readonly question: OpenQuestion | null;
+  /** What Alexa says when the child stays silent; defaults to the last part. */
+  readonly reprompt?: string;
+  readonly pending?: PendingStep;
+  /** The reply asked for a new task, so the child's next words are that task. */
+  readonly expectTask?: boolean;
 }
 
 /** Most teacher titles read out at once (spec: at most three). */
@@ -56,15 +79,18 @@ const SNACK_BY_MOOD: Partial<Record<ChildHome['mood'], string>> = {
   sleepy: CHILD_LINES.snackSleepy,
 };
 
-const line = (text: string): SpokenPart => ({ kind: 'line', text });
-const alexa = (text: string): SpokenPart => ({ kind: 'alexa', text });
-const open = (parts: readonly SpokenPart[], question: OpenQuestion | null = null): ChildReply => ({
+export const line = (text: string): SpokenPart => ({ kind: 'line', text });
+export const alexa = (text: string): SpokenPart => ({ kind: 'alexa', text });
+export const open = (
+  parts: readonly SpokenPart[],
+  question: OpenQuestion | null = null,
+): ChildReply => ({
   parts,
   open: true,
   question,
 });
 const closed = (text: string): ChildReply => ({ parts: [line(text)], open: false, question: null });
-const askWhatNow = (...parts: SpokenPart[]): ChildReply =>
+export const askWhatNow = (...parts: SpokenPart[]): ChildReply =>
   open([...parts, line(CHILD_LINES.whatNow)]);
 
 /** Whether a turn needs the child's use cases; every other one is answered without the database. */
@@ -121,7 +147,7 @@ export async function childDialog(
   }
 }
 
-/** Replies that need no backend call: help, repeat, stop, phase-2 placeholders, not understood. */
+/** Replies that need no backend call: help, repeat, stop, not understood. */
 function surfaceReply(intent: ChildIntent, surface: DialogSurface): ChildReply {
   switch (intent) {
     case 'stop':
@@ -134,8 +160,6 @@ function surfaceReply(intent: ChildIntent, surface: DialogSurface): ChildReply {
       return surface.last.length > 0
         ? open(surface.last, surface.question)
         : askWhatNow(line(CHILD_LINES.options));
-    case 'soon':
-      return askWhatNow(line(CHILD_LINES.soon));
     default:
       // Rule 7: the first miss asks again, the second names the options.
       return surface.last[0]?.text === CHILD_LINES.notUnderstood
@@ -204,11 +228,11 @@ function tasksReply(result: AppResult<ChildTasks>): ChildReply {
   if (spoken.length === 0) {
     return askWhatNow(line(CHILD_LINES.noTasks));
   }
-  return askWhatNow(
+  return open([
     line(CHILD_LINES.tasksIntro),
     alexa(readTitles(spoken.slice(0, MAX_READ_TASKS))),
-    line(CHILD_LINES.soon),
-  );
+    line(CHILD_LINES.pickTask),
+  ]);
 }
 
 function readTitles(titles: readonly string[]): string {

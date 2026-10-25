@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { after } from 'next/server';
+
 import { systemClock } from '@lib/clock';
 import { serverEnv } from '@lib/config/server';
 import { logger } from '@lib/logger';
@@ -11,6 +13,8 @@ import { connectionTestTutor } from './infrastructure/connection-test/connection
 import { catalogTutorIntroductions } from './infrastructure/tutors/catalog-tutor-introductions';
 import { voiceModuleTutorVoice } from './infrastructure/voice/voice-module-tutor-voice';
 import { createAlexaEndpoint } from './presentation/routes';
+
+import type { TurnTiming } from './presentation/speech/child-channel';
 
 const log = logger.withContext({ module: 'alexa' });
 
@@ -35,6 +39,13 @@ function demoChild() {
       now: () => systemClock.now(),
     }),
     defaultTutorId: toTutorId(serverEnv.ALEXA_TUTOR_ID),
+    // A help-session step that outlasts its turn finishes after the answer, so "weiter" finds it.
+    keepAlive: (work: Promise<unknown>) => {
+      after(work);
+    },
+    onTiming: (timing: TurnTiming) => {
+      log.info('Alexa help-session turn', { ...timing });
+    },
   };
 }
 
