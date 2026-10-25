@@ -11,6 +11,10 @@
     "ChildProfile": {
       "model": "ChildProfile",
       "namespace": "public"
+    },
+    "ProgressEvent": {
+      "model": "ProgressEvent",
+      "namespace": "public"
     }
   },
   "domain": {
@@ -158,6 +162,19 @@
               {
                 "name": "history",
                 "value": "history"
+              }
+            ]
+          },
+          "ProgressEventKind": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "daily_reward",
+                "value": "daily_reward"
+              },
+              {
+                "name": "learning",
+                "value": "learning"
               }
             ]
           },
@@ -453,6 +470,13 @@
                   "codecId": "pg/bool@1",
                   "kind": "scalar"
                 }
+              },
+              "welcomeCompletedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
               }
             },
             "relations": {},
@@ -511,10 +535,127 @@
                 },
                 "voiceConsent": {
                   "column": "voiceConsent"
+                },
+                "welcomeCompletedAt": {
+                  "column": "welcomeCompletedAt"
                 }
               },
               "namespaceId": "public",
               "table": "ChildProfile"
+            }
+          },
+          "ProgressEvent": {
+            "fields": {
+              "childProfileId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "eventKey": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "kind": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "ProgressEventKind",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "occurredAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "ownerId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "tenantId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "xp": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "childProfile": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "childProfileId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "ChildProfile",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "childProfileId": {
+                  "column": "childProfileId"
+                },
+                "eventKey": {
+                  "column": "eventKey"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "kind": {
+                  "column": "kind"
+                },
+                "occurredAt": {
+                  "column": "occurredAt"
+                },
+                "ownerId": {
+                  "column": "ownerId"
+                },
+                "tenantId": {
+                  "column": "tenantId"
+                },
+                "xp": {
+                  "column": "xp"
+                }
+              },
+              "namespaceId": "public",
+              "table": "ProgressEvent"
             }
           }
         }
@@ -701,6 +842,11 @@
                   "expression": "\"setupStep\" IN ('child', 'interests', 'tutor', 'controls', 'review', 'done')",
                   "name": "ChildProfile_setupStep_check_c4a680fd",
                   "prefix": "ChildProfile_setupStep_check"
+                },
+                {
+                  "expression": "\"welcomeCompletedAt\" IS NULL OR \"setupCompletedAt\" IS NOT NULL",
+                  "name": "ChildProfile_welcome_after_setup_rule_1a425757",
+                  "prefix": "ChildProfile_welcome_after_setup_rule"
                 }
               ],
               "columns": {
@@ -834,6 +980,11 @@
                     "value": false
                   },
                   "nullable": false
+                },
+                "welcomeCompletedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
                 }
               },
               "foreignKeys": [],
@@ -865,6 +1016,122 @@
                 ]
               },
               "uniques": []
+            },
+            "ProgressEvent": {
+              "checks": [
+                {
+                  "expression": "char_length(\"eventKey\") BETWEEN 1 AND 64",
+                  "name": "ProgressEvent_event_key_rule_eb4734d2",
+                  "prefix": "ProgressEvent_event_key_rule"
+                },
+                {
+                  "expression": "\"kind\" IN ('daily_reward', 'learning')",
+                  "name": "ProgressEvent_kind_check_ffbb7aee",
+                  "prefix": "ProgressEvent_kind_check"
+                },
+                {
+                  "expression": "\"xp\" BETWEEN 1 AND 100",
+                  "name": "ProgressEvent_xp_rule_619b4399",
+                  "prefix": "ProgressEvent_xp_rule"
+                }
+              ],
+              "columns": {
+                "childProfileId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "eventKey": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "kind": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "ProgressEventKind",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "occurredAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "ownerId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "tenantId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "xp": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "ProgressEvent_childProfileId_idx_afadb118"
+                  },
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "childProfileId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "ProgressEvent"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "ChildProfile"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "childProfileId"
+                  ],
+                  "name": "ProgressEvent_childProfileId_idx_afadb118",
+                  "prefix": "ProgressEvent_childProfileId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "childProfileId",
+                    "eventKey"
+                  ]
+                }
+              ]
             }
           },
           "valueSet": {
@@ -919,6 +1186,13 @@
                 "history"
               ]
             },
+            "ProgressEventKind": {
+              "kind": "valueSet",
+              "values": [
+                "daily_reward",
+                "learning"
+              ]
+            },
             "SetupStep": {
               "kind": "valueSet",
               "values": [
@@ -936,10 +1210,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "26a3e1f976072c0c51fe266023aef5775ed0e6eb2cf0d6984d93340fae52b454"
+    "storageHash": "aa5cfb03f244c8183928615323d036c7c74e741e6c1011b3bf7cff21ad84211c"
   },
   "execution": {
-    "executionHash": "bbfd3f3c6290a588dbea3762ed79d337a06372ade74e324930af463afa43946f",
+    "executionHash": "ca557c0e02f0267b776b037e769e9a76b0caa671ce78044f886acd8b2f8f27f2",
     "mutations": {
       "defaults": [
         {
@@ -960,6 +1234,17 @@
           },
           "ref": {
             "entry": "ChildProfile",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "ProgressEvent",
             "field": "id",
             "namespace": "public"
           }

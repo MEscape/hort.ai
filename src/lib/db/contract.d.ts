@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'26a3e1f976072c0c51fe266023aef5775ed0e6eb2cf0d6984d93340fae52b454'>;
+  StorageHashBase<'aa5cfb03f244c8183928615323d036c7c74e741e6c1011b3bf7cff21ad84211c'>;
 export type ExecutionHash =
-  ExecutionHashBase<'bbfd3f3c6290a588dbea3762ed79d337a06372ade74e324930af463afa43946f'>;
+  ExecutionHashBase<'ca557c0e02f0267b776b037e769e9a76b0caa671ce78044f886acd8b2f8f27f2'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -314,6 +314,12 @@ type FieldTypeOverrides = {
           readonly input: 'child' | 'interests' | 'tutor' | 'controls' | 'review' | 'done';
         };
       };
+      readonly ProgressEvent: {
+        readonly kind: {
+          readonly output: 'daily_reward' | 'learning';
+          readonly input: 'daily_reward' | 'learning';
+        };
+      };
     };
   };
 };
@@ -406,6 +412,12 @@ type ColumnTypeOverrides = {
         readonly input: 'child' | 'interests' | 'tutor' | 'controls' | 'review' | 'done';
       };
     };
+    readonly ProgressEvent: {
+      readonly kind: {
+        readonly output: 'daily_reward' | 'learning';
+        readonly input: 'daily_reward' | 'learning';
+      };
+    };
   };
 };
 export type StorageColumnTypes = ColumnTypesFromStorage<
@@ -455,7 +467,20 @@ export namespace Models {
     tenantId: FieldOutputTypes['public']['ChildProfile']['tenantId'];
     tutorId: FieldOutputTypes['public']['ChildProfile']['tutorId'];
     voiceConsent: FieldOutputTypes['public']['ChildProfile']['voiceConsent'];
+    welcomeCompletedAt: FieldOutputTypes['public']['ChildProfile']['welcomeCompletedAt'];
     readonly [RelationKeys]?: never;
+  };
+  export type public_ProgressEvent = {
+    childProfileId: FieldOutputTypes['public']['ProgressEvent']['childProfileId'];
+    eventKey: FieldOutputTypes['public']['ProgressEvent']['eventKey'];
+    id: FieldOutputTypes['public']['ProgressEvent']['id'];
+    kind: FieldOutputTypes['public']['ProgressEvent']['kind'];
+    occurredAt: FieldOutputTypes['public']['ProgressEvent']['occurredAt'];
+    ownerId: FieldOutputTypes['public']['ProgressEvent']['ownerId'];
+    tenantId: FieldOutputTypes['public']['ProgressEvent']['tenantId'];
+    xp: FieldOutputTypes['public']['ProgressEvent']['xp'];
+    childProfile: public_ChildProfile;
+    readonly [RelationKeys]?: 'childProfile';
   };
 }
 
@@ -463,6 +488,7 @@ export declare const models: {
   public: {
     AuditEntry: Models.public_AuditEntry;
     ChildProfile: Models.public_ChildProfile;
+    ProgressEvent: Models.public_ProgressEvent;
   };
 };
 
@@ -699,6 +725,12 @@ type ContractBase = Omit<
                   };
                   readonly many: false;
                 };
+                readonly welcomeCompletedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
@@ -718,6 +750,83 @@ type ContractBase = Omit<
                 },
               ];
               foreignKeys: readonly [];
+            };
+            readonly ProgressEvent: {
+              columns: {
+                readonly childProfileId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly eventKey: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly kind: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly occurredAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly ownerId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly tenantId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly xp: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['childProfileId', 'eventKey'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'ProgressEvent_childProfileId_idx_afadb118';
+                  readonly prefix: 'ProgressEvent_childProfileId_idx';
+                  readonly columns: readonly ['childProfileId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'ProgressEvent';
+                    readonly columns: readonly ['childProfileId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'ChildProfile';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
             };
           };
           readonly valueSet: {
@@ -765,6 +874,10 @@ type ContractBase = Omit<
                 'history',
               ];
             };
+            readonly ProgressEventKind: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['daily_reward', 'learning'];
+            };
             readonly SetupStep: {
               readonly kind: 'valueSet';
               readonly values: readonly [
@@ -794,6 +907,10 @@ type ContractBase = Omit<
     readonly ChildProfile: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'ChildProfile';
+    };
+    readonly ProgressEvent: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'ProgressEvent';
     };
   };
   readonly domain: {
@@ -943,6 +1060,13 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
               };
+              readonly welcomeCompletedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
             };
             readonly relations: Record<string, never>;
             readonly storage: {
@@ -967,6 +1091,74 @@ type ContractBase = Omit<
                 readonly tenantId: { readonly column: 'tenantId' };
                 readonly tutorId: { readonly column: 'tutorId' };
                 readonly voiceConsent: { readonly column: 'voiceConsent' };
+                readonly welcomeCompletedAt: { readonly column: 'welcomeCompletedAt' };
+              };
+            };
+          };
+          readonly ProgressEvent: {
+            readonly fields: {
+              readonly childProfileId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly eventKey: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly kind: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly occurredAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly ownerId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly tenantId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly xp: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: {
+              readonly childProfile: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'ChildProfile';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['childProfileId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'ProgressEvent';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly childProfileId: { readonly column: 'childProfileId' };
+                readonly eventKey: { readonly column: 'eventKey' };
+                readonly id: { readonly column: 'id' };
+                readonly kind: { readonly column: 'kind' };
+                readonly occurredAt: { readonly column: 'occurredAt' };
+                readonly ownerId: { readonly column: 'ownerId' };
+                readonly tenantId: { readonly column: 'tenantId' };
+                readonly xp: { readonly column: 'xp' };
               };
             };
           };
@@ -1023,6 +1215,13 @@ type ContractBase = Omit<
               { readonly name: 'history'; readonly value: 'history' },
             ];
           };
+          readonly ProgressEventKind: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'daily_reward'; readonly value: 'daily_reward' },
+              { readonly name: 'learning'; readonly value: 'learning' },
+            ];
+          };
           readonly SetupStep: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -1074,6 +1273,10 @@ type ContractBase = Omit<
             { readonly name: 'stories'; readonly value: 'stories' },
             { readonly name: 'puzzles'; readonly value: 'puzzles' },
             { readonly name: 'history'; readonly value: 'history' },
+          ];
+          readonly ProgressEventKind: readonly [
+            { readonly name: 'daily_reward'; readonly value: 'daily_reward' },
+            { readonly name: 'learning'; readonly value: 'learning' },
           ];
           readonly SetupStep: readonly [
             { readonly name: 'child'; readonly value: 'child' },
@@ -1131,6 +1334,14 @@ type ContractBase = Omit<
           readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'ChildProfile';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'ProgressEvent';
             readonly field: 'id';
             readonly namespace: 'public';
           };

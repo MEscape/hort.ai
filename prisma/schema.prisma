@@ -95,6 +95,7 @@ model ChildProfile {
   guardianConfirmedAt    DateTime?
   guardianConsentVersion String?
   setupCompletedAt       DateTime?
+  welcomeCompletedAt     DateTime?
   createdAt              DateTime     @default(now())
 
   @@index([tenantId, ownerId, createdAt])
@@ -105,4 +106,31 @@ model ChildProfile {
   @@check(expression: sql`"dailyLimitMinutes" IS NULL OR "dailyLimitMinutes" IN (15, 30, 45, 60, 90)`, name: "ChildProfile_daily_limit_rule")
   @@check(expression: sql`("allowedFromMinute" IS NULL AND "allowedUntilMinute" IS NULL) OR ("allowedFromMinute" IS NOT NULL AND "allowedUntilMinute" IS NOT NULL AND "allowedFromMinute" >= 0 AND "allowedUntilMinute" <= 1440 AND "allowedFromMinute" % 15 = 0 AND "allowedUntilMinute" % 15 = 0 AND "allowedUntilMinute" - "allowedFromMinute" >= 30)`, name: "ChildProfile_allowed_window_rule")
   @@check(expression: sql`("setupStep" = 'done') = ("setupCompletedAt" IS NOT NULL)`, name: "ChildProfile_done_rule")
+  @@check(expression: sql`"welcomeCompletedAt" IS NULL OR "setupCompletedAt" IS NOT NULL`, name: "ChildProfile_welcome_after_setup_rule")
+}
+
+enum ProgressEventKind {
+  daily_reward
+  learning
+}
+
+/// Append-only XP ledger of the progression module: one row per confirmed reward. The child's XP is
+/// the sum of its rows, so there is one source of truth. `eventKey` is the idempotency key
+/// (`daily:<Berlin calendar day>` for the daily reward, a caller-chosen id for a learning event);
+/// the unique index makes a repeated request grant nothing twice, whatever the interleaving.
+/// A row is deleted only with its profile. No row has a negative amount: nothing takes XP away.
+model ProgressEvent {
+  id             String            @id @onCreate(uuid())
+  tenantId       String
+  ownerId        String
+  childProfileId String
+  kind           ProgressEventKind
+  eventKey       String
+  xp             Int
+  occurredAt     DateTime          @default(now())
+  childProfile   ChildProfile      @relation(fields: [childProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([childProfileId, eventKey])
+  @@check(expression: sql`"xp" BETWEEN 1 AND 100`, name: "ProgressEvent_xp_rule")
+  @@check(expression: sql`char_length("eventKey") BETWEEN 1 AND 64`, name: "ProgressEvent_event_key_rule")
 }
