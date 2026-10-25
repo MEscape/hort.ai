@@ -3,6 +3,9 @@
 import { useId } from 'react';
 
 import { FieldMessage } from '@components/shared/field-message';
+import { FormAlert } from '@components/shared/form-alert';
+import { HortPanel } from '@components/shared/hort-panel';
+import { SubmitButton } from '@components/shared/submit-button';
 import { TextField } from '@components/shared/text-field';
 import { Button } from '@components/ui/button';
 import { ShieldCheck } from '@components/ui/icons';
@@ -16,10 +19,7 @@ import { useSignUpForm } from '../hooks/use-sign-up-form';
 import { authRoutes } from '../routes';
 
 import { AuthEmailField } from './auth-email-field';
-import { AuthFormAlert } from './auth-form-alert';
 import { AuthLink } from './auth-link';
-import { AuthPanel } from './auth-panel';
-import { AuthSubmitButton } from './auth-submit-button';
 import { NewPasswordFields } from './new-password-fields';
 import { NextSteps } from './next-steps';
 
@@ -43,7 +43,7 @@ export function SignUpForm() {
 
   if (sentTo !== null) {
     return (
-      <AuthPanel
+      <HortPanel
         mood="mail"
         shouldTakeFocus
         title={t('signUp.successTitle')}
@@ -66,12 +66,12 @@ export function SignUpForm() {
         <Button asChild size="lg">
           <Link href={authRoutes.signIn()}>{t('signUp.toSignIn')}</Link>
         </Button>
-      </AuthPanel>
+      </HortPanel>
     );
   }
 
   return (
-    <AuthPanel
+    <HortPanel
       mood={mood}
       title={t('signUp.title')}
       description={t('signUp.description')}
@@ -158,8 +158,8 @@ export function SignUpForm() {
             passwordError={errorText(errors.password?.message)}
             confirmError={errorText(errors.confirmPassword?.message)}
           />
-          <AuthFormAlert id={`${id}-form-error`} message={formError} />
-          <AuthSubmitButton
+          <FormAlert id={`${id}-form-error`} message={formError} />
+          <SubmitButton
             isPending={isPending}
             label={t('signUp.submit')}
             pendingLabel={t('signUp.submitting')}
@@ -170,6 +170,6 @@ export function SignUpForm() {
           </p>
         </fieldset>
       </form>
-    </AuthPanel>
+    </HortPanel>
   );
 }

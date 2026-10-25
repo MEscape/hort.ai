@@ -2,7 +2,10 @@
 
 import { useId } from 'react';
 
+import { FormAlert } from '@components/shared/form-alert';
+import { HortPanel } from '@components/shared/hort-panel';
 import { PasswordField } from '@components/shared/password-field';
+import { SubmitButton } from '@components/shared/submit-button';
 import { Alert, AlertDescription } from '@components/ui/alert';
 import { Info } from '@components/ui/icons';
 
@@ -12,10 +15,7 @@ import { useSignInForm } from '../hooks/use-sign-in-form';
 import { authRoutes } from '../routes';
 
 import { AuthEmailField } from './auth-email-field';
-import { AuthFormAlert } from './auth-form-alert';
 import { AuthLink } from './auth-link';
-import { AuthPanel } from './auth-panel';
-import { AuthSubmitButton } from './auth-submit-button';
 
 export interface SignInFormProps {
   /** Where to go afterwards; the server re-checks it, so this is never trusted. */
@@ -30,7 +30,7 @@ export function SignInForm({ returnTo }: SignInFormProps) {
   const { errors, touchedFields } = form.formState;
 
   return (
-    <AuthPanel
+    <HortPanel
       mood={mood}
       title={t('signIn.title')}
       description={t('signIn.description')}
@@ -72,14 +72,14 @@ export function SignInForm({ returnTo }: SignInFormProps) {
             error={errorText(errors.password?.message)}
             {...form.register('password')}
           />
-          <AuthFormAlert id={`${id}-form-error`} message={formError} />
-          <AuthSubmitButton
+          <FormAlert id={`${id}-form-error`} message={formError} />
+          <SubmitButton
             isPending={isPending}
             label={t('signIn.submit')}
             pendingLabel={t('signIn.submitting')}
           />
         </fieldset>
       </form>
-    </AuthPanel>
+    </HortPanel>
   );
 }

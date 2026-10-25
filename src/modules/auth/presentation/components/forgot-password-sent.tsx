@@ -3,6 +3,8 @@
 import { useId } from 'react';
 
 import { FieldMessage } from '@components/shared/field-message';
+import { FormAlert } from '@components/shared/form-alert';
+import { HortPanel } from '@components/shared/hort-panel';
 import { Button } from '@components/ui/button';
 import { ArrowLeft } from '@components/ui/icons';
 
@@ -14,9 +16,7 @@ import { AUTH_LINK_LIFETIME_SECONDS } from '../../application/contracts/auth-con
 import { useResendResetLink } from '../hooks/use-resend-reset-link';
 import { authRoutes } from '../routes';
 
-import { AuthFormAlert } from './auth-form-alert';
 import { AuthLink } from './auth-link';
-import { AuthPanel } from './auth-panel';
 
 const LINK_LIFETIME_MINUTES = AUTH_LINK_LIFETIME_SECONDS / SECONDS_PER_MINUTE;
 
@@ -38,7 +38,7 @@ export function ForgotPasswordSent({ email, onChangeAddress }: ForgotPasswordSen
   const { secondsLeft, isPending, error, hasResent, resend } = useResendResetLink(email);
 
   return (
-    <AuthPanel
+    <HortPanel
       mood="mail"
       shouldTakeFocus
       title={t('forgotPassword.successTitle')}
@@ -51,7 +51,7 @@ export function ForgotPasswordSent({ email, onChangeAddress }: ForgotPasswordSen
       }
     >
       <p className="text-center text-copy-muted">{t('forgotPassword.checkSpam')}</p>
-      <AuthFormAlert id={`${id}-error`} message={error} />
+      <FormAlert id={`${id}-error`} message={error} />
       {hasResent && (
         <div role="status">
           <FieldMessage id={`${id}-resent`} tone="success">
@@ -75,6 +75,6 @@ export function ForgotPasswordSent({ email, onChangeAddress }: ForgotPasswordSen
           {t('forgotPassword.differentAddress')}
         </Button>
       </div>
-    </AuthPanel>
+    </HortPanel>
   );
 }

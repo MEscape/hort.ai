@@ -1,15 +1,27 @@
-import type { ChildProfileView } from './contracts/learner-views';
-import type { ChildProfile } from '../domain/models/child-profile';
+import { hasCurrentGuardianConfirmation } from '../domain/models/child-profile';
 
-export function toChildProfileView(childProfile: ChildProfile): ChildProfileView {
+import type { ChildProfileView, OnboardingStateView } from './contracts/learner-views';
+import type { ChildProfile } from '../domain/models/child-profile';
+import type { OnboardingState } from '../domain/models/onboarding-state';
+
+export function toChildProfileView(profile: ChildProfile): ChildProfileView {
   return {
-    id: childProfile.id,
-    displayName: childProfile.displayName,
-    federalState: childProfile.federalState,
-    grade: childProfile.grade,
-    companion: childProfile.companion,
-    voiceConsent: childProfile.voiceConsent,
-    createdAt: childProfile.createdAt,
-    updatedAt: childProfile.updatedAt,
+    id: profile.id,
+    displayName: profile.displayName,
+    federalState: profile.federalState,
+    grade: profile.grade,
+    interests: profile.interests,
+    tutorId: profile.tutorId,
+    controls: { ...profile.controls },
+    guardianConfirmed: hasCurrentGuardianConfirmation(profile),
+    setupStep: profile.setupStep,
+    setupCompletedAt: profile.setupCompletedAt,
+  };
+}
+
+export function toOnboardingStateView(state: OnboardingState): OnboardingStateView {
+  return {
+    step: state.step,
+    profile: state.profile === null ? null : toChildProfileView(state.profile),
   };
 }

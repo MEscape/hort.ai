@@ -1,31 +1,127 @@
 import { SkillRequestSignatureVerifier, TimestampVerifier } from 'ask-sdk-express-adapter';
 
-import type { UnauthorizedAppError } from '@lib/errors';
+import type { InfrastructureAppError, UnauthorizedAppError } from '@lib/errors';
 import { errAsync, fromThrowable, fromThrowableAsync, type AppResultAsync } from '@lib/result';
-import { parseJson } from '@lib/utils';
+import { MS_PER_MINUTE, parseJson } from '@lib/utils';
 
 import { alexaRequestRejected } from '../../domain/errors/alexa-errors';
+
+import { downloadCertChain } from './cert-chain-download';
 
 import type { IncomingHttpHeaders } from 'node:http';
 
 const TOLERANCE_MS = 150_000;
-const signatureVerifier = new SkillRequestSignatureVerifier();
-const timestampVerifier = new TimestampVerifier(TOLERANCE_MS);
+const CERT_URL_HEADER = 'signaturecertchainurl';
+/**
+ * Amazon's signing-certificate URLs (e.g. `echo-api-cert-EUAmazon-prod-30584302.pem`), canonical only: no query,
+ * fragment, port, host case variants or dot segments, so one certificate cannot be fetched under many cache keys.
+ */
+const CERT_URL =
+  /^https:\/\/s3\.amazonaws\.com\/echo\.api\/echo-api-cert(?:-[A-Za-z0-9]{1,32}){0,4}\.pem$/;
+/** Downloads for certificate URLs that have not verified a request yet: one at a time, few per window. */
+const NEW_CERT_DOWNLOADS_PER_WINDOW = 5;
+const NEW_CERT_WINDOW_MINUTES = 10;
+const NEW_CERT_WINDOW_MS = NEW_CERT_WINDOW_MINUTES * MS_PER_MINUTE;
+const KNOWN_CERT_URLS_MAX = 8;
+/** The SDK's internal download step (`https.get` without any timeout in ask-sdk-express-adapter 2.14). */
+const SDK_DOWNLOAD_STEP = '_getCertChainByUrl';
 
-/** Official ASK verifiers plus a symmetric, finite timestamp guard (SDK only rejects old dates). */
-export function verifyAlexaRequest(
-  raw: string,
-  headers: IncomingHttpHeaders,
-): AppResultAsync<void, UnauthorizedAppError> {
-  const parsed = fromThrowable(() => parseJson(raw), alexaRequestRejected);
-  const timestamp = parsed.isOk() ? readTimestamp(parsed.value) : Number.NaN;
-  if (!Number.isFinite(timestamp) || Math.abs(Date.now() - timestamp) > TOLERANCE_MS) {
-    return errAsync(alexaRequestRejected());
-  }
-  return fromThrowableAsync(async () => {
-    await timestampVerifier.verify(raw);
-    await signatureVerifier.verify(raw, headers);
-  }, alexaRequestRejected);
+interface SignatureVerifier {
+  verify(raw: string, headers: IncomingHttpHeaders): Promise<void>;
+}
+interface RequestTimestampVerifier {
+  verify(raw: string): Promise<void>;
+}
+interface AskVerifierDependencies {
+  readonly signature: SignatureVerifier;
+  readonly timestamp: RequestTimestampVerifier;
+  readonly now: () => number;
+}
+
+/**
+ * Official ASK verifiers behind cheap guards that run first: a symmetric, finite timestamp window (the SDK only
+ * rejects old dates) and a per-instance budget for certificate downloads. The SDK caches a certificate per URL
+ * once its chain is valid; a URL that has not verified a request yet costs a download, so such URLs must be
+ * canonical, are fetched one at a time and at most NEW_CERT_DOWNLOADS_PER_WINDOW times per window.
+ */
+export function createAskRequestVerifier(deps: AskVerifierDependencies) {
+  const knownCertUrls = new Set<string>();
+  const downloadTimes: number[] = [];
+  let downloading = false;
+
+  const reserveDownload = (): boolean => {
+    const now = deps.now();
+    while (downloadTimes.length > 0 && now - (downloadTimes[0] ?? now) >= NEW_CERT_WINDOW_MS) {
+      downloadTimes.shift();
+    }
+    if (downloading || downloadTimes.length >= NEW_CERT_DOWNLOADS_PER_WINDOW) {
+      return false;
+    }
+    downloadTimes.push(now);
+    downloading = true;
+    return true;
+  };
+
+  return (
+    raw: string,
+    headers: IncomingHttpHeaders,
+  ): AppResultAsync<void, UnauthorizedAppError> => {
+    const parsed = fromThrowable(() => parseJson(raw), alexaRequestRejected);
+    const timestamp = parsed.isOk() ? readTimestamp(parsed.value) : Number.NaN;
+    if (!Number.isFinite(timestamp) || Math.abs(deps.now() - timestamp) > TOLERANCE_MS) {
+      return errAsync(alexaRequestRejected());
+    }
+    const certUrl = readHeader(headers, CERT_URL_HEADER);
+    if (certUrl === undefined || !CERT_URL.test(certUrl)) {
+      return errAsync(alexaRequestRejected());
+    }
+    const isNew = !knownCertUrls.has(certUrl);
+    if (isNew && !reserveDownload()) {
+      return errAsync(alexaRequestRejected());
+    }
+    return fromThrowableAsync(async () => {
+      try {
+        await deps.timestamp.verify(raw);
+        await deps.signature.verify(raw, headers);
+      } finally {
+        if (isNew) {
+          downloading = false;
+        }
+      }
+      if (isNew && knownCertUrls.size < KNOWN_CERT_URLS_MAX) {
+        knownCertUrls.add(certUrl);
+      }
+    }, alexaRequestRejected);
+  };
+}
+
+export const verifyAlexaRequest = createAskRequestVerifier({
+  signature: withCertDownload(new SkillRequestSignatureVerifier(), (url) => downloadCertChain(url)),
+  timestamp: new TimestampVerifier(TOLERANCE_MS),
+  now: () => Date.now(),
+});
+
+/**
+ * Replaces only the transport of the official verifier: URL checks, chain validation, caching and the signature
+ * check stay the SDK's. A test fails the build if a newer SDK drops this step, so it cannot silently fall back
+ * to a download without a deadline.
+ */
+export function withCertDownload(
+  verifier: SkillRequestSignatureVerifier,
+  download: (url: string) => AppResultAsync<string, InfrastructureAppError>,
+): SkillRequestSignatureVerifier {
+  // The SDK expects a rejecting promise; its own verify() catches it and reports a failed verification.
+  const sdkDownload = async (url: string): Promise<string> => {
+    const chain = await download(url);
+    return chain.isOk() ? chain.value : Promise.reject(new Error(chain.error.message));
+  };
+  Object.defineProperty(verifier, SDK_DOWNLOAD_STEP, { value: sdkDownload });
+  return verifier;
+}
+
+function readHeader(headers: IncomingHttpHeaders, name: string): string | undefined {
+  const value = Object.entries(headers).find(([key]) => key.toLowerCase() === name)?.[1];
+  return typeof value === 'string' ? value : undefined;
 }
 
 function readTimestamp(value: unknown): number {
