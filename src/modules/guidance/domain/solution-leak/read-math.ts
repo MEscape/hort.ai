@@ -135,8 +135,12 @@ function withNumberWords(text: string): string {
     });
 }
 
+/** German thousands dots ("1.000", "12.345.678"); dropped before the decimal comma is read, so "1,500" stays one and a half. */
+const THOUSANDS = /(?<![\d.,])[1-9]\d{0,2}(?:\.\d{3})+(?!\d|\.\d)/g;
+
 function withOneNotation(math: string): string {
   return math
+    .replace(THOUSANDS, (grouped) => grouped.replaceAll('.', ''))
     .replace(/(\d),(\d)/g, '$1.$2')
     .replace(/\bgeteilt durch\b|\bdurch\b|÷/g, ' / ')
     .replace(/\bplus\b/g, ' + ')
