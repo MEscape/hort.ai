@@ -1,0 +1,33 @@
+{
+  "guidance": {
+    "hint": {
+      "step": "Tipp {step} von {total}",
+      "fallback": {
+        "understand_task": "Lies die Aufgabe noch einmal in Ruhe. Was sollst du herausfinden?",
+        "activate_prior_knowledge": "Was weißt du schon über so eine Aufgabe? Hast du etwas Ähnliches schon einmal gemacht?",
+        "next_step": "Was könntest du als Erstes tun? Überleg dir nur den nächsten kleinen Schritt.",
+        "similar_example": "Denk an eine ähnliche, leichtere Aufgabe. Wie würdest du die lösen? Probier es bei deiner Aufgabe genauso."
+      }
+    },
+    "feedback": {
+      "fallback": {
+        "answer_assessment": {
+          "partly_correct": "Da bist du schon auf einem guten Weg! Schau dir deine Antwort noch einmal genau an.",
+          "not_yet": "Noch nicht ganz, aber das ist ganz normal. Ein Tipp kann dir weiterhelfen.",
+          "unassessed": "Das konnte ich gerade nicht prüfen. Magst du dir einen Tipp holen oder es gleich noch einmal versuchen?"
+        },
+        "praise": "Super, das hast du selbst herausgefunden!",
+        "comprehension_question": "Erklär mir in deinen eigenen Worten, wie du auf deine Antwort gekommen bist."
+      }
+    },
+    "errors": {
+      "validation": "Da hat etwas nicht gepasst. Bitte versuch es noch einmal.",
+      "childInputInvalid": "Bitte schreib deine Antwort noch einmal.",
+      "sessionNotFound": "Diese Aufgabe ist nicht mehr offen. Starte sie bitte neu.",
+      "noOpenQuestion": "Gerade gibt es keine Frage zu beantworten.",
+      "rateLimited": "Mach kurz eine Pause und versuch es gleich noch einmal.",
+      "infrastructure": "Gerade klappt etwas nicht. Bitte versuch es gleich noch einmal.",
+      "unexpected": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal."
+    }
+  }
+}

@@ -6,15 +6,16 @@ import type { FeedbackKind } from '../models/feedback-request';
 import type { HintFallbackReason } from '../models/hint-fallback-reason';
 import type { HintLevel } from '../models/hint-level';
 import type { HintSubject } from '../models/hint-subject';
-import type { ChildProfileId } from '../models/ids';
+import type { ChildProfileId, HelpSessionId } from '../models/ids';
 import type { ChildMessageIntent, TopicDecision, TopicGuess } from '../topic/topic-classification';
 
 /** A confidence reduced to what operations need to tune the thresholds; never the exact value. */
 export type ConfidenceBucket = 'low' | 'medium' | 'high';
 
 /**
- * What operations must see about hints. Never the child's input or the AI's text: only ids, the level,
- * how a request ended, why the fallback was used, and the stable rejection codes (#11).
+ * What operations must see about hints and help sessions. Never the child's input or the AI's text:
+ * only ids, the level, how a request ended, why the fallback was used, and the stable rejection
+ * codes (#11).
  */
 export type GuidanceEvent =
   | {
@@ -42,6 +43,14 @@ export type GuidanceEvent =
       readonly childProfileId: ChildProfileId;
       readonly level: HintLevel;
       readonly outcome: 'generated' | 'fallback';
+      /** A retried request that got the hint it already had, without a new AI call. */
+      readonly isReplay: boolean;
+    }
+  | {
+      /** The child got the step, but the session could not store it; the code says why. */
+      readonly type: 'guidance.step_not_recorded';
+      readonly step: 'hint' | 'answer_check';
+      readonly code: string;
     }
   | {
       readonly type: 'guidance.answer_checked';
@@ -52,6 +61,24 @@ export type GuidanceEvent =
       /** `null`: no key and the AI could not assess. */
       readonly result: AssessmentResult | null;
       readonly assessedBy: 'solution_key' | 'ai' | null;
+    }
+  | {
+      readonly type: 'guidance.session_started';
+      readonly tenantId: TenantId;
+      readonly actorId: ActorId;
+      readonly childProfileId: ChildProfileId;
+      readonly sessionId: HelpSessionId;
+      readonly subject: HintSubject;
+      /** The open session this one replaced, which ended `abandoned`. */
+      readonly replaced: HelpSessionId | null;
+    }
+  | {
+      readonly type: 'guidance.comprehension_replied';
+      readonly tenantId: TenantId;
+      readonly actorId: ActorId;
+      readonly childProfileId: ChildProfileId;
+      readonly sessionId: HelpSessionId;
+      readonly understood: boolean;
     }
   | {
       /** The topic classification (#92) could not be used; the session goes ahead as homework. */

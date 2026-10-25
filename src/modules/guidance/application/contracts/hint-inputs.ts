@@ -1,28 +1,20 @@
-import type { HintLevel } from '../../domain/models/hint-level';
-
-/** Asking for one hint for one child profile. Every field is checked by the use case. */
-export interface RequestHintInput {
+/**
+ * One step in one of the child's help sessions. The task, its subject and the hint level come from
+ * the stored session, never from the caller. Every field is checked by the use case.
+ */
+export interface HelpSessionStepInput {
   readonly childProfileId: string;
-  /** The task as the child typed or dictated it. */
-  readonly task: string;
-  /** The task's school subject, one of `HINT_SUBJECTS`; it picks the curriculum that grounds the hint. */
-  readonly subject: string;
-  /**
-   * Chosen by the backend, never by the child or the AI.
-   *
-   * TODO(#30): the hint ladder picks the level from the session state; until then the server-side caller does.
-   */
-  readonly level: HintLevel;
+  /** A session started for this child (#17). */
+  readonly sessionId: string;
+  /** The client's key for this step, so a retried request is recognised instead of counted twice. */
+  readonly requestId: string;
 }
 
-/** Checking the child's own answer to the same task (#14); checked like the task itself. */
-export interface CheckAnswerInput extends RequestHintInput {
+/** Asking for the next hint of the ladder (#30). */
+export type RequestHintInput = HelpSessionStepInput;
+
+/** Checking the child's own answer to the session's task (#14); checked like the task itself. */
+export interface CheckAnswerInput extends HelpSessionStepInput {
   /** The answer as the child typed or dictated it. */
   readonly answer: string;
 }
-
-/**
- * Classifying the task a child starts with (#92). There is no field for an earlier clarifying
- * question: whether one was asked is session state, which the backend stores with #17.
- */
-export type ClassifyChildTaskInput = Pick<RequestHintInput, 'childProfileId' | 'task' | 'subject'>;

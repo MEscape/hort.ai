@@ -1,6 +1,7 @@
 import 'server-only';
 import { getAccessControl } from '@modules/auth';
 
+import { systemClock } from '@lib/clock';
 import { serverEnv } from '@lib/config/server';
 import { getRateLimiter } from '@lib/rate-limit';
 import { errAsync } from '@lib/result';
@@ -8,16 +9,21 @@ import { once } from '@lib/utils';
 
 import { CheckAnswer } from './application/commands/check-answer';
 import { ClassifyChildTask } from './application/commands/classify-child-task';
+import { ReplyToComprehensionQuestion } from './application/commands/reply-to-comprehension-question';
 import { RequestHint } from './application/commands/request-hint';
+import { StartHelpSession } from './application/commands/start-help-session';
+import { GetOpenHelpSession } from './application/queries/get-open-help-session';
 import { AnswerCoach } from './application/services/answer-coach';
 import { HintOrchestrator } from './application/services/hint-orchestrator';
 import { loggerGuidanceAuditLog } from './infrastructure/audit/logger-guidance-audit-log';
 import { curriculumCompetencyRetrieval } from './infrastructure/curriculum/curriculum-competency-retrieval';
 import { GeminiProvider } from './infrastructure/gemini/gemini-provider';
 import { learnerChildProfileAccess } from './infrastructure/learner/learner-child-profile-access';
+import { PrismaHelpSessionRepository } from './infrastructure/prisma/prisma-help-session.repository';
 import { JevSafetyClassifier } from './infrastructure/typesafe/jev-safety-classifier';
 import { JevTopicClassifier } from './infrastructure/typesafe/jev-topic-classifier';
 
+import type { HelpSessionDependencies } from './application/help-session-dependencies';
 import type { FeedbackProvider } from './domain/ports/feedback-provider.port';
 import type { HintProvider } from './domain/ports/hint-provider.port';
 import type { SafetyClassifier } from './domain/ports/safety-classifier.port';
@@ -86,6 +92,12 @@ export function createHintOrchestrator(
   });
 }
 
+/**
+ * The server-side store of help sessions (#17). One instance, so the hint ladder (#30) and the
+ * session use cases share it.
+ */
+const getHelpSessionRepository = once(() => new PrismaHelpSessionRepository(systemClock));
+
 /** The guidance use cases, over the configured AI provider and safety classifier. */
 export const getGuidanceCommands = once(() => {
   const safety = getSafetyClassifier();
@@ -95,6 +107,7 @@ export const getGuidanceCommands = once(() => {
     childProfiles: learnerChildProfileAccess,
     competencies: curriculumCompetencyRetrieval,
     rateLimiter: getRateLimiter(),
+    sessions: getHelpSessionRepository(),
     hints: createHintOrchestrator(getAiProvider(), safety),
     answers: new AnswerCoach({
       provider: getAiProvider(),
@@ -110,3 +123,21 @@ export const getGuidanceCommands = once(() => {
     classifyChildTask: new ClassifyChildTask(deps),
   };
 });
+
+const getHelpSessionDependencies = once((): HelpSessionDependencies => ({
+  authorization: getAccessControl(),
+  childProfiles: learnerChildProfileAccess,
+  sessions: getHelpSessionRepository(),
+  audit: loggerGuidanceAuditLog,
+}));
+
+/** Starting a help session and the comprehension reply (#17, #78). */
+export const getHelpSessionCommands = once(() => ({
+  startHelpSession: new StartHelpSession(getHelpSessionDependencies()),
+  replyToComprehensionQuestion: new ReplyToComprehensionQuestion(getHelpSessionDependencies()),
+}));
+
+/** "Continue": the child's open help session (#17). */
+export const getHelpSessionQueries = once(() => ({
+  getOpenHelpSession: new GetOpenHelpSession(getHelpSessionDependencies()),
+}));

@@ -1,11 +1,16 @@
+import { toActorId, toTenantId } from '@modules/auth';
 import { parseChildTaskText } from '@modules/guidance/domain/models/child-task-text';
 import type { ChildTaskText } from '@modules/guidance/domain/models/child-task-text';
 import type {
   FeedbackKind,
   FeedbackRequest,
 } from '@modules/guidance/domain/models/feedback-request';
+import type {
+  GivenHint,
+  HintLadderState,
+} from '@modules/guidance/domain/models/help-session-state';
 import type { HintRequest } from '@modules/guidance/domain/models/hint-request';
-import { toChildProfileId } from '@modules/guidance/domain/models/ids';
+import { toChildProfileId, toHelpSessionId } from '@modules/guidance/domain/models/ids';
 import type { ChildProfileId } from '@modules/guidance/domain/models/ids';
 import type { ChildProfileAccess } from '@modules/guidance/domain/ports/child-profile-access.port';
 import type {
@@ -18,6 +23,11 @@ import type {
   HintProvider,
   HintProviderFailure,
 } from '@modules/guidance/domain/ports/hint-provider.port';
+import type {
+  HelpSessionRef,
+  HintSessionStore,
+  RecordedAnswerCheck,
+} from '@modules/guidance/domain/ports/hint-session-store.port';
 import type {
   SafetyClassifier,
   SafetyScores,
@@ -124,4 +134,98 @@ export function fakeFeedbackProvider(scripts: FeedbackScripts) {
     },
   };
   return { provider, requests };
+}
+
+export const SESSION = toHelpSessionId('session-1');
+
+const sessionKey = (ref: HelpSessionRef) =>
+  [ref.tenantId, ref.ownerId, ref.childProfileId, ref.sessionId].join(':');
+
+/** A help session of the default parent's own child, as the session storage would hold it. */
+export function openSession(
+  overrides: Partial<HintLadderState> & {
+    readonly childProfileId?: ChildProfileId;
+    readonly sessionId?: string;
+  } = {},
+) {
+  const { childProfileId = OWN_CHILD, sessionId = SESSION, ...state } = overrides;
+  return {
+    ref: {
+      tenantId: toTenantId('default'),
+      ownerId: toActorId('parent-1'),
+      childProfileId,
+      sessionId: toHelpSessionId(sessionId),
+    } satisfies HelpSessionRef,
+    state: {
+      task: REQUEST.task,
+      subject: 'math',
+      hints: [],
+      answers: [],
+      ...state,
+    } satisfies HintLadderState,
+  };
+}
+
+/**
+ * An in-memory session storage: only a session it was given, for exactly that tenant, parent and
+ * child, is found. It stores each request id once, as the database's unique key does, and keeps
+ * every answer check. `failsRecording` makes every write fail as an unreachable store would.
+ */
+export function fakeSessionStore(
+  sessions: ReadonlyArray<ReturnType<typeof openSession>> = [openSession()],
+  options: { readonly failsRecording?: boolean } = {},
+) {
+  const stored = new Map(
+    sessions.map(({ ref, state }) => [
+      sessionKey(ref),
+      { ...state, hints: [...state.hints], answers: [...state.answers] },
+    ]),
+  );
+  const checks: RecordedAnswerCheck[] = [];
+  const missing = () =>
+    errAsync(notFoundError('guidance.session_not_found', 'The help session was not found.'));
+  const writeFailed = () =>
+    errAsync(infrastructureError('guidance.session_store_failed', 'The session store is down.'));
+  const store: HintSessionStore = {
+    load(ref) {
+      const session = stored.get(sessionKey(ref));
+      return session === undefined
+        ? missing()
+        : okAsync({ ...session, hints: [...session.hints], answers: [...session.answers] });
+    },
+    recordHint(ref, hint: GivenHint) {
+      const session = stored.get(sessionKey(ref));
+      if (options.failsRecording) {
+        return writeFailed();
+      }
+      if (session === undefined) {
+        return missing();
+      }
+      if (session.hints.some((h) => h.requestId === hint.requestId)) {
+        return okAsync('duplicate');
+      }
+      session.hints.push(hint);
+      return okAsync('recorded');
+    },
+    recordAnswerCheck(ref, check) {
+      const session = stored.get(sessionKey(ref));
+      if (options.failsRecording) {
+        return writeFailed();
+      }
+      if (session === undefined) {
+        return missing();
+      }
+      if (checks.some((c) => c.requestId === check.requestId)) {
+        return okAsync('duplicate');
+      }
+      checks.push(check);
+      session.answers.push(check.result);
+      return okAsync('recorded');
+    },
+  };
+  return {
+    store,
+    checks,
+    hintsOf: (ref = openSession().ref) => stored.get(sessionKey(ref))?.hints ?? [],
+  };
 }

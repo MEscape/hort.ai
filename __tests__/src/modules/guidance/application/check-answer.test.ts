@@ -5,6 +5,7 @@ import type { CurrentActorProvider } from '@modules/auth/domain/ports/current-ac
 import { CheckAnswer } from '@modules/guidance/application/commands/check-answer';
 import { GUIDANCE_RATE_LIMITS } from '@modules/guidance/application/rate-limits';
 import { AnswerCoach } from '@modules/guidance/application/services/answer-coach';
+import { parseStepRequestId } from '@modules/guidance/domain/models/ids';
 
 import type { RateLimiter } from '@lib/rate-limit';
 
@@ -14,8 +15,11 @@ import {
   OTHER_CHILD,
   OWN_CHILD,
   REQUEST,
+  SESSION,
   fakeCompetencies,
   fakeFeedbackProvider,
+  fakeSessionStore,
+  openSession,
   ownChildren,
   recordingAuditLog,
 } from '../fakes';
@@ -28,6 +32,20 @@ const ANSWER = 'Sie hat sieben Birnen.';
 const PRAISE = 'Super, wie du die beiden Zahlen zusammengezählt hast!';
 const QUESTION = 'Warum hast du hier plus gerechnet?';
 const NOT_YET = 'Noch nicht ganz. Schau dir an, wie viele Äpfel dazukommen.';
+
+/** A session whose highest hint so far is "point to the next step", so the feedback is worded at that rung. */
+const onNextStep = (overrides: Parameters<typeof openSession>[0] = {}) =>
+  openSession({
+    hints: [
+      {
+        requestId: parseStepRequestId('hint-1')._unsafeUnwrap(),
+        level: LEVEL,
+        kind: 'fallback',
+        reason: 'timeout',
+      },
+    ],
+    ...overrides,
+  });
 
 const output = (kind: string, text: string, extra: object = {}) => ({
   answer: { version: 1, kind, hintLevel: LEVEL, text, ...extra },
@@ -45,12 +63,14 @@ interface BuildOptions {
   readonly scripts?: FeedbackScripts;
   readonly curriculumFails?: true;
   readonly owned?: Parameters<typeof ownChildren>[0];
+  readonly sessions?: ReturnType<typeof fakeSessionStore>;
 }
 
 function build(options: BuildOptions = {}) {
   const { provider, requests } = fakeFeedbackProvider(options.scripts ?? CORRECT);
   const { audit, events } = recordingAuditLog();
   const { retrieval, queries } = fakeCompetencies({ fails: options.curriculumFails === true });
+  const sessions = options.sessions ?? fakeSessionStore([onNextStep()]);
   const checkAnswer = new CheckAnswer({
     authorization: createAuthorizationService({
       currentActor: options.currentActor ?? signedInAs(parent()),
@@ -59,20 +79,24 @@ function build(options: BuildOptions = {}) {
     childProfiles: ownChildren(options.owned),
     competencies: retrieval,
     rateLimiter: options.rateLimiter ?? createTestRateLimiter(),
+    sessions: sessions.store,
     answers: new AnswerCoach({ provider, audit }),
     audit,
   });
-  return { checkAnswer, requests, events, queries };
+  return { checkAnswer, requests, events, queries, sessions };
 }
 
-const input = (overrides: Partial<Parameters<CheckAnswer['execute']>[0]> = {}) => ({
-  childProfileId: OWN_CHILD,
-  task: TASK,
-  subject: 'math',
-  level: LEVEL,
-  answer: ANSWER,
-  ...overrides,
-});
+let requestCounter = 0;
+const input = (overrides: Partial<Parameters<CheckAnswer['execute']>[0]> = {}) => {
+  requestCounter += 1;
+  return {
+    childProfileId: OWN_CHILD,
+    sessionId: SESSION,
+    requestId: `check-${requestCounter}`,
+    answer: ANSWER,
+    ...overrides,
+  };
+};
 
 describe('CheckAnswer', () => {
   it('praises a correct answer and asks one comprehension question', async () => {
@@ -105,12 +129,81 @@ describe('CheckAnswer', () => {
     expect(requests.map((r) => r.kind)).toEqual(['answer_assessment']);
   });
 
-  it('hands the AI the checked task and answer, never the raw input', async () => {
+  it("hands the AI the session's task and the checked answer, never the raw input", async () => {
     const { checkAnswer, requests } = build();
 
-    await checkAnswer.execute(input({ task: `  ${TASK}\r\n`, answer: `  ${ANSWER}\r\n` }));
+    await checkAnswer.execute(input({ answer: `  ${ANSWER}\r\n` }));
 
     expect(requests.every((r) => r.task === TASK && r.answer === ANSWER)).toBe(true);
+  });
+
+  it("words the feedback at the session's current rung, decided by the backend", async () => {
+    const { checkAnswer, requests } = build();
+
+    await checkAnswer.execute({ ...input(), level: 'similar_example' } as never);
+
+    expect(requests.every((r) => r.level === LEVEL)).toBe(true);
+  });
+
+  it('records the check for the session with the texts the child saw (#78)', async () => {
+    const { checkAnswer, sessions } = build();
+
+    await checkAnswer.execute(input({ requestId: 'check-correct' }));
+
+    expect(sessions.checks).toEqual([
+      {
+        requestId: 'check-correct',
+        answer: ANSWER,
+        result: 'correct',
+        assessedBy: 'ai',
+        feedbackText: PRAISE,
+        question: { text: QUESTION },
+      },
+    ]);
+  });
+
+  it('records a predefined message as no text and no question', async () => {
+    const { checkAnswer, sessions } = build({ scripts: {} });
+
+    await checkAnswer.execute(input({ requestId: 'check-fallback' }));
+
+    expect(sessions.checks).toEqual([
+      {
+        requestId: 'check-fallback',
+        answer: ANSWER,
+        result: null,
+        assessedBy: null,
+        feedbackText: null,
+        question: null,
+      },
+    ]);
+  });
+
+  it('still gives the feedback when the session cannot store it, and logs the code', async () => {
+    const { checkAnswer, events } = build({
+      sessions: fakeSessionStore([onNextStep()], { failsRecording: true }),
+    });
+
+    const result = await checkAnswer.execute(input());
+
+    expect(result.isOk() && result.value).toMatchObject({ result: 'correct' });
+    expect(events).toContainEqual({
+      type: 'guidance.step_not_recorded',
+      step: 'answer_check',
+      code: 'guidance.session_store_failed',
+    });
+  });
+
+  it('refuses an unknown session as not found, without asking the AI', async () => {
+    const { checkAnswer, requests } = build();
+
+    const result = await checkAnswer.execute(input({ sessionId: 'session-unknown' }));
+
+    expect(result.isErr() && result.error).toMatchObject({
+      kind: 'not_found',
+      code: 'guidance.session_not_found',
+    });
+    expect(requests).toEqual([]);
   });
 
   it('records who checked which child and how it ended, with ids only', async () => {
@@ -156,8 +249,8 @@ describe('CheckAnswer', () => {
 
   it.each([
     ['childProfileId', { childProfileId: '' }, 'guidance.validation.child_profile_id_invalid'],
-    ['task', { task: '   ' }, 'guidance.child_input.empty'],
-    ['subject', { subject: 'physics' }, 'guidance.validation.subject_invalid'],
+    ['sessionId', { sessionId: '' }, 'guidance.validation.session_id_invalid'],
+    ['requestId', { requestId: 'a b' }, 'guidance.validation.request_id_invalid'],
     ['answer', { answer: '   ' }, 'guidance.child_input.empty'],
     ['answer', { answer: 'a'.repeat(1001) }, 'guidance.child_input.too_long'],
   ])(
@@ -246,7 +339,8 @@ describe('CheckAnswer rate limit (#11, #14)', () => {
 
   it('counts each child separately, so one sibling does not use up the other one', async () => {
     const SIBLING = OTHER_CHILD;
-    const { checkAnswer } = build({ owned: [OWN_CHILD, SIBLING] });
+    const sessions = fakeSessionStore([onNextStep(), onNextStep({ childProfileId: SIBLING })]);
+    const { checkAnswer } = build({ owned: [OWN_CHILD, SIBLING], sessions });
     for (let i = 0; i < limit; i += 1) {
       await checkAnswer.execute(input());
     }
