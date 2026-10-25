@@ -40,6 +40,7 @@ describe('GetOnboardingState', () => {
         voiceConsent: false,
         setupStep: 'controls',
         setupCompletedAt: null,
+        welcomeCompletedAt: null,
       },
     });
   });
@@ -77,6 +78,7 @@ describe('GetOnboardingState', () => {
       'setupStep',
       'tutorId',
       'voiceConsent',
+      'welcomeCompletedAt',
     ]);
   });
 

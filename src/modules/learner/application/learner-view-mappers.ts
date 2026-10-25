@@ -20,6 +20,7 @@ export function toChildProfileView(profile: ChildProfile): ChildProfileView {
     voiceConsent: hasCurrentVoiceConsent(profile),
     setupStep: profile.setupStep,
     setupCompletedAt: profile.setupCompletedAt,
+    welcomeCompletedAt: profile.welcomeCompletedAt,
   };
 }
 

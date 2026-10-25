@@ -11,6 +11,7 @@ import type { SecurityAuditLog, SecurityEvent } from '../../domain/ports/securit
  */
 export const LEVEL_BY_EVENT = {
   'authorization.denied': 'warn',
+  'authorization.admin_override': 'warn',
   'authentication.sign_in_failed': 'warn',
   'authentication.session_created': 'info',
   'authentication.session_revoked': 'info',
@@ -31,6 +32,7 @@ export const loggerSecurityAuditLog: SecurityAuditLog = createAuditLog(
  */
 export const TRAIL_BY_EVENT = {
   'authorization.denied': 'member',
+  'authorization.admin_override': 'member',
   'authentication.sign_in_failed': 'visitor',
   'authentication.session_created': 'member',
   'authentication.session_revoked': 'member',

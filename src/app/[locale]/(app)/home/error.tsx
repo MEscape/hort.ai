@@ -1,11 +1,12 @@
 'use client';
 
+import { PageMain } from '@components/layout/layout-primitives';
 import { RouteErrorPanel } from '@components/shared/route-error-panel';
 
 export default function HomeError({ reset }: { readonly reset: () => void }) {
   return (
-    <main className="flex min-h-dvh items-center justify-center px-4">
+    <PageMain variant="centered">
       <RouteErrorPanel onRetry={reset} />
-    </main>
+    </PageMain>
   );
 }

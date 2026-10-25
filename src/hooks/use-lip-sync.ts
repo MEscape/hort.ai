@@ -2,30 +2,14 @@
 
 /* eslint-disable no-magic-numbers -- the mouth rhythm is a table of milliseconds */
 
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 
-const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
+import { useCalmMotion } from './use-calm-motion';
 
 /** How long the mouth stays open and shut, in turn. Uneven on purpose: an even beat looks mechanical. */
 const OPEN_MS = [110, 90, 140, 80, 120, 100, 150, 85] as const;
 const SHUT_MS = [70, 100, 55, 90, 60, 80, 65, 95] as const;
 /* eslint-enable no-magic-numbers -- the tables end here */
-
-function subscribeToMotionPreference(onChange: () => void): () => void {
-  const query = window.matchMedia(REDUCED_MOTION);
-  query.addEventListener('change', onChange);
-  return () => {
-    query.removeEventListener('change', onChange);
-  };
-}
-
-/** Reduced motion from the operating system or from the in-app calm setting on `<html>`. */
-function isCalmNow(): boolean {
-  return (
-    window.matchMedia(REDUCED_MOTION).matches ||
-    document.documentElement.dataset['motion'] === 'calm'
-  );
-}
 
 /**
  * Whether the mouth of a speaking character is open right now. Two pictures (open, closed) are all
@@ -35,7 +19,7 @@ function isCalmNow(): boolean {
  */
 export function useLipSync(isSpeaking: boolean): boolean {
   const [step, setStep] = useState(0);
-  const isCalm = useSyncExternalStore(subscribeToMotionPreference, isCalmNow, () => false);
+  const isCalm = useCalmMotion();
 
   useEffect(() => {
     if (!isSpeaking || isCalm) {

@@ -1,0 +1,274 @@
+[
+  {
+    "id": "table.ProgressEvent",
+    "label": "Create table \"ProgressEvent\"",
+    "summary": "Creates table \"ProgressEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "ProgressEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"ProgressEvent\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ProgressEvent\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"ProgressEvent\"",
+        "sql": "CREATE TABLE \"public\".\"ProgressEvent\" (\n  \"childProfileId\" text NOT NULL,\n  \"eventKey\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"kind\" text NOT NULL,\n  \"occurredAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"ownerId\" text NOT NULL,\n  \"tenantId\" text NOT NULL,\n  \"xp\" int4 NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"ProgressEvent_event_key_rule_eb4734d2\" CHECK (char_length(\"eventKey\") BETWEEN 1 AND 64),\n  CONSTRAINT \"ProgressEvent_kind_check_ffbb7aee\" CHECK (\"kind\" IN ('daily_reward', 'learning')),\n  CONSTRAINT \"ProgressEvent_xp_rule_619b4399\" CHECK (\"xp\" BETWEEN 1 AND 100)\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"ProgressEvent\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"ProgressEvent\"",
+          "r",
+          "p"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.ChildProfile.welcomeCompletedAt",
+    "label": "Add column \"welcomeCompletedAt\" to \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "welcomeCompletedAt",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"welcomeCompletedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "welcomeCompletedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"welcomeCompletedAt\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD COLUMN \"welcomeCompletedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"welcomeCompletedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "welcomeCompletedAt"
+        ]
+      },
+      {
+        "description": "verify column \"welcomeCompletedAt\" has type \"timestamp with time zone\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "welcomeCompletedAt",
+          "timestamp with time zone"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.ChildProfile.ChildProfile_welcome_after_setup_rule_1a425757",
+    "label": "Add check constraint \"ChildProfile_welcome_after_setup_rule_1a425757\" on \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "ChildProfile_welcome_after_setup_rule_1a425757",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ChildProfile_welcome_after_setup_rule_1a425757\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ChildProfile_welcome_after_setup_rule_1a425757",
+          "public",
+          "\"public\".\"ChildProfile\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"ChildProfile_welcome_after_setup_rule_1a425757\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD CONSTRAINT \"ChildProfile_welcome_after_setup_rule_1a425757\" CHECK (\"welcomeCompletedAt\" IS NULL OR \"setupCompletedAt\" IS NOT NULL)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"ChildProfile_welcome_after_setup_rule_1a425757\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "ChildProfile_welcome_after_setup_rule_1a425757",
+          "public",
+          "\"public\".\"ChildProfile\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.ProgressEvent.ProgressEvent_childProfileId_eventKey_key",
+    "label": "Add unique constraint on \"ProgressEvent\" (childProfileId, eventKey)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "ProgressEvent_childProfileId_eventKey_key",
+        "table": "ProgressEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ProgressEvent_childProfileId_eventKey_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ProgressEvent_childProfileId_eventKey_key",
+          "public",
+          "\"public\".\"ProgressEvent\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"ProgressEvent_childProfileId_eventKey_key\"",
+        "sql": "ALTER TABLE \"public\".\"ProgressEvent\" ADD CONSTRAINT \"ProgressEvent_childProfileId_eventKey_key\" UNIQUE (\"childProfileId\", \"eventKey\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"ProgressEvent_childProfileId_eventKey_key\" exists on (childProfileId, eventKey)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "ProgressEvent_childProfileId_eventKey_key",
+          "public",
+          "\"public\".\"ProgressEvent\"",
+          "u",
+          "[\"childProfileId\",\"eventKey\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ProgressEvent.ProgressEvent_childProfileId_idx_afadb118",
+    "label": "Create index \"ProgressEvent_childProfileId_idx_afadb118\" on \"ProgressEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ProgressEvent_childProfileId_idx_afadb118",
+        "table": "ProgressEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ProgressEvent_childProfileId_idx_afadb118\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ProgressEvent_childProfileId_idx_afadb118\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ProgressEvent_childProfileId_idx_afadb118\"",
+        "sql": "CREATE INDEX \"ProgressEvent_childProfileId_idx_afadb118\" ON \"public\".\"ProgressEvent\" (\"childProfileId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ProgressEvent_childProfileId_idx_afadb118\" exists on \"ProgressEvent\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"ProgressEvent_childProfileId_idx_afadb118\"",
+          "i",
+          "I",
+          "\"public\".\"ProgressEvent\"",
+          "btree",
+          "[\"childProfileId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.ProgressEvent.ProgressEvent_childProfileId_fkey",
+    "label": "Add foreign key \"ProgressEvent_childProfileId_fkey\" on \"ProgressEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "ProgressEvent_childProfileId_fkey",
+        "table": "ProgressEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"ProgressEvent_childProfileId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ProgressEvent_childProfileId_fkey",
+          "public",
+          "\"public\".\"ProgressEvent\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"ProgressEvent_childProfileId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"ProgressEvent\"\nADD CONSTRAINT \"ProgressEvent_childProfileId_fkey\"\nFOREIGN KEY (\"childProfileId\")\nREFERENCES \"public\".\"ChildProfile\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"ProgressEvent_childProfileId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "ProgressEvent_childProfileId_fkey",
+          "public",
+          "\"public\".\"ProgressEvent\"",
+          "f",
+          "[\"childProfileId\"]",
+          "\"public\".\"ChildProfile\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  }
+]

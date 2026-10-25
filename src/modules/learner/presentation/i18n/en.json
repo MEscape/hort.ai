@@ -271,6 +271,7 @@
       "notFound": "We could not find this profile. Please go back one step and try again.",
       "alreadyOnboarded": "Your child is already set up. Taking you to your home.",
       "setupIncomplete": "A step is still missing. Please go through the steps once more.",
+      "welcomeAlreadyCompleted": "The welcome is already done. Taking you to the home page.",
       "devResetUnavailable": "This is only available while developing.",
       "validation": "Please check your entries.",
       "infrastructure": "We could not save that right now. Nothing was changed. Please try again in a moment.",
@@ -289,6 +290,86 @@
       "dailyLimitInvalid": "Please choose one of the listed limits.",
       "windowInvalid": "The window must end at least 30 minutes after it starts.",
       "guardianConfirmationRequired": "Please confirm that you are the parent or guardian."
+    },
+    "childWelcome": {
+      "metadata": {
+        "title": "Welcome"
+      },
+      "progress": {
+        "label": "Your first steps",
+        "step": "Step {current} of {total}"
+      },
+      "steps": {
+        "welcome": "Hello",
+        "interests": "Favourites",
+        "companion": "Friend",
+        "voice": "Voice",
+        "rewards": "Stars",
+        "celebration": "Ready"
+      },
+      "actions": {
+        "back": "Back",
+        "next": "Next",
+        "retry": "Try again",
+        "saving": "Saving…"
+      },
+      "saveError": "That didn’t save. Please try again.",
+      "welcome": {
+        "title": "Hi {name}!",
+        "bubble": "I’m {companion}!",
+        "start": "Let’s go"
+      },
+      "interests": {
+        "title": "Your favorites",
+        "bubble": "Tap what you love!",
+        "full": "{max} is plenty!",
+        "counter": "{count} of {max}"
+      },
+      "celebration": {
+        "title": "All set, {name}!",
+        "bubble": "{companion} is ready!",
+        "start": "Go!"
+      }
+    },
+    "welcomeCompanion": {
+      "companion": {
+        "title": "Who helps you?",
+        "group": "Companions",
+        "previous": "Previous companion",
+        "next": "Next companion",
+        "selected": "{name}, {position} of {total}, selected",
+        "fits": "Fits you",
+        "choose": "Learn with {name}"
+      },
+      "voice": {
+        "title": "Listen!",
+        "play": "Hear {name}",
+        "stop": "Stop",
+        "retry": "Try again",
+        "loading": "Getting ready…",
+        "speaking": "{name} is speaking…",
+        "unavailable": "No sound right now. Carry on!",
+        "failed": "That did not play. Try again?",
+        "progress": "How much has played",
+        "saysLabel": "{name} says",
+        "talkOff": "Talking off",
+        "words": {
+          "max": "Friendly, strong, cheerful",
+          "lili": "Gentle, warm, calm",
+          "fina": "Lively, adventurous, cheeky"
+        }
+      },
+      "traits": {
+        "treu": "Loyal",
+        "energiegeladen": "Energetic",
+        "ermutigend": "Encouraging",
+        "geduldig": "Patient",
+        "sanft": "Gentle",
+        "klug": "Clever",
+        "mutig": "Brave",
+        "kreativ": "Creative",
+        "verspielt": "Playful"
+      }
     },
     "voiceConsent": {
       "group": "Speech recognition",

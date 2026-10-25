@@ -11,7 +11,7 @@ A demo is judged in the first seconds of looking at it. Polish is the difference
 
 - **Use the system that exists.** Tokens, components and patterns from `src/components/README.md`, the design-system docs and `docs/rules/styling.md`. No new colors, fonts, spacing scales or one-off CSS when a token or component exists. New components go through `docs/conventions/adding-a-ui-component.md` (`npm run gen`).
 - **Keep identity, copy and behavior.** Change how it looks and reads, not what it does or says, unless asked.
-- **Know the audience.** Child screens: primary-school children, little reading, large touch targets, one clear next action, friendly and calm, no clutter, no gamification. Parent screens: trustworthy, scannable, efficient.
+- **Know the audience.** Child screens: primary-school children, little reading, large touch targets, one clear next action, friendly and calm, no clutter, no pressure mechanics. Parent screens: trustworthy, scannable, efficient.
 
 ## Pass order
 

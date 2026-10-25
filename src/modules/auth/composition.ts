@@ -198,6 +198,7 @@ function buildCurrentActorProvider(): CurrentActorProvider {
     sessionMaxLifetimeMs: serverEnv.AUTH_SESSION_MAX_LIFETIME_SECONDS * MILLISECONDS_PER_SECOND,
     clock: systemClock,
     tenantId: getTenantId(),
+    platformAdminEmails: serverEnv.AUTH_PLATFORM_ADMIN_EMAILS,
   });
 }
 

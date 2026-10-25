@@ -17,7 +17,7 @@ import { getTranslations } from '@i18n/server';
 
 import { buildPrivateMetadata } from '@lib/seo';
 
-import { buildTutorOptions } from './tutor-options';
+import { buildTutorOptions, preloadTutorPictures } from './tutor-options';
 
 export async function generateMetadata({
   params,
@@ -34,7 +34,9 @@ async function ParentOnboarding() {
   const state = await requireOnboarding();
   // A fresh key per server render: the browser keeps the state of a page it left (the router
   // restores it), so without this a reset or a second visit could show the screen of the last visit.
-  return <OnboardingFlow key={crypto.randomUUID()} initial={state} tutors={buildTutorOptions()} />;
+  const tutors = buildTutorOptions();
+  preloadTutorPictures(tutors, state.profile?.tutorId);
+  return <OnboardingFlow key={crypto.randomUUID()} initial={state} tutors={tutors} />;
 }
 
 export default async function OnboardingPage({

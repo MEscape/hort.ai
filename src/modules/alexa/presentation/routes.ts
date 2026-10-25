@@ -12,7 +12,7 @@ import {
   type TutorTurn,
 } from '../application/contracts/tutor-conversation-model';
 
-import type { TutorVoice } from '../application/contracts/tutor-voice-model';
+import type { TutorIntroduction, TutorVoice } from '../application/contracts/tutor-voice-model';
 
 /** 24 KiB; Alexa request envelopes are far smaller. */
 const MAX_BODY_BYTES = 24_576;
@@ -56,6 +56,7 @@ const APLA_INTERFACE = 'Alexa.Presentation.APLA';
 const APLA_VERSION = '0.91';
 /** Sent when Alexa could not play a clip (for example an expired URL); notification only, no answer. */
 const APLA_RUNTIME_ERROR = 'Alexa.Presentation.APLA.RuntimeError';
+const TUTOR_INTROS_TOKEN = 'tutor-intros';
 
 const envelopeSchema = z.object({
   version: z.literal('1.0'),
@@ -90,6 +91,11 @@ interface AlexaEndpointOptions {
     headers: Record<string, string>,
   ) => AppResultAsync<void, UnauthorizedAppError>;
   readonly tutor: TutorConversation;
+  /**
+   * Who greets when the skill opens, in this order. Empty/absent: the launch is an ordinary tutor turn.
+   * With a voice each greeting is that tutor's own clip; any one that fails is spoken in Alexa's voice.
+   */
+  readonly introductions?: readonly TutorIntroduction[];
   /** Speaks tutor replies in the tutor's voice; `null`/absent keeps Alexa's standard voice. */
   readonly voice?: TutorVoice | null;
   readonly voiceDeadlineMs?: number;
@@ -148,30 +154,64 @@ async function respond(envelope: Envelope, options: AlexaEndpointOptions): Promi
   if (conversationId.isErr()) {
     return failure(HTTP.badRequest, 'invalid_envelope');
   }
-  const next = route(request, conversationId.value);
-  if ('speech' in next) {
-    return speak(next);
+  const introductions = options.introductions ?? [];
+  if (request.type === 'LaunchRequest' && introductions.length > 0) {
+    return introduce(introductions, options);
   }
-  const reply = await options.tutor.respond(next);
+  const next = route(request, conversationId.value);
+  return 'speech' in next ? speak(next) : answer(next, options);
+}
+
+/** One tutor turn; the reply in the tutor's voice when possible, else in Alexa's. Never fails. */
+async function answer(turn: TutorTurn, options: AlexaEndpointOptions): Promise<Response> {
+  const reply = await options.tutor.respond(turn);
   if (reply.isErr()) {
     return speak(TUTOR_FAILED_REPLY);
   }
-  const audioUrl = await tutorAudio(reply.value, options);
+  const { voice } = options;
+  const audioUrl = voice ? await voiced(() => voice.audioUrl(reply.value.speech), options) : null;
   return audioUrl === null ? speak(reply.value) : speakAudio(reply.value, audioUrl);
 }
 
-/** The reply in the tutor's voice within the deadline, or `null` for Alexa's own voice. Never fails. */
-async function tutorAudio(
-  reply: TutorReply,
+/**
+ * Every tutor greets in turn, each in its own voice: all clips are fetched in parallel under one
+ * deadline (cached after the first launch). A greeting without its clip is spoken in Alexa's voice;
+ * without any clip the whole launch is plain text. The conversation then ends, as before.
+ */
+async function introduce(
+  introductions: readonly TutorIntroduction[],
+  options: AlexaEndpointOptions,
+): Promise<Response> {
+  const { voice } = options;
+  const reply: TutorReply = {
+    speech: introductions.map((intro) => intro.text).join(' '),
+    conversation: 'closed',
+  };
+  if (!voice) {
+    return speak(reply);
+  }
+  const urls = await Promise.all(
+    introductions.map((intro) => voiced(() => voice.greetingUrl(intro.tutorId), options)),
+  );
+  if (urls.every((url) => url === null)) {
+    return speak(reply);
+  }
+  const items = introductions.map((intro, index) => {
+    const url = urls[index];
+    return url ? { type: 'Audio', source: url } : { type: 'Speech', content: intro.text };
+  });
+  return renderAudio(reply, { type: 'Sequencer', items }, TUTOR_INTROS_TOKEN);
+}
+
+/** A clip URL within the deadline, or `null` for Alexa's own voice. Never fails. */
+async function voiced(
+  load: () => AppResultAsync<string>,
   options: AlexaEndpointOptions,
 ): Promise<string | null> {
-  const { voice, onVoiceFallback } = options;
-  if (!voice) {
-    return null;
-  }
+  const { onVoiceFallback } = options;
   try {
     const url = await withTimeout(
-      Promise.resolve(voice.audioUrl(reply.speech)),
+      Promise.resolve(load()),
       options.voiceDeadlineMs ?? VOICE_DEADLINE_MS,
     );
     if (url.isOk()) {
@@ -227,6 +267,11 @@ function speak(reply: TutorReply): Response {
  * conversation re-prompts with the same text in Alexa's voice when the child stays silent.
  */
 function speakAudio(reply: TutorReply, audioUrl: string): Response {
+  return renderAudio(reply, { type: 'Audio', source: audioUrl }, 'tutor-voice');
+}
+
+/** One APL for Audio document whose main template plays `item` (a clip, or a sequence of parts). */
+function renderAudio(reply: TutorReply, item: Record<string, unknown>, token: string): Response {
   const isOpen = reply.conversation === 'open';
   return Response.json({
     version: '1.0',
@@ -234,11 +279,11 @@ function speakAudio(reply: TutorReply, audioUrl: string): Response {
       directives: [
         {
           type: `${APLA_INTERFACE}.RenderDocument`,
-          token: 'tutor-voice',
+          token,
           document: {
             type: 'APLA',
             version: APLA_VERSION,
-            mainTemplate: { item: { type: 'Audio', source: audioUrl } },
+            mainTemplate: { item },
           },
         },
       ],

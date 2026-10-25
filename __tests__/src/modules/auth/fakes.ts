@@ -1,6 +1,6 @@
 import type { Actor } from '@modules/auth/domain/models/actor';
 import { toActorId, toTenantId } from '@modules/auth/domain/models/ids';
-import { PARENT_ROLE } from '@modules/auth/domain/models/role';
+import { PARENT_ROLE, PLATFORM_ADMIN_ROLE } from '@modules/auth/domain/models/role';
 import type {
   Authenticator,
   AuthenticatorError,
@@ -24,6 +24,15 @@ export const OTHER_TENANT = toTenantId('other');
 /** A signed-in parent; override what a test is about. */
 export function parent(overrides: Partial<Actor> = {}): Actor {
   return { id: toActorId('parent-1'), tenantId: TENANT, roles: [PARENT_ROLE], ...overrides };
+}
+
+/** A signed-in platform admin (also a parent, as the provider issues it). */
+export function admin(overrides: Partial<Actor> = {}): Actor {
+  return parent({
+    id: toActorId('admin-1'),
+    roles: [PARENT_ROLE, PLATFORM_ADMIN_ROLE],
+    ...overrides,
+  });
 }
 
 export function signedInAs(actor: Actor): CurrentActorProvider {
