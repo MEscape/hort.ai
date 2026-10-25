@@ -18,6 +18,8 @@ interface TicketPayload {
   readonly t: string;
   readonly ten: string;
   readonly sub: string;
+  readonly child?: string;
+  readonly speaker?: string;
   /** Expiry, epoch milliseconds. */
   readonly exp: number;
 }
@@ -27,6 +29,8 @@ const isPayload = objectOf<TicketPayload>({
   t: isString,
   ten: isString,
   sub: isString,
+  child: (value): value is string | undefined => value === undefined || typeof value === 'string',
+  speaker: (value): value is string | undefined => value === undefined || typeof value === 'string',
   exp: isFiniteNumber,
 });
 
@@ -60,6 +64,8 @@ export function hmacSpokenTextTickets(options: {
         t: text,
         ten: holder.tenantId,
         sub: holder.actorId,
+        ...(holder.childProfileId === undefined ? {} : { child: holder.childProfileId }),
+        ...(holder.speakerId === undefined ? {} : { speaker: holder.speakerId }),
         exp: options.clock.now().getTime() + ttlMs,
       };
       const body = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
@@ -83,6 +89,8 @@ export function hmacSpokenTextTickets(options: {
       const current =
         payload.ten === holder.tenantId &&
         payload.sub === holder.actorId &&
+        (payload.child === undefined || payload.child === holder.childProfileId) &&
+        (payload.speaker === undefined || payload.speaker === holder.speakerId) &&
         payload.exp > options.clock.now().getTime();
       return current ? payload.t : null;
     },

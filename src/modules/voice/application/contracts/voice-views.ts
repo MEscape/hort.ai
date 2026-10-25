@@ -26,3 +26,9 @@ export interface TranscriptView {
 export interface SpeechTicketView {
   readonly ticket: string;
 }
+
+/** Pass both to `POST /api/voice/speech`: the ticket names the words, the speaker the voice. */
+export interface ReadAloudTicketView {
+  readonly ticket: string;
+  readonly speakerId: string;
+}
