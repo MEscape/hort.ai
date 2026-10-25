@@ -58,3 +58,12 @@ describe('direct homework entry', () => {
     expect(dependencies.assignments).toHaveBeenCalledWith('explicit-child');
   });
 });
+
+it('provides guidance translations for the distress help in direct homework entry', async () => {
+  const page = await StartPage({
+    params: Promise.resolve({ locale: 'en' }),
+    searchParams: Promise.resolve({}),
+  });
+  const tree = page as ReactElement<{ children: ReactElement<{ namespaces: string[] }> }>;
+  expect(tree.props.children.props.namespaces).toContain('guidance');
+});

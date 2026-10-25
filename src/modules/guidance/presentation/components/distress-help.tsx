@@ -4,6 +4,10 @@ import { Card, CardContent, CardHeader } from '@components/ui/card';
 
 import { useTranslations } from '@i18n/client';
 
+const HOTLINE = '116 111';
+const POLICE = '110';
+const EMERGENCY = '112';
+
 /** Fixed help, not homework or AI text. No input is echoed and nobody is notified (#90). */
 export function DistressHelp() {
   const t = useTranslations('guidance');
@@ -18,18 +22,18 @@ export function DistressHelp() {
         <p>{t('distress.hotline')}</p>
         {/* @ui-plain a Telephone contact links, not app navigation; no ContentLink primitive exists. */}
         <a href="tel:116111" className="font-heading text-3xl underline">
-          {'116 111'}
+          {HOTLINE}
         </a>
         <p>{t('distress.hours')}</p>
         <p>{t('distress.emergency')}</p>
         <p className="flex gap-6">
           {/* @ui-plain a Telephone contact links, not app navigation; no ContentLink primitive exists. */}
           <a href="tel:110" className="font-semibold underline">
-            {'110'}
+            {POLICE}
           </a>
           {/* @ui-plain a Telephone contact links, not app navigation; no ContentLink primitive exists. */}
           <a href="tel:112" className="font-semibold underline">
-            {'112'}
+            {EMERGENCY}
           </a>
         </p>
       </CardContent>

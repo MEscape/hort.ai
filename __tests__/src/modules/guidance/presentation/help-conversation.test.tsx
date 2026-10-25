@@ -70,6 +70,25 @@ describe('HelpConversation', () => {
     vi.clearAllMocks();
   });
 
+  it('replaces the conversation and retry controls with help after a distress answer', async () => {
+    actions.checkAnswer.mockResolvedValueOnce({
+      ok: false,
+      error: { code: 'guidance.child_safety.distress_signal', message: 'not for display' },
+    });
+    renderScreen(session());
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'Ich will nicht mehr leben' },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'conversation.checkAnswer' }));
+    });
+    expect(screen.getByText('distress.title')).toBeVisible();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'conversation.retry' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Ich will nicht mehr leben')).not.toBeInTheDocument();
+    expect(actions.requestHint).not.toHaveBeenCalled();
+  });
+
   it('shows the stored clarification without calling the hint model', () => {
     renderScreen(session({ hints: [], opening: { kind: 'clarify' } }));
     expect(screen.getByText('opening.clarify')).toBeVisible();

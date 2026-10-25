@@ -69,7 +69,7 @@ export function TaskEntry({ draft, onDraftChange, headingRef, childProfileId }: 
       }).catch(() => null);
       if (result?.ok) {
         router.push('/help');
-      } else if (result && result.error.code === CHILD_DISTRESS_ERROR_CODES.distressSignal) {
+      } else if (result?.error.code === CHILD_DISTRESS_ERROR_CODES.distressSignal) {
         onDraftChange('');
         setStatus('distress');
       } else {

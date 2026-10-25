@@ -72,7 +72,7 @@ export default async function StartPage({ params, searchParams }: StartPageProps
 
   return (
     <StartPageShell>
-      <I18nProvider locale={locale} namespaces={['assignments']}>
+      <I18nProvider locale={locale} namespaces={['assignments', 'guidance']}>
         <Suspense fallback={<StartScreen schoolAssignments={null} childProfileId={null} />}>
           <StartContent searchParams={searchParams} />
         </Suspense>
