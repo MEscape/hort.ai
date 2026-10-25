@@ -22,7 +22,8 @@ export interface PictureStateView {
 export function usePictureState(url: string | undefined): PictureStateView {
   const [snapshot, setSnapshot] = useState<{ url: string | undefined; state: PictureState }>({
     url,
-    state: url === undefined ? 'ready' : 'pending',
+    // Server-rendered pictures start drawn; attach() marks one that is still loading as pending.
+    state: 'ready',
   });
   const setState = useCallback(
     (state: PictureState) => {
@@ -32,7 +33,12 @@ export function usePictureState(url: string | undefined): PictureStateView {
   );
   const attach = useCallback(
     (picture: HTMLImageElement | null) => {
-      if (picture === null || url === undefined || !('decode' in picture)) {
+      if (picture === null || url === undefined) {
+        return undefined;
+      }
+      // Without decode() nothing can tell when the picture is there, so it is drawn as it is.
+      if (!('decode' in picture)) {
+        setState('ready');
         return undefined;
       }
       let isCurrent = true;
