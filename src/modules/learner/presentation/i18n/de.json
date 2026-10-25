@@ -1,7 +1,7 @@
 {
   "learner": {
     "metadata": {
-      "title": "Dein Kind einrichten",
+      "title": "Kinderprofil einrichten",
       "description": "Ein paar kurze Schritte: das Profil deines Kindes, ein Begleiter und die Einstellungen, die du möchtest."
     },
     "stepper": {
@@ -19,7 +19,7 @@
         },
         "interests": {
           "title": "Interessen",
-          "hint": "Was gefällt ihm"
+          "hint": "Was dein Kind mag"
         },
         "tutor": {
           "title": "Begleiter",
