@@ -91,8 +91,14 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
       return okAsync({ session, created: true });
     },
     findOpen: (_owner, childProfileId) => okAsync(active(childProfileId)),
-    loadSession: (ref) => {
-      const session = active(ref.childProfileId, ref.sessionId);
+    loadSession: (ref, includeCompleted = false) => {
+      const stored = sessions.get(ref.sessionId);
+      const session =
+        includeCompleted &&
+        stored?.status === 'completed' &&
+        stored.childProfileId === ref.childProfileId
+          ? stored
+          : active(ref.childProfileId, ref.sessionId);
       return session === null ? errAsync(notFound()) : okAsync(session);
     },
     load: (ref) => repository.loadSession(ref).map(toLadderState),

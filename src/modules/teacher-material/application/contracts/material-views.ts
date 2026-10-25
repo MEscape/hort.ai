@@ -6,4 +6,6 @@ export interface MaterialView {
   readonly contentType: string;
   readonly sizeBytes: number;
   readonly status: string;
+  /** ISO timestamp of the upload. */
+  readonly createdAt: string | null;
 }

@@ -41,6 +41,7 @@ describe('sign-in form', () => {
     await waitFor(() => {
       expect(push).toHaveBeenCalledWith('/home');
     });
+    expect(screen.getByLabelText('Password', { exact: true })).toHaveValue('');
     expect(signInAction).toHaveBeenCalledWith({
       email: 'alex@example.test',
       password: 'existing password',

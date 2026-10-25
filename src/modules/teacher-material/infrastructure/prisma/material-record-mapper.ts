@@ -1,5 +1,8 @@
 import { toActorId, toTenantId } from '@modules/auth';
 
+import { instantToDate } from '@lib/db';
+import type { InstantRecord } from '@lib/db';
+
 import { toClassroomId, toTeacherMaterialId } from '../../domain/models/ids';
 
 import type { Material } from '../../domain/models/material';
@@ -14,6 +17,7 @@ export const MATERIAL_SELECT = [
   'contentType',
   'sizeBytes',
   'status',
+  'createdAt',
 ] as const;
 interface MaterialRecord {
   readonly id: string;
@@ -25,6 +29,7 @@ interface MaterialRecord {
   readonly contentType: 'PDF' | 'TEXT';
   readonly sizeBytes: number;
   readonly status: Material['status'];
+  readonly createdAt: InstantRecord;
 }
 /** PDF is deliberately not created by this release; metadata maps to the supported extraction type. */
 export function toMaterial(row: MaterialRecord): Material {
@@ -35,5 +40,6 @@ export function toMaterial(row: MaterialRecord): Material {
     tenantId: toTenantId(row.tenantId),
     ownerId: toActorId(row.ownerId),
     contentType: 'text/plain',
+    createdAt: instantToDate(row.createdAt),
   };
 }
