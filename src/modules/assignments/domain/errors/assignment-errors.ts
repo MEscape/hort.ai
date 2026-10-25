@@ -23,6 +23,7 @@ export const ASSIGNMENTS_VALIDATION_CODES = {
   taskRequired: 'assignments.validation.task_required',
   taskTooLong: 'assignments.validation.task_too_long',
   dateInvalid: 'assignments.validation.date_invalid',
+  datePast: 'assignments.validation.date_past',
   solutionTooLong: 'assignments.validation.solution_too_long',
 } as const;
 
