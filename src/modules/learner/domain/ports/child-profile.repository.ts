@@ -1,7 +1,12 @@
 import type { InfrastructureAppError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
 
-import type { ChildDetails, ChildProfile, GuardianConfirmation } from '../models/child-profile';
+import type {
+  ChildDetails,
+  ChildProfile,
+  GuardianConfirmation,
+  VoiceNoticeConfirmation,
+} from '../models/child-profile';
 import type { FederalState, Grade } from '../models/federal-state';
 import type { ActorId, ChildProfileId, TenantId, TutorId } from '../models/ids';
 import type { Interest } from '../models/interests';
@@ -33,6 +38,13 @@ export interface ProfilePatch {
 export interface SchoolSettings {
   readonly federalState: FederalState;
   readonly grade: Grade;
+}
+
+/** The parent's speech-to-text decision: the voice control and the notice confirmed with it. */
+export interface VoiceConsentWrite {
+  readonly voiceEnabled: boolean;
+  /** `null` clears it: a withdrawal leaves no confirmation behind. */
+  readonly voiceNotice: VoiceNoticeConfirmation | null;
 }
 
 /** What the child's welcome may change: only the interests and the companion. */
@@ -93,6 +105,16 @@ export interface ChildProfileRepository {
   updateSchoolSettings(
     profile: ChildProfile,
     settings: SchoolSettings,
+  ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
+
+  /**
+   * Stores the voice control and its notice confirmation on one of the owner's profiles, finished
+   * or not (the parent decides after the setup, too). Returns the stored profile, or `null` when it
+   * is gone.
+   */
+  updateVoiceConsent(
+    profile: ChildProfile,
+    consent: VoiceConsentWrite,
   ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
 
   /**

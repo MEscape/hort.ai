@@ -116,6 +116,7 @@ const PROFILE: ChildProfileDto = {
   allowedWindow: null,
   learningInsights: false,
   guardianConfirmed: true,
+  voiceConsent: false,
   welcomeCompletedAt: null,
 };
 

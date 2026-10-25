@@ -25,6 +25,7 @@ export const LEARNER_ERROR_CODES = {
   setupIncomplete: 'learner.setup_incomplete',
   welcomeAlreadyCompleted: 'learner.welcome_already_completed',
   devResetUnavailable: 'learner.dev_reset_unavailable',
+  voiceNoticeOutdated: 'learner.voice_notice_outdated',
   validationFailed: 'learner.validation_failed',
   persistenceFailed: 'learner.persistence_failed',
 } as const;
@@ -70,6 +71,17 @@ export function welcomeAlreadyCompleted(): ConflictAppError {
   return conflictError(
     LEARNER_ERROR_CODES.welcomeAlreadyCompleted,
     'The child already finished the welcome.',
+  );
+}
+
+/**
+ * The parent allowed speech-to-text against a voice notice that is not the current one (the page was
+ * open while the wording changed): nothing is stored, the parent reads the current notice first.
+ */
+export function voiceNoticeOutdated(): ConflictAppError {
+  return conflictError(
+    LEARNER_ERROR_CODES.voiceNoticeOutdated,
+    'The voice notice was changed; confirm the current one.',
   );
 }
 

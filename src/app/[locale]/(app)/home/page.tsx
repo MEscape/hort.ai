@@ -2,7 +2,12 @@ import { Suspense } from 'react';
 
 import { AuthFormSkeleton, AuthShell, isAuthEnabled, requireSignedIn } from '@modules/auth';
 import { SignOutButton } from '@modules/auth/client';
-import { ResetOnboardingButton, isDevResetAvailable, requireOnboarded } from '@modules/learner';
+import {
+  ResetOnboardingButton,
+  VoiceConsentSwitch,
+  isDevResetAvailable,
+  requireOnboarded,
+} from '@modules/learner';
 import { loadProgressDto } from '@modules/progression';
 import { CompanionCard } from '@modules/progression/client';
 
@@ -30,12 +35,12 @@ export async function generateMetadata({
 
 async function ParentHome() {
   await requireSignedIn('/home');
-  const profile = await requireOnboarded();
+  const child = await requireOnboarded();
   const t = await getTranslations('app');
   const tutors = buildTutorOptions();
-  preloadTutorPictures(tutors, profile.tutorId);
-  const companion = tutors.find((option) => option.id === profile.tutorId);
-  const progress = companion === undefined ? null : await loadProgressDto(profile.id);
+  preloadTutorPictures(tutors, child.tutorId);
+  const companion = tutors.find((option) => option.id === child.tutorId);
+  const progress = companion === undefined ? null : await loadProgressDto(child.id);
   return (
     <div className="flex flex-col gap-6">
       {companion !== undefined && progress !== null && (
@@ -48,6 +53,11 @@ async function ParentHome() {
         </CardHeader>
         <CardContent>
           <p className="text-center text-copy-muted">{t('home.description')}</p>
+          <VoiceConsentSwitch
+            profileId={child.id}
+            name={child.displayName}
+            allowed={child.voiceConsent}
+          />
           {isAuthEnabled && <SignOutButton />}
           {isDevResetAvailable() && <ResetOnboardingButton />}
         </CardContent>

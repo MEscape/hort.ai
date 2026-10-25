@@ -17,6 +17,7 @@ import { ResetOnboarding } from './application/commands/reset-onboarding';
 import { SaveChildInterests } from './application/commands/save-child-interests';
 import { SaveControls } from './application/commands/save-controls';
 import { SaveInterests } from './application/commands/save-interests';
+import { SetVoiceConsent } from './application/commands/set-voice-consent';
 import { GetChildProfileById } from './application/queries/get-child-profile-by-id';
 import { GetOnboardingState } from './application/queries/get-onboarding-state';
 import {
@@ -66,6 +67,7 @@ export const getLearnerCommands = once(() => {
     saveControls: new SaveControls(dependencies),
     completeSetup: new CompleteSetup(dependencies),
     resetOnboarding: new ResetOnboarding(dependencies),
+    setVoiceConsent: new SetVoiceConsent(dependencies),
     adoptSchoolSettings: new AdoptSchoolSettings(dependencies),
     saveChildInterests: new SaveChildInterests(dependencies),
     chooseChildTutor: new ChooseChildTutor(dependencies),

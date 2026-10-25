@@ -20,6 +20,7 @@ import type {
   SavedProfile,
   SchoolSettings,
   UnfinishedProfileInput,
+  VoiceConsentWrite,
   WelcomePatch,
 } from '../../domain/ports/child-profile.repository';
 
@@ -207,6 +208,27 @@ export class PrismaChildProfileRepository implements ChildProfileRepository {
           ? profiles().where({ id, ownerId, tenantId }).first()
           : null,
       failures.infraOnly('updateSchoolSettings'),
+    ).map((record) => (record === null ? null : toChildProfile(record)));
+  }
+
+  updateVoiceConsent(
+    profile: ChildProfile,
+    { voiceEnabled, voiceNotice }: VoiceConsentWrite,
+  ): AppResultAsync<ChildProfile | null, InfrastructureAppError> {
+    const { id, ownerId, tenantId } = profile;
+    return fromThrowableAsync(
+      async () =>
+        (await profiles()
+          .where({ id, ownerId, tenantId })
+          .updateAndCount({
+            voiceConsent: voiceEnabled,
+            voiceNoticeVersion: voiceNotice?.version ?? null,
+            voiceNoticeConfirmedAt:
+              voiceNotice === null ? null : dateToInstant(voiceNotice.confirmedAt),
+          })) > 0
+          ? profiles().where({ id, ownerId, tenantId }).first()
+          : null,
+      failures.infraOnly('updateVoiceConsent'),
     ).map((record) => (record === null ? null : toChildProfile(record)));
   }
 

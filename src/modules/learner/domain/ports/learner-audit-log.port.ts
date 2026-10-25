@@ -49,6 +49,16 @@ export type LearnerEvent =
       readonly consentVersion: string;
     }
   | {
+      readonly type: 'learner.voice_consent_changed';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      readonly childProfileId: ChildProfileId;
+      /** Whether speech-to-text is now allowed (#34). */
+      readonly allowed: boolean;
+      /** The voice notice version confirmed with it; `null` for a withdrawal. */
+      readonly noticeVersion: string | null;
+    }
+  | {
       readonly type: 'learner.onboarding_reset';
       readonly actorId: ActorId;
       readonly tenantId: TenantId;

@@ -1003,6 +1003,20 @@
                   "kind": "scalar"
                 }
               },
+              "voiceNoticeConfirmedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "voiceNoticeVersion": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "welcomeCompletedAt": {
                 "nullable": true,
                 "type": {
@@ -1099,6 +1113,12 @@
                 },
                 "voiceConsent": {
                   "column": "voiceConsent"
+                },
+                "voiceNoticeConfirmedAt": {
+                  "column": "voiceNoticeConfirmedAt"
+                },
+                "voiceNoticeVersion": {
+                  "column": "voiceNoticeVersion"
                 },
                 "welcomeCompletedAt": {
                   "column": "welcomeCompletedAt"
@@ -3090,6 +3110,11 @@
                   "prefix": "ChildProfile_setupStep_check"
                 },
                 {
+                  "expression": "(\"voiceNoticeVersion\" IS NULL) = (\"voiceNoticeConfirmedAt\" IS NULL)",
+                  "name": "ChildProfile_voice_notice_rule_8b4fac41",
+                  "prefix": "ChildProfile_voice_notice_rule"
+                },
+                {
                   "expression": "\"welcomeCompletedAt\" IS NULL OR \"setupCompletedAt\" IS NOT NULL",
                   "name": "ChildProfile_welcome_after_setup_rule_1a425757",
                   "prefix": "ChildProfile_welcome_after_setup_rule"
@@ -3226,6 +3251,16 @@
                     "value": false
                   },
                   "nullable": false
+                },
+                "voiceNoticeConfirmedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "voiceNoticeVersion": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
                 },
                 "welcomeCompletedAt": {
                   "codecId": "pg/timestamptz-temporal@1",
@@ -4793,7 +4828,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "ce0fbf5639165e78229024a899a2b879e79e6b1a73d5602968046c84c08aa1fd"
+    "storageHash": "073e39acca7299a40a57a7f3fae59f0191a148a085bae26fc5ac55b61d1f5495"
   },
   "execution": {
     "executionHash": "5388a8400147d76b9e718711335599d04f7ca67a9c7f7b82d886bf9fb1c1aec5",

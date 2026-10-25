@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'ce0fbf5639165e78229024a899a2b879e79e6b1a73d5602968046c84c08aa1fd'>;
+  StorageHashBase<'073e39acca7299a40a57a7f3fae59f0191a148a085bae26fc5ac55b61d1f5495'>;
 export type ExecutionHash =
   ExecutionHashBase<'5388a8400147d76b9e718711335599d04f7ca67a9c7f7b82d886bf9fb1c1aec5'>;
 export type ProfileHash =
@@ -830,6 +830,8 @@ export namespace Models {
     tenantId: FieldOutputTypes['public']['ChildProfile']['tenantId'];
     tutorId: FieldOutputTypes['public']['ChildProfile']['tutorId'];
     voiceConsent: FieldOutputTypes['public']['ChildProfile']['voiceConsent'];
+    voiceNoticeConfirmedAt: FieldOutputTypes['public']['ChildProfile']['voiceNoticeConfirmedAt'];
+    voiceNoticeVersion: FieldOutputTypes['public']['ChildProfile']['voiceNoticeVersion'];
     welcomeCompletedAt: FieldOutputTypes['public']['ChildProfile']['welcomeCompletedAt'];
     helpSessions: public_HelpSession[];
     membership: public_ClassMembership | null;
@@ -1491,6 +1493,18 @@ type ContractBase = Omit<
                     readonly kind: 'literal';
                     readonly value: DefaultLiteralValue<'pg/bool@1', false>;
                   };
+                  readonly many: false;
+                };
+                readonly voiceNoticeConfirmedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly voiceNoticeVersion: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly welcomeCompletedAt: {
@@ -2956,6 +2970,17 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
               };
+              readonly voiceNoticeConfirmedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly voiceNoticeVersion: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly welcomeCompletedAt: {
                 readonly nullable: true;
                 readonly type: {
@@ -3011,6 +3036,8 @@ type ContractBase = Omit<
                 readonly tenantId: { readonly column: 'tenantId' };
                 readonly tutorId: { readonly column: 'tutorId' };
                 readonly voiceConsent: { readonly column: 'voiceConsent' };
+                readonly voiceNoticeConfirmedAt: { readonly column: 'voiceNoticeConfirmedAt' };
+                readonly voiceNoticeVersion: { readonly column: 'voiceNoticeVersion' };
                 readonly welcomeCompletedAt: { readonly column: 'welcomeCompletedAt' };
               };
             };

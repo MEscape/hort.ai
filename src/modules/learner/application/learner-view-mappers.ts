@@ -1,4 +1,7 @@
-import { hasCurrentGuardianConfirmation } from '../domain/models/child-profile';
+import {
+  hasCurrentGuardianConfirmation,
+  hasCurrentVoiceConsent,
+} from '../domain/models/child-profile';
 
 import type { ChildProfileView, OnboardingStateView } from './contracts/learner-views';
 import type { ChildProfile } from '../domain/models/child-profile';
@@ -14,6 +17,7 @@ export function toChildProfileView(profile: ChildProfile): ChildProfileView {
     tutorId: profile.tutorId,
     controls: { ...profile.controls },
     guardianConfirmed: hasCurrentGuardianConfirmation(profile),
+    voiceConsent: hasCurrentVoiceConsent(profile),
     setupStep: profile.setupStep,
     setupCompletedAt: profile.setupCompletedAt,
     welcomeCompletedAt: profile.welcomeCompletedAt,

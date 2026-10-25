@@ -6,22 +6,23 @@ What a parent stores about their child and how the onboarding steps create it. O
 
 A `ChildProfile` holds the minimum [`vision.md`](../product/vision.md) allows plus what the parent chose from closed lists. Nothing is free text except the display name.
 
-| Field                                            | Rule                                                                                                                                                              |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `displayName`                                    | Trimmed, 1 to 24 characters (code points), no control or invisible format characters                                                                              |
-| `federalState`                                   | One of the 16 state codes (`BW BY BE BB HB HH HE MV NI NW RP SL SN ST SH TH`)                                                                                     |
-| `grade`                                          | 1 to 4                                                                                                                                                            |
-| `interests`                                      | 0 to 4 distinct values of `INTERESTS` (`nature animals science art music sports technology stories puzzles history`); skipping is valid; stored in the list order |
-| `tutorId`                                        | `null`, or the stable id of a tutor the tutors catalog lists with status `bereit` (`max`, `lili`, `fina` today)                                                   |
-| `voiceConsent` (domain: `controls.voiceEnabled`) | The parent's "voice allowed" control, default `false`. The column keeps its original name to avoid a rename migration; the record mapper maps it                  |
-| `dailyLimitMinutes`                              | `null` (no limit) or one of `DAILY_LIMIT_MINUTES` (15, 30, 45, 60, 90)                                                                                            |
-| `allowedFromMinute`, `allowedUntilMinute`        | Both `null` (any time) or both set: minutes since midnight in `Europe/Berlin`, 0 to 1440, multiples of 15, from < until, at least 30 minutes wide                 |
-| `learningInsights`                               | The parent lets Hort note where the child needed help, for the parent summary (#35); default `false`                                                              |
-| `guardianConfirmedAt`, `guardianConsentVersion`  | When the guardian confirmed the guardianship statement, and which version of it (`GUARDIAN_CONSENT_VERSION`, currently `2026-10-24`)                              |
-| `setupStep`                                      | The furthest step the parent has reached: `child < interests < tutor < controls < review < done` (`SETUP_STEPS`)                                                  |
-| `setupCompletedAt`                               | UTC instant the parent finished the setup; `null` while unfinished. `setupStep = 'done'` exactly when it is set                                                   |
-| `welcomeCompletedAt`                             | UTC instant the child finished their own welcome (`/hello`), after the parent's setup; `null` while open. A CHECK allows it only when `setupCompletedAt` is set   |
-| `tenantId`, `ownerId`, `id`                      | Tenant and guardian's `ActorId` come from the signed-in actor, never from a request                                                                               |
+| Field                                            | Rule                                                                                                                                                                                                         |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `displayName`                                    | Trimmed, 1 to 24 characters (code points), no control or invisible format characters                                                                                                                         |
+| `federalState`                                   | One of the 16 state codes (`BW BY BE BB HB HH HE MV NI NW RP SL SN ST SH TH`)                                                                                                                                |
+| `grade`                                          | 1 to 4                                                                                                                                                                                                       |
+| `interests`                                      | 0 to 4 distinct values of `INTERESTS` (`nature animals science art music sports technology stories puzzles history`); skipping is valid; stored in the list order                                            |
+| `tutorId`                                        | `null`, or the stable id of a tutor the tutors catalog lists with status `bereit` (`max`, `lili`, `fina` today)                                                                                              |
+| `voiceConsent` (domain: `controls.voiceEnabled`) | The parent's "voice allowed" control, default `false`. The column keeps its original name to avoid a rename migration; the record mapper maps it                                                             |
+| `dailyLimitMinutes`                              | `null` (no limit) or one of `DAILY_LIMIT_MINUTES` (15, 30, 45, 60, 90)                                                                                                                                       |
+| `allowedFromMinute`, `allowedUntilMinute`        | Both `null` (any time) or both set: minutes since midnight in `Europe/Berlin`, 0 to 1440, multiples of 15, from < until, at least 30 minutes wide                                                            |
+| `learningInsights`                               | The parent lets Hort note where the child needed help, for the parent summary (#35); default `false`                                                                                                         |
+| `guardianConfirmedAt`, `guardianConsentVersion`  | When the guardian confirmed the guardianship statement, and which version of it (`GUARDIAN_CONSENT_VERSION`, currently `2026-10-24`)                                                                         |
+| `voiceNoticeVersion`, `voiceNoticeConfirmedAt`   | Which version of the voice notice (`VOICE_NOTICE_VERSION`, currently `2026-10-25`) the parent confirmed when allowing speech-to-text, and when; both `null` or both set (CHECK), cleared on withdrawal (#34) |
+| `setupStep`                                      | The furthest step the parent has reached: `child < interests < tutor < controls < review < done` (`SETUP_STEPS`)                                                                                             |
+| `setupCompletedAt`                               | UTC instant the parent finished the setup; `null` while unfinished. `setupStep = 'done'` exactly when it is set                                                                                              |
+| `welcomeCompletedAt`                             | UTC instant the child finished their own welcome (`/hello`), after the parent's setup; `null` while open. A CHECK allows it only when `setupCompletedAt` is set                                              |
+| `tenantId`, `ownerId`, `id`                      | Tenant and guardian's `ActorId` come from the signed-in actor, never from a request                                                                                                                          |
 
 All defaults are the most private and restrictive: voice off, no limit, no window, insights off. No age, avatar or free-text interests.
 
@@ -40,6 +41,7 @@ All take no tenant, owner or role from the caller. Each authorizes the signed-in
 - `SaveInterests` (command, `learner.update`): validates against `INTERESTS` (distinct, at most 4; none is valid), stores them in list order, advances to at least `tutor`. Always allowed and idempotent.
 - `ChooseTutor` (command, `learner.update`): the id is checked through `TutorCatalogPort`; unknown, draft and empty ids are a field error `learner.validation.tutor_invalid` on `tutorId`. Advances to at least `controls`.
 - `SaveControls` (command, `learner.update`): validates voice, daily limit, allowed window and insights, and requires `guardianConfirmed === true` (`learner.validation.guardian_confirmation_required`). Stores the controls and the confirmation (time from the `Clock`, version `GUARDIAN_CONSENT_VERSION`) and advances to at least `review`. A re-save while unfinished keeps the first confirmation time unless the statement version changed.
+- `SetVoiceConsent` (command, `learner.update`): the parent allows or withdraws speech-to-text for their own child at any time, also after the setup (#34). Allowing needs `noticeVersion === VOICE_NOTICE_VERSION`, else `learner.voice_notice_outdated` (conflict) and nothing is stored; it sets `voiceEnabled` and the notice confirmation (time from the `Clock`). Withdrawing sets `voiceEnabled = false` and clears the confirmation. Owner-scoped like every command: another parent's id answers `learner.not_found`. The switch lives on the parent's home (`VoiceConsentSwitch`).
 - `CompleteSetup` (command, `learner.update`): loads the profile owner-scoped. A finished profile is returned unchanged, with no write and no audit. A profile whose step is not `review` answers `learner.setup_incomplete` (conflict). Otherwise one conditional `UPDATE ... WHERE setupStep = 'review' AND setupCompletedAt IS NULL` sets step `done` and `setupCompletedAt` (from the `Clock`), so only one call wins; the others return what the winner stored.
 
 ## Child welcome
@@ -56,7 +58,7 @@ The tutor catalog is the tutors module's checked-in catalog, read through `Tutor
 
 ## Views
 
-`ChildProfileView = { id, displayName, federalState, grade, interests, tutorId, controls: { voiceEnabled, dailyLimitMinutes, allowedWindow, learningInsights }, guardianConfirmed, setupStep, setupCompletedAt, welcomeCompletedAt }`. `guardianConfirmed` is true only for the current statement version, so a new version asks again. Tenant, owner and timestamps other than `setupCompletedAt` and `welcomeCompletedAt` are not exposed. The browser's `ChildProfileDto` carries `welcomeCompletedAt` as an ISO string or `null`.
+`ChildProfileView = { id, displayName, federalState, grade, interests, tutorId, controls: { voiceEnabled, dailyLimitMinutes, allowedWindow, learningInsights }, guardianConfirmed, voiceConsent, setupStep, setupCompletedAt, welcomeCompletedAt }`. `guardianConfirmed` is true only for the current statement version, so a new version asks again. `voiceConsent` (`hasCurrentVoiceConsent`) is what the voice module reads: `voiceEnabled` and a confirmed current voice notice and a current guardian confirmation; the switch in the onboarding controls alone is not consent to speech-to-text. Tenant, owner and timestamps other than `setupCompletedAt` are not exposed.
 
 ## Dev reset
 
@@ -79,13 +81,14 @@ Events are ids, counts and flags only, never the name or any other detail of the
 | `learner.tutor_chosen`              | Only when the choice changed                    | `tutorId` (catalog data)                                                                                                   |
 | `learner.controls_changed`          | Only when a control differs from the stored one | `voiceEnabled` and `learningInsights` (the new value, or `null` if unchanged), `dailyLimitChanged`, `allowedWindowChanged` |
 | `learner.guardian_consent_recorded` | Once per confirmation (first, or a new version) | `consentVersion`                                                                                                           |
+| `learner.voice_consent_changed`     | Every `SetVoiceConsent` that stored             | `allowed`, `noticeVersion` (`null` for a withdrawal)                                                                       |
 | `learner.onboarding_reset`          | Only when the dev reset deleted rows            | `deletedCount` (no names, no ids)                                                                                          |
 | `learner.setup_completed`           | Only for the call that wins the write           | ids                                                                                                                        |
 | `learner.child_interests_saved`     | Only when the child changed the set             | `count` (not the values)                                                                                                   |
 | `learner.child_tutor_chosen`        | Only when the child changed the choice          | `tutorId` (catalog data)                                                                                                   |
 | `learner.child_welcome_completed`   | Only for the call that wins the write           | ids                                                                                                                        |
 
-`learner.voice_consent_changed` no longer exists; the voice flag is part of `learner.controls_changed`. Wired in `composition.ts` with `withAuditTrail(..., { source: 'learner' })` (`TRAIL_BY_EVENT`, `LEVEL_BY_EVENT`; all `member`/`info`). Denials are audited by the authorization service.
+The onboarding's voice flag is part of `learner.controls_changed`; the parent's later speech-to-text decision is `learner.voice_consent_changed`. Wired in `composition.ts` with `withAuditTrail(..., { source: 'learner' })` (`TRAIL_BY_EVENT`, `LEVEL_BY_EVENT`; all `member`/`info`). Denials are audited by the authorization service.
 
 ## Screens and routing
 
@@ -121,8 +124,8 @@ To build the real linking, replace the body of `presentation/hooks/use-alexa-lin
 ## Known gaps
 
 - `dailyLimitMinutes` is stored, not enforced: nothing counts a child's usage yet. `isLearningAllowedNow` covers only the allowed window and nothing calls it yet. Do not present either as a working limit until the help session (#34) uses them.
-- `voiceEnabled` is only stored; nothing reads it until voice (#34). `learningInsights` is only stored until the parent summary (#35).
+- `learningInsights` is only stored until the parent summary (#35).
 - The save order is not enforced on the server: a client can save the controls before choosing a tutor (the profile then reaches `review` with `tutorId = null`). Only the monotonic step and the `review` requirement of `CompleteSetup` are guaranteed.
-- One child per parent: there is no list, edit or delete of finished profiles, and no way to change the controls after the setup finished.
+- One child per parent: there is no list, edit or delete of finished profiles, and no way to change the controls after the setup finished, except the speech-to-text switch (`SetVoiceConsent`).
 - A parent who finishes the setup in one request while another creates in the same instant can still end with a second profile; the unique index only guards unfinished profiles.
 - A `guardianConsentVersion` bump asks a parent in the middle of the setup again, but a finished profile keeps its old confirmation: there is no re-consent flow yet.

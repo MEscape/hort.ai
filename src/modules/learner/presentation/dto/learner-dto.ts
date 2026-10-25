@@ -17,6 +17,8 @@ export interface ChildProfileDto {
   readonly allowedWindow: { readonly fromMinute: number; readonly untilMinute: number } | null;
   readonly learningInsights: boolean;
   readonly guardianConfirmed: boolean;
+  /** Speech-to-text allowed: the voice control is on and the current voice notice is confirmed. */
+  readonly voiceConsent: boolean;
   /** When the child finished their own welcome (ISO instant), or `null` while it is open. */
   readonly welcomeCompletedAt: string | null;
 }
@@ -39,6 +41,7 @@ export function toChildProfileDto(view: ChildProfileView): ChildProfileDto {
     allowedWindow: view.controls.allowedWindow,
     learningInsights: view.controls.learningInsights,
     guardianConfirmed: view.guardianConfirmed,
+    voiceConsent: view.voiceConsent,
     welcomeCompletedAt: view.welcomeCompletedAt?.toISOString() ?? null,
   };
 }

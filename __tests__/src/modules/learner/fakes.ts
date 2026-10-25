@@ -20,6 +20,7 @@ import type {
   SchoolSettings,
   UnfinishedProfileInput,
   WelcomePatch,
+  VoiceConsentWrite,
 } from '@modules/learner/domain/ports/child-profile.repository';
 import type {
   LearnerAuditLog,
@@ -57,6 +58,7 @@ export function profileOf(
     tutorId: null,
     controls: DEFAULT_CONTROLS,
     guardian: null,
+    voiceNotice: null,
     setupStep:
       rest.setupCompletedAt === undefined || rest.setupCompletedAt === null ? 'interests' : 'done',
     setupCompletedAt: null,
@@ -164,6 +166,27 @@ export class InMemoryChildProfiles implements ChildProfileRepository {
     }
     this.writes += 1;
     const updated: ChildProfile = { ...stored, ...settings };
+    this.rows[index] = updated;
+    return okAsync<ChildProfile | null>(updated);
+  }
+
+  updateVoiceConsent(profile: ChildProfile, { voiceEnabled, voiceNotice }: VoiceConsentWrite) {
+    const index = this.rows.findIndex(
+      (row) =>
+        row.id === profile.id &&
+        row.ownerId === profile.ownerId &&
+        row.tenantId === profile.tenantId,
+    );
+    const stored = this.rows[index];
+    if (stored === undefined) {
+      return okAsync<ChildProfile | null>(null);
+    }
+    this.writes += 1;
+    const updated: ChildProfile = {
+      ...stored,
+      controls: { ...stored.controls, voiceEnabled },
+      voiceNotice,
+    };
     this.rows[index] = updated;
     return okAsync<ChildProfile | null>(updated);
   }

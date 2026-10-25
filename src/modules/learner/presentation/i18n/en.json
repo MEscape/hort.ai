@@ -275,7 +275,8 @@
       "devResetUnavailable": "This is only available while developing.",
       "validation": "Please check your entries.",
       "infrastructure": "We could not save that right now. Nothing was changed. Please try again in a moment.",
-      "unexpected": "We could not confirm that this was saved. Please try again."
+      "unexpected": "We could not confirm that this was saved. Please try again.",
+      "voiceNoticeOutdated": "The speech recognition notice has changed. Please read it again, then switch it on."
     },
     "validation": {
       "displayNameRequired": "Please enter a name for your child.",
@@ -369,6 +370,14 @@
         "kreativ": "Creative",
         "verspielt": "Playful"
       }
+    },
+    "voiceConsent": {
+      "group": "Speech recognition",
+      "title": "{name} may speak instead of typing",
+      "notice": "When {name} speaks, Hort sends the recording once to the service ElevenLabs, which turns it into text. Hort does not keep the recording; {name} sees the text and can correct it. You can switch this off here at any time. Typing always works.",
+      "on": "Speech recognition is on",
+      "off": "Speech recognition is off",
+      "version": "Speech recognition notice, version {version}. Switching it on confirms it."
     }
   }
 }

@@ -37,6 +37,14 @@ export interface SaveControlsInput {
   readonly guardianConfirmed: boolean;
 }
 
+/** The parent allows or withdraws speech-to-text for their child, at any time (#34). */
+export interface SetVoiceConsentInput {
+  readonly profileId: string;
+  readonly allowed: boolean;
+  /** The voice notice version the parent read; required to allow, ignored for a withdrawal. */
+  readonly noticeVersion: string | null;
+}
+
 export interface CompleteSetupInput {
   readonly profileId: string;
 }
