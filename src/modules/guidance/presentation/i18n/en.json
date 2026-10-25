@@ -28,6 +28,15 @@
       "rateLimited": "Take a short break and try again in a moment.",
       "infrastructure": "Something is not working right now. Please try again in a moment.",
       "unexpected": "Something went wrong. Please try again."
+    },
+    "distress": {
+      "title": "Thank you for telling me.",
+      "brave": "It is brave to talk about it. You are not alone with this.",
+      "trustedAdult": "Tell an adult you trust, for example someone in your family or your teacher.",
+      "hotline": "You can also call the Nummer gegen Kummer: 116 111. It is free and you do not have to say your name.",
+      "hours": "Someone is there for you Monday to Saturday from 2 pm to 8 pm.",
+      "emergency": "If you are in danger right now, call 110 (police) or 112 (emergency) straight away.",
+      "summary": "Thank you for telling me. It is brave to talk about it. Tell an adult you trust. You can also call the Nummer gegen Kummer: 116 111, free and without giving your name, Monday to Saturday from 2 pm to 8 pm. If you are in danger right now, call 110 or 112."
     }
   }
 }

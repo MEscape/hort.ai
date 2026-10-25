@@ -50,6 +50,7 @@ export type { ChildInputValidationCode } from './domain/errors/child-input-error
 export { CHILD_SAFETY_VALIDATION_CODES } from './domain/errors/child-safety-errors';
 export type { ChildSafetyValidationCode } from './domain/errors/child-safety-errors';
 export { GUIDANCE_ERROR_CODES, GUIDANCE_VALIDATION_CODES } from './domain/errors/guidance-errors';
+export { CHILD_DISTRESS_ERROR_CODES } from './domain/errors/child-distress-errors';
 
 /** The module's message catalogs, registered in `src/i18n/locales`. */
 export { default as enGuidance } from './presentation/i18n/en.json';

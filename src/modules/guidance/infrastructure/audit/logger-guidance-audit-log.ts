@@ -18,6 +18,7 @@ export const LEVEL_BY_EVENT = {
   'guidance.step_not_recorded': 'warn',
   'guidance.session_started': 'info',
   'guidance.comprehension_replied': 'info',
+  'guidance.child_safety.distress_signal': 'warn',
 } as const satisfies Record<GuidanceEvent['type'], 'info' | 'warn'>;
 
 /** One structured log line per event under `guidance.audit`; never throws. */

@@ -12,6 +12,7 @@ import {
   GUIDANCE_ERROR_CODES as ERRORS,
   GUIDANCE_VALIDATION_CODES as VALIDATION,
   SOLUTION_LEAK_VALIDATION_CODES as LEAK,
+  CHILD_DISTRESS_ERROR_CODES as DISTRESS,
 } from '../../application/contracts/guidance-constraints';
 
 import type { GuidanceCode } from '../../application/contracts/guidance-constraints';
@@ -72,6 +73,7 @@ export const MESSAGE_KEY_BY_CODE = {
   [LEAK.dictatesAnswer]: GENERIC_ERROR_MESSAGE_KEY,
   [LEAK.worksTheTask]: GENERIC_ERROR_MESSAGE_KEY,
   [LEAK.revealsKeyText]: GENERIC_ERROR_MESSAGE_KEY,
+  [DISTRESS.distressSignal]: fieldPath('distress', 'summary'),
 } as const satisfies Record<GuidanceCode, ValidKeys>;
 
 export type MessageKey =
@@ -85,4 +87,14 @@ function isGuidanceCode(code: string): code is GuidanceCode {
 /** @keep Used by the child's help screen to translate an action error. */
 export function messageKeyForCode(code: string): MessageKey {
   return isGuidanceCode(code) ? MESSAGE_KEY_BY_CODE[code] : GENERIC_ERROR_MESSAGE_KEY;
+}
+
+/**
+ * The child's message signalled distress (#90): the help screen shows the companion's help text
+ * (`guidance.distress.*`: title, brave, trustedAdult, hotline, hours, emergency) instead of a hint.
+ *
+ * @keep Used by the child's help screen (#83) to switch to the help text.
+ */
+export function isChildDistressCode(code: string): boolean {
+  return code === DISTRESS.distressSignal;
 }

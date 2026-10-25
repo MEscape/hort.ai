@@ -1,6 +1,7 @@
 import type { ActorId, TenantId } from '@modules/auth';
 
 import type { AssessmentResult } from '../ai-output/ai-output';
+import type { DistressCategory } from '../child-safety/detect-distress-signal';
 import type { FeedbackKind } from '../models/feedback-request';
 import type { HintFallbackReason } from '../models/hint-fallback-reason';
 import type { HintLevel } from '../models/hint-level';
@@ -74,6 +75,15 @@ export type GuidanceEvent =
       readonly childProfileId: ChildProfileId;
       readonly sessionId: HelpSessionId;
       readonly understood: boolean;
+    }
+  | {
+      /**
+       * A child's input signalled distress (#90). Anonymous on purpose: no tenant, actor, child or
+       * session id and never the text, only what kind of signal and in which input.
+       */
+      readonly type: 'guidance.child_safety.distress_signal';
+      readonly category: DistressCategory;
+      readonly field: 'task' | 'answer' | 'reply';
     };
 
 /** Append-only. `record` is synchronous and MUST NOT throw or block. */

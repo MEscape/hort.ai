@@ -371,3 +371,22 @@ describe('CheckAnswer rate limit (#11, #14)', () => {
     expect(requests).toEqual([]);
   });
 });
+
+describe('CheckAnswer distress check (#90)', () => {
+  it('answers a distress message with the help code, without the AI, the budget or the session', async () => {
+    const { checkAnswer, requests, events, sessions } = build();
+
+    const result = await checkAnswer.execute(input({ answer: 'Ich bin in Gefahr, hilf mir.' }));
+
+    expect(result.isErr() && result.error).toMatchObject({
+      kind: 'validation',
+      code: 'guidance.child_safety.distress_signal',
+      fieldErrors: { answer: ['guidance.child_safety.distress_signal'] },
+    });
+    expect(requests).toEqual([]);
+    expect(sessions.checks).toEqual([]);
+    expect(events).toEqual([
+      { type: 'guidance.child_safety.distress_signal', category: 'acute_danger', field: 'answer' },
+    ]);
+  });
+});

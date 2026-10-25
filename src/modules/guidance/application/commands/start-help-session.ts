@@ -15,6 +15,7 @@ import { parseHintSubject } from '../../domain/models/hint-subject';
 import { parseChildProfileId } from '../../domain/models/ids';
 import { GUIDANCE_RATE_LIMITS } from '../rate-limits';
 import { spendChildBudget } from '../services/child-budget';
+import { checkForDistress } from '../services/distress-check';
 import { toHelpSessionView } from '../services/help-session-view';
 import { ownChildScope } from '../services/own-child-session';
 
@@ -50,9 +51,11 @@ export class StartHelpSession {
     return authorization.requireInTenant('hint.request').andThen((actor) =>
       parseChildProfileId(input.childProfileId)
         .andThen((id) =>
-          parseChildTaskText(input.task).andThen((task) =>
-            parseHintSubject(input.subject).map((subject) => ({ id, task, subject })),
-          ),
+          parseChildTaskText(input.task)
+            .andThen((task) => checkForDistress(audit, task, 'task'))
+            .andThen((task) =>
+              parseHintSubject(input.subject).map((subject) => ({ id, task, subject })),
+            ),
         )
         .asyncAndThen(({ id, task, subject }) =>
           ownChildScope(this.deps, actor, id).andThen(({ owner, childProfileId }) =>

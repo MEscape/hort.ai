@@ -12,6 +12,7 @@ import {
   GUIDANCE_VALIDATION_CODES,
 } from '../../domain/errors/guidance-errors';
 import { SOLUTION_LEAK_VALIDATION_CODES } from '../../domain/errors/solution-leak-errors';
+import { CHILD_DISTRESS_ERROR_CODES } from '../../domain/errors/child-distress-errors';
 
 /**
  * What the presentation boundary needs about guidance input and errors: the stable codes and the
@@ -26,6 +27,7 @@ export {
   GUIDANCE_ERROR_CODES,
   GUIDANCE_VALIDATION_CODES,
   SOLUTION_LEAK_VALIDATION_CODES,
+  CHILD_DISTRESS_ERROR_CODES,
 };
 export { CHILD_TASK_TEXT_MAX_LENGTH } from '../../domain/models/child-task-text';
 
@@ -43,4 +45,5 @@ export type GuidanceCode =
   | ValuesOf<typeof CHILD_SAFETY_VALIDATION_CODES>
   | ValuesOf<typeof GUIDANCE_ERROR_CODES>
   | ValuesOf<typeof GUIDANCE_VALIDATION_CODES>
-  | ValuesOf<typeof SOLUTION_LEAK_VALIDATION_CODES>;
+  | ValuesOf<typeof SOLUTION_LEAK_VALIDATION_CODES>
+  | ValuesOf<typeof CHILD_DISTRESS_ERROR_CODES>;

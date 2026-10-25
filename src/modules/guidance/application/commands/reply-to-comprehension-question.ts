@@ -15,6 +15,7 @@ import { GUIDANCE_ERROR_CODES } from '../../domain/errors/guidance-errors';
 import { parseChildTaskText } from '../../domain/models/child-task-text';
 import { openQuestionCheck } from '../../domain/models/help-session';
 import { parseChildProfileId, parseHelpSessionId } from '../../domain/models/ids';
+import { checkForDistress } from '../services/distress-check';
 import { ownChildScope } from '../services/own-child-session';
 
 import type { ReplyToComprehensionQuestionInput } from '../contracts/help-session-inputs';
@@ -52,7 +53,9 @@ export class ReplyToComprehensionQuestion {
       parseChildProfileId(input.childProfileId)
         .andThen((id) =>
           parseHelpSessionId(input.sessionId).andThen((sessionId) =>
-            parseChildTaskText(input.reply, 'reply').map((reply) => ({ id, sessionId, reply })),
+            parseChildTaskText(input.reply, 'reply')
+              .andThen((reply) => checkForDistress(audit, reply, 'reply'))
+              .map((reply) => ({ id, sessionId, reply })),
           ),
         )
         .asyncAndThen(({ id, sessionId, reply }) =>

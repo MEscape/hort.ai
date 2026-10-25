@@ -28,6 +28,15 @@
       "rateLimited": "Mach kurz eine Pause und versuch es gleich noch einmal.",
       "infrastructure": "Gerade klappt etwas nicht. Bitte versuch es gleich noch einmal.",
       "unexpected": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal."
+    },
+    "distress": {
+      "title": "Danke, dass du mir das erzählst.",
+      "brave": "Es ist mutig, darüber zu sprechen. Du bist damit nicht allein.",
+      "trustedAdult": "Erzähl es einem Erwachsenen, dem du vertraust, zum Beispiel jemandem aus deiner Familie, deiner Lehrerin oder deinem Lehrer.",
+      "hotline": "Du kannst auch die Nummer gegen Kummer anrufen: 116 111. Das kostet nichts und du musst deinen Namen nicht sagen.",
+      "hours": "Dort ist montags bis samstags von 14 bis 20 Uhr jemand für dich da.",
+      "emergency": "Wenn du gerade in Gefahr bist, ruf sofort 110 (Polizei) oder 112 (Notruf) an.",
+      "summary": "Danke, dass du mir das erzählst. Es ist mutig, darüber zu sprechen. Erzähl es einem Erwachsenen, dem du vertraust. Du kannst auch die Nummer gegen Kummer anrufen: 116 111, kostenlos und ohne deinen Namen, montags bis samstags von 14 bis 20 Uhr. Wenn du gerade in Gefahr bist, ruf 110 oder 112 an."
     }
   }
 }

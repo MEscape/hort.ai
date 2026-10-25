@@ -13,6 +13,7 @@ import { currentHintLevel } from '../../domain/hint-ladder/next-hint-level';
 import { parseChildTaskText } from '../../domain/models/child-task-text';
 import { GUIDANCE_RATE_LIMITS } from '../rate-limits';
 import { toRecordedAnswerCheck } from '../services/answer-record';
+import { checkForDistress } from '../services/distress-check';
 import { groundInCurriculum, openOwnSession, parseSessionStep } from '../services/session-step';
 
 import type { ChildTaskText } from '../../domain/models/child-task-text';
@@ -49,7 +50,9 @@ export class CheckAnswer {
     return authorization.requireInTenant('hint.request').andThen((actor) =>
       parseSessionStep(input)
         .andThen((step) =>
-          parseChildTaskText(input.answer, 'answer').map((answer) => ({ step, answer })),
+          parseChildTaskText(input.answer, 'answer')
+            .andThen((answer) => checkForDistress(audit, answer, 'answer'))
+            .map((answer) => ({ step, answer })),
         )
         .asyncAndThen(({ step, answer }) =>
           openOwnSession(this.deps, { actor, step, policy: GUIDANCE_RATE_LIMITS.answerCheck }).map(
