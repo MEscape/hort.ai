@@ -33,6 +33,11 @@ export interface HintLadderState {
   /** The teacher's assignment the task came from (#33), `null` for the child's own task. */
   readonly assignmentId: AssignmentId | null;
   readonly subject: HintSubject;
+  /**
+   * The curriculum competency the session was classified with at its start (#92), already checked
+   * against that request's candidates. `null` for no competency, an open topic or an older session.
+   */
+  readonly competencyCode: string | null;
   readonly hints: readonly GivenHint[];
   readonly answers: ReadonlyArray<AssessmentResult | null>;
 }

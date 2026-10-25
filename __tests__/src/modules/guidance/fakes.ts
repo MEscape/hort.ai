@@ -9,7 +9,10 @@ import type {
   GivenHint,
   HintLadderState,
 } from '@modules/guidance/domain/models/help-session-state';
-import type { HintRequest } from '@modules/guidance/domain/models/hint-request';
+import type {
+  CurriculumCompetency,
+  HintRequest,
+} from '@modules/guidance/domain/models/hint-request';
 import {
   toAssignmentId,
   toChildProfileId,
@@ -148,8 +151,16 @@ export function fakeAssignments(
   return { access, lookups };
 }
 
-/** Curriculum retrieval that returns REQUEST's competencies, or fails when `fails`; it keeps every query. */
-export function fakeCompetencies(options: { readonly fails?: boolean } = {}) {
+/** Two candidates of the child's curriculum; a classified session stores the second one's code. */
+export const CANDIDATES: readonly CurriculumCompetency[] = [
+  { code: 'M2.1', description: 'Addieren im Zahlenraum bis 20' },
+  { code: 'M2.4', description: 'Sachaufgaben lösen' },
+];
+
+/** Curriculum retrieval that returns `found` (REQUEST's competencies), or fails when `fails`; it keeps every query. */
+export function fakeCompetencies(
+  options: { readonly fails?: boolean; readonly found?: readonly CurriculumCompetency[] } = {},
+) {
   const queries: CompetencyQuery[] = [];
   const retrieval: CompetencyRetrieval = {
     findFor(query) {
@@ -158,7 +169,7 @@ export function fakeCompetencies(options: { readonly fails?: boolean } = {}) {
         ? errAsync(
             infrastructureError('curriculum.infrastructure', 'The curriculum is unreachable.'),
           )
-        : okAsync(REQUEST.competencies);
+        : okAsync(options.found ?? REQUEST.competencies);
     },
   };
   return { retrieval, queries };
@@ -207,6 +218,7 @@ export function openSession(
       task: REQUEST.task,
       assignmentId: null,
       subject: 'math',
+      competencyCode: null,
       hints: [],
       answers: [],
       ...state,

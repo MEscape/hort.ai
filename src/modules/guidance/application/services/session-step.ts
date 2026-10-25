@@ -92,6 +92,11 @@ export function openOwnSession(
 /**
  * The competencies of the child's own state and grade (#28). Without them the AI's text is less
  * specific, not wrong, so a failed retrieval is logged and the request goes ahead ungrounded.
+ *
+ * A session classified with a competency at its start (#92) is grounded in that one alone (#35),
+ * once it is confirmed to still be among the child's current candidates, so a code stored for
+ * another state, grade or an older curriculum never reaches the AI. When it is not, the step is
+ * grounded as an unclassified one would be, and that is logged.
  */
 export async function groundInCurriculum(
   { competencies, audit }: Pick<SessionStepDependencies, 'competencies' | 'audit'>,
@@ -108,7 +113,15 @@ export async function groundInCurriculum(
     audit.record({ type: 'guidance.grounding_unavailable', level, code: found.error.code });
     return [];
   }
-  return found.value;
+  if (state.competencyCode === null) {
+    return found.value;
+  }
+  const stored = found.value.find(({ code }) => code === state.competencyCode);
+  if (stored === undefined) {
+    audit.record({ type: 'guidance.stored_competency_unavailable', level });
+    return found.value;
+  }
+  return [stored];
 }
 
 /**
