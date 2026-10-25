@@ -20,6 +20,13 @@
         "comprehension_question": "Erklär mir in deinen eigenen Worten, wie du auf deine Antwort gekommen bist."
       }
     },
+    "opening": {
+      "clarify": "Erzähl mir ein bisschen mehr: Was sollst du bei der Aufgabe machen?",
+      "redirect": {
+        "small_talk": "Hallo! Schön, dass du da bist. Zeig mir gern deine Hausaufgabe, dann denken wir gemeinsam nach.",
+        "curiosity": "Spannende Frage! Frag am besten einen Erwachsenen oder schau in einem Buch nach. Hast du eine Hausaufgabe, bei der ich dir helfen kann?"
+      }
+    },
     "errors": {
       "validation": "Da hat etwas nicht gepasst. Bitte versuch es noch einmal.",
       "childInputInvalid": "Bitte schreib deine Antwort noch einmal.",

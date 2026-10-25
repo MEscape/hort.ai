@@ -2,7 +2,7 @@
 
 A child types or says anything into Hort.ai: a homework task, a curiosity question ("Warum ist der Himmel blau?") or small talk ("Hallo Max!"). The topic classification sorts the child's own text into an **intent** and, for homework, a **curriculum competency**, and the backend decides how the help session opens. It is separate from the safety checks and always runs after them. Owning rules: [`validation.md`](../rules/validation.md), [`security.md`](../rules/security.md), [`observability.md`](../rules/observability.md). It follows the style of the [AI output contract](ai-output-contract.md) (#6) and grounds in the [curriculum](curriculum.md) (#28).
 
-Code: `src/modules/guidance/domain/topic/` (types, `validateTopicClassification`, `decideTopic`), codes in `domain/errors/topic-classification-errors.ts`, the port `domain/ports/topic-classifier.port.ts`, the Jev adapter `infrastructure/typesafe/jev-topic-classifier.ts`, the service `application/services/classify-topic.ts` and the interim use case `application/commands/classify-child-task.ts`. Tests in `__tests__/src/modules/guidance/`.
+Code: `src/modules/guidance/domain/topic/` (types, `validateTopicClassification`, `decideTopic`), codes in `domain/errors/topic-classification-errors.ts`, the port `domain/ports/topic-classifier.port.ts`, the Jev adapter `infrastructure/typesafe/jev-topic-classifier.ts`, the service `application/services/classify-topic.ts`, and its call in the session start (`application/services/classify-session-task.ts`, used by `StartHelpSession`). Tests in `__tests__/src/modules/guidance/`.
 
 The classification never solves or explains anything. It only decides whether Hort.ai helps (and with which competency on record), asks one fixed clarifying question, or answers with a fixed friendly redirect. Its text is never shown to the child.
 
@@ -90,9 +90,9 @@ The candidate check is what keeps the competency trustworthy: a code from the re
 - `clarify` and `redirect` are fixed i18n texts chosen by the backend, never AI text, and never cost a hint step.
 - **Curiosity questions get the friendly redirect** (conservative default while open question 1 of #92 waits for a product decision): Hort.ai has no learning content of its own, so it invites the child to share their homework instead of explaining.
 
-Proposed fixed texts for the catalog of #83 (wording owned by the backend team):
+Fixed texts in the guidance catalog (wording owned by the backend team):
 
-| Key (proposal)                         | German                                                                                                                                  |
+| Key                                    | German                                                                                                                                  |
 | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `guidance.opening.clarify`             | Erzähl mir ein bisschen mehr: Was sollst du bei der Aufgabe machen?                                                                     |
 | `guidance.opening.redirect.small_talk` | Hallo! Schön, dass du da bist. Zeig mir gern deine Hausaufgabe, dann denken wir gemeinsam nach.                                         |
@@ -128,17 +128,15 @@ Through the guidance audit log, never with the task, a label or the classifier's
 | `guidance.topic_classified`                   | `info` | `classifiedBy`, `intent`, `action`, topic kind, confidence buckets (`low` below 0.4, `medium` below 0.7, `high`) |
 | `guidance.topic_subject_mismatch`             | `info` | the picked and the classified subject                                                                            |
 
-The use case adds one `guidance.child_task_classified` (`info`) with tenant, actor and child ids, the action and `classifiedBy`.
+`guidance.session_started` carries the ids and the session's `opening` (`clarify`, `redirect` or `null`).
 
-## Wiring and storage (with #17 and #83)
+## Wiring and storage
 
-Wired now: `composition.ts` builds a `JevTopicClassifier` from the `TYPESAFE_*` settings when `TYPESAFE_API_KEY` is set, otherwise no classifier, so every task takes the fallback. `ClassifyChildTask` (in `getGuidanceCommands()`) is the interim entry point, shaped like `RequestHint`: the `hint.request` permission, the input checks, the child's ownership, one unit of the child's hint budget (one model call, like a hint), the curriculum candidates, then `classifyTopic`. It classifies the starting task only, because whether a clarifying question was already asked is session state the client must not send.
+`composition.ts` builds a `JevTopicClassifier` from the `TYPESAFE_*` settings when `TYPESAFE_API_KEY` is set, otherwise no classifier, so every task takes the fallback. `StartHelpSession` classifies every **new** session (a continued one is not classified again), after the ownership check and within the `sessionStart` budget, against the candidates of the child's own curriculum, and stores the result with the session: `intent`, `opening` (`CLARIFY` | `REDIRECT`), `competencyCode`, `openTopicLabel` and `classifiedBy` (`JEV` | `FALLBACK`), all nullable (migration `20261025T0407_add_session_topic`; a check keeps a redirect to curiosity and small talk). The session view returns `opening`, and the UI shows the catalog text `guidance.opening.clarify` or `guidance.opening.redirect.<intent>` (DE/EN).
 
-Waiting for the help session (#17) and the distress check (#90):
+The child's reply to a clarifying question goes in through `startHelpSessionAction` again, as the task text with the explanation added. It replaces the open session, and because that session asked to clarify, the reply is classified with `clarificationAlreadyAsked: true`, so it is never asked a second time.
 
-1. Session start (#17): after the safety checks and #90, call `classifyTopic` with the candidates it already retrieved, and again on the reply to a clarifying question with `clarificationAlreadyAsked: true`; store `intent`, `competencyCode`, `openTopicLabel` and `classifiedBy` (`jev` | `fallback`) as nullable columns on the help session (migration per [`adding-a-database-migration.md`](../conventions/adding-a-database-migration.md)); pass `competencyCode` into hint requests and learning events (#35). `ClassifyChildTask` then becomes part of the session start or is removed.
-2. Distress (#90): its check runs before the classification; a stopped text never reaches `classifyTopic`.
-3. Help session contract (#83): the additive `opening` field described in [`help-session-contract.md`](help-session-contract.md), with the texts above in the guidance catalog (DE/EN).
+Still open: the distress check (#90) must run before the classification, so a stopped text never reaches it; the stored `competencyCode` is not yet used to rank the hint's grounding or for learning events (#35).
 
 ## Changing the contract
 

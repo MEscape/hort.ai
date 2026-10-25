@@ -1,5 +1,6 @@
 import { errAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
+import type { ObjectLocation } from '@lib/storage';
 
 import { MATERIAL_MAX_BYTES, MATERIAL_SNIFF_BYTES } from '../../domain/models/material';
 import { MATERIAL_QUERY_LIMITS } from '../material-limits';
@@ -9,12 +10,21 @@ import { decodeMaterial, invalidMaterial } from './material-validation';
 import type { Material, MaterialStatement } from '../../domain/models/material';
 import type { MaterialDependencies } from '../material-dependencies';
 
-/** HEAD is not authority for the subsequent read: validate the complete fetched bytes too. */
+/** What passed validation: exactly the bytes that were checked, and the statements taken from them. */
+export interface ExtractedMaterial {
+  readonly bytes: Uint8Array;
+  readonly statements: readonly MaterialStatement[];
+}
+
+/**
+ * HEAD is not authority for the subsequent read: validate the complete fetched bytes too. The
+ * object at `location` may still change afterwards, so the caller publishes these bytes, never it.
+ */
 export function extractMaterial(
   deps: MaterialDependencies,
   row: Material,
-): AppResultAsync<readonly MaterialStatement[]> {
-  const location = { visibility: 'private' as const, key: row.objectKey };
+  location: ObjectLocation,
+): AppResultAsync<ExtractedMaterial> {
   return deps.store.head(location).andThen((head) => {
     if (
       head?.byteSize !== row.sizeBytes ||
@@ -36,7 +46,7 @@ export function extractMaterial(
               const statements = deps.ingest.extract(text);
               return statements.length === 0 || statements.length > MATERIAL_QUERY_LIMITS.statements
                 ? errAsync(invalidMaterial())
-                : okAsync(statements);
+                : okAsync({ bytes, statements });
             });
           }),
       );

@@ -6,7 +6,7 @@ import type {
   RateLimitedAppError,
   ValidationAppError,
 } from '@lib/errors';
-import { ok, okAsync } from '@lib/result';
+import { ok, okAsync, ResultAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
 import { isSameTask } from '../../domain/models/help-session';
@@ -14,6 +14,7 @@ import { parseHintSubject } from '../../domain/models/hint-subject';
 import { parseChildProfileId } from '../../domain/models/ids';
 import { GUIDANCE_RATE_LIMITS } from '../rate-limits';
 import { spendChildBudget } from '../services/child-budget';
+import { classifySessionTask } from '../services/classify-session-task';
 import { checkForDistress } from '../services/distress-check';
 import { parseRequestedTask, resolveSessionSource } from '../services/help-session-source';
 import { toHelpSessionView } from '../services/help-session-view';
@@ -21,6 +22,7 @@ import { ownChildScope } from '../services/own-child-session';
 
 import type { HelpSessionSource } from '../../domain/models/help-session';
 import type { ChildProfileId } from '../../domain/models/ids';
+import type { OwnChildProfile } from '../../domain/ports/child-profile-access.port';
 import type { HelpSessionOwner } from '../../domain/ports/help-session.repository';
 import type { StartHelpSessionInput } from '../contracts/help-session-inputs';
 import type { StartHelpSessionView } from '../contracts/help-session-views';
@@ -43,9 +45,11 @@ export type StartHelpSessionError =
  * assignments module is asked whether the child's class has the assignment. Another class's
  * assignment is `guidance.assignment_not_found`, exactly like a missing one, and nothing is stored.
  *
- * `hint.request` is the guidance capability of the child's guardian, as for hints themselves. A start
- * costs no provider call, but every new task stores a session, so it spends the child's
- * `sessionStart` budget once the child is known to be the parent's own.
+ * `hint.request` is the guidance capability of the child's guardian, as for hints themselves. Every
+ * new task stores a session and is classified once by intent and curriculum topic (#92), so it
+ * spends the child's `sessionStart` budget once the child is known to be the parent's own. The
+ * classification decides the session's opening (clarify, redirect or none); it never fails the start.
+ * The distress check of #90 belongs before it.
  */
 export class StartHelpSession {
   constructor(private readonly deps: HelpSessionDependencies) {}
@@ -53,7 +57,7 @@ export class StartHelpSession {
   execute(
     input: StartHelpSessionInput,
   ): AppResultAsync<StartHelpSessionView, StartHelpSessionError> {
-    const { authorization, rateLimiter, audit } = this.deps;
+    const { authorization, rateLimiter } = this.deps;
     const policy = GUIDANCE_RATE_LIMITS.sessionStart;
 
     return authorization.requireInTenant('hint.request').andThen((actor) =>
@@ -62,7 +66,7 @@ export class StartHelpSession {
           parseRequestedTask(input)
             .andThen((requested) =>
               requested.kind === 'own'
-                ? checkForDistress(audit, requested.task, 'task').map(() => requested)
+                ? checkForDistress(this.deps.audit, requested.task, 'task').map(() => requested)
                 : ok(requested),
             )
             .andThen((requested) =>
@@ -70,12 +74,14 @@ export class StartHelpSession {
             ),
         )
         .asyncAndThen(({ id, requested, subject }) =>
-          ownChildScope(this.deps, actor, id).andThen(({ owner, childProfileId }) =>
+          ownChildScope(this.deps, actor, id).andThen(({ owner, childProfileId, child }) =>
             spendChildBudget(rateLimiter, { actor, childProfileId, policy })
               .andThen(() =>
                 resolveSessionSource(this.deps, { childProfileId, requested, subject }),
               )
-              .andThen((source) => this.startOrContinue(actor, { owner, childProfileId, source })),
+              .andThen((source) =>
+                this.startOrContinue(actor, { owner, childProfileId, child, source }),
+              ),
           ),
         ),
     );
@@ -87,10 +93,12 @@ export class StartHelpSession {
     {
       owner,
       childProfileId,
+      child,
       source,
     }: {
       readonly owner: HelpSessionOwner;
       readonly childProfileId: ChildProfileId;
+      readonly child: OwnChildProfile;
       readonly source: HelpSessionSource;
     },
   ): AppResultAsync<StartHelpSessionView, InfrastructureAppError> {
@@ -104,8 +112,15 @@ export class StartHelpSession {
         });
       }
       const replaces = open?.id ?? null;
-      return sessions
-        .start(owner, { childProfileId, ...source, replaces })
+      return ResultAsync.fromSafePromise(
+        classifySessionTask(this.deps, {
+          child,
+          task: source.task,
+          subject: source.subject,
+          replaces: open,
+        }),
+      )
+        .andThen((topic) => sessions.start(owner, { childProfileId, ...source, replaces, topic }))
         .map(({ session, created }): StartHelpSessionView => {
           if (created) {
             audit.record({
@@ -117,6 +132,7 @@ export class StartHelpSession {
               assignmentId: source.assignmentId,
               subject: source.subject,
               replaced: replaces,
+              opening: session.topic.opening?.kind ?? null,
             });
           }
           return {

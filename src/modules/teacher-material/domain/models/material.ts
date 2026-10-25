@@ -26,3 +26,14 @@ export const MATERIAL_MAX_BYTES = 10_485_760;
 export const MATERIAL_URL_SECONDS = 60;
 export const MATERIAL_LIST_LIMIT = 100;
 export const MATERIAL_SNIFF_BYTES = 512;
+/** Error code of a create-only write whose key already holds a published copy. */
+export const MATERIAL_ALREADY_WRITTEN = 'teacher_material.already_written';
+
+/**
+ * Where the teacher's one upload lands (the only key an upload capability ever names). After
+ * validation the server writes the checked bytes to `objectKey` itself and removes this staging
+ * object, so read URLs never serve bytes that changed after they were checked.
+ */
+export function materialUploadKey(objectKey: string): string {
+  return `uploads/${objectKey}`;
+}
