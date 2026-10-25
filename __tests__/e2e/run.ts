@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { chmod, mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
+import { chmod, mkdtemp, readdir, readFile, rm, stat } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -133,6 +133,51 @@ async function assertCleanEnvironment(
   }
 }
 
+/**
+ * A build that runs as root hands PostgreSQL to the unprivileged `postgres` user the library creates.
+ * That user must be able to walk to and run the package's binaries; the build checkout (for instance
+ * `/vercel/path0`) and the extracted files can be private to root. Search permission on the directories
+ * above, read permission inside the package and execute permission on the binaries are granted to
+ * others, on this build container's disposable filesystem, and then checked: an unrelated user relies
+ * on exactly the "other" permission bits.
+ */
+async function openBinariesToPostgresUser(packageDirectory: string) {
+  if (!runsAsRoot) {
+    return; // The invoking user runs PostgreSQL itself.
+  }
+  const binaries = join(packageDirectory, 'native', 'bin');
+  for (
+    let directory = packageDirectory;
+    directory !== dirname(directory);
+    directory = dirname(directory)
+  ) {
+    const { mode } = await stat(directory);
+    if ((mode & 0o001) === 0) {
+      await chmod(directory, mode | 0o001);
+    }
+  }
+  await execute(['-R', 'a+rX', packageDirectory], process.env, process.cwd(), 'chmod');
+  await execute(['-R', 'a+rx', binaries], process.env, process.cwd(), 'chmod');
+  const missing: string[] = [];
+  for (let directory = binaries; directory !== dirname(directory); directory = dirname(directory)) {
+    const needed = directory.startsWith(packageDirectory) ? 0o005 : 0o001;
+    if (((await stat(directory)).mode & needed) !== needed) {
+      missing.push(`${directory} (others lack ${needed === 0o005 ? 'r-x' : '--x'})`);
+    }
+  }
+  for (const binary of ['initdb', 'postgres', 'pg_ctl']) {
+    const { mode } = await stat(join(binaries, binary));
+    if ((mode & 0o005) !== 0o005) {
+      missing.push(`${join(binaries, binary)} (needs r-x for others)`);
+    }
+  }
+  if (missing.length > 0) {
+    throw new Error(
+      `PostgreSQL binaries are not reachable for an unprivileged user:\n${missing.join('\n')}`,
+    );
+  }
+}
+
 async function main(sentinel: string) {
   const files = await readdir(process.cwd());
   if (files.some((file) => /^\.env(?:$|\.)/.test(file) && !file.endsWith('.example'))) {
@@ -167,6 +212,7 @@ async function main(sentinel: string) {
   );
   // npm may block package postinstall scripts; this inspected dependency script only restores its bundled symlinks.
   await execute([join(platform, 'scripts/hydrate-symlinks.js')], env, platform);
+  await openBinariesToPostgresUser(platform);
   const database = new EmbeddedPostgres({
     databaseDir: join(directory, 'postgres'),
     user: 'e2e',
@@ -193,7 +239,12 @@ async function main(sentinel: string) {
   });
   let next: ReturnType<typeof spawn> | undefined;
   try {
-    await database.initialise();
+    await database.initialise().catch(async (error: unknown) => {
+      process.stderr.write(
+        `initdb failed; access to the binaries:\n${await describeBinaryAccess(platform)}\n`,
+      );
+      throw error;
+    });
     await database.start();
     const postmaster = (
       await readFile(join(directory, 'postgres', 'postmaster.pid'), 'utf8')
