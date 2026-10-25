@@ -157,6 +157,15 @@ interface HelpSessionDto {
   openQuestion: FeedbackText | null;
   /** ISO instant of the last step, for "Continue". */
   updatedAt: string;
+  /**
+   * How the session opens (#92, additive). `clarify`: one fixed clarifying question, the child's reply
+   * goes to the task once more. `redirect`: small talk or a curiosity question, a fixed friendly text
+   * and no hint. `null`: help as usual. The text is always a catalog text, never AI text.
+   */
+  opening:
+    | { kind: 'clarify' }
+    | { kind: 'redirect'; intent: 'small_talk' | 'curiosity' }
+    | null;
 }
 ```
 
@@ -197,6 +206,8 @@ The session codes come with #30 and #17; an ended session is deliberately not a 
 Fallback wording lives in the guidance module's i18n catalog, keyed by level or feedback kind, in German and English, and is owned by the backend team (hint wording: Zisch).
 
 ## Open points
+
+- The `opening` field (#92) is a proposal until #17 and #83 ship it: the decision comes from [`topic-classification.md`](topic-classification.md), the UI maps `kind` and `intent` to the catalog keys proposed there, and the child's reply to a clarifying question goes in through the start action again (same session).
 
 - Whether starting a session also returns the first thinking prompt, or the UI asks for the first rung (`understand_task`) right after start. This document assumes the latter, so the start stays cheap and the ladder has one entry point (#30 decides).
 - The reply action does not grant any progression. Whether a finished task earns anything is open: the product direction drops XP and streaks unless re-confirmed, and only the small progression the [vision](../product/vision.md) allows may follow, granted by the backend, never by the UI.
