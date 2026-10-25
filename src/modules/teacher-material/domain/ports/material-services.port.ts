@@ -13,6 +13,10 @@ export interface MaterialTextReader {
   /** Fetch private bytes with a streaming size cap; never log the signed URL. */
   read(location: ObjectLocation, maxBytes: number): AppResultAsync<Uint8Array>;
 }
+export interface MaterialObjectWriter {
+  /** The server's own write of already validated bytes to a key no client capability names. */
+  write(location: ObjectLocation, bytes: Uint8Array, contentType: string): AppResultAsync<void>;
+}
 export interface MaterialIngest {
   extract(text: string): readonly MaterialStatement[];
 }

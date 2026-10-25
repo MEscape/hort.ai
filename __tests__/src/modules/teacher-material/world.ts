@@ -26,6 +26,9 @@ export function world() {
     size: bytes.length,
     mime: 'text/plain',
     deleted: false,
+    deletedKeys: [] as string[],
+    readKeys: [] as string[],
+    written: new Map<string, Uint8Array>(),
     rows,
     sections,
     input: {
@@ -98,13 +101,23 @@ export function world() {
       head: () =>
         okAsync({ byteSize: state.size, contentType: state.mime, etag: null, lastModified: null }),
       readStart: (_location, count) => okAsync(state.bytes.slice(0, count)),
-      delete: () => {
+      delete: (location) => {
+        state.deletedKeys.push(location.key);
         state.deleted = true;
         return okAsync(undefined);
       },
-      createReadUrl: () => okAsync('https://storage.test/read'),
+      createReadUrl: ({ key }) => {
+        state.readKeys.push(key);
+        return okAsync('https://storage.test/read');
+      },
     },
     textReader: { read: () => okAsync(state.bytes) },
+    writer: {
+      write: (location, written) => {
+        state.written.set(location.key, written);
+        return okAsync(undefined);
+      },
+    },
     ingest: {
       extract: (text) => [
         { text: text.replace(/^- /, ''), code: 's00-01', section: 'Dokument', page: null },

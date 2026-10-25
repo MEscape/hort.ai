@@ -7,8 +7,8 @@ import { DeleteMaterial } from '@modules/teacher-material/application/commands/d
 import { GetMaterialReadUrl } from '@modules/teacher-material/application/queries/get-material-read-url';
 import { ListMaterials } from '@modules/teacher-material/application/queries/list-materials';
 
-import { validationError } from '@lib/errors';
-import { errAsync } from '@lib/result';
+import { infrastructureError, validationError } from '@lib/errors';
+import { errAsync, okAsync } from '@lib/result';
 
 import { createBrokenRateLimiter } from '../../support/rate-limiting';
 import { parent } from '../auth/fakes';
@@ -23,8 +23,56 @@ it('persists an owned material before signing a private upload keyed by trusted 
   expect(w.signedAfterRow).toBe(true);
   expect(w.location).toEqual({
     visibility: 'private',
-    key: 'classes/class-1/materials/material-1',
+    key: 'uploads/classes/class-1/materials/material-1',
   });
+  expect(w.rows[0]?.objectKey).toBe('classes/class-1/materials/material-1');
+});
+
+const UPLOAD_KEY = 'uploads/classes/class-1/materials/material-1';
+const PUBLISHED_KEY = 'classes/class-1/materials/material-1';
+
+it('publishes the checked bytes under a key no upload names and removes the upload', async () => {
+  const w = world();
+  await new BeginMaterialUpload(w.deps).execute(w.input);
+  const checked = w.bytes;
+  w.deps.textReader.read = () => {
+    // The upload URL is still valid: the teacher replaces the object right after it was read.
+    const read = w.bytes;
+    w.bytes = new TextEncoder().encode('<script>alert(1)</script>');
+    return okAsync(read);
+  };
+
+  expect((await new CompleteMaterialUpload(w.deps).execute('material-1')).isOk()).toBe(true);
+
+  expect([...w.written.keys()]).toEqual([PUBLISHED_KEY]);
+  expect(w.written.get(PUBLISHED_KEY)).toEqual(checked);
+  expect(w.deletedKeys).toEqual([UPLOAD_KEY]);
+  expect((await new GetMaterialReadUrl(w.deps).execute('material-1')).isOk()).toBe(true);
+  expect(w.readKeys).toEqual([PUBLISHED_KEY]);
+});
+
+it('fails the material and removes both objects when the checked copy cannot be written', async () => {
+  const w = world();
+  await new BeginMaterialUpload(w.deps).execute(w.input);
+  w.deps.writer.write = () => errAsync(infrastructureError('teacher_material.write_failed', ''));
+
+  const result = await new CompleteMaterialUpload(w.deps).execute('material-1');
+
+  expect(result._unsafeUnwrapErr().code).toBe('teacher_material.write_failed');
+  expect(w.rows[0]?.status).toBe('FAILED');
+  expect(w.sections.size).toBe(0);
+  expect(w.deletedKeys).toEqual([UPLOAD_KEY, PUBLISHED_KEY]);
+  expect((await new GetMaterialReadUrl(w.deps).execute('material-1')).isErr()).toBe(true);
+});
+
+it('removes the published copy and a leftover upload when the material is deleted', async () => {
+  const w = world();
+  await new BeginMaterialUpload(w.deps).execute(w.input);
+  await new CompleteMaterialUpload(w.deps).execute('material-1');
+  w.deletedKeys.length = 0;
+
+  expect((await new DeleteMaterial(w.deps).execute('material-1')).isOk()).toBe(true);
+  expect(w.deletedKeys).toEqual([PUBLISHED_KEY, UPLOAD_KEY]);
 });
 
 it('validates stored bytes and publishes extracted statements, idempotently', async () => {
