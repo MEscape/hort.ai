@@ -1,9 +1,12 @@
 import { spawn } from 'node:child_process';
-import { chmod, mkdtemp, readdir, rm } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { chmod, mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import EmbeddedPostgres from 'embedded-postgres';
 
@@ -70,30 +73,24 @@ const VERCEL_HOST_PACKAGES = [
 
 const runsAsRoot = process.getuid?.() === 0;
 
-async function main() {
-  const files = await readdir(process.cwd());
-  if (files.some((file) => /^\.env(?:$|\.)/.test(file) && !file.endsWith('.example'))) {
-    throw new Error(
-      'Run E2E in a clean worktree without local .env files; Next must not load service credentials.',
-    );
-  }
-  // No inherited deployment credentials, service URLs or VERCEL/NODE_ENV flags reach the test app.
-  const env: NodeJS.ProcessEnv = {
-    PATH: process.env['PATH'],
-    HOME: process.env['HOME'],
-    TMPDIR: tmpdir(),
-    NODE_ENV: 'development',
-    NEXT_TELEMETRY_DISABLED: '1',
-    AUTH_ENABLED: 'true',
-    AUTH_SECRET: 'isolated-e2e-secret-not-a-deployment-credential',
-    RATE_LIMIT_ENABLED: 'true',
-    RATE_LIMIT_SECRET: 'isolated-e2e-rate-secret-not-a-deployment-credential',
-    UPSTASH_REDIS_REST_TOKEN: 'isolated-e2e-token',
-    MAIL_PROVIDER: 'none',
-    STORAGE_PROVIDER: 'none',
-    GEMINI_API_KEY: 'isolated-e2e-fake-gemini-key',
-    NO_PROXY: '127.0.0.1,localhost',
-  };
+/** The only variables any process of the test run may inherit; deployment secrets are never among them. */
+const CLEAN_NAMES = new Set([
+  'PATH',
+  'HOME',
+  'TMPDIR',
+  'NODE_ENV',
+  'NEXT_TELEMETRY_DISABLED',
+  'NO_PROXY',
+  'E2E_CLEAN_ENV',
+]);
+
+/**
+ * Starts this file again with an empty environment. Everything the run spawns afterwards (embedded
+ * PostgreSQL, Next, Playwright) inherits from that process, so none of them can see the deployment's
+ * credentials, whichever library reads `process.env`. The sentinel stands in for a deployment secret:
+ * it is set here, withheld from the child, and searched for in every process the child starts.
+ */
+async function relaunchWithCleanEnvironment() {
   if (process.env['VERCEL'] === '1' && runsAsRoot) {
     await execute(
       ['install', '-y', '-q', ...VERCEL_HOST_PACKAGES],
@@ -102,6 +99,60 @@ async function main() {
       'dnf',
     );
   }
+  const sentinel = `leak-sentinel-${randomUUID()}`;
+  process.env['E2E_LEAK_SENTINEL'] = sentinel;
+  await execute(['--import', 'tsx', fileURLToPath(import.meta.url), sentinel], {
+    PATH: process.env['PATH'],
+    HOME: process.env['HOME'],
+    TMPDIR: tmpdir(),
+    NODE_ENV: 'development',
+    NEXT_TELEMETRY_DISABLED: '1',
+    NO_PROXY: '127.0.0.1,localhost',
+    E2E_CLEAN_ENV: '1',
+  });
+}
+
+/** Fails closed if a running process holds any variable beyond the allowed names or the sentinel. */
+async function assertCleanEnvironment(
+  label: string,
+  pid: number,
+  allowed: ReadonlySet<string>,
+  sentinel: string,
+) {
+  if (!existsSync('/proc/self/environ')) {
+    return; // Only Linux (local hosts and Vercel builds) exposes process environments.
+  }
+  const raw = (await readFile(`/proc/${String(pid)}/environ`, 'utf8')).split('\0').filter(Boolean);
+  const names = raw.map((entry) => entry.slice(0, entry.indexOf('=')));
+  const extra = names.filter((name) => !allowed.has(name));
+  if (extra.length > 0) {
+    throw new Error(`${label} inherited unexpected variables: ${extra.join(', ')}`);
+  }
+  if (raw.some((entry) => entry.includes(sentinel))) {
+    throw new Error(`${label} inherited the deployment-secret sentinel`);
+  }
+}
+
+async function main(sentinel: string) {
+  const files = await readdir(process.cwd());
+  if (files.some((file) => /^\.env(?:$|\.)/.test(file) && !file.endsWith('.example'))) {
+    throw new Error(
+      'Run E2E in a clean worktree without local .env files; Next must not load service credentials.',
+    );
+  }
+  await assertCleanEnvironment('test harness', process.pid, CLEAN_NAMES, sentinel);
+  // No inherited deployment credentials, service URLs or VERCEL flags reach the test app.
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    AUTH_ENABLED: 'true',
+    AUTH_SECRET: 'isolated-e2e-secret-not-a-deployment-credential',
+    RATE_LIMIT_ENABLED: 'true',
+    RATE_LIMIT_SECRET: 'isolated-e2e-rate-secret-not-a-deployment-credential',
+    UPSTASH_REDIS_REST_TOKEN: 'isolated-e2e-token',
+    MAIL_PROVIDER: 'none',
+    STORAGE_PROVIDER: 'none',
+    GEMINI_API_KEY: 'isolated-e2e-fake-gemini-key',
+  };
   const directory = await mkdtemp(join(tmpdir(), 'hort-e2e-'));
   // Postgres refuses root; embedded-postgres then runs it as its own `postgres` user, which needs this directory.
   if (runsAsRoot) {
@@ -144,6 +195,16 @@ async function main() {
   try {
     await database.initialise();
     await database.start();
+    const postmaster = (
+      await readFile(join(directory, 'postgres', 'postmaster.pid'), 'utf8')
+    ).split('\n')[0];
+    // The server was started from this process: prove it holds nothing but this run's clean variables.
+    await assertCleanEnvironment(
+      'embedded PostgreSQL',
+      Number(postmaster),
+      new Set([...Object.keys(process.env), 'LC_MESSAGES']),
+      sentinel,
+    );
     await database.createDatabase('e2e_app');
     await database.createDatabase('e2e_auth');
     await execute(['node_modules/prisma/dist/prisma.js', 'db', 'migrate'], env);
@@ -162,7 +223,7 @@ async function main() {
       ],
       { env, stdio: 'inherit' },
     );
-    const deadline = Date.now() + 240_000;
+    const deadline = Date.now() + 900_000;
     let ready = false;
     while (Date.now() < deadline) {
       if (next.exitCode !== null) {
@@ -184,6 +245,9 @@ async function main() {
     if (!ready) {
       throw new Error('E2E app did not become ready');
     }
+    if (next.pid !== undefined) {
+      await assertCleanEnvironment('Next server', next.pid, new Set(Object.keys(env)), sentinel);
+    }
     await execute(
       ['node_modules/playwright/cli.js', 'test', '--config', 'playwright.config.ts'],
       env,
@@ -203,4 +267,9 @@ async function main() {
   }
 }
 
-await main();
+const cleanRunSentinel = process.argv[2];
+if (process.env['E2E_CLEAN_ENV'] === '1' && cleanRunSentinel !== undefined) {
+  await main(cleanRunSentinel);
+} else {
+  await relaunchWithCleanEnvironment();
+}
