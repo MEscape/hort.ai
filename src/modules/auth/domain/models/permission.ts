@@ -10,6 +10,8 @@
  * The profile itself belongs to the learner module; authentication only decides who may touch it.
  * `classroom.*`, `material.*` and `assignment.*` are a teacher's, on their own classes (#8, #32,
  * #29, #33).
+ * `hint.request` lets a parent ask the AI companion for a hint for one of their own child profiles
+ * (#10); the guidance module checks the profile's ownership itself.
  */
 export const LEARNER_PERMISSIONS = [
   'learner.create',
@@ -17,6 +19,8 @@ export const LEARNER_PERMISSIONS = [
   'learner.update',
   'learner.delete',
 ] as const;
+
+export const GUIDANCE_PERMISSIONS = ['hint.request'] as const;
 
 export const TEACHER_PERMISSIONS = [
   'classroom.create',
@@ -32,6 +36,10 @@ export const TEACHER_PERMISSIONS = [
   'assignment.delete',
 ] as const;
 
-export const PERMISSIONS = [...LEARNER_PERMISSIONS, ...TEACHER_PERMISSIONS] as const;
+export const PERMISSIONS = [
+  ...LEARNER_PERMISSIONS,
+  ...GUIDANCE_PERMISSIONS,
+  ...TEACHER_PERMISSIONS,
+] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

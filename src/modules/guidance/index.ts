@@ -5,7 +5,9 @@
  * validated AI answer reach the child. Use cases follow with the hint ladder (#30).
  */
 
-export { createHintOrchestrator } from './composition';
+export { createGuidanceCommands, createHintOrchestrator } from './composition';
+export type { RequestHintError } from './application/commands/request-hint';
+export type { RequestHintInput } from './application/contracts/hint-inputs';
 
 export type { HintFallbackReason, HintOutcome } from './application/contracts/hint-views';
 export {
@@ -20,3 +22,4 @@ export {
 export type { ChildInputValidationCode } from './domain/errors/child-input-errors';
 export { CHILD_SAFETY_VALIDATION_CODES } from './domain/errors/child-safety-errors';
 export type { ChildSafetyValidationCode } from './domain/errors/child-safety-errors';
+export { GUIDANCE_ERROR_CODES, GUIDANCE_VALIDATION_CODES } from './domain/errors/guidance-errors';
