@@ -1,4 +1,5 @@
 import { createPersistenceFailures, dateToInstant, db, instantToDate } from '@lib/db';
+import type { InstantRecord } from '@lib/db';
 import { fromThrowableAsync, okAsync } from '@lib/result';
 import { groupBy } from '@lib/utils';
 
@@ -27,6 +28,16 @@ const STATUS_BY_RECORD = new Map<string, HelpSessionStatus>(
 const LEVEL_BY_RECORD = new Map<string, HintLevel>(
   (Object.keys(LEVEL_RECORD) as HintLevel[]).map((level) => [LEVEL_RECORD[level], level]),
 );
+
+/** The columns of a child's session the summary reads; no text column among them. */
+interface ChildSessionRow {
+  readonly id: string;
+  readonly assignmentId: string | null;
+  readonly competencyCode: string | null;
+  readonly openTopicLabel: string | null;
+  readonly status: string;
+  readonly startedAt: InstantRecord;
+}
 
 /**
  * The summaries' reads (#35). Only ids, statuses, timestamps and hint rungs are selected: the task
@@ -72,7 +83,7 @@ export class PrismaLearningRecordRepository implements LearningRecordStore {
       ]);
       const hintsBySession = groupBy(hints, ({ sessionId }) => sessionId);
       const answered = new Set(questions.map(({ sessionId }) => sessionId));
-      return sessions.flatMap((session): SessionLearningRecord[] => {
+      return sessions.flatMap((session: ChildSessionRow): SessionLearningRecord[] => {
         const status = STATUS_BY_RECORD.get(session.status);
         if (status === undefined) {
           return [];
