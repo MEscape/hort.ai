@@ -180,7 +180,8 @@
       "roles": {
         "parent": "Elternteil",
         "teacher": "Lehrkraft",
-        "platform_admin": "Plattform-Administration"
+        "platform_admin": "Plattform-Administration",
+        "child_channel": "Kind-Sprachkanal"
       },
       "passwordTitle": "Passwort ändern",
       "passwordHint": "Danach bist du auf allen anderen Geräten abgemeldet. Hier bleibst du angemeldet.",

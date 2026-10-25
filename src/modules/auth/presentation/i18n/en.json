@@ -180,7 +180,8 @@
       "roles": {
         "parent": "Parent",
         "teacher": "Teacher",
-        "platform_admin": "Platform administration"
+        "platform_admin": "Platform administration",
+        "child_channel": "Child voice channel"
       },
       "passwordTitle": "Change password",
       "passwordHint": "Your other devices are signed out afterwards. You stay signed in here.",
