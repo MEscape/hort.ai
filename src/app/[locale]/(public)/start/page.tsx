@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 
 import { assignmentsQueries, parseChildTasksPageParams } from '@modules/assignments';
 import type { ChildAssignmentView } from '@modules/assignments';
-import { requireSignedIn } from '@modules/auth';
+import { AccountHeader, requireSignedIn } from '@modules/auth';
 import { requireOnboarded } from '@modules/learner';
 
 import { I18nProvider } from '@components/providers/i18n-provider';
@@ -72,7 +72,7 @@ export default async function StartPage({ params, searchParams }: StartPageProps
 
   return (
     <I18nProvider locale={locale} namespaces={['assignments', 'auth']}>
-      <StartPageShell>
+      <StartPageShell header={<AccountHeader />}>
         <Suspense fallback={<StartScreen schoolAssignments={null} childProfileId={null} />}>
           <StartContent searchParams={searchParams} />
         </Suspense>
