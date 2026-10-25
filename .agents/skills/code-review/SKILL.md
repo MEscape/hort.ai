@@ -38,7 +38,7 @@ Follow each agent's method and output contract. When you can, run each agent in 
 - **Errors:** neverthrow results handled, nothing silently swallowed; user sees a translated message.
 - **i18n:** no hard-coded UI strings; DE and EN both real translations, placeholders intact (`npm run i18n:check`).
 - **Accessibility:** labels, roles, focus, keyboard path.
-- **Product guardrails:** the companion never reveals the solution to the child; no gamification; minimal child data.
+- **Product guardrails:** the companion never reveals the solution to the child; no streaks or pressure mechanics (only the small progression of the vision); minimal child data.
 - **Secrets:** no keys, tokens or real personal data in code, fixtures, logs or screenshots.
 - **Scope:** no unrelated refactors, files or dependencies (see the `lean-code` skill).
 

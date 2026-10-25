@@ -143,5 +143,5 @@ Alexa is a future concept, not a required MVP adapter. This diagram approves no 
 ## Relationship to existing work
 
 - [PR #36](https://github.com/MEscape/hort.ai/pull/36) introduced the homework-companion vision. This documentation adds the later confirmed profile and scope decisions on top of it.
-- The earlier demo-learning-path proposal in closed PR #26 and the exercise, reward and streak issues #13, #15, #16 and #19 do not define current requirements.
+- The earlier demo-learning-path proposal in closed PR #26 and the exercise, reward and streak issues #13, #15, #16 and #19 do not define current requirements. Only the small progression of [#64](https://github.com/MEscape/hort.ai/issues/64) (XP, levels, one daily reward, a companion that looks sleepy or bored after days away, never sad) is part of the product; streaks and exercises are not.
 - Personal agent files and external mockups are context, not substitutes for these shared documents. No local PDF path is required to understand the agreed product.
