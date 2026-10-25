@@ -111,7 +111,7 @@ export function useAssignmentEditor({ classroomId, onSaved }: AssignmentEditorOp
   });
   const { isDirty } = useFormState({ control: form.control });
   useBeforeUnloadGuard(isDirty);
-  const values = useWatch({ control: form.control });
+  const watchedValues = useWatch({ control: form.control });
   const baseline = useRef<AssignmentDraft>(EMPTY_DRAFT);
   const [store] = useState(() => draftStore(classroomId));
 
@@ -120,24 +120,26 @@ export function useAssignmentEditor({ classroomId, onSaved }: AssignmentEditorOp
     if (stored === null) {
       return;
     }
-    open(stored.id, stored.baseline);
+    baseline.current = stored.baseline;
+    form.reset(stored.baseline);
+    setEditingId(stored.id);
+    setView('edit');
     for (const field of DRAFT_FIELDS) {
       form.setValue(field, stored.values[field], { shouldDirty: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- restore once, when the class's editor mounts
-  }, []);
+  }, [store, form]);
 
   useEffect(() => {
     if (view === 'overview') {
       return;
     }
-    if (isDirty && isDraft(values)) {
-      store.write({ id: editingId, baseline: baseline.current, values });
+    if (isDirty && isDraft(watchedValues)) {
+      store.write({ id: editingId, baseline: baseline.current, values: watchedValues });
     } else if (!isDirty) {
       // Reverting every field to the baseline must not resurrect an older stored draft.
       store.clear();
     }
-  }, [store, view, isDirty, values, editingId]);
+  }, [store, view, isDirty, watchedValues, editingId]);
 
   function open(id: string | null, values: AssignmentDraft) {
     baseline.current = values;
