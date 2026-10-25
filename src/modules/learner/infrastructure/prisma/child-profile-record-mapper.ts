@@ -7,7 +7,11 @@ import { isInterest } from '../../domain/models/interests';
 import { isDailyLimit } from '../../domain/models/parent-controls';
 import { isSetupStep } from '../../domain/models/setup-step';
 
-import type { ChildProfile, GuardianConfirmation } from '../../domain/models/child-profile';
+import type {
+  ChildProfile,
+  GuardianConfirmation,
+  VoiceNoticeConfirmation,
+} from '../../domain/models/child-profile';
 import type { ParentControls } from '../../domain/models/parent-controls';
 
 /** The columns the module reads, and nothing else, so no generated database type leaves this layer. */
@@ -30,6 +34,8 @@ export interface ChildProfileRecord {
   readonly guardianConfirmedAt: InstantRecord | null;
   readonly guardianConsentVersion: string | null;
   readonly setupCompletedAt: InstantRecord | null;
+  readonly voiceNoticeVersion: string | null;
+  readonly voiceNoticeConfirmedAt: InstantRecord | null;
   readonly createdAt: InstantRecord;
 }
 
@@ -51,6 +57,8 @@ export const CHILD_PROFILE_SELECT = [
   'guardianConfirmedAt',
   'guardianConsentVersion',
   'setupCompletedAt',
+  'voiceNoticeVersion',
+  'voiceNoticeConfirmedAt',
   'createdAt',
 ] as const satisfies ReadonlyArray<keyof ChildProfileRecord>;
 
@@ -76,6 +84,14 @@ function guardianOf(record: ChildProfileRecord): GuardianConfirmation | null {
   return guardianConfirmedAt === null || guardianConsentVersion === null
     ? null
     : { confirmedAt: instantToDate(guardianConfirmedAt), consentVersion: guardianConsentVersion };
+}
+
+function voiceNoticeOf(record: ChildProfileRecord): VoiceNoticeConfirmation | null {
+  const { voiceNoticeConfirmedAt, voiceNoticeVersion } = record;
+  // The CHECK constraint keeps the two columns both set or both empty.
+  return voiceNoticeConfirmedAt === null || voiceNoticeVersion === null
+    ? null
+    : { confirmedAt: instantToDate(voiceNoticeConfirmedAt), version: voiceNoticeVersion };
 }
 
 /**
@@ -105,6 +121,7 @@ export function toChildProfile(record: ChildProfileRecord): ChildProfile | null 
     tutorId: record.tutorId === null ? null : toTutorId(record.tutorId),
     controls,
     guardian: guardianOf(record),
+    voiceNotice: voiceNoticeOf(record),
     setupStep,
     setupCompletedAt: setupCompletedAt === null ? null : instantToDate(setupCompletedAt),
     createdAt: instantToDate(record.createdAt),

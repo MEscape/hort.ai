@@ -22,7 +22,7 @@ export function learnerChildVoiceConsent(getChildProfile: GetChildProfile): Chil
   return {
     voiceConsentOf: (childProfileId) =>
       getChildProfile(childProfileId)
-        .map((profile) => profile.controls.voiceEnabled)
+        .map((profile) => profile.voiceConsent)
         .mapErr((error) =>
           error.kind === 'forbidden' || error.kind === 'not_found' ? childProfileNotFound() : error,
         ),

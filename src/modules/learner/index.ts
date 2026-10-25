@@ -56,6 +56,7 @@ export type {
 /** Framework entry points: the onboarding screens, the guards pages call, and the module's catalogs. */
 export { OnboardingFlow } from './presentation/components/onboarding-flow';
 export { ResetOnboardingButton } from './presentation/components/reset-onboarding-button';
+export { VoiceConsentSwitch } from './presentation/components/voice-consent-switch';
 export { OnboardingShell } from './presentation/components/onboarding-shell';
 export type { TutorOption } from './presentation/components/tutor-option';
 export { requireOnboarded, requireOnboarding } from './presentation/guards/require-onboarding';

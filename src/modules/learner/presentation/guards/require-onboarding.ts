@@ -8,7 +8,7 @@ import { getLearnerQueries } from '../../composition';
 import { toOnboardingStateDto } from '../dto/learner-dto';
 import { learnerRoutes } from '../routes';
 
-import type { OnboardingStateDto } from '../dto/learner-dto';
+import type { ChildProfileDto, OnboardingStateDto } from '../dto/learner-dto';
 
 /**
  * Where the signed-in parent stands in the setup, read from the backend. Page-level navigation
@@ -23,12 +23,13 @@ async function loadOnboardingState(): Promise<OnboardingStateDto> {
   return toOnboardingStateDto(result.value);
 }
 
-/** For the parent's home: a parent whose setup is not finished is sent into it. */
-export async function requireOnboarded(): Promise<void> {
+/** For the parent's home: a parent whose setup is not finished is sent into it. Returns the finished child. */
+export async function requireOnboarded(): Promise<ChildProfileDto> {
   const state = await loadOnboardingState();
-  if (state.step !== 'done') {
-    redirect({ href: learnerRoutes.onboarding(), locale: await getLocale() });
+  if (state.step !== 'done' || state.profile === null) {
+    return redirect({ href: learnerRoutes.onboarding(), locale: await getLocale() });
   }
+  return state.profile;
 }
 
 /** For the onboarding page: a finished parent never sees it again. */

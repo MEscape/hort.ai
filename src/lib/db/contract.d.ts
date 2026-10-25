@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'6099aa947d35bd4c5a55c52faf7686b47fd7060ba0c4a1be4d267431ee38bfee'>;
+  StorageHashBase<'6d86b0e038da36fd6ceb07e8b1489f39c9d8d147eeaa87c77e6420e808ea32ce'>;
 export type ExecutionHash =
   ExecutionHashBase<'c34472bff7c2b7010a1a9feb8891bd65a47095469dac87679d33d2107642809b'>;
 export type ProfileHash =
@@ -818,6 +818,8 @@ export namespace Models {
     tenantId: FieldOutputTypes['public']['ChildProfile']['tenantId'];
     tutorId: FieldOutputTypes['public']['ChildProfile']['tutorId'];
     voiceConsent: FieldOutputTypes['public']['ChildProfile']['voiceConsent'];
+    voiceNoticeConfirmedAt: FieldOutputTypes['public']['ChildProfile']['voiceNoticeConfirmedAt'];
+    voiceNoticeVersion: FieldOutputTypes['public']['ChildProfile']['voiceNoticeVersion'];
     helpSessions: public_HelpSession[];
     membership: public_ClassMembership | null;
     readonly [RelationKeys]?: 'helpSessions' | 'membership';
@@ -1465,6 +1467,18 @@ type ContractBase = Omit<
                     readonly kind: 'literal';
                     readonly value: DefaultLiteralValue<'pg/bool@1', false>;
                   };
+                  readonly many: false;
+                };
+                readonly voiceNoticeConfirmedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly voiceNoticeVersion: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
                   readonly many: false;
                 };
               };
@@ -2839,6 +2853,17 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
               };
+              readonly voiceNoticeConfirmedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly voiceNoticeVersion: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
             };
             readonly relations: {
               readonly helpSessions: {
@@ -2887,6 +2912,8 @@ type ContractBase = Omit<
                 readonly tenantId: { readonly column: 'tenantId' };
                 readonly tutorId: { readonly column: 'tutorId' };
                 readonly voiceConsent: { readonly column: 'voiceConsent' };
+                readonly voiceNoticeConfirmedAt: { readonly column: 'voiceNoticeConfirmedAt' };
+                readonly voiceNoticeVersion: { readonly column: 'voiceNoticeVersion' };
               };
             };
           };

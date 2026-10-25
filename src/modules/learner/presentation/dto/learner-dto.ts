@@ -17,6 +17,8 @@ export interface ChildProfileDto {
   readonly allowedWindow: { readonly fromMinute: number; readonly untilMinute: number } | null;
   readonly learningInsights: boolean;
   readonly guardianConfirmed: boolean;
+  /** Speech-to-text allowed: the voice control is on and the current voice notice is confirmed. */
+  readonly voiceConsent: boolean;
 }
 
 export interface OnboardingStateDto {
@@ -37,6 +39,7 @@ export function toChildProfileDto(view: ChildProfileView): ChildProfileDto {
     allowedWindow: view.controls.allowedWindow,
     learningInsights: view.controls.learningInsights,
     guardianConfirmed: view.guardianConfirmed,
+    voiceConsent: view.voiceConsent,
   };
 }
 
