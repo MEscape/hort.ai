@@ -9,9 +9,10 @@ import type { AppResultAsync } from '@lib/result';
 import {
   CLASSROOM_ERROR_CODES,
   childAlreadyInClassroom,
-  classroomArchived,
   classroomNotFound,
+  inviteCodeInvalid,
 } from '../../domain/errors/classroom-errors';
+import { inviteCodeValidSince } from '../../domain/models/invite-code';
 
 import {
   CHILD_DISPLAY_NAME_SELECT,
@@ -75,10 +76,12 @@ export class PrismaClassroomRepository implements ClassroomRepository {
     inviteCodeHash: string,
     tenantId: TenantId,
   ): AppResultAsync<Classroom | null, InfrastructureAppError> {
+    const validSince = instantOf(inviteCodeValidSince(this.clock.now()));
     return fromThrowableAsync(
       async () =>
         classrooms()
           .where({ inviteCodeHash, tenantId, status: CLASSROOM_STATUS_RECORD.active })
+          .where((row) => row.inviteCodeIssuedAt.gte(validSince))
           .first(),
       failures.infraOnly('findActiveByInviteCodeHash'),
     ).map((record) => record && toClassroom(record));
@@ -192,19 +195,30 @@ export class PrismaClassroomRepository implements ClassroomRepository {
     ).map((record) => (record === null ? null : toChildMembership(record)));
   }
 
-  addMember(input: NewMembership): AppResultAsync<Date, ConflictAppError | InfrastructureAppError> {
-    const { tenantId, classroomId, childProfileId } = input;
+  addMember(
+    input: NewMembership,
+  ): AppResultAsync<Date, NotFoundAppError | ConflictAppError | InfrastructureAppError> {
+    const { tenantId, classroomId, childProfileId, inviteCodeHash } = input;
+    const validSince = instantOf(inviteCodeValidSince(this.clock.now()));
     return fromThrowableAsync(
       () =>
         db.transaction(async (tx) => {
-          // Row-locks the class while it is still active: an archive running at the same time
-          // either finishes first (no row, refused here) or waits and then deletes this
-          // membership too. A plain insert only takes a key-share lock and would slip through.
-          // @owner-scope capability JoinClassroom resolved classroomId using the current invite-code hash after requireOwnChild; this locks that active classroom.
-          const active = await tx.orm.public.Classroom.select('id')
-            .where({ id: classroomId, tenantId, status: CLASSROOM_STATUS_RECORD.active })
+          // Row-locks the class while it is still active AND its current code is still the one the
+          // parent entered and not expired: an archive or a new code running at the same time
+          // either finishes first (no row, refused here) or waits for this transaction (and an
+          // archive then deletes this membership too). A plain insert only takes a key-share lock
+          // and would slip through.
+          // @owner-scope capability JoinClassroom resolved classroomId using the current invite-code hash after requireOwnChild; this locks that active classroom and re-checks the hash.
+          const admitting = await tx.orm.public.Classroom.select('id')
+            .where({
+              id: classroomId,
+              tenantId,
+              inviteCodeHash,
+              status: CLASSROOM_STATUS_RECORD.active,
+            })
+            .where((row) => row.inviteCodeIssuedAt.gte(validSince))
             .update({ status: CLASSROOM_STATUS_RECORD.active });
-          if (active === null) {
+          if (admitting === null) {
             return null;
           }
           // @owner-scope child JoinClassroom verified requireOwnChild and the invitation capability; the active classroom was locked above in this transaction.
@@ -216,7 +230,7 @@ export class PrismaClassroomRepository implements ClassroomRepository {
         }),
       failures.orConflict('addMember', childAlreadyInClassroom),
     ).andThen((record) =>
-      record === null ? errAsync(classroomArchived()) : okAsync(toJoinedAt(record)),
+      record === null ? errAsync(inviteCodeInvalid()) : okAsync(toJoinedAt(record)),
     );
   }
 

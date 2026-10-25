@@ -22,7 +22,7 @@ export function toClassroomView(classroom: Classroom): ClassroomView {
 
 export function toClassMemberView(member: ClassMember): ClassMemberView {
   return {
-    childProfileId: member.childProfileId,
+    memberId: member.memberId,
     displayName: member.displayName,
     joinedAt: member.joinedAt,
   };

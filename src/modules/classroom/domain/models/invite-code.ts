@@ -1,3 +1,5 @@
+import { MS_PER_DAY } from '@lib/utils';
+
 /**
  * The invite code a teacher hands out and a parent types in for their child.
  *
@@ -9,10 +11,18 @@
  * - It is shown as two groups of four (`ABCD-EFGH`); spaces, dashes and lower case are accepted.
  * - Only a hash is stored and looked up (unique index), so there is no string comparison whose
  *   timing depends on the secret, and a new code replaces the old hash at once.
+ * - It expires `INVITE_CODE_VALIDITY_DAYS` after it was issued (`inviteCodeIssuedAt`), checked by
+ *   the server on lookup and again when the membership is written; the teacher issues a new one.
  */
 export const INVITE_CODE_ALPHABET = 'ACDEFHJKMNPRTUVWXY34679';
 export const INVITE_CODE_LENGTH = 8;
+export const INVITE_CODE_VALIDITY_DAYS = 14;
 const GROUP_SIZE = 4;
+
+/** The earliest issue time a code may have at `now` and still admit a child. */
+export function inviteCodeValidSince(now: Date): Date {
+  return new Date(now.getTime() - INVITE_CODE_VALIDITY_DAYS * MS_PER_DAY);
+}
 
 /** Longest raw input looked at; anything longer is not a code (and is not normalised). */
 const MAX_RAW_LENGTH = 32;

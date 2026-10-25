@@ -25,9 +25,12 @@ export interface ClassroomWithInviteCodeView {
   readonly inviteCode: string;
 }
 
-/** A child as its teacher sees it: the display name only (#32). */
+/**
+ * A child as its teacher sees it, for managing the class: display name and join date (#32).
+ * `memberId` names the membership, never the child profile.
+ */
 export interface ClassMemberView {
-  readonly childProfileId: string;
+  readonly memberId: string;
   readonly displayName: string;
   readonly joinedAt: Date;
 }
