@@ -2,10 +2,10 @@ import { createServer } from 'node:http';
 
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
-type GeminiPayload = {
+interface GeminiPayload {
   systemInstruction: { parts: Array<{ text: string }> };
   contents: Array<{ parts: Array<{ text: string }> }>;
-};
+}
 
 const VALID_TEXT: Record<string, string> = {
   praise: 'Gut überlegt!',
