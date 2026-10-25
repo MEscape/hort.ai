@@ -15,7 +15,10 @@ import { GetChildClassroom } from '@modules/classroom/application/queries/get-ch
 import { GetClassroomDetails } from '@modules/classroom/application/queries/get-classroom-details';
 import { ListClassroomMembers } from '@modules/classroom/application/queries/list-classroom-members';
 import { ListClassrooms } from '@modules/classroom/application/queries/list-classrooms';
-import { CLASSROOM_ERROR_CODES } from '@modules/classroom/domain/errors/classroom-errors';
+import {
+  CLASSROOM_ERROR_CODES,
+  CLASSROOM_VALIDATION_CODES,
+} from '@modules/classroom/domain/errors/classroom-errors';
 import type { Classroom } from '@modules/classroom/domain/models/classroom';
 import { toClassMembershipId, toClassroomId } from '@modules/classroom/domain/models/ids';
 import type { ChildProfileAccess } from '@modules/classroom/domain/ports/child-profile-access.port';
@@ -223,7 +226,7 @@ function world() {
   };
 }
 
-const CLASS_3A = { name: 'Klasse 3a', federalState: 'he', grade: 3, subject: 'math' };
+const CLASS_3A = { name: '2d', federalState: 'he', grade: 3, subject: 'math' };
 
 async function classWithCode(w: ReturnType<typeof world>, teacher: Actor = TEACHER) {
   w.as(teacher);
@@ -239,7 +242,7 @@ describe('teacher classes', () => {
     expect(code).toMatch(/^[ACDEFHJKMNPRTUVWXY34679]{4}-[ACDEFHJKMNPRTUVWXY34679]{4}$/);
     expect(w.rooms[0]!.inviteCodeHash).toMatch(/^[0-9a-f]{64}$/);
     expect(JSON.stringify(w.rooms)).not.toContain(code.replace('-', ''));
-    expect(JSON.stringify(w.events)).not.toContain('Klasse 3a');
+    expect(JSON.stringify(w.events)).not.toContain('"2d"');
   });
 
   it('lists only the teacher’s own classes', async () => {
@@ -259,6 +262,16 @@ describe('teacher classes', () => {
     expect(result._unsafeUnwrapErr().code).toBe(CLASSROOM_ERROR_CODES.validationFailed);
   });
 
+  it('refuses a class name that is not a grade from 1 to 4 and a letter', async () => {
+    const w = world();
+    const result = await w.create.execute({ ...CLASS_3A, name: '99999a' });
+
+    expect(result._unsafeUnwrapErr()).toMatchObject({
+      code: CLASSROOM_ERROR_CODES.validationFailed,
+      fieldErrors: { name: [CLASSROOM_VALIDATION_CODES.nameInvalid] },
+    });
+  });
+
   it('does not let a parent create a class', async () => {
     const w = world();
     w.as(MARA);
@@ -271,9 +284,7 @@ describe('teacher classes', () => {
     const w = world();
     const { id } = await classWithCode(w);
 
-    expect((await w.rename.execute({ id, name: ' Klasse 3b ' }))._unsafeUnwrap().name).toBe(
-      'Klasse 3b',
-    );
+    expect((await w.rename.execute({ id, name: ' 3B ' }))._unsafeUnwrap().name).toBe('3b');
     expect((await w.archive.execute({ id }))._unsafeUnwrap().status).toBe('archived');
     expect((await w.rename.execute({ id, name: 'x' }))._unsafeUnwrapErr().code).toBe(
       CLASSROOM_ERROR_CODES.archived,

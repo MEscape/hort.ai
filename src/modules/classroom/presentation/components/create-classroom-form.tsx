@@ -44,8 +44,10 @@ export function CreateClassroomForm({ onCreated }: CreateClassroomFormProps) {
             label={t('create.nameLabel')}
             hint={t('create.nameHint')}
             required
-            maxLength={CLASSROOM_LIMITS.nameMax}
+            maxLength={CLASSROOM_LIMITS.nameLength}
             autoComplete="off"
+            autoCapitalize="none"
+            spellCheck={false}
             error={state.errorText(errors.name?.message)}
             {...state.form.register('name')}
           />
