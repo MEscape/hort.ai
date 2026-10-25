@@ -124,7 +124,11 @@ function DraftForm({
 export function HelpConversation({ childProfileId, initial, companion }: HelpConversationProps) {
   const t = useTranslations('guidance');
   const state = useHelpConversation(childProfileId, initial);
-  if (state.failure?.code != null && isChildDistressCode(state.failure.code)) {
+  if (
+    state.failure?.code !== null &&
+    state.failure?.code !== undefined &&
+    isChildDistressCode(state.failure.code)
+  ) {
     return <DistressHelp />;
   }
   return (

@@ -11,7 +11,7 @@ import {
 
 import {
   DistressHelp,
-  isChildDistressCode,
+  CHILD_DISTRESS_ERROR_CODES,
   startHelpSessionAction,
 } from '@modules/guidance/client';
 
@@ -69,7 +69,7 @@ export function TaskEntry({ draft, onDraftChange, headingRef, childProfileId }: 
       }).catch(() => null);
       if (result?.ok) {
         router.push('/help');
-      } else if (result && isChildDistressCode(result.error.code)) {
+      } else if (result && result.error.code === CHILD_DISTRESS_ERROR_CODES.distressSignal) {
         onDraftChange('');
         setStatus('distress');
       } else {

@@ -7,4 +7,4 @@ export type { HelpSessionDto } from './presentation/dto/guidance-dto';
 export { HelpConversation } from './presentation/components/help-conversation';
 
 export { DistressHelp } from './presentation/components/distress-help';
-export { isChildDistressCode } from './presentation/messages/message-keys';
+export { CHILD_DISTRESS_ERROR_CODES } from './domain/errors/child-distress-errors';

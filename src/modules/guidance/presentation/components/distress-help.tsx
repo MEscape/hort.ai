@@ -16,17 +16,20 @@ export function DistressHelp() {
         <p>{t('distress.brave')}</p>
         <p>{t('distress.trustedAdult')}</p>
         <p>{t('distress.hotline')}</p>
+        {/* @ui-plain a Telephone contact links, not app navigation; no ContentLink primitive exists. */}
         <a href="tel:116111" className="font-heading text-3xl underline">
-          116 111
+          {'116 111'}
         </a>
         <p>{t('distress.hours')}</p>
         <p>{t('distress.emergency')}</p>
         <p className="flex gap-6">
+          {/* @ui-plain a Telephone contact links, not app navigation; no ContentLink primitive exists. */}
           <a href="tel:110" className="font-semibold underline">
-            110
+            {'110'}
           </a>
+          {/* @ui-plain a Telephone contact links, not app navigation; no ContentLink primitive exists. */}
           <a href="tel:112" className="font-semibold underline">
-            112
+            {'112'}
           </a>
         </p>
       </CardContent>
