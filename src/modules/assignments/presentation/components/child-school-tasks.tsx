@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert';
 import { Button } from '@components/ui/button';
@@ -67,10 +68,11 @@ function SchoolTaskList({ assignments, onOpen }: SchoolTaskListProps) {
 interface SchoolTaskProps {
   readonly assignment: ChildAssignmentView;
   readonly onBack: () => void;
+  readonly startHelp?: ((assignment: ChildAssignmentView) => ReactNode) | undefined;
 }
 
 /** One opened task. The button that opened it is gone, so focus lands on the way back. */
-function SchoolTask({ assignment, onBack }: SchoolTaskProps) {
+function SchoolTask({ assignment, onBack, startHelp }: SchoolTaskProps) {
   const t = useTranslations('assignments');
   const backRef = useFocusOnMount<HTMLButtonElement>(true);
 
@@ -80,11 +82,15 @@ function SchoolTask({ assignment, onBack }: SchoolTaskProps) {
         {t('child.backToList')}
       </Button>
       <ChildAssignmentPreview assignment={assignment} />
-      <Alert variant="hint" role="status">
-        <Info aria-hidden="true" />
-        <AlertTitle>{t('child.helpSoonTitle')}</AlertTitle>
-        <AlertDescription>{t('child.helpSoonBody')}</AlertDescription>
-      </Alert>
+      {startHelp === undefined ? (
+        <Alert variant="hint" role="status">
+          <Info aria-hidden="true" />
+          <AlertTitle>{t('child.helpSoonTitle')}</AlertTitle>
+          <AlertDescription>{t('child.helpSoonBody')}</AlertDescription>
+        </Alert>
+      ) : (
+        startHelp(assignment)
+      )}
     </div>
   );
 }
@@ -92,13 +98,15 @@ function SchoolTask({ assignment, onBack }: SchoolTaskProps) {
 interface ChildSchoolTasksProps {
   /** The child-safe projection of the class's assignments, loaded on the server. */
   readonly assignments: readonly ChildAssignmentView[];
+  /**
+   * The page's way to start help on the opened task (#83). Without it the screen says help comes
+   * later instead of pretending; the assignments module itself knows nothing of help sessions.
+   */
+  readonly startHelp?: ((assignment: ChildAssignmentView) => ReactNode) | undefined;
 }
 
-/**
- * The assignments of the child's class. Choosing one shows it; help on it starts only once help
- * sessions exist (#12, #17), and the screen says so instead of pretending.
- */
-export function ChildSchoolTasks({ assignments }: ChildSchoolTasksProps) {
+/** The assignments of the child's class. Choosing one shows it, with the way to get help on it. */
+export function ChildSchoolTasks({ assignments, startHelp }: ChildSchoolTasksProps) {
   const [selected, setSelected] = useState<ChildAssignmentView | null>(null);
 
   return selected === null ? (
@@ -106,6 +114,7 @@ export function ChildSchoolTasks({ assignments }: ChildSchoolTasksProps) {
   ) : (
     <SchoolTask
       assignment={selected}
+      startHelp={startHelp}
       onBack={() => {
         setSelected(null);
       }}

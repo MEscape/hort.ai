@@ -48,8 +48,11 @@ export interface HelpSessionRepository extends HintSessionStore {
     childProfileId: ChildProfileId,
   ): AppResultAsync<HelpSession | null, InfrastructureAppError>;
 
-  /** The whole active session `ref` names, steps included. */
-  loadSession(ref: HelpSessionRef): AppResultAsync<HelpSession, HintSessionStoreError>;
+  /** The whole active session `ref` names. Completion recovery alone may also read a completed one. */
+  loadSession(
+    ref: HelpSessionRef,
+    includeCompleted?: boolean,
+  ): AppResultAsync<HelpSession, HintSessionStoreError>;
 
   /**
    * Stores the child's reply to the open question of `check`, once. With `completes`, the session

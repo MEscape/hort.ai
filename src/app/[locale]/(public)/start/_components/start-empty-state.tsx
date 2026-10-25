@@ -1,6 +1,9 @@
 import type { Ref } from 'react';
 
+import { Button } from '@components/ui/button';
 import { Card, CardContent } from '@components/ui/card';
+
+import { Link } from '@i18n';
 
 import { useTranslations } from '@i18n/client';
 
@@ -26,6 +29,11 @@ export function StartEmptyState({ kind, headingRef }: StartEmptyStateProps) {
           {copy.title}
         </h1>
         <p className="max-w-md text-lead text-copy-muted">{copy.body}</p>
+        {kind === 'continue' && (
+          <Button asChild size="lg">
+            <Link href="/help">{t('start.resume.continue')}</Link>
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
