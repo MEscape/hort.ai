@@ -24,6 +24,7 @@ export function toHelpSessionView(session: HelpSession): HelpSessionView {
   const open = openQuestionCheck(session);
   return {
     sessionId: session.id,
+    assignmentId: session.assignmentId,
     task: session.task,
     subject: session.subject,
     status: progressOf(session),

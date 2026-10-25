@@ -61,3 +61,24 @@ export const parseStepRequestId = createIdParser({
   brand: toStepRequestId,
   mapError: () => guidanceFieldInvalid('requestId', GUIDANCE_VALIDATION_CODES.requestIdInvalid),
 });
+
+/**
+ * A teacher's assignment (#33), owned by the assignments module. Declared here under the same brand
+ * name, so the value crosses without mapping and the modules share no types.
+ */
+export type AssignmentId = Brand<string, 'AssignmentId'>;
+
+/** The assignments module's own limit; a longer value cannot name an assignment. */
+const ASSIGNMENT_ID_MAX_LENGTH = 128;
+
+/** Brands an id that came back from the assignments module or the session storage. Only infrastructure adapters call this. */
+export function toAssignmentId(raw: string): AssignmentId {
+  return raw as AssignmentId; // Brand constructor: the cast is only permitted here.
+}
+
+export const parseAssignmentId = createIdParser({
+  isValid: (raw: string) => raw.length > 0 && raw.length <= ASSIGNMENT_ID_MAX_LENGTH,
+  brand: toAssignmentId,
+  mapError: () =>
+    guidanceFieldInvalid('assignmentId', GUIDANCE_VALIDATION_CODES.assignmentIdInvalid),
+});

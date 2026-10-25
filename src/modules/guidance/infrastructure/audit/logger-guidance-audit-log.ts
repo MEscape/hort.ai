@@ -7,7 +7,8 @@ import type { GuidanceAuditLog, GuidanceEvent } from '../../domain/ports/guidanc
  * help, but not the AI's. `warn` lets alerting notice a provider that keeps failing or a model that
  * keeps breaking the rules. A step the session could not store is `warn`: the child got it, but the
 learning record has a gap. A hint without curriculum grounding still helps the child, but its cause
- * must be visible, so that is `warn` too.
+ * must be visible, so that is `warn` too, as is a step on an assignment that went ahead without the
+ * teacher's key.
  */
 export const LEVEL_BY_EVENT = {
   'guidance.hint_fallback_used': 'warn',
@@ -16,6 +17,7 @@ export const LEVEL_BY_EVENT = {
   'guidance.hint_requested': 'info',
   'guidance.answer_checked': 'info',
   'guidance.step_not_recorded': 'warn',
+  'guidance.solution_key_unavailable': 'warn',
   'guidance.session_started': 'info',
   'guidance.comprehension_replied': 'info',
 } as const satisfies Record<GuidanceEvent['type'], 'info' | 'warn'>;

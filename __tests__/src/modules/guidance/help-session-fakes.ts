@@ -14,7 +14,7 @@ import { errAsync, okAsync } from '@lib/result';
 
 import { parent, recordingAudit as recordingSecurityAudit, signedInAs } from '../auth/fakes';
 
-import { OWN_CHILD, ownChildren, recordingAuditLog, task } from './fakes';
+import { OWN_CHILD, fakeAssignments, ownChildren, recordingAuditLog, task } from './fakes';
 
 const UPDATED_AT = new Date('2026-10-25T08:00:00.000Z');
 
@@ -23,6 +23,7 @@ export function storedSession(overrides: Partial<HelpSession> = {}): HelpSession
   return {
     id: toHelpSessionId('session-1'),
     childProfileId: OWN_CHILD,
+    assignmentId: null,
     task: task('Rechne 23 + 19.'),
     subject: 'math',
     status: 'active',
@@ -69,6 +70,7 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
       const session = storedSession({
         id: toHelpSessionId(`session-new-${String(created)}`),
         childProfileId: start.childProfileId,
+        assignmentId: start.assignmentId,
         task: start.task,
         subject: start.subject,
       });
@@ -108,6 +110,7 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
 export function helpSessionDependencies(
   repository: HelpSessionRepository,
   actor: Actor = parent(),
+  assignments: ReturnType<typeof fakeAssignments> = fakeAssignments(),
 ): {
   readonly deps: HelpSessionDependencies;
   readonly events: ReturnType<typeof recordingAuditLog>['events'];
@@ -120,6 +123,7 @@ export function helpSessionDependencies(
         audit: recordingSecurityAudit(),
       }),
       childProfiles: ownChildren(),
+      assignments: assignments.access,
       sessions: repository,
       audit,
     },

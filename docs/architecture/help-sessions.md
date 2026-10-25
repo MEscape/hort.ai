@@ -4,7 +4,7 @@ How the guidance module stores a child's work on one task, so the child can cont
 
 ## Model
 
-One `HelpSession` per task, owned by the child's guardian (`tenantId`, `ownerId`) and the child (`childProfileId`). It keeps the task text, the subject that grounds its hints, the rung of the hint ladder it is on (`currentHintLevel`) and a `version` that every step increments. Its steps are child rows:
+One `HelpSession` per task, owned by the child's guardian (`tenantId`, `ownerId`) and the child (`childProfileId`). It keeps the task text (the child's own, or a teacher's assignment text with its `assignmentId`), the subject that grounds its hints, the rung of the hint ladder it is on (`currentHintLevel`) and a `version` that every step increments. Its steps are child rows:
 
 | Step                   | Row                                | Notes                                                                                         |
 | ---------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------- |
@@ -27,18 +27,27 @@ An answer, its assessment and its question share the request id of the check (`i
 
 All use `hint.request`, the guardian's guidance permission, and ask the learner module whether the child is theirs before any session is read. None calls a provider, so none has a rate limit; the one-open-session rule and the hint and answer budgets bound what is written.
 
-- `StartHelpSession { childProfileId, task, subject }`: `started` or `continued`, with the session view.
+- `StartHelpSession { childProfileId, task, subject }` or `{ childProfileId, assignmentId, subject }`: `started` or `continued`, with the session view. See "Sessions on a teacher's assignment" below.
 - `GetOpenHelpSession { childProfileId }`: the open session's view for "Continue", or `null`.
 - `ReplyToComprehensionQuestion { childProfileId, sessionId, reply }`: the reply is checked like any child input (`parseChildTaskText`); `guidance.no_open_question` when no question waits for it. Answers `understood` when it completed the task.
 
 `HelpSessionRepository` extends the hint ladder's `HintSessionStore` (#30): `RequestHint` and `CheckAnswer` load the ladder state and record hints and answer checks through the same Prisma repository (`load`, `recordHint`, `recordAnswerCheck`), wired in `composition.ts`.
 
+## Sessions on a teacher's assignment (#33)
+
+A child can work on an assignment their teacher posted for the class. The software never writes or changes it, and the AI never solves it.
+
+- **Membership is checked by the backend.** `StartHelpSession` with an `assignmentId` first confirms the child is the parent's own (learner module), then asks the assignments module (`GetAssignmentForHelp`, through the `AssignmentAccess` port, adapter `infrastructure/assignments`). That query authorizes the parent on the child (`learner.read`), reads the child's current class from the classroom module and finds the assignment only in that class. Another class's assignment, a deleted one, or any assignment while the child is in no class is `guidance.assignment_not_found`; nothing is stored.
+- **The task text comes from the assignment**, never from the client; a `task` sent along is ignored. It is checked like child input but with the assignment's bound (4,000 characters, `parseAssignmentTaskText`), and stored as the session's task. The same assignment again continues the open session, even if the teacher edited its text in the meantime.
+- **The solution key is never stored in a session.** Every hint and every answer check reads it anew through the same query, so membership is checked on each step and a key the teacher changed applies at once. `HintOrchestrator.suggest` gets it as its second argument for the leak guard (#31); `AnswerCoach` decides the result against it (`assessedBy: 'solution_key'`, #14). It never goes to the AI, into a view, a log or an audit event.
+- **No key, still help.** If the key cannot be read during a step (the child left the class, the assignment was deleted, the store failed), the step goes ahead without it: the AI assesses, the leak guard checks the known patterns. `guidance.solution_key_unavailable` logs the step and the error code.
+
 ## Views and privacy
 
-`HelpSessionView` carries the task, the hints, the answer checks as results only (`result`, `assessedBy`, `hintLevel`), the open question and a status (`working`, `awaiting_comprehension_reply`, `understood`). The child's answer and reply texts stay in the store. Audit events (`guidance.session_started`, `guidance.comprehension_replied`) carry ids and outcomes only. Learning insights (#35) read results and ids, never transcripts.
+`HelpSessionView` carries the assignment id (or `null`), the task, the hints, the answer checks as results only (`result`, `assessedBy`, `hintLevel`), the open question and a status (`working`, `awaiting_comprehension_reply`, `understood`). The child's answer and reply texts stay in the store. Audit events (`guidance.session_started`, `guidance.comprehension_replied`) carry ids and outcomes only. Learning insights (#35) read results and ids, never transcripts.
 
 ## Limits
 
 - At most the latest 100 hints and 100 answer checks are read back per session.
 - Steps are ordered by their timestamp from the application clock.
-- Sessions on a teacher's assignment (`assignmentId`) are not started yet; that needs the class-membership check of #33.
+- A session on an assignment keeps the assignment's text from its start; a later edit by the teacher shows in a new session only. If the teacher deletes the assignment, the session's `assignmentId` becomes `null` (`ON DELETE SET NULL`) and it goes on as a task without a key.

@@ -15,15 +15,15 @@ Owning rules: [`api.md`](../rules/api.md), [`validation.md`](../rules/validation
 
 ## Operations
 
-| Action                     | Input                                              | Success data             | Provides          |
-| -------------------------- | -------------------------------------------------- | ------------------------ | ----------------- |
-| `startHelpSessionAction`   | `{ childProfileId, task, subject }`                | `HelpSessionDto`         | #17               |
-| `getOpenHelpSessionAction` | `{ childProfileId }`                               | `HelpSessionDto \| null` | #17               |
-| `requestHintAction`        | `{ requestId, childProfileId, sessionId }`         | `HintDto`                | #30 (on #10, #31) |
-| `checkAnswerAction`        | `{ requestId, childProfileId, sessionId, answer }` | `AnswerFeedbackDto`      | #14 (PR #81), #30 |
-| `replyComprehensionAction` | `{ childProfileId, sessionId, reply }`             | `ComprehensionReplyDto`  | #78               |
+| Action                     | Input                                                                              | Success data             | Provides          |
+| -------------------------- | ---------------------------------------------------------------------------------- | ------------------------ | ----------------- |
+| `startHelpSessionAction`   | `{ childProfileId, task, subject }` or `{ childProfileId, assignmentId, subject }` | `HelpSessionDto`         | #17, #33          |
+| `getOpenHelpSessionAction` | `{ childProfileId }`                                                               | `HelpSessionDto \| null` | #17               |
+| `requestHintAction`        | `{ requestId, childProfileId, sessionId }`                                         | `HintDto`                | #30 (on #10, #31) |
+| `checkAnswerAction`        | `{ requestId, childProfileId, sessionId, answer }`                                 | `AnswerFeedbackDto`      | #14 (PR #81), #30 |
+| `replyComprehensionAction` | `{ childProfileId, sessionId, reply }`                                             | `ComprehensionReplyDto`  | #78               |
 
-The task text and the subject are sent once, when the session starts. Starting with a different task while a session is active ends the old one and starts a new one. A teacher assignment as the source (`assignmentId`) follows once the class-membership check of #33 (PR #74) is available; the session stores it as optional already. Hint and answer calls name the session, and the backend reads the task, subject and ladder position from it. Until #17 lands, the existing commands take `task` and `subject` directly (`RequestHintInput`, `CheckAnswerInput`) and a server-side caller picks the level (`TODO(#30)` in `hint-inputs.ts`); the UI must not depend on that interim shape.
+The task text and the subject are sent once, when the session starts. Starting with a different task while a session is active ends the old one and starts a new one. A teacher assignment can be the source (`assignmentId`, #33): the backend checks that the child's current class has it, takes the task text from the assignment (a sent `task` is ignored) and answers another class's assignment with `guidance.assignment_not_found`. The solution key stays on the server and is read for each hint and answer check. Hint and answer calls name the session, and the backend reads the task, subject and ladder position from it. Until #17 lands, the existing commands take `task` and `subject` directly (`RequestHintInput`, `CheckAnswerInput`) and a server-side caller picks the level (`TODO(#30)` in `hint-inputs.ts`); the UI must not depend on that interim shape.
 
 ## Input schemas (presentation boundary)
 
@@ -38,7 +38,8 @@ const childText = z.string().max(1000); // emptiness and characters are checked 
 
 export const startHelpSessionSchema = z.object({
   childProfileId: id,
-  task: childText,
+  task: childText.optional(), // required unless assignmentId is given; the use case checks it
+  assignmentId: id.optional(), // a teacher's assignment of the child's class (#33)
   subject: z.enum(['math', 'german', 'general_studies', 'english']), // HINT_SUBJECTS
 });
 
@@ -129,7 +130,7 @@ type HelpSessionStatus =
 
 interface HelpSessionDto {
   sessionId: string;
-  /** Set once a teacher assignment can be the source (#33); null for the child's own task. */
+  /** The teacher's assignment the session is on (#33); null for the child's own task. */
   assignmentId: string | null;
   /** The child's own text, or the teacher's assignment text. Never the solution key. */
   task: string;
@@ -156,18 +157,19 @@ The UI never stores session state as the truth: after a reload it calls `getOpen
 
 `ActionResult` failures carry a stable `code`, optional `fieldErrors` and, for a refused budget, `retryAfterSeconds`. The UI maps codes to friendly, never punishing text; it never shows `message`.
 
-| Code                            | When                                                                                                                      | UI state                                                                                                       |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `auth.unauthenticated`          | no signed-in parent                                                                                                       | back to sign-in, keep the typed text locally                                                                   |
-| `auth.permission_denied`        | the actor may not ask for help (`hint.request`)                                                                           | parent gate message                                                                                            |
-| `learner.not_found`             | unknown child, or not the parent's own                                                                                    | "We could not find this profile" and back to start                                                             |
-| `guidance.validation_failed`    | `fieldErrors`: `guidance.validation.child_profile_id_invalid`, `guidance.validation.subject_invalid`                      | treat as a bug: generic retry, focus the subject choice for `subject_invalid`                                  |
-| `guidance.child_input_invalid`  | `fieldErrors` under `task`, `answer` or `reply`: `guidance.child_input.empty`, `.too_long`, `.contains_control_character` | gentle prompt on that field ("Write your task here", "That is a lot of text, can you shorten it?"), input kept |
-| `guidance.rate_limited`         | the child's budget is used (20 hints or 10 checks in 10 minutes)                                                          | calm pause line from the companion; re-enable after `retryAfterSeconds`, no visible countdown                  |
-| `guidance.rate_limiter_failed`  | the budget could not be checked                                                                                           | "Hort needs a moment", retry button                                                                            |
-| `guidance.session_not_found`    | unknown, ended or another child's session                                                                                 | reload the open session; if none, back to start                                                                |
-| `guidance.session_store_failed` | the session could not be read or written                                                                                  | "Hort needs a moment", retry button, input kept                                                                |
-| any other                       | infrastructure failure                                                                                                    | "Something went wrong, let's try again", input kept                                                            |
+| Code                            | When                                                                                                                                              | UI state                                                                                                       |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `auth.unauthenticated`          | no signed-in parent                                                                                                                               | back to sign-in, keep the typed text locally                                                                   |
+| `auth.permission_denied`        | the actor may not ask for help (`hint.request`)                                                                                                   | parent gate message                                                                                            |
+| `learner.not_found`             | unknown child, or not the parent's own                                                                                                            | "We could not find this profile" and back to start                                                             |
+| `guidance.validation_failed`    | `fieldErrors`: `guidance.validation.child_profile_id_invalid`, `guidance.validation.subject_invalid`, `guidance.validation.assignment_id_invalid` | treat as a bug: generic retry, focus the subject choice for `subject_invalid`                                  |
+| `guidance.child_input_invalid`  | `fieldErrors` under `task`, `answer` or `reply`: `guidance.child_input.empty`, `.too_long`, `.contains_control_character`                         | gentle prompt on that field ("Write your task here", "That is a lot of text, can you shorten it?"), input kept |
+| `guidance.rate_limited`         | the child's budget is used (20 hints or 10 checks in 10 minutes)                                                                                  | calm pause line from the companion; re-enable after `retryAfterSeconds`, no visible countdown                  |
+| `guidance.rate_limiter_failed`  | the budget could not be checked                                                                                                                   | "Hort needs a moment", retry button                                                                            |
+| `guidance.session_not_found`    | unknown, ended or another child's session                                                                                                         | reload the open session; if none, back to start                                                                |
+| `guidance.assignment_not_found` | the assignment is not (or no longer) one of the child's class: another class's, deleted, or the child left the class                              | "This school task is not available any more", back to the task list                                            |
+| `guidance.session_store_failed` | the session could not be read or written                                                                                                          | "Hort needs a moment", retry button, input kept                                                                |
+| any other                       | infrastructure failure                                                                                                                            | "Something went wrong, let's try again", input kept                                                            |
 
 The session codes come with #30 and #17; an ended session is deliberately not a code of its own. A wrong answer is never an error: it is `ok: true` with `result: 'not_yet'`.
 
