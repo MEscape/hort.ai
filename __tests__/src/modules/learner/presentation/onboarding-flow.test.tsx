@@ -308,6 +308,29 @@ describe('onboarding flow', () => {
     );
   });
 
+  it('starts voice off when the raw control is on but the notice consent is no longer current', async () => {
+    vi.mocked(saveControlsAction).mockResolvedValue({
+      ok: true,
+      data: { ...PROFILE, guardianConfirmed: true },
+    });
+    renderFlow({
+      step: 'controls',
+      profile: {
+        ...PROFILE,
+        tutorId: 'max',
+        voiceEnabled: true,
+        voiceConsent: false,
+        guardianConfirmed: true,
+      },
+    });
+    expect(screen.getByRole('switch', { name: 'Talking to Max' })).not.toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    expect(await screen.findByRole('heading', { name: 'Is everything right?' })).toBeVisible();
+    expect(saveControlsAction).toHaveBeenCalledWith(
+      expect.objectContaining({ voiceEnabled: false, voiceNoticeVersion: null }),
+    );
+  });
+
   it('shows what was stored, returns to the review after a change, and says "ready" only after the backend finished', async () => {
     const stored = { ...PROFILE, tutorId: 'max', guardianConfirmed: true, interests: ['sports'] };
     vi.mocked(createChildProfileAction).mockResolvedValue({

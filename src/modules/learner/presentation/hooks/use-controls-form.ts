@@ -41,7 +41,9 @@ export function useControlsForm(
   const form = useForm<ControlsForm>({
     resolver: zodResolver(controlsSchema),
     defaultValues: {
-      voiceEnabled: profile.voiceEnabled,
+      // A raw control can outlive its notice version. Start off unless consent is current, so a
+      // notice update needs a fresh, explicit toggle rather than an unrelated save (#98).
+      voiceEnabled: profile.voiceConsent,
       dailyLimitMinutes:
         profile.dailyLimitMinutes === null ? NO_LIMIT : String(profile.dailyLimitMinutes),
       windowEnabled: window !== null,
