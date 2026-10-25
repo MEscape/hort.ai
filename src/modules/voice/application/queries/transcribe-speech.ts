@@ -35,8 +35,9 @@ export type TranscribeSpeechError =
 /**
  * Turns a child's German recording into text. Sending the recording to the provider takes it out of
  * the session, so it happens only for the signed-in parent's own child and only while that child's
- * profile allows voice (`controls.voiceEnabled`, set by the parent in the learner module's
- * onboarding controls); otherwise `voice.consent_required` and the interface stays with text.
+ * profile has `voiceConsent`: the voice control is on and the parent confirmed the current voice
+ * notice (allowed and withdrawn at any time with `SetVoiceConsent` in the learner module, #34);
+ * otherwise `voice.consent_required` and the interface stays with text.
  * The recording is sent once and never stored. The transcript is only returned, as a suggestion
  * the child corrects; nothing is sent on, and the sent text goes through the same input validation
  * as typed text (`parseChildTaskText`, guidance module, #11) wherever it is submitted.

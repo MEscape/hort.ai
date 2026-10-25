@@ -47,7 +47,7 @@ describe('onboarding page guards', () => {
 
   it('lets a finished parent into the home and sends an unfinished one into onboarding', async () => {
     execute.mockReturnValueOnce(okAsync({ step: 'done', profile: PROFILE }));
-    await expect(requireOnboarded()).resolves.toBeUndefined();
+    await expect(requireOnboarded()).resolves.toMatchObject({ id: 'p1' });
 
     execute.mockReturnValueOnce(okAsync({ step: 'child', profile: null }));
     await expect(requireOnboarded()).rejects.toThrow('redirect');

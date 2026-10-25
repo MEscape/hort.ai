@@ -23,6 +23,11 @@ export interface ChildProfileView {
   readonly controls: ParentControlsView;
   /** Whether the guardian confirmed the statement that is current. */
   readonly guardianConfirmed: boolean;
+  /**
+   * Whether the child's recordings may be sent for transcription: the voice control is on and the
+   * parent confirmed the current voice notice (#34). `controls.voiceEnabled` alone is not enough.
+   */
+  readonly voiceConsent: boolean;
   /** The furthest step the parent has reached. */
   readonly setupStep: SetupStep;
   /** UTC instant the parent finished the setup; `null` while it is open. */

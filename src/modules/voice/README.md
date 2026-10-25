@@ -31,8 +31,9 @@ limiter store is down), and only then call the provider.
   `scribe_v1`, audio-event tags off). The recording is held in memory for the one request and
   never stored, neither by us nor as a file.
 - **Consent**: a recording leaves the session only for the signed-in parent's own child (checked by
-  the learner module, `GetChildProfileById`) and only while that child profile allows voice
-  (`controls.voiceEnabled`, set by the parent in the onboarding controls). Otherwise `voice.consent_required`
+  the learner module, `GetChildProfileById`) and only while that child profile has `voiceConsent`:
+  the voice control is on and the parent confirmed the current voice notice on their home
+  (`SetVoiceConsent`, withdrawable at any time, #34). Otherwise `voice.consent_required`
   (403) and the interface stays with text. Another parent's child answers like a missing one
   (`voice.child_profile_not_found`, 404), so ids cannot be probed.
 - **Transcript** is only returned, as a suggestion the child corrects; nothing is sent on. Wherever

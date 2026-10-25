@@ -14,6 +14,7 @@ export {
   DAILY_LIMIT_MINUTES,
   GUARDIAN_CONSENT_VERSION,
   LEARNER_TIME_ZONE,
+  VOICE_NOTICE_VERSION,
   isLearningAllowedNow,
 } from '../../domain/models/parent-controls';
 export type { AllowedWindow, DailyLimitMinutes } from '../../domain/models/parent-controls';

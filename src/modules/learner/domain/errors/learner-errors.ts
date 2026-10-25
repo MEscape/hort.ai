@@ -24,6 +24,7 @@ export const LEARNER_ERROR_CODES = {
   alreadyOnboarded: 'learner.already_onboarded',
   setupIncomplete: 'learner.setup_incomplete',
   devResetUnavailable: 'learner.dev_reset_unavailable',
+  voiceNoticeOutdated: 'learner.voice_notice_outdated',
   validationFailed: 'learner.validation_failed',
   persistenceFailed: 'learner.persistence_failed',
 } as const;
@@ -62,6 +63,17 @@ export function alreadyOnboarded(): ConflictAppError {
 /** The setup is completed before every step was walked: the parent still has steps to finish. */
 export function setupIncomplete(): ConflictAppError {
   return conflictError(LEARNER_ERROR_CODES.setupIncomplete, 'The setup is not ready to finish.');
+}
+
+/**
+ * The parent allowed speech-to-text against a voice notice that is not the current one (the page was
+ * open while the wording changed): nothing is stored, the parent reads the current notice first.
+ */
+export function voiceNoticeOutdated(): ConflictAppError {
+  return conflictError(
+    LEARNER_ERROR_CODES.voiceNoticeOutdated,
+    'The voice notice was changed; confirm the current one.',
+  );
 }
 
 /** The development-only onboarding reset was called where it is switched off (production). Says nothing about the parent's data. */

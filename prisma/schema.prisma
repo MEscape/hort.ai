@@ -136,6 +136,8 @@ enum AssessmentResult {
 /// unfinished profile, so a repeated or concurrent submit can never leave duplicates.
 /// `voiceConsent` is the parent's "voice allowed" control (the name predates the controls step).
 /// `setupStep` is the furthest step reached and only ever moves forward.
+/// `voiceNoticeVersion`/`voiceNoticeConfirmedAt`: which version of the voice notice the parent
+/// confirmed when allowing speech-to-text, and when; both empty while none is confirmed (#34).
 model ChildProfile {
   id                     String       @id @onCreate(uuid())
   tenantId               String
@@ -154,6 +156,8 @@ model ChildProfile {
   guardianConfirmedAt    DateTime?
   guardianConsentVersion String?
   setupCompletedAt       DateTime?
+  voiceNoticeVersion     String?
+  voiceNoticeConfirmedAt DateTime?
   createdAt              DateTime     @default(now())
 
   membership   ClassMembership?
@@ -167,6 +171,7 @@ model ChildProfile {
   @@check(expression: sql`"dailyLimitMinutes" IS NULL OR "dailyLimitMinutes" IN (15, 30, 45, 60, 90)`, name: "ChildProfile_daily_limit_rule")
   @@check(expression: sql`("allowedFromMinute" IS NULL AND "allowedUntilMinute" IS NULL) OR ("allowedFromMinute" IS NOT NULL AND "allowedUntilMinute" IS NOT NULL AND "allowedFromMinute" >= 0 AND "allowedUntilMinute" <= 1440 AND "allowedFromMinute" % 15 = 0 AND "allowedUntilMinute" % 15 = 0 AND "allowedUntilMinute" - "allowedFromMinute" >= 30)`, name: "ChildProfile_allowed_window_rule")
   @@check(expression: sql`("setupStep" = 'done') = ("setupCompletedAt" IS NOT NULL)`, name: "ChildProfile_done_rule")
+  @@check(expression: sql`("voiceNoticeVersion" IS NULL) = ("voiceNoticeConfirmedAt" IS NULL)`, name: "ChildProfile_voice_notice_rule")
 }
 
 /// A teacher's class (classroom module). Only the SHA-256 hash of the invite code is stored;

@@ -2,7 +2,12 @@ import { Suspense } from 'react';
 
 import { AuthFormSkeleton, AuthShell, isAuthEnabled, requireSignedIn } from '@modules/auth';
 import { SignOutButton } from '@modules/auth/client';
-import { ResetOnboardingButton, isDevResetAvailable, requireOnboarded } from '@modules/learner';
+import {
+  ResetOnboardingButton,
+  VoiceConsentSwitch,
+  isDevResetAvailable,
+  requireOnboarded,
+} from '@modules/learner';
 
 import { Hort } from '@components/brand/hort';
 import { I18nProvider } from '@components/providers/i18n-provider';
@@ -26,7 +31,7 @@ export async function generateMetadata({
 
 async function ParentHome() {
   await requireSignedIn('/home');
-  await requireOnboarded();
+  const child = await requireOnboarded();
   const t = await getTranslations('app');
   return (
     <Card>
@@ -36,6 +41,11 @@ async function ParentHome() {
       </CardHeader>
       <CardContent>
         <p className="text-center text-copy-muted">{t('home.description')}</p>
+        <VoiceConsentSwitch
+          profileId={child.id}
+          name={child.displayName}
+          allowed={child.voiceConsent}
+        />
         {isAuthEnabled && <SignOutButton />}
         {isDevResetAvailable() && <ResetOnboardingButton />}
       </CardContent>

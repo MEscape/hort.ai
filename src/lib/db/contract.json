@@ -985,6 +985,20 @@
                   "codecId": "pg/bool@1",
                   "kind": "scalar"
                 }
+              },
+              "voiceNoticeConfirmedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "voiceNoticeVersion": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
               }
             },
             "relations": {
@@ -1075,6 +1089,12 @@
                 },
                 "voiceConsent": {
                   "column": "voiceConsent"
+                },
+                "voiceNoticeConfirmedAt": {
+                  "column": "voiceNoticeConfirmedAt"
+                },
+                "voiceNoticeVersion": {
+                  "column": "voiceNoticeVersion"
                 }
               },
               "namespaceId": "public",
@@ -2947,6 +2967,11 @@
                   "expression": "\"setupStep\" IN ('child', 'interests', 'tutor', 'controls', 'review', 'done')",
                   "name": "ChildProfile_setupStep_check_c4a680fd",
                   "prefix": "ChildProfile_setupStep_check"
+                },
+                {
+                  "expression": "(\"voiceNoticeVersion\" IS NULL) = (\"voiceNoticeConfirmedAt\" IS NULL)",
+                  "name": "ChildProfile_voice_notice_rule_8b4fac41",
+                  "prefix": "ChildProfile_voice_notice_rule"
                 }
               ],
               "columns": {
@@ -3080,6 +3105,16 @@
                     "value": false
                   },
                   "nullable": false
+                },
+                "voiceNoticeConfirmedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "voiceNoticeVersion": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
                 }
               },
               "foreignKeys": [],
@@ -4519,7 +4554,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "6099aa947d35bd4c5a55c52faf7686b47fd7060ba0c4a1be4d267431ee38bfee"
+    "storageHash": "6d86b0e038da36fd6ceb07e8b1489f39c9d8d147eeaa87c77e6420e808ea32ce"
   },
   "execution": {
     "executionHash": "c34472bff7c2b7010a1a9feb8891bd65a47095469dac87679d33d2107642809b",
