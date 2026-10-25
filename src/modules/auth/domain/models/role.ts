@@ -1,6 +1,6 @@
 import { literalGuard } from '@lib/utils';
 
-import { LEARNER_PERMISSIONS, TEACHER_PERMISSIONS } from './permission';
+import { GUIDANCE_PERMISSIONS, LEARNER_PERMISSIONS, TEACHER_PERMISSIONS } from './permission';
 
 import type { Permission } from './permission';
 
@@ -26,7 +26,7 @@ export const isRole = literalGuard(ROLES);
  * Move it to storage only when a real requirement for runtime-editable roles appears.
  */
 const ROLE_PERMISSIONS = {
-  parent: LEARNER_PERMISSIONS,
+  parent: [...LEARNER_PERMISSIONS, ...GUIDANCE_PERMISSIONS],
   teacher: TEACHER_PERMISSIONS,
 } as const satisfies Record<Role, readonly Permission[]>;
 
