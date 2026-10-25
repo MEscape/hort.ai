@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'6d86b0e038da36fd6ceb07e8b1489f39c9d8d147eeaa87c77e6420e808ea32ce'>;
+  StorageHashBase<'073e39acca7299a40a57a7f3fae59f0191a148a085bae26fc5ac55b61d1f5495'>;
 export type ExecutionHash =
-  ExecutionHashBase<'c34472bff7c2b7010a1a9feb8891bd65a47095469dac87679d33d2107642809b'>;
+  ExecutionHashBase<'5388a8400147d76b9e718711335599d04f7ca67a9c7f7b82d886bf9fb1c1aec5'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -470,6 +470,12 @@ type FieldTypeOverrides = {
             'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
         };
       };
+      readonly ProgressEvent: {
+        readonly kind: {
+          readonly output: 'daily_reward' | 'learning';
+          readonly input: 'daily_reward' | 'learning';
+        };
+      };
       readonly TeacherMaterial: {
         readonly contentType: { readonly output: 'PDF' | 'TEXT'; readonly input: 'PDF' | 'TEXT' };
         readonly status: {
@@ -725,6 +731,12 @@ type ColumnTypeOverrides = {
           'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
       };
     };
+    readonly ProgressEvent: {
+      readonly kind: {
+        readonly output: 'daily_reward' | 'learning';
+        readonly input: 'daily_reward' | 'learning';
+      };
+    };
     readonly TeacherMaterial: {
       readonly contentType: { readonly output: 'PDF' | 'TEXT'; readonly input: 'PDF' | 'TEXT' };
       readonly status: {
@@ -820,6 +832,7 @@ export namespace Models {
     voiceConsent: FieldOutputTypes['public']['ChildProfile']['voiceConsent'];
     voiceNoticeConfirmedAt: FieldOutputTypes['public']['ChildProfile']['voiceNoticeConfirmedAt'];
     voiceNoticeVersion: FieldOutputTypes['public']['ChildProfile']['voiceNoticeVersion'];
+    welcomeCompletedAt: FieldOutputTypes['public']['ChildProfile']['welcomeCompletedAt'];
     helpSessions: public_HelpSession[];
     membership: public_ClassMembership | null;
     readonly [RelationKeys]?: 'helpSessions' | 'membership';
@@ -942,6 +955,18 @@ export namespace Models {
     material: public_TeacherMaterial;
     readonly [RelationKeys]?: 'material';
   };
+  export type public_ProgressEvent = {
+    childProfileId: FieldOutputTypes['public']['ProgressEvent']['childProfileId'];
+    eventKey: FieldOutputTypes['public']['ProgressEvent']['eventKey'];
+    id: FieldOutputTypes['public']['ProgressEvent']['id'];
+    kind: FieldOutputTypes['public']['ProgressEvent']['kind'];
+    occurredAt: FieldOutputTypes['public']['ProgressEvent']['occurredAt'];
+    ownerId: FieldOutputTypes['public']['ProgressEvent']['ownerId'];
+    tenantId: FieldOutputTypes['public']['ProgressEvent']['tenantId'];
+    xp: FieldOutputTypes['public']['ProgressEvent']['xp'];
+    childProfile: public_ChildProfile;
+    readonly [RelationKeys]?: 'childProfile';
+  };
   export type public_TeacherMaterial = {
     classroomId: FieldOutputTypes['public']['TeacherMaterial']['classroomId'];
     contentType: FieldOutputTypes['public']['TeacherMaterial']['contentType'];
@@ -975,6 +1000,7 @@ export declare const models: {
     HelpSession: Models.public_HelpSession;
     HintEvent: Models.public_HintEvent;
     MaterialSection: Models.public_MaterialSection;
+    ProgressEvent: Models.public_ProgressEvent;
     TeacherMaterial: Models.public_TeacherMaterial;
   };
 };
@@ -1478,6 +1504,12 @@ type ContractBase = Omit<
                 readonly voiceNoticeVersion: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly welcomeCompletedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
                   readonly nullable: true;
                   readonly many: false;
                 };
@@ -2213,6 +2245,83 @@ type ContractBase = Omit<
                 },
               ];
             };
+            readonly ProgressEvent: {
+              columns: {
+                readonly childProfileId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly eventKey: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly kind: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly occurredAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly many: false;
+                };
+                readonly ownerId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly tenantId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly xp: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['childProfileId', 'eventKey'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'ProgressEvent_childProfileId_idx_afadb118';
+                  readonly prefix: 'ProgressEvent_childProfileId_idx';
+                  readonly columns: readonly ['childProfileId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'ProgressEvent';
+                    readonly columns: readonly ['childProfileId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'ChildProfile';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
             readonly TeacherMaterial: {
               columns: {
                 readonly classroomId: {
@@ -2400,6 +2509,10 @@ type ContractBase = Omit<
               readonly kind: 'valueSet';
               readonly values: readonly ['UPLOADED', 'PROCESSED', 'FAILED', 'DELETED'];
             };
+            readonly ProgressEventKind: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['daily_reward', 'learning'];
+            };
             readonly SetupStep: {
               readonly kind: 'valueSet';
               readonly values: readonly [
@@ -2471,6 +2584,10 @@ type ContractBase = Omit<
     readonly MaterialSection: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'MaterialSection';
+    };
+    readonly ProgressEvent: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'ProgressEvent';
     };
     readonly TeacherMaterial: {
       readonly namespace: 'public' & NamespaceId;
@@ -2864,6 +2981,13 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly welcomeCompletedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
             };
             readonly relations: {
               readonly helpSessions: {
@@ -2914,6 +3038,7 @@ type ContractBase = Omit<
                 readonly voiceConsent: { readonly column: 'voiceConsent' };
                 readonly voiceNoticeConfirmedAt: { readonly column: 'voiceNoticeConfirmedAt' };
                 readonly voiceNoticeVersion: { readonly column: 'voiceNoticeVersion' };
+                readonly welcomeCompletedAt: { readonly column: 'welcomeCompletedAt' };
               };
             };
           };
@@ -3596,6 +3721,73 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly ProgressEvent: {
+            readonly fields: {
+              readonly childProfileId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly eventKey: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly kind: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly occurredAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly ownerId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly tenantId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly xp: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: {
+              readonly childProfile: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'ChildProfile';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['childProfileId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'ProgressEvent';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly childProfileId: { readonly column: 'childProfileId' };
+                readonly eventKey: { readonly column: 'eventKey' };
+                readonly id: { readonly column: 'id' };
+                readonly kind: { readonly column: 'kind' };
+                readonly occurredAt: { readonly column: 'occurredAt' };
+                readonly ownerId: { readonly column: 'ownerId' };
+                readonly tenantId: { readonly column: 'tenantId' };
+                readonly xp: { readonly column: 'xp' };
+              };
+            };
+          };
           readonly TeacherMaterial: {
             readonly fields: {
               readonly classroomId: {
@@ -3796,6 +3988,13 @@ type ContractBase = Omit<
               { readonly name: 'DELETED'; readonly value: 'DELETED' },
             ];
           };
+          readonly ProgressEventKind: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'daily_reward'; readonly value: 'daily_reward' },
+              { readonly name: 'learning'; readonly value: 'learning' },
+            ];
+          };
           readonly SetupStep: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -3889,6 +4088,10 @@ type ContractBase = Omit<
             { readonly name: 'PROCESSED'; readonly value: 'PROCESSED' },
             { readonly name: 'FAILED'; readonly value: 'FAILED' },
             { readonly name: 'DELETED'; readonly value: 'DELETED' },
+          ];
+          readonly ProgressEventKind: readonly [
+            { readonly name: 'daily_reward'; readonly value: 'daily_reward' },
+            { readonly name: 'learning'; readonly value: 'learning' },
           ];
           readonly SetupStep: readonly [
             { readonly name: 'child'; readonly value: 'child' },
@@ -4040,6 +4243,14 @@ type ContractBase = Omit<
           readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'MaterialSection';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'ProgressEvent';
             readonly field: 'id';
             readonly namespace: 'public';
           };

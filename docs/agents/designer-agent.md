@@ -353,7 +353,7 @@ Do not use decorative maps, progression trees, or locked paths.
 
 ## 12. Encouragement and Motivation
 
-HortAi has no XP, streaks, rewards or leaderboards. Motivation comes from the child understanding their task and from honest, specific praise.
+HortAi has no streaks, leaderboards or pressure mechanics. The only progression is the small one in the [vision](../product/vision.md) (XP the backend grants for a confirmed event, a few levels, one daily reward). Motivation still comes mainly from the child understanding their task and from honest, specific praise. Animation reacts to a confirmed result and never decides one.
 
 Review how the interface communicates:
 

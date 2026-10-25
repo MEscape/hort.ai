@@ -25,3 +25,8 @@ export function certificateDownloadFailed(reason: string, cause?: unknown): Infr
     cause,
   );
 }
+
+/** A tutor id that cannot name a catalog tutor (wrong shape). */
+export function tutorIdInvalid(): ValidationAppError {
+  return validationError('alexa.tutor_id_invalid', 'Tutor id is invalid.', {});
+}
