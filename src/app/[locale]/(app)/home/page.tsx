@@ -38,12 +38,18 @@ type OpenHelpSession = NonNullable<Awaited<ReturnType<typeof loadOpenHelpSession
 
 /**
  * How many assignments the child's class has, as the teacher card writes it. The query authorizes
- * the signed-in parent and the child's class membership itself; anything it refuses or cannot load
- * keeps the card's "not here yet" (`null`) instead of breaking the home.
+ * the signed-in parent and the child's class membership itself; a refusal keeps the card's "not here
+ * yet" (`null`), an infrastructure failure reaches the error boundary like on "/start".
  */
 async function teacherNewCountOf(childProfileId: string): Promise<number | null> {
   const result = await assignmentsQueries.listChildAssignments.execute(childProfileId);
-  return result.isOk() ? result.value.length : null;
+  if (result.isOk()) {
+    return result.value.length;
+  }
+  if (result.error.kind === 'infrastructure') {
+    throw new Error(result.error.code, { cause: result.error });
+  }
+  return null;
 }
 
 export async function generateMetadata({
