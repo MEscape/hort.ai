@@ -7,20 +7,22 @@ import type { HintOrchestrator } from './services/hint-orchestrator';
 import type { ChildProfileAccess } from '../domain/ports/child-profile-access.port';
 import type { CompetencyRetrieval } from '../domain/ports/competency-retrieval.port';
 import type { GuidanceAuditLog } from '../domain/ports/guidance-audit-log.port';
+import type { HintSessionStore } from '../domain/ports/hint-session-store.port';
 
-/** What every guidance use case about one child's task is built from. */
-export interface ChildTaskDependencies {
+/** What every guidance use case about one step of a child's help session is built from. */
+export interface SessionStepDependencies {
   readonly authorization: AuthorizationService;
   readonly childProfiles: ChildProfileAccess;
   readonly competencies: CompetencyRetrieval;
   readonly rateLimiter: RateLimiter;
+  readonly sessions: HintSessionStore;
   readonly audit: GuidanceAuditLog;
 }
 
-export interface RequestHintDependencies extends ChildTaskDependencies {
+export interface RequestHintDependencies extends SessionStepDependencies {
   readonly hints: HintOrchestrator;
 }
 
-export interface CheckAnswerDependencies extends ChildTaskDependencies {
+export interface CheckAnswerDependencies extends SessionStepDependencies {
   readonly answers: AnswerCoach;
 }
