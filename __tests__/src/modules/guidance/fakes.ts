@@ -1,5 +1,9 @@
 import { parseChildTaskText } from '@modules/guidance/domain/models/child-task-text';
 import type { ChildTaskText } from '@modules/guidance/domain/models/child-task-text';
+import type {
+  FeedbackKind,
+  FeedbackRequest,
+} from '@modules/guidance/domain/models/feedback-request';
 import type { HintRequest } from '@modules/guidance/domain/models/hint-request';
 import { toChildProfileId } from '@modules/guidance/domain/models/ids';
 import type { ChildProfileId } from '@modules/guidance/domain/models/ids';
@@ -8,6 +12,7 @@ import type {
   CompetencyQuery,
   CompetencyRetrieval,
 } from '@modules/guidance/domain/ports/competency-retrieval.port';
+import type { FeedbackProvider } from '@modules/guidance/domain/ports/feedback-provider.port';
 import type { GuidanceEvent } from '@modules/guidance/domain/ports/guidance-audit-log.port';
 import type {
   HintProvider,
@@ -82,4 +87,23 @@ export function fakeCompetencies(options: { readonly fails?: boolean } = {}) {
     },
   };
   return { retrieval, queries };
+}
+
+/** What the scripted feedback provider answers, per kind; a kind without a script is unavailable. */
+export type FeedbackScripts = Partial<Record<FeedbackKind, ProviderScript>>;
+
+/** A deterministic stand-in for the AI's feedback: it answers each kind as scripted and keeps every request. */
+export function fakeFeedbackProvider(scripts: FeedbackScripts) {
+  const requests: FeedbackRequest[] = [];
+  const provider: FeedbackProvider = {
+    word(request) {
+      requests.push(request);
+      const script = scripts[request.kind] ?? { failure: { kind: 'unavailable' } };
+      if ('throws' in script) {
+        throw new Error('provider exploded');
+      }
+      return 'failure' in script ? errAsync(script.failure) : okAsync(script.answer);
+    },
+  };
+  return { provider, requests };
 }

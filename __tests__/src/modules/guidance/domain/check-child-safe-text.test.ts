@@ -58,3 +58,25 @@ describe('checkChildSafeText', () => {
     ]);
   });
 });
+
+describe('checkChildSafeText on feedback (#14)', () => {
+  const DISCOURAGING = 'guidance.child_safety.discouraging';
+
+  it.each([
+    'Noch nicht ganz. Schau dir die Einer noch einmal an.',
+    'Super, wie du die Zehner zuerst gerechnet hast!',
+    'Warum hast du hier plus gerechnet?',
+  ])('lets encouraging feedback through: %s', (text) => {
+    expect(checkChildSafeText(text)).toEqual([]);
+  });
+
+  it.each([
+    'Das ist falsch.',
+    'Schon wieder ein Fehler.',
+    'Das war schlecht gerechnet.',
+    'Ich bin enttäuscht.',
+    'That is wrong.',
+  ])('rejects punishing feedback: %s', (text) => {
+    expect(checkChildSafeText(text)).toEqual([DISCOURAGING]);
+  });
+});

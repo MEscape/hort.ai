@@ -1,5 +1,6 @@
 import type { ActorId, TenantId } from '@modules/auth';
 
+import type { FeedbackKind } from '../models/feedback-request';
 import type { HintFallbackReason } from '../models/hint-fallback-reason';
 import type { HintLevel } from '../models/hint-level';
 import type { ChildProfileId } from '../models/ids';
@@ -11,6 +12,13 @@ import type { ChildProfileId } from '../models/ids';
 export type GuidanceEvent =
   | {
       readonly type: 'guidance.hint_fallback_used';
+      readonly level: HintLevel;
+      readonly reason: HintFallbackReason;
+      readonly codes: readonly string[];
+    }
+  | {
+      readonly type: 'guidance.feedback_fallback_used';
+      readonly kind: FeedbackKind;
       readonly level: HintLevel;
       readonly reason: HintFallbackReason;
       readonly codes: readonly string[];
