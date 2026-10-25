@@ -43,6 +43,8 @@ function ReviewSection({ title, editLabel, onEdit, children }: ReviewSectionProp
         <Button type="button" variant="ghost" size="sm" className="min-h-11" onClick={onEdit}>
           <Pencil aria-hidden="true" />
           {editLabel}
+          {/* Four "Change" buttons in a row: the section name tells them apart for a screen reader. */}
+          <span className="sr-only">: {title}</span>
         </Button>
       </div>
       {children}

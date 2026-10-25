@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-import { RETURN_PATH_MAX_LENGTH } from '../navigation/return-path';
+import { RETURN_PATH_MAX_LENGTH, resolveReturnPath } from '../navigation/return-path';
+import { DEFAULT_RETURN_PATH } from '../routes';
 
 import { tokenSchema } from './auth-fields-schema';
 
@@ -26,6 +27,12 @@ export function parseSignInPageParams(raw: unknown): {
   readonly returnTo: string | undefined;
 } {
   return { returnTo: returnToSchema.parse(raw).returnTo };
+}
+
+/** The settings page's back arrow: a same-site path, never the settings page itself. */
+export function parseSettingsPageParams(raw: unknown): { readonly backHref: string } {
+  const backHref = resolveReturnPath(returnToSchema.parse(raw).returnTo);
+  return { backHref: backHref.startsWith('/settings') ? DEFAULT_RETURN_PATH : backHref };
 }
 
 export function parseResetPasswordPageParams(raw: unknown): {

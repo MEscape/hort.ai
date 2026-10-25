@@ -81,7 +81,6 @@ export function createWorld() {
       okAsync(
         [...rows.values()]
           .filter((row) => row.classroomId === classroomId && row.tenantId === tenantId)
-          .reverse()
           .slice(0, limit)
           .map(({ id, title, text, dueDate }): ChildAssignment => ({
             id,

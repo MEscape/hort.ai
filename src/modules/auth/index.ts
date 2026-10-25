@@ -20,6 +20,9 @@ export { actorHasPermission } from './domain/models/authorize';
 /** Authorization: every protected use case of every module receives this. */
 export type { AuthorizationError, AuthorizationService } from './application/authorization-service';
 export { getAccessControl, getAuthQueries, isAuthEnabled } from './composition';
+export { getParentAreaServices } from './composition';
+export { ParentAccessForm } from './presentation/components/parent-access-form';
+export { ReturnToChildButton } from './presentation/components/return-to-child-button';
 /** The Alexa demo coupling: a server-verified channel acting for one configured child only. */
 export { runAsChildChannel } from './composition';
 
@@ -70,8 +73,10 @@ export { AccountSettings } from './presentation/components/account-settings';
 export { default as enAuth } from './presentation/i18n/en.json';
 export { default as deAuth } from './presentation/i18n/de.json';
 export { requireSignedIn } from './presentation/guards/require-signed-in';
+export { redirectIfSignedIn } from './presentation/guards/redirect-if-signed-in';
 export {
   parseSignInPageParams,
+  parseSettingsPageParams,
   parseResetPasswordPageParams,
   parseEmailVerifiedPageParams,
 } from './presentation/schemas/page-params-schema';

@@ -9,6 +9,7 @@ export interface PictureStateView {
   readonly attach: (picture: HTMLImageElement | null) => (() => void) | undefined;
   /** For `onError`. */
   readonly markFailed: () => void;
+  readonly markReady: () => void;
 }
 
 /**
@@ -19,10 +20,25 @@ export interface PictureStateView {
  * one is decoded right away, in the background, so its first swap in is not slow either.
  */
 export function usePictureState(url: string | undefined): PictureStateView {
-  const [state, setState] = useState<PictureState>('ready');
+  const [snapshot, setSnapshot] = useState<{ url: string | undefined; state: PictureState }>({
+    url,
+    // Server-rendered pictures start drawn; attach() marks one that is still loading as pending.
+    state: 'ready',
+  });
+  const setState = useCallback(
+    (state: PictureState) => {
+      setSnapshot({ url, state });
+    },
+    [url],
+  );
   const attach = useCallback(
     (picture: HTMLImageElement | null) => {
-      if (picture === null || url === undefined || !('decode' in picture)) {
+      if (picture === null || url === undefined) {
+        return undefined;
+      }
+      // Without decode() nothing can tell when the picture is there, so it is drawn as it is.
+      if (!('decode' in picture)) {
+        setState('ready');
         return undefined;
       }
       let isCurrent = true;
@@ -47,14 +63,17 @@ export function usePictureState(url: string | undefined): PictureStateView {
         isCurrent = false;
       };
     },
-    [url],
+    [url, setState],
   );
 
   return {
-    state,
+    state: snapshot.url === url ? snapshot.state : 'pending',
     attach,
     markFailed: () => {
       setState('failed');
+    },
+    markReady: () => {
+      setState('ready');
     },
   };
 }
