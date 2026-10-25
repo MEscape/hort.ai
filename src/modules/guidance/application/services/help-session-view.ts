@@ -36,6 +36,7 @@ export function toHelpSessionView(session: HelpSession): HelpSessionView {
       hintLevel,
     })),
     openQuestion: open?.question ? toQuestion(open.question.text) : null,
+    opening: session.topic.opening,
     updatedAt: session.updatedAt.toISOString(),
   };
 }

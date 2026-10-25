@@ -5,51 +5,29 @@ import { useId } from 'react';
 import { useFormState } from 'react-hook-form';
 
 import { TextField } from '@components/shared/text-field';
-import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert';
+import { Alert, AlertDescription } from '@components/ui/alert';
 import { Button } from '@components/ui/button';
-import { CircleCheck, TriangleAlert } from '@components/ui/icons';
-
-import { useRouter } from '@i18n';
+import { TriangleAlert } from '@components/ui/icons';
 
 import { useTranslations } from '@i18n/client';
-
-import { useFocusOnMount } from '@/hooks/use-focus-on-mount';
 
 import { CLASSROOM_LIMITS } from '../../application/contracts/classroom-constraints';
 import { useCreateClassroomForm } from '../hooks/use-create-classroom-form';
 
-/** A teacher's first class: name and grade. Afterwards the invite code is shown exactly once. */
-export function CreateClassroomForm() {
+interface CreateClassroomFormProps {
+  /** Called once the class exists (the add-class dialog closes); the code dialog takes over. */
+  readonly onCreated?: () => void;
+}
+
+/**
+ * A new class: name and grade. The invite code is shown by `ClassroomCreationProvider`'s dialog,
+ * which must be rendered above this form.
+ */
+export function CreateClassroomForm({ onCreated }: CreateClassroomFormProps) {
   const t = useTranslations('classroom');
   const id = useId();
-  const router = useRouter();
-  const state = useCreateClassroomForm();
+  const state = useCreateClassroomForm(onCreated);
   const { errors } = useFormState({ control: state.form.control });
-  const codeRef = useFocusOnMount<HTMLDivElement>(state.inviteCode !== null);
-
-  if (state.inviteCode !== null) {
-    return (
-      <Alert variant="success" ref={codeRef} tabIndex={-1}>
-        <CircleCheck aria-hidden="true" />
-        <AlertTitle>{t('create.createdTitle')}</AlertTitle>
-        <AlertDescription>
-          <p>{t('create.codeHint')}</p>
-          <p className="my-3 font-heading text-3xl tracking-widest text-copy">
-            <span className="sr-only">{t('create.codeLabel')} </span>
-            {state.inviteCode}
-          </p>
-          <Button
-            type="button"
-            onClick={() => {
-              router.refresh();
-            }}
-          >
-            {t('create.continue')}
-          </Button>
-        </AlertDescription>
-      </Alert>
-    );
-  }
 
   return (
     <form onSubmit={state.onSubmit} noValidate aria-busy={state.isPending} className="space-y-5">

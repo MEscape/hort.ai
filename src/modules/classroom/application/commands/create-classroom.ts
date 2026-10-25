@@ -26,17 +26,18 @@ export class CreateClassroom {
     ClassroomWithInviteCodeView,
     AuthorizationError | InfrastructureAppError | ValidationAppError
   > {
-    const { authorization, classrooms, inviteCodes, audit } = this.deps;
+    const { authorization, classrooms, inviteCodes, inviteCodeVault, audit } = this.deps;
 
     return authorization.requireInTenant('classroom.create').andThen((actor) =>
       createClassroomDraft(input).asyncAndThen((draft) => {
         const issued = inviteCodes.issue();
+        const owner = { tenantId: actor.tenantId, ownerId: actor.id };
         return classrooms
           .create({
-            tenantId: actor.tenantId,
-            ownerId: actor.id,
+            ...owner,
             draft,
             inviteCodeHash: issued.hash,
+            sealedInviteCode: inviteCodeVault.seal(issued.code, owner),
           })
           .map((classroom) => {
             audit.record({
