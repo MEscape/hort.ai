@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { SPEECH_LIMITS } from '../../application/contracts/voice-constraints';
+import { messageKeyForCode } from '../messages/message-keys';
 
 export type VoiceInputStatus = 'idle' | 'recording' | 'transcribing';
 
@@ -30,13 +31,12 @@ function supportedType(): string | undefined {
 }
 
 function problemOf(code: unknown): VoiceInputProblem {
-  if (code === 'voice.consent_required' || code === 'voice.child_profile_not_found') {
-    return 'consent_required';
-  }
-  if (code === 'voice.rate_limited') {
-    return 'busy';
-  }
-  return 'failed';
+  const key = messageKeyForCode(typeof code === 'string' ? code : '');
+  return key === 'input.problem.consent_required'
+    ? 'consent_required'
+    : key === 'input.problem.busy'
+      ? 'busy'
+      : 'failed';
 }
 
 async function transcribe(childProfileId: string, recording: Blob): Promise<string> {
@@ -142,6 +142,8 @@ export function useVoiceInput(
     setStatus('idle');
   };
 
+  const shouldDiscardStream = () => !mountedRef.current || stopRequestedRef.current;
+
   const start = async () => {
     setProblem(null);
     if (typeof MediaRecorder === 'undefined' || !('mediaDevices' in navigator)) {
@@ -162,7 +164,7 @@ export function useVoiceInput(
     } finally {
       startingRef.current = false;
     }
-    if (!mountedRef.current || stopRequestedRef.current) {
+    if (shouldDiscardStream()) {
       stream.getTracks().forEach((track) => {
         track.stop();
       });

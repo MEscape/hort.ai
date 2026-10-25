@@ -15,6 +15,7 @@ import { messageNotFound, voiceConsentRequired } from '../../domain/errors/voice
 import { parseChildProfileId, toSpeakerId } from '../../domain/models/ids';
 import { speakableText } from '../../domain/models/utterance';
 
+import type { SpeakerId } from '../../domain/models/ids';
 import type { ChildCompanion } from '../../domain/ports/companion-messages.port';
 import type { IssueReadAloudTicketInput } from '../contracts/voice-inputs';
 import type { ReadAloudTicketView } from '../contracts/voice-views';
@@ -72,7 +73,7 @@ export class IssueReadAloudTicket {
   }
 
   /** The child's companion when it has a voice, otherwise the narrator. */
-  private speakerOf(companion: ChildCompanion): string {
+  private speakerOf(companion: ChildCompanion): SpeakerId {
     const tutor = companion.tutorId === null ? null : toSpeakerId(companion.tutorId);
     return tutor !== null && this.deps.voices.voiceFor(tutor) !== null ? tutor : NARRATOR;
   }

@@ -16,8 +16,8 @@ function setup(consent = true) {
   const ticket = tickets.issue('Try a small step.', {
     tenantId: 'default' as never,
     actorId: 'parent-1' as never,
-    childProfileId: 'child-1',
-    speakerId: 'max',
+    childProfileId: 'child-1' as never,
+    speakerId: 'max' as never,
   });
   return { deps, ticket, query: new SynthesizeSpeech(deps) };
 }
@@ -68,8 +68,8 @@ describe('companion playback consent and binding', () => {
       deps.tickets.redeem(ticket, {
         tenantId: 'default' as never,
         actorId: 'parent-1' as never,
-        childProfileId: 'child-1',
-        speakerId: 'lili',
+        childProfileId: 'child-1' as never,
+        speakerId: 'lili' as never,
       }),
     ).toBe(null);
   });

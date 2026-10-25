@@ -63,11 +63,18 @@ export class SynthesizeSpeech {
         if (voiceId === null) {
           return errAsync(unknownSpeaker());
         }
+        const childId =
+          input.childProfileId === undefined
+            ? ok(undefined)
+            : parseChildProfileId(input.childProfileId);
+        if (childId.isErr()) {
+          return errAsync(childId.error);
+        }
         const holder: TicketHolder = {
           tenantId: actor.tenantId,
           actorId: actor.id,
-          speakerId: input.speakerId,
-          ...(input.childProfileId === undefined ? {} : { childProfileId: input.childProfileId }),
+          speakerId: speakerId.value,
+          ...(childId.value === undefined ? {} : { childProfileId: childId.value }),
         };
         return this.wordsOf(input.source, speakerId.value, holder)
           .andThen(speakableText)
