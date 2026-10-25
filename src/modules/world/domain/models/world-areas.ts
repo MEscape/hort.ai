@@ -130,3 +130,59 @@ export function resolveArea(
   const hit = aiId === undefined ? undefined : AREA_BY_ID.get(aiId);
   return hit !== undefined && confidence >= minConfidence ? hit : SURPRISE_ISLAND;
 }
+
+/** How an island is drawn for one child; `unknown` (no record could be read) draws no mist. */
+export type IslandDiscovery = 'unknown' | 'revealed' | 'unrevealed';
+
+/**
+ * An island clears once the child did real homework there (`homeworkAreaIds`, read from the child's
+ * stored help sessions); looking at or tapping it never clears it. The starting island is always
+ * clear, and nothing ever goes back into the mist. `null` means the record is unknown.
+ */
+export function discoveryOf(
+  areaId: string,
+  homeworkAreaIds: ReadonlySet<string> | null,
+): IslandDiscovery {
+  if (homeworkAreaIds === null) {
+    return 'unknown';
+  }
+  return areaId === FALLBACK_AREA_ID || homeworkAreaIds.has(areaId) ? 'revealed' : 'unrevealed';
+}
+
+/** The school subjects a help session is grounded in (the hints' subjects, `HINT_SUBJECTS`). */
+export type SchoolSubject = 'math' | 'german' | 'english' | 'general_studies';
+
+/** Islands outside the four school subjects (music, art, sport, study skills) count as general studies. */
+const SCHOOL_SUBJECT = {
+  mathe: 'math',
+  deutsch: 'german',
+  'sachunterricht-natur': 'general_studies',
+  'sachunterricht-gesellschaft': 'general_studies',
+  'sprachen-kunst': 'general_studies',
+  zusammenleben: 'general_studies',
+  lernen: 'general_studies',
+} as const satisfies Record<Subject, SchoolSubject>;
+
+/** The English harbour is the one language island that is a school subject of its own. */
+const ENGLISH_AREA_ID: AreaId = 'hafen';
+
+/** The school subject a task on this island belongs to. */
+export function schoolSubjectOf(areaId: AreaId): SchoolSubject {
+  return areaId === ENGLISH_AREA_ID
+    ? 'english'
+    : SCHOOL_SUBJECT[AREA_BY_ID.get(areaId)?.subject ?? 'lernen'];
+}
+
+/**
+ * The islands a classifier may pick from for a task in `subject` at `grade`: never the fallback,
+ * which is what an unsure answer leads to anyway.
+ */
+export function areasForSchoolSubject(subject: SchoolSubject, grade: number): readonly WorldArea[] {
+  return WORLD_AREAS.filter(
+    (area) =>
+      area.id !== FALLBACK_AREA_ID &&
+      schoolSubjectOf(area.id) === subject &&
+      area.grades[0] <= grade &&
+      grade <= area.grades[1],
+  );
+}

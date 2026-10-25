@@ -1,0 +1,10 @@
+{
+  "reason": "The world areas are a fixed taxonomy other modules classify into: guidance's topic classification offers the islands as candidates and validates the answer with these pure functions, so they may be called at runtime from another module's domain and application code.",
+  "runtimeExports": [
+    "FALLBACK_AREA_ID",
+    "WORLD_AREAS",
+    "areasForSchoolSubject",
+    "islandTopic",
+    "resolveArea"
+  ]
+}

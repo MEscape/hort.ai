@@ -4,9 +4,19 @@
  * validated classification (`resolveArea`), never by the AI's own words. The islands hold no
  * learning content of their own. The module has no translations: the pages pass translated labels.
  */
-export { FALLBACK_AREA_ID, WORLD_AREAS } from './application/contracts/world-constraints';
+export {
+  FALLBACK_AREA_ID,
+  WORLD_AREAS,
+  areasForSchoolSubject,
+  resolveArea,
+} from './application/contracts/world-constraints';
 /** The island catalog and its delivered picture widths, for `scripts/world-assets.ts`. */
 export { ISLAND_IMAGE_WIDTHS, islandCatalog } from './presentation/catalog/island-catalog';
-export type { Subject, WorldArea } from './application/contracts/world-constraints';
-export { worldIsland, worldIslands } from './presentation/dto/island-dto';
-export type { IslandArtDto, IslandDto } from './presentation/dto/island-dto';
+export type {
+  AreaId,
+  SchoolSubject,
+  Subject,
+  WorldArea,
+} from './application/contracts/world-constraints';
+export { islandTopic, worldIsland, worldIslands } from './presentation/dto/island-dto';
+export type { IslandArtDto, IslandDto, IslandTopic } from './presentation/dto/island-dto';

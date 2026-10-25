@@ -8,6 +8,8 @@ import { ArrowRight } from '@components/ui/icons';
 
 import { Link } from '@i18n';
 
+import { buildQueryString } from '@lib/utils';
+
 import { IslandPicture } from './island-picture';
 import { LocationMarker } from './location-marker';
 
@@ -15,7 +17,7 @@ import type { IslandDto } from '../dto/island-dto';
 
 export interface IslandViewProps {
   readonly island: IslandDto;
-  /** Where a homework task is started (the app shell's task entry). */
+  /** Where a homework task is started (the app shell's task entry); the island and place are added. */
   readonly startHref: string;
   readonly labels: IslandViewLabels;
 }
@@ -27,6 +29,8 @@ export interface IslandViewLabels {
   readonly pickPlace: string;
   readonly noPlaces: string;
   readonly start: string;
+  /** Said instead of the places on an island still in the mist. */
+  readonly inMist: string;
 }
 
 /**
@@ -37,6 +41,27 @@ export interface IslandViewLabels {
 export function IslandView({ island, startHref, labels }: IslandViewProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = island.locations.find((location) => location.id === selectedId);
+
+  // In the mist: no places and no way to start here; homework classified here clears it.
+  if (island.discovery === 'unrevealed') {
+    return (
+      <div className="flex flex-col gap-6">
+        <IslandPicture
+          art={island.art}
+          picture={island.picture}
+          sizes="(min-width: 48rem) 48rem, 100vw"
+          isPriority
+          discovery={island.discovery}
+          className="mx-auto max-w-3xl"
+        />
+        <Card className="measure mx-auto w-full">
+          <CardContent>
+            <p className="text-copy-muted">{labels.inMist}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -74,7 +99,9 @@ export function IslandView({ island, startHref, labels }: IslandViewProps) {
             )}
           </div>
           <Button asChild size="lg">
-            <Link href={startHref}>
+            <Link
+              href={`${startHref}${buildQueryString({ area: island.areaId, place: selected?.id })}`}
+            >
               {labels.start}
               <ArrowRight aria-hidden="true" />
             </Link>

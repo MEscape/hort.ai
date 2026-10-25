@@ -3,8 +3,11 @@ import { describe, expect, it } from 'vitest';
 import {
   FALLBACK_AREA_ID,
   WORLD_AREAS,
+  areasForSchoolSubject,
+  discoveryOf,
   isAreaId,
   resolveArea,
+  schoolSubjectOf,
 } from '@modules/world/domain/models/world-areas';
 
 describe('world areas', () => {
@@ -52,5 +55,51 @@ describe('world areas', () => {
   it('narrows only real area ids', () => {
     expect(isAreaId('maerchenwald')).toBe(true);
     expect(isAreaId('toString')).toBe(false);
+  });
+});
+
+describe('island discovery', () => {
+  it('keeps every island but the start in mist until the child did homework there', () => {
+    const homework = new Set(['zahlenwald']);
+    expect(discoveryOf('zahlenwald', homework)).toBe('revealed');
+    expect(discoveryOf('maerchenwald', homework)).toBe('unrevealed');
+  });
+
+  it('always shows the starting island clear, even before any homework', () => {
+    expect(discoveryOf(FALLBACK_AREA_ID, new Set())).toBe('revealed');
+  });
+
+  it('draws no mist at all while the record is unknown, so a failed load never hides an island', () => {
+    expect(discoveryOf('zahlenwald', null)).toBe('unknown');
+  });
+});
+
+describe('school subjects of the islands', () => {
+  it('grounds an island in the school subject its homework belongs to', () => {
+    expect(schoolSubjectOf('zahlenwald')).toBe('math');
+    expect(schoolSubjectOf('maerchenwald')).toBe('german');
+    expect(schoolSubjectOf('hafen')).toBe('english');
+    expect(schoolSubjectOf('tierwiese')).toBe('general_studies');
+    expect(schoolSubjectOf('musikwiese')).toBe('general_studies');
+  });
+
+  it('offers a classifier only the islands of the subject and grade, never the fallback', () => {
+    const ids = areasForSchoolSubject('math', 1).map((area) => area.id);
+    expect(ids).toContain('zahlenwald');
+    expect(ids).not.toContain('malmuehle');
+    expect(ids).not.toContain('maerchenwald');
+    expect(areasForSchoolSubject('general_studies', 4).map((area) => area.id)).not.toContain(
+      FALLBACK_AREA_ID,
+    );
+  });
+
+  it('gives every island exactly one subject list it can be found in', () => {
+    const subjects = ['math', 'german', 'english', 'general_studies'] as const;
+    for (const area of WORLD_AREAS.filter((candidate) => candidate.id !== FALLBACK_AREA_ID)) {
+      const lists = subjects.filter((subject) =>
+        areasForSchoolSubject(subject, area.grades[0]).some((offered) => offered.id === area.id),
+      );
+      expect(lists).toEqual([schoolSubjectOf(area.id)]);
+    }
   });
 });

@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 
 import { notFound } from 'next/navigation';
 
-import { AuthFormSkeleton, requireSignedIn } from '@modules/auth';
+import { requireSignedIn } from '@modules/auth';
 import { requireOnboarded } from '@modules/learner';
 import { worldIsland } from '@modules/world';
 import { IslandView, worldRoutes } from '@modules/world/client';
@@ -17,12 +17,16 @@ import { getMessages, getTranslations } from '@i18n/server';
 import { serverEnv } from '@lib/config/server';
 import { buildPrivateMetadata } from '@lib/seo';
 
+import { loadHomeworkAreaIds } from '@/app/_lib/homework-area-ids';
+
+import { IslandLoading } from '../_components/world-loading';
+
 interface IslandPageParams {
   readonly params: Promise<{ locale: string; areaId: string }>;
 }
 
-/** The homework task entry; the start screen owns it until the help sessions (#12) get a module route. */
-const START_HREF = '/home/task';
+/** The task entry that starts a help session; without `?child=` it uses the onboarded child. */
+const START_HREF = '/start';
 
 export async function generateMetadata({ params }: IslandPageParams) {
   const { locale, areaId } = await params;
@@ -33,11 +37,16 @@ export async function generateMetadata({ params }: IslandPageParams) {
 async function Island({ params }: IslandPageParams) {
   const { areaId } = await params;
   await requireSignedIn(worldRoutes.island(areaId));
-  await requireOnboarded();
+  const child = await requireOnboarded();
   const { app } = await getMessages();
   // The segment is untrusted input: an id that is not a world area is a missing page.
   const island =
-    worldIsland(areaId, serverEnv.STORAGE_PUBLIC_BASE_URL, app.world.areas) ?? notFound();
+    worldIsland(
+      areaId,
+      serverEnv.STORAGE_PUBLIC_BASE_URL,
+      app.world.areas,
+      await loadHomeworkAreaIds(child.id),
+    ) ?? notFound();
   const t = await getTranslations('app');
   return (
     <main className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 py-6 sm:px-6">
@@ -61,9 +70,20 @@ async function Island({ params }: IslandPageParams) {
           pickPlace: t('world.island.pickPlace'),
           noPlaces: t('world.island.noPlaces'),
           start: t('world.island.start'),
+          inMist: t('world.island.inMist'),
         }}
       />
     </main>
+  );
+}
+
+/** Reads the segment (inside Suspense) and shows the island's placeholder in its language. */
+async function IslandWithLoading({ params }: IslandPageParams) {
+  const locale = requireLocale((await params).locale);
+  return (
+    <Suspense fallback={<IslandLoading locale={locale} />}>
+      <Island params={params} />
+    </Suspense>
   );
 }
 
@@ -74,8 +94,8 @@ async function Island({ params }: IslandPageParams) {
 export default function IslandPage({ params }: IslandPageParams) {
   return (
     <div data-world="lagoon" className="min-h-dvh bg-world">
-      <Suspense fallback={<AuthFormSkeleton />}>
-        <Island params={params} />
+      <Suspense fallback={null}>
+        <IslandWithLoading params={params} />
       </Suspense>
     </div>
   );

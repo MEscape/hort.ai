@@ -27,9 +27,9 @@ const isHome = (areaId: string) => {
 };
 
 /**
- * A small live look at the child's world: the islands found so far are clear, the rest lie in fog.
- * It is a reward layer to wander through, never a path to complete: nothing here is locked, counted
- * or timed. The fog is a pale veil over the island, and the sentence for a screen reader says it.
+ * A small live look at the child's world: the start and the islands of the child's own homework
+ * are clear, the rest lie in a light mist. It is a place to wander through, never a path to
+ * complete or a reward: nothing here is locked, counted or timed. The fog is a pale veil over the island, and the sentence for a screen reader says it.
  * The islands stand in a row in the same left-to-right order as on the map, the starting island in
  * the middle and a little bigger; a row has its own height, so it never runs into the title.
  */

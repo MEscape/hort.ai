@@ -1,7 +1,18 @@
-import { WORLD_AREAS } from '../../application/contracts/world-constraints';
+import {
+  WORLD_AREAS,
+  discoveryOf,
+  isAreaId,
+  schoolSubjectOf,
+} from '../../application/contracts/world-constraints';
 import { islandCatalog, islandPicture } from '../catalog/island-catalog';
 
-import type { Subject, WorldArea } from '../../application/contracts/world-constraints';
+import type {
+  AreaId,
+  IslandDiscovery,
+  SchoolSubject,
+  Subject,
+  WorldArea,
+} from '../../application/contracts/world-constraints';
 import type { IslandPictureSource } from '../catalog/island-catalog';
 import type { Biome, Glyph } from '../catalog/island-vocabulary';
 import type { IslandEntry } from '../schemas/island-catalog-schema';
@@ -32,8 +43,18 @@ export interface IslandDto {
   readonly locations: readonly IslandLocationDto[];
   /** The uploaded illustration, or `null`: then the placeholder is drawn. */
   readonly picture: IslandPictureSource | null;
-  /** No persistence exists yet. Unknown must never be reported as a saved reveal. */
-  readonly discovery: 'unknown' | 'revealed' | 'unrevealed';
+  /** From the child's own homework (`discoveryOf`); unknown when no record was read. */
+  readonly discovery: IslandDiscovery;
+  /** The child already did homework on this island; a record, never a reward. */
+  readonly hadHomework: boolean;
+}
+
+/** The island (and optionally the place on it) a homework task was started from. */
+export interface IslandTopic {
+  readonly areaId: AreaId;
+  readonly placeId: string | null;
+  /** The school subject the help session is grounded in. */
+  readonly subject: SchoolSubject;
 }
 
 /** The ground of an area the catalog does not know yet (a new entry of `WORLD_AREAS`). */
@@ -104,6 +125,19 @@ export function toIslandDto(
     })),
     picture: base === undefined ? null : islandPicture(baseUrl?.replace(/\/$/, ''), area.id, base),
     discovery: 'unknown',
+    hadHomework: false,
+  };
+}
+
+/** `homeworkAreaIds` are the islands of the child's own help sessions; `undefined` is no record. */
+function discovered(
+  island: IslandDto,
+  homeworkAreaIds: ReadonlySet<string> | undefined,
+): IslandDto {
+  return {
+    ...island,
+    discovery: discoveryOf(island.areaId, homeworkAreaIds ?? null),
+    hadHomework: homeworkAreaIds?.has(island.areaId) ?? false,
   };
 }
 
@@ -111,9 +145,13 @@ export function toIslandDto(
 export function worldIslands(
   baseUrl: string | undefined,
   labels?: WorldLabels,
+  homeworkAreaIds?: ReadonlySet<string>,
 ): readonly IslandDto[] {
   return WORLD_AREAS.map((area) =>
-    localized(toIslandDto(area, ISLAND_BY_AREA.get(area.id), baseUrl), labels),
+    discovered(
+      localized(toIslandDto(area, ISLAND_BY_AREA.get(area.id), baseUrl), labels),
+      homeworkAreaIds,
+    ),
   );
 }
 
@@ -122,9 +160,31 @@ export function worldIsland(
   areaId: string,
   baseUrl: string | undefined,
   labels?: WorldLabels,
+  homeworkAreaIds?: ReadonlySet<string>,
 ): IslandDto | null {
   const area = WORLD_AREAS.find((candidate) => candidate.id === areaId);
   return area === undefined
     ? null
-    : localized(toIslandDto(area, ISLAND_BY_AREA.get(area.id), baseUrl), labels);
+    : discovered(
+        localized(toIslandDto(area, ISLAND_BY_AREA.get(area.id), baseUrl), labels),
+        homeworkAreaIds,
+      );
+}
+
+/**
+ * Validates an island and place from untrusted input (a link's query, an action's payload): the
+ * island must be a world area and the place one of that island's own places, or there is no topic.
+ */
+export function islandTopic(
+  areaId: string | undefined,
+  placeId: string | undefined,
+): IslandTopic | null {
+  if (areaId === undefined || !isAreaId(areaId)) {
+    return null;
+  }
+  const places = ISLAND_BY_AREA.get(areaId)?.locations ?? [];
+  if (placeId !== undefined && !places.some((p) => p.id === placeId)) {
+    return null;
+  }
+  return { areaId, placeId: placeId ?? null, subject: schoolSubjectOf(areaId) };
 }

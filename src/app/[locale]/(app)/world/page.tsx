@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 
-import { AuthFormSkeleton, requireSignedIn } from '@modules/auth';
+import { requireSignedIn } from '@modules/auth';
 import { learnerRoutes, requireOnboarded } from '@modules/learner';
 import { worldIslands } from '@modules/world';
 import type { Subject } from '@modules/world';
@@ -16,6 +16,10 @@ import { getMessages, getTranslations } from '@i18n/server';
 import { serverEnv } from '@lib/config/server';
 import { buildPrivateMetadata } from '@lib/seo';
 
+import { loadHomeworkAreaIds } from '@/app/_lib/homework-area-ids';
+
+import { WorldMapLoading } from './_components/world-loading';
+
 export async function generateMetadata({
   params,
 }: {
@@ -28,11 +32,15 @@ export async function generateMetadata({
 
 async function IslandWorld() {
   await requireSignedIn(worldRoutes.map());
-  await requireOnboarded();
+  const child = await requireOnboarded();
   const t = await getTranslations('app');
   // Pictures come from the public container of this environment; without one, every island is drawn.
   const { app } = await getMessages();
-  const islands = worldIslands(serverEnv.STORAGE_PUBLIC_BASE_URL, app.world.areas);
+  const islands = worldIslands(
+    serverEnv.STORAGE_PUBLIC_BASE_URL,
+    app.world.areas,
+    await loadHomeworkAreaIds(child.id),
+  );
   const subjects = {
     deutsch: t('world.subjects.deutsch'),
     mathe: t('world.subjects.mathe'),
@@ -61,16 +69,23 @@ async function IslandWorld() {
           hint: t('world.explore.hint'),
           jump: t('world.explore.jump'),
           home: t('world.explore.home'),
+          homeworkHere: t('world.explore.homeworkHere'),
+          inMist: t('world.explore.inMist'),
         }}
       />
     </main>
   );
 }
 
-export default function WorldPage() {
+export default async function WorldPage({
+  params,
+}: {
+  readonly params: Promise<{ locale: string }>;
+}) {
+  const locale = requireLocale((await params).locale);
   return (
     <div data-world="lagoon" className="min-h-dvh bg-world">
-      <Suspense fallback={<AuthFormSkeleton />}>
+      <Suspense fallback={<WorldMapLoading locale={locale} />}>
         <IslandWorld />
       </Suspense>
     </div>

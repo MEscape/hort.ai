@@ -11,6 +11,15 @@
   opacity: 0.85;
 }
 
+/* Under the mist the island stays faintly visible: paler and quieter, never hidden or locked. */
+.picture[data-discovery='unrevealed'] > :not(.mist) {
+  opacity: 0.6;
+  filter: saturate(0.45);
+  transition:
+    opacity 700ms,
+    filter 700ms;
+}
+
 .picture[data-atmosphere='forest'] .mist,
 .picture[data-atmosphere='night'] .mist {
   transform: rotate(8deg);

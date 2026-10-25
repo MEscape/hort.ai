@@ -31,6 +31,17 @@ export interface WorldMapLabels {
   readonly jump: string;
   /** The button back to the starting islands. */
   readonly home: string;
+  /** Read after an island where the child already did homework. */
+  readonly homeworkHere: string;
+  /** Read after an island that is still in the mist. */
+  readonly inMist: string;
+}
+
+function statusOf(island: IslandDto, labels: WorldMapLabels): string | undefined {
+  if (island.hadHomework) {
+    return labels.homeworkHere;
+  }
+  return island.discovery === 'unrevealed' ? labels.inMist : undefined;
 }
 
 export interface WorldMapProps {
@@ -69,7 +80,7 @@ export function WorldMap({ islands, subjects, labels }: WorldMapProps) {
         aria-label={labels.jump}
         className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
       >
-        <Button variant="secondary" size="sm" className="shrink-0" onClick={reset}>
+        <Button variant="secondary" className="shrink-0" onClick={reset}>
           <Sparkles aria-hidden="true" />
           {labels.home}
         </Button>
@@ -79,7 +90,6 @@ export function WorldMap({ islands, subjects, labels }: WorldMapProps) {
             <Button
               key={subject}
               variant="outline"
-              size="sm"
               className="shrink-0"
               onClick={() => {
                 glideTo(subjectRegion(subject).center);
@@ -141,6 +151,7 @@ export function WorldMap({ islands, subjects, labels }: WorldMapProps) {
                         >
                           <IslandCard
                             island={island}
+                            status={statusOf(island, labels)}
                             onFocus={(event) => {
                               if (event.currentTarget.matches(':focus-visible')) {
                                 focusAt(worldPosition(island.areaId));
