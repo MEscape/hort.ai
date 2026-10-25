@@ -2,6 +2,7 @@ import type { AssignmentsDependencies } from '@modules/assignments/application/a
 import { CreateAssignment } from '@modules/assignments/application/commands/create-assignment';
 import { DeleteAssignment } from '@modules/assignments/application/commands/delete-assignment';
 import { UpdateAssignment } from '@modules/assignments/application/commands/update-assignment';
+import { GetAssignmentForHelp } from '@modules/assignments/application/queries/get-assignment-for-help';
 import { GetTeacherAssignmentOverview } from '@modules/assignments/application/queries/get-teacher-assignment-overview';
 import { ListChildAssignments } from '@modules/assignments/application/queries/list-child-assignments';
 import type { Assignment, ChildAssignment } from '@modules/assignments/domain/models/assignment';
@@ -90,6 +91,14 @@ export function createWorld() {
             dueDate,
           })),
       ),
+    findForHelp: (id, classroomId, tenantId) => {
+      const row = rows.get(id);
+      return okAsync(
+        row?.classroomId === classroomId && row.tenantId === tenantId
+          ? { id: row.id, text: row.text, solutionKey: row.solutionKey }
+          : null,
+      );
+    },
     create: ({ tenantId, ownerId, classroomId, draft }) => {
       sequence += 1;
       clock += 1;
@@ -180,6 +189,7 @@ export function createWorld() {
       update: new UpdateAssignment(deps),
       remove: new DeleteAssignment(deps),
       childTasks: new ListChildAssignments(deps),
+      forHelp: new GetAssignmentForHelp(deps),
     };
   }
 

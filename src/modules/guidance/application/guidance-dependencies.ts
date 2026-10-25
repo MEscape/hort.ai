@@ -4,6 +4,7 @@ import type { RateLimiter } from '@lib/rate-limit';
 
 import type { AnswerCoach } from './services/answer-coach';
 import type { HintOrchestrator } from './services/hint-orchestrator';
+import type { AssignmentAccess } from '../domain/ports/assignment-access.port';
 import type { ChildProfileAccess } from '../domain/ports/child-profile-access.port';
 import type { CompetencyRetrieval } from '../domain/ports/competency-retrieval.port';
 import type { GuidanceAuditLog } from '../domain/ports/guidance-audit-log.port';
@@ -13,6 +14,8 @@ import type { HintSessionStore } from '../domain/ports/hint-session-store.port';
 export interface SessionStepDependencies {
   readonly authorization: AuthorizationService;
   readonly childProfiles: ChildProfileAccess;
+  /** The teacher's solution key of a session on an assignment (#33). */
+  readonly assignments: AssignmentAccess;
   readonly competencies: CompetencyRetrieval;
   readonly rateLimiter: RateLimiter;
   readonly sessions: HintSessionStore;

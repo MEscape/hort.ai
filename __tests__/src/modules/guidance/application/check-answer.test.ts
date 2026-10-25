@@ -12,16 +12,21 @@ import type { RateLimiter } from '@lib/rate-limit';
 import { createBrokenRateLimiter, createTestRateLimiter } from '../../../support/rate-limiting';
 import { parent, recordingAudit as recordingSecurityAudit, signedInAs } from '../../auth/fakes';
 import {
+  ASSIGNMENT,
+  ASSIGNMENT_TEXT,
   OTHER_CHILD,
   OWN_CHILD,
+  SOLUTION_KEY,
   REQUEST,
   SESSION,
+  fakeAssignments,
   fakeCompetencies,
   fakeFeedbackProvider,
   fakeSessionStore,
   openSession,
   ownChildren,
   recordingAuditLog,
+  task,
 } from '../fakes';
 
 import type { FeedbackScripts } from '../fakes';
@@ -63,6 +68,7 @@ interface BuildOptions {
   readonly scripts?: FeedbackScripts;
   readonly curriculumFails?: true;
   readonly owned?: Parameters<typeof ownChildren>[0];
+  readonly assignments?: ReturnType<typeof fakeAssignments>;
   readonly sessions?: ReturnType<typeof fakeSessionStore>;
 }
 
@@ -77,6 +83,7 @@ function build(options: BuildOptions = {}) {
       audit: recordingSecurityAudit(),
     }),
     childProfiles: ownChildren(options.owned),
+    assignments: (options.assignments ?? fakeAssignments()).access,
     competencies: retrieval,
     rateLimiter: options.rateLimiter ?? createTestRateLimiter(),
     sessions: sessions.store,
@@ -369,5 +376,46 @@ describe('CheckAnswer rate limit (#11, #14)', () => {
       code: 'guidance.rate_limiter_failed',
     });
     expect(requests).toEqual([]);
+  });
+});
+
+describe("CheckAnswer on a teacher's assignment (#33)", () => {
+  const onAssignment = () =>
+    fakeSessionStore([onNextStep({ assignmentId: ASSIGNMENT, task: task(ASSIGNMENT_TEXT) })]);
+
+  it("decides the result with the teacher's key, without asking the AI to assess", async () => {
+    const { checkAnswer, requests, sessions } = build({ sessions: onAssignment() });
+
+    const result = await checkAnswer.execute(input({ answer: SOLUTION_KEY }));
+
+    expect(result._unsafeUnwrap()).toMatchObject({ result: 'correct', assessedBy: 'solution_key' });
+    expect(requests.map((r) => r.kind)).not.toContain('answer_assessment');
+    expect(sessions.checks[0]).toMatchObject({ result: 'correct', assessedBy: 'solution_key' });
+  });
+
+  it('says "not yet" against the key, encouraging and without the key in any text', async () => {
+    const { checkAnswer, requests } = build({ sessions: onAssignment() });
+
+    const feedback = (await checkAnswer.execute(input({ answer: '73' })))._unsafeUnwrap();
+
+    expect(feedback).toMatchObject({ result: 'not_yet', assessedBy: 'solution_key' });
+    expect(JSON.stringify(feedback)).not.toContain(SOLUTION_KEY);
+    expect(JSON.stringify(requests)).not.toContain(SOLUTION_KEY);
+  });
+
+  it('lets the AI assess when the key cannot be read, and logs why', async () => {
+    const { checkAnswer, events } = build({
+      sessions: onAssignment(),
+      assignments: fakeAssignments({ fails: true }),
+    });
+
+    const result = await checkAnswer.execute(input());
+
+    expect(result._unsafeUnwrap()).toMatchObject({ result: 'correct', assessedBy: 'ai' });
+    expect(events).toContainEqual({
+      type: 'guidance.solution_key_unavailable',
+      step: 'answer_check',
+      code: 'assignments.persistence_failed',
+    });
   });
 });

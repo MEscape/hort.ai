@@ -39,8 +39,10 @@ export const getOpenHelpSessionSchema = z.object({
   childProfileId: idSchema(CODES.childProfileIdInvalid),
 });
 
+/** `task` is the child's own text; `assignmentId` a teacher's assignment of the child's class (#33). */
 export const startHelpSessionSchema = getOpenHelpSessionSchema.extend({
-  task: childTextSchema,
+  task: childTextSchema.optional(),
+  assignmentId: idSchema(CODES.assignmentIdInvalid).optional(),
   subject: z
     .string({ message: CODES.subjectInvalid })
     .max(SUBJECT_INPUT_MAX, { message: CODES.subjectInvalid }),

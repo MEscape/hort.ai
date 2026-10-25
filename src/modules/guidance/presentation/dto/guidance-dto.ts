@@ -56,6 +56,7 @@ export type ComprehensionReplyDto = ComprehensionReplyView;
 export function toHelpSessionDto(view: HelpSessionView): HelpSessionDto {
   const {
     sessionId,
+    assignmentId,
     task,
     subject,
     status,
@@ -63,10 +64,12 @@ export function toHelpSessionDto(view: HelpSessionView): HelpSessionDto {
     hints,
     answerChecks,
     openQuestion,
+    opening,
     updatedAt,
   } = view;
   return {
     sessionId,
+    assignmentId,
     task,
     subject,
     status,
@@ -78,6 +81,7 @@ export function toHelpSessionDto(view: HelpSessionView): HelpSessionDto {
       hintLevel: level,
     })),
     openQuestion,
+    opening,
     updatedAt,
   };
 }

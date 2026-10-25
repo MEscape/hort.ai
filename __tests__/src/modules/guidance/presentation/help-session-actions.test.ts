@@ -17,8 +17,12 @@ import { startHelpSessionAction } from '@modules/guidance/presentation/actions/s
 
 import { parent } from '../../auth/fakes';
 import {
+  ASSIGNMENT,
+  ASSIGNMENT_TEXT,
   OTHER_CHILD,
+  OTHER_CLASS_ASSIGNMENT,
   OWN_CHILD,
+  SOLUTION_KEY,
   fakeCompetencies,
   fakeFeedbackProvider,
   fakeHintProvider,
@@ -206,5 +210,54 @@ describe('help session Server Actions', () => {
       'auth.permission_denied',
       'auth.permission_denied',
     ]);
+  });
+});
+
+describe("help session Server Actions on a teacher's assignment (#33)", () => {
+  beforeEach(() => {
+    wire();
+  });
+
+  it("starts on the assignment, checks the answer against the teacher's key, and never returns it", async () => {
+    const started = await startHelpSessionAction({
+      childProfileId: OWN_CHILD,
+      assignmentId: ASSIGNMENT,
+      subject: 'math',
+    });
+    expect(started).toMatchObject({
+      ok: true,
+      data: { outcome: 'started', session: { assignmentId: ASSIGNMENT, task: ASSIGNMENT_TEXT } },
+    });
+    const sessionId = started.ok ? started.data.session.sessionId : '';
+    const step = { childProfileId: OWN_CHILD, sessionId };
+
+    const checked = await checkAnswerAction({
+      ...step,
+      requestId: 'check-1',
+      answer: SOLUTION_KEY,
+    });
+    const wrong = await checkAnswerAction({ ...step, requestId: 'check-2', answer: '73' });
+
+    expect(checked).toMatchObject({
+      ok: true,
+      data: { result: 'correct', assessedBy: 'solution_key' },
+    });
+    expect(wrong).toMatchObject({
+      ok: true,
+      data: { result: 'not_yet', assessedBy: 'solution_key' },
+    });
+    for (const response of [started, wrong]) {
+      expect(JSON.stringify(response)).not.toContain(SOLUTION_KEY);
+    }
+  });
+
+  it("refuses another class's assignment with its own code", async () => {
+    const started = await startHelpSessionAction({
+      childProfileId: OWN_CHILD,
+      assignmentId: OTHER_CLASS_ASSIGNMENT,
+      subject: 'math',
+    });
+
+    expect(started).toMatchObject({ ok: false, error: { code: 'guidance.assignment_not_found' } });
   });
 });

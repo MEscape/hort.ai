@@ -1,7 +1,7 @@
 import { nextHintLevel } from '../../domain/hint-ladder/next-hint-level';
 import { HINT_LEVELS } from '../../domain/models/hint-level';
 
-import { groundInCurriculum } from './session-step';
+import { groundInCurriculum, solutionKeyOf } from './session-step';
 
 import type { OpenSession } from './session-step';
 import type { GivenHint } from '../../domain/models/help-session-state';
@@ -34,7 +34,10 @@ function toOutcome(hint: GivenHint): HintOutcome {
  * child cannot see is worse than one rung that may be offered twice.
  */
 export async function giveNextHint(
-  deps: Pick<RequestHintDependencies, 'hints' | 'sessions' | 'competencies' | 'audit'>,
+  deps: Pick<
+    RequestHintDependencies,
+    'hints' | 'sessions' | 'competencies' | 'assignments' | 'audit'
+  >,
   session: OpenSession,
   requestId: StepRequestId,
 ): Promise<LadderHint> {
@@ -43,11 +46,14 @@ export async function giveNextHint(
     return { given: toStep(toOutcome(earlier)), isReplay: true };
   }
   const level = nextHintLevel(session.state);
-  const competencies = await groundInCurriculum(deps, session, level);
+  const [competencies, solutionKey] = await Promise.all([
+    groundInCurriculum(deps, session, level),
+    solutionKeyOf(deps, session, 'hint'),
+  ]);
+  // The key only checks the AI's text for a leak (#31); it is never part of the request to the AI.
   const outcome = await deps.hints.suggest(
     { task: session.state.task, level, competencies },
-    // TODO(#33): a session on a teacher's assignment brings its solution key; a child's own task has none.
-    null,
+    solutionKey,
   );
   const recorded = await deps.sessions.recordHint(session.ref, { requestId, ...outcome });
   if (recorded.isErr()) {
