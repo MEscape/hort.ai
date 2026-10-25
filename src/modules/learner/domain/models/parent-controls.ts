@@ -14,6 +14,13 @@ const CODES = LEARNER_VALIDATION_CODES;
  */
 export const GUARDIAN_CONSENT_VERSION = '2026-10-24';
 
+/**
+ * The version of the voice notice a parent confirms before a child's recordings may be sent for
+ * transcription (#34). Change it together with the wording of `voiceConsent.notice`, so earlier
+ * confirmations no longer count and the parent is asked again.
+ */
+export const VOICE_NOTICE_VERSION = '2026-10-25';
+
 /** The clock the allowed window is read in: the families this product serves live in Germany. */
 export const LEARNER_TIME_ZONE = 'Europe/Berlin';
 

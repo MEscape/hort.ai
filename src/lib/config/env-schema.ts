@@ -1,13 +1,15 @@
 import { z } from 'zod';
 
+import { aiEnvSchema } from './ai-env-schema';
 import { authEnvSchema } from './auth-env-schema';
-import { integerSetting, postgresUrl } from './env-primitives';
+import { booleanFlag, integerSetting, postgresUrl } from './env-primitives';
 import { refineEnv } from './env-rules';
 import { mailEnvSchema } from './mail-env-schema';
 import { rateLimitEnvRules, rateLimitEnvSchema } from './rate-limit-env-schema';
 import { speechEnvSchema } from './speech-env-schema';
 import { storageEnvSchema } from './storage-env-schema';
 
+import type { AiEnv } from './ai-env-schema';
 import type { AuthEnv } from './auth-env-schema';
 import type { EnvRule } from './env-rules';
 import type { MailEnv } from './mail-env-schema';
@@ -19,6 +21,8 @@ const DEFAULT_NODE_ENV = 'development' as const;
 const DEFAULT_DATABASE_POOL_SIZE = 10;
 const DEFAULT_DATABASE_POOL_TIMEOUT_SECONDS = 10;
 const DEFAULT_LOG_LEVEL = 'info' as const;
+/** Max, the dog: the first tutor of the catalog. */
+const DEFAULT_ALEXA_TUTOR_ID = 'max';
 const DEFAULT_AUDIT_RETENTION_DAYS = 365;
 
 const serverEnvBaseSchema = z.object({
@@ -31,6 +35,15 @@ const serverEnvBaseSchema = z.object({
     .string()
     .regex(/^amzn1\.ask\.skill\.[a-zA-Z0-9-]+$/)
     .optional(),
+
+  /** `false` keeps Alexa's standard voice for every answer; `true` speaks tutor answers in a tutor's voice. */
+  ALEXA_TUTOR_VOICE: booleanFlag(true),
+
+  /** Catalog id of the tutor whose voice Alexa uses. An id without a voice falls back to Alexa's voice. */
+  ALEXA_TUTOR_ID: z
+    .string()
+    .regex(/^[a-z][a-z0-9-]{1,30}$/)
+    .default(DEFAULT_ALEXA_TUTOR_ID),
 
   DATABASE_POOL_SIZE: integerSetting(DEFAULT_DATABASE_POOL_SIZE),
 
@@ -48,7 +61,8 @@ type ServerEnvShape = z.infer<typeof serverEnvBaseSchema> &
   MailEnv &
   RateLimitEnv &
   StorageEnv &
-  SpeechEnv;
+  SpeechEnv &
+  AiEnv;
 
 const isProduction = (env: ServerEnvShape) => env.NODE_ENV === 'production';
 
@@ -84,6 +98,18 @@ const productionRules: ReadonlyArray<EnvRule<ServerEnvShape>> = [
     message: 'MAIL_API_URL must be an https URL in production.',
   },
   {
+    path: 'GEMINI_API_URL',
+    // Every request carries GEMINI_API_KEY and a child's task text.
+    violated: (env) => isProduction(env) && new URL(env.GEMINI_API_URL).protocol !== 'https:',
+    message: 'GEMINI_API_URL must be an https URL in production.',
+  },
+  {
+    path: 'TYPESAFE_API_URL',
+    // Every request carries TYPESAFE_API_KEY and AI text meant for a child.
+    violated: (env) => isProduction(env) && new URL(env.TYPESAFE_API_URL).protocol !== 'https:',
+    message: 'TYPESAFE_API_URL must be an https URL in production.',
+  },
+  {
     path: 'ELEVENLABS_API_URL',
     // Every request carries ELEVENLABS_API_KEY and a child's recorded voice.
     violated: (env) => isProduction(env) && new URL(env.ELEVENLABS_API_URL).protocol !== 'https:',
@@ -105,7 +131,7 @@ const productionRules: ReadonlyArray<EnvRule<ServerEnvShape>> = [
 /**
  * Server-only configuration.
  *
- * Authentication, mail, rate-limit, storage and speech configuration are composed into the
+ * Authentication, mail, rate-limit, storage, speech and AI configuration are composed into the
  * server schema so the application has one validated server configuration
  * object. Rules internal to one domain live in that domain's file and are
  * attached there (authentication, mail) or here (rate limit, which reads
@@ -118,6 +144,7 @@ export const serverEnvSchema = serverEnvBaseSchema
   .and(rateLimitEnvSchema)
   .and(storageEnvSchema)
   .and(speechEnvSchema)
+  .and(aiEnvSchema)
   .superRefine(refineEnv<ServerEnvShape>(rateLimitEnvRules, productionRules));
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

@@ -274,7 +274,8 @@
       "devResetUnavailable": "Das gibt es nur während der Entwicklung.",
       "validation": "Bitte prüfe deine Angaben.",
       "infrastructure": "Das konnten wir gerade nicht speichern. Es wurde nichts geändert. Bitte versuche es gleich noch einmal.",
-      "unexpected": "Wir konnten nicht bestätigen, dass das gespeichert wurde. Bitte versuche es noch einmal."
+      "unexpected": "Wir konnten nicht bestätigen, dass das gespeichert wurde. Bitte versuche es noch einmal.",
+      "voiceNoticeOutdated": "Der Hinweis zur Spracherkennung hat sich geändert. Bitte lies ihn noch einmal und schalte dann ein."
     },
     "validation": {
       "displayNameRequired": "Bitte gib einen Namen für dein Kind ein.",
@@ -288,6 +289,14 @@
       "dailyLimitInvalid": "Bitte wähle eines der angebotenen Limits.",
       "windowInvalid": "Das Zeitfenster muss mindestens 30 Minuten dauern.",
       "guardianConfirmationRequired": "Bitte bestätige, dass du Elternteil oder Erziehungsberechtigte/r bist."
+    },
+    "voiceConsent": {
+      "group": "Spracherkennung",
+      "title": "{name} darf sprechen statt tippen",
+      "notice": "Wenn {name} spricht, schickt Hort die Aufnahme einmal an den Dienst ElevenLabs, der sie in Text umwandelt. Hort speichert die Aufnahme nicht; {name} sieht den Text und kann ihn korrigieren. Du kannst das hier jederzeit wieder ausschalten. Tippen geht immer.",
+      "on": "Spracherkennung ist an",
+      "off": "Spracherkennung ist aus",
+      "version": "Hinweis zur Spracherkennung, Version {version}. Mit dem Einschalten bestätigst du ihn."
     }
   }
 }

@@ -10,7 +10,15 @@ import type { RateLimiter } from '@lib/rate-limit';
 
 import { createBrokenRateLimiter, createTestRateLimiter } from '../../../support/rate-limiting';
 import { parent, recordingAudit as recordingSecurityAudit, signedInAs } from '../../auth/fakes';
-import { OTHER_CHILD, OWN_CHILD, fakeHintProvider, ownChildren, recordingAuditLog } from '../fakes';
+import {
+  OTHER_CHILD,
+  OWN_CHILD,
+  REQUEST,
+  fakeCompetencies,
+  fakeHintProvider,
+  ownChildren,
+  recordingAuditLog,
+} from '../fakes';
 
 import type { ProviderScript } from '../fakes';
 
@@ -22,27 +30,31 @@ interface BuildOptions {
   readonly currentActor?: CurrentActorProvider;
   readonly rateLimiter?: RateLimiter;
   readonly script?: ProviderScript;
+  readonly curriculumFails?: true;
 }
 
 function build(options: BuildOptions = {}) {
   const { provider, requests } = fakeHintProvider(options.script ?? { answer: ANSWER });
   const { audit, events } = recordingAuditLog();
+  const { retrieval, queries } = fakeCompetencies({ fails: options.curriculumFails === true });
   const requestHint = new RequestHint({
     authorization: createAuthorizationService({
       currentActor: options.currentActor ?? signedInAs(parent()),
       audit: recordingSecurityAudit(),
     }),
     childProfiles: ownChildren(),
+    competencies: retrieval,
     rateLimiter: options.rateLimiter ?? createTestRateLimiter(),
     hints: new HintOrchestrator({ provider, audit }),
     audit,
   });
-  return { requestHint, requests, events };
+  return { requestHint, requests, events, queries };
 }
 
 const input = (overrides: Partial<Parameters<RequestHint['execute']>[0]> = {}) => ({
   childProfileId: OWN_CHILD,
   task: TASK,
+  subject: 'math',
   level: 'next_step' as const,
   ...overrides,
 });
@@ -129,6 +141,41 @@ describe('RequestHint', () => {
     expect(requests).toEqual([]);
   });
 
+  it('refuses a subject outside the list, without asking the AI', async () => {
+    const { requestHint, requests } = build();
+
+    const result = await requestHint.execute(input({ subject: 'physics' }));
+
+    expect(result.isErr() && result.error).toMatchObject({
+      kind: 'validation',
+      fieldErrors: { subject: ['guidance.validation.subject_invalid'] },
+    });
+    expect(requests).toEqual([]);
+  });
+
+  it("grounds the hint in the curriculum of the child's own state and grade (#28)", async () => {
+    const { requestHint, requests, queries } = build();
+
+    await requestHint.execute(input());
+
+    expect(queries).toEqual([{ federalState: 'BY', grade: 2, subject: 'math', task: TASK }]);
+    expect(requests.map((r) => r.competencies)).toEqual([REQUEST.competencies]);
+  });
+
+  it('still gives the hint ungrounded when the curriculum is unreachable, and logs why', async () => {
+    const { requestHint, requests, events } = build({ curriculumFails: true });
+
+    const result = await requestHint.execute(input());
+
+    expect(result.isOk() && result.value).toMatchObject({ kind: 'generated' });
+    expect(requests.map((r) => r.competencies)).toEqual([[]]);
+    expect(events[0]).toEqual({
+      type: 'guidance.grounding_unavailable',
+      level: 'next_step',
+      code: 'curriculum.infrastructure',
+    });
+  });
+
   it('passes on the fallback when the AI answer is rejected, as a success for the child', async () => {
     const { requestHint } = build({ script: { failure: { kind: 'timeout' } } });
 
@@ -171,6 +218,7 @@ describe('RequestHint rate limit (#11)', () => {
         audit: recordingSecurityAudit(),
       }),
       childProfiles: ownChildren([OWN_CHILD, SIBLING]),
+      competencies: fakeCompetencies().retrieval,
       rateLimiter,
       hints: new HintOrchestrator({ provider, audit }),
       audit,

@@ -88,14 +88,18 @@ describe('catalogSystemPhrases', () => {
 });
 
 describe('learnerChildVoiceConsent', () => {
-  it('answers from the child profile', async () => {
-    const profile = {
-      id: 'child-1',
-      controls: { voiceEnabled: true },
-    } as unknown as ChildProfileView;
-    const consent = learnerChildVoiceConsent(() => okAsync(profile));
+  it('answers from the profile’s consent, not from the voice control alone', async () => {
+    const consenting = { id: 'child-1', voiceConsent: true, controls: { voiceEnabled: true } };
+    const switchOnly = { id: 'child-1', voiceConsent: false, controls: { voiceEnabled: true } };
+    const answer = async (profile: object) =>
+      (
+        await learnerChildVoiceConsent(() =>
+          okAsync(profile as unknown as ChildProfileView),
+        ).voiceConsentOf(toChildProfileId('child-1'))
+      )._unsafeUnwrap();
 
-    expect((await consent.voiceConsentOf(toChildProfileId('child-1')))._unsafeUnwrap()).toBe(true);
+    expect(await answer(consenting)).toBe(true);
+    expect(await answer(switchOnly)).toBe(false);
   });
 
   it("answers another parent's child exactly like a missing one, so ids cannot be probed", async () => {

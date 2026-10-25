@@ -45,12 +45,9 @@ describe('onboarding page guards', () => {
     vi.clearAllMocks();
   });
 
-  it('lets a finished parent into the home with their child, and sends an unfinished one into onboarding', async () => {
+  it('lets a finished parent into the home and sends an unfinished one into onboarding', async () => {
     execute.mockReturnValueOnce(okAsync({ step: 'done', profile: PROFILE }));
-    await expect(requireOnboarded()).resolves.toMatchObject({
-      step: 'done',
-      profile: { id: PROFILE.id },
-    });
+    await expect(requireOnboarded()).resolves.toMatchObject({ id: 'p1' });
 
     execute.mockReturnValueOnce(okAsync({ step: 'child', profile: null }));
     await expect(requireOnboarded()).rejects.toThrow('redirect');

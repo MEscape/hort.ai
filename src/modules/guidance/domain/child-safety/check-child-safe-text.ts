@@ -1,6 +1,7 @@
 import { CHILD_SAFETY_VALIDATION_CODES } from '../errors/child-safety-errors';
 
 import type { ChildSafetyValidationCode } from '../errors/child-safety-errors';
+import type { SafetyScores } from '../ports/safety-classifier.port';
 
 /**
  * A homework companion never needs to know who or where the child is. These catch the AI asking for
@@ -37,6 +38,16 @@ const SECRECY_PATTERNS = [
 const INAPPROPRIATE_WORDS =
   /\b(?:idiot\w*|versager\w*|hässlich\w*|bescheuert\w*|umbring\w*|umgebracht|töte\w*|nackt\w*|sex\w*|porno\w*|drogen?|stupid|loser|kill\w*|naked|porn\w*|drugs?)\b/;
 
+/**
+ * Feedback is never punishing (#14): no verdict on the child, no blame for a mistake. "Noch nicht"
+ * is fine; "falsch", "dumm" or "enttäuscht" are not. A false positive only costs one fallback.
+ */
+const DISCOURAGING_PATTERNS = [
+  /\b(?:falsch|dumm\w*|faul\w*|schlecht\w*|peinlich\w*|enttäusch\w*|schäm\w*)\b/,
+  /\bschon\s+wieder\b/,
+  /\b(?:wrong|dumb|lazy|bad\s+job|disappoint\w*|ashamed)\b/,
+];
+
 const normalize = (text: string) => text.normalize('NFKC').toLowerCase().replace(/\s+/g, ' ');
 
 /**
@@ -56,5 +67,28 @@ export function checkChildSafeText(text: string): ChildSafetyValidationCode[] {
   if (INAPPROPRIATE_WORDS.test(normalized)) {
     codes.push(CHILD_SAFETY_VALIDATION_CODES.inappropriateContent);
   }
+  if (DISCOURAGING_PATTERNS.some((pattern) => pattern.test(normalized))) {
+    codes.push(CHILD_SAFETY_VALIDATION_CODES.discouraging);
+  }
   return codes;
+}
+
+/**
+ * A classifier score at or above this flags the rule. Low on purpose: a false positive only costs
+ * one fallback prompt, a false negative reaches a child.
+ */
+const SAFETY_FLAG_THRESHOLD = 0.5;
+
+/**
+ * The rules a safety classifier flags. A score outside 0 to 1 (or not a number) is untrusted
+ * output and flags the rule too.
+ */
+export function flaggedBySafetyScores(scores: SafetyScores): ChildSafetyValidationCode[] {
+  return Object.values(CHILD_SAFETY_VALIDATION_CODES).filter((code) => {
+    const score = scores[code];
+    if (score === undefined) {
+      return false;
+    }
+    return !(Number.isFinite(score) && score >= 0 && score <= 1) || score >= SAFETY_FLAG_THRESHOLD;
+  });
 }

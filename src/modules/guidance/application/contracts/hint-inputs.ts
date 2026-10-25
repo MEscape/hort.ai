@@ -5,6 +5,8 @@ export interface RequestHintInput {
   readonly childProfileId: string;
   /** The task as the child typed or dictated it. */
   readonly task: string;
+  /** The task's school subject, one of `HINT_SUBJECTS`; it picks the curriculum that grounds the hint. */
+  readonly subject: string;
   /**
    * Chosen by the backend, never by the child or the AI.
    *

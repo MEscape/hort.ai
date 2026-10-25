@@ -37,6 +37,7 @@ describe('GetOnboardingState', () => {
           learningInsights: false,
         },
         guardianConfirmed: false,
+        voiceConsent: false,
         setupStep: 'controls',
         setupCompletedAt: null,
       },
@@ -75,6 +76,7 @@ describe('GetOnboardingState', () => {
       'setupCompletedAt',
       'setupStep',
       'tutorId',
+      'voiceConsent',
     ]);
   });
 

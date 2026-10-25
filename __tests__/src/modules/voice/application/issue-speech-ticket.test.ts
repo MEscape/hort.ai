@@ -51,15 +51,32 @@ function voiceSources(dir = join(process.cwd(), 'src/modules/voice')): string[] 
   });
 }
 
+/**
+ * The only files allowed to reach object storage: the hosted-speech clip store (synthesized tutor
+ * audio of fixed lines, see README "Hosted speech") and the composition root that wires it.
+ */
+const CLIP_STORE_FILES = [
+  'src/modules/voice/composition.ts',
+  'src/modules/voice/infrastructure/storage/object-store-speech-clips.ts',
+];
+
 describe('voice module: recordings are never persisted', () => {
-  it('reaches no database, object store or file system', () => {
-    const offending = voiceSources().filter((file) =>
-      /from '(@lib\/(db|storage)[^']*|@prisma\/[^']*|node:fs[^']*|fs)'/.test(
-        readFileSync(file, 'utf8'),
-      ),
+  it('reaches no database, object store or file system outside the clip store', () => {
+    const offending = voiceSources().filter(
+      (file) =>
+        !CLIP_STORE_FILES.some((allowed) => file.endsWith(allowed)) &&
+        /from '(@lib\/(db|storage)[^']*|@prisma\/[^']*|node:fs[^']*|fs)'/.test(
+          readFileSync(file, 'utf8'),
+        ),
     );
 
     expect(offending).toEqual([]);
+  });
+
+  it('keeps recordings and transcripts out of the clip store', () => {
+    const clipStore = readFileSync(join(process.cwd(), CLIP_STORE_FILES[1] ?? ''), 'utf8');
+
+    expect(clipStore).not.toMatch(/[Rr]ecording|[Tt]ranscri/);
   });
 
   it('builds its use cases from no store at all', () => {
