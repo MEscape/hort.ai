@@ -1,5 +1,7 @@
 'use client';
 
+import { ReadAloudButton } from '@modules/voice/client';
+
 import { TranscriptLine } from '@components/shared/side-panel';
 
 import { useTranslations } from '@i18n/client';
@@ -45,10 +47,18 @@ export function companionText(
 interface ConversationTranscriptProps {
   readonly lines: readonly ConversationLine[];
   readonly companionName: string;
+  readonly childProfileId: string;
+  /** What the parent stored; without it no line can be read aloud. */
+  readonly voiceConsent: boolean;
 }
 
 /** The conversation as side-panel lines, oldest first: the companion on the left, the child's own words on the right. */
-export function ConversationTranscript({ lines, companionName }: ConversationTranscriptProps) {
+export function ConversationTranscript({
+  lines,
+  companionName,
+  childProfileId,
+  voiceConsent,
+}: ConversationTranscriptProps) {
   const t = useTranslations('guidance');
   return lines.map((line) => (
     <TranscriptLine
@@ -56,6 +66,15 @@ export function ConversationTranscript({ lines, companionName }: ConversationTra
       who={line.kind === 'child' ? 'child' : 'companion'}
       speaker={line.kind === 'child' ? t('conversation.you') : companionName}
       text={line.kind === 'child' ? line.text : companionText(line, t)}
+      action={
+        line.kind === 'child' ? undefined : (
+          <ReadAloudButton
+            childProfileId={childProfileId}
+            message={line.speech}
+            allowed={voiceConsent}
+          />
+        )
+      }
     />
   ));
 }

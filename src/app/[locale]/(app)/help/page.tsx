@@ -112,6 +112,7 @@ async function HelpContent({ searchParams }: Pick<HelpPageProps, 'searchParams'>
         initial={open}
         companion={companion}
         scene={scene === null ? null : <TaskScene childProfileId={child.id} view={scene} />}
+        voiceConsent={child.voiceConsent}
       />
     );
   }
@@ -122,6 +123,7 @@ async function HelpContent({ searchParams }: Pick<HelpPageProps, 'searchParams'>
       openTask={open === null ? null : { task: open.task, assignmentId: open.assignmentId }}
       topic={await topicOf(child.id, params['area'], params['place'])}
       assignments={await loadAssignments(child.id)}
+      voiceConsent={child.voiceConsent}
     />
   );
 }
@@ -130,7 +132,7 @@ export default async function HelpPage({ params, searchParams }: HelpPageProps) 
   const locale = requireLocale((await params).locale);
   const t = await getTranslations({ locale, namespace: 'guidance' });
   return (
-    <I18nProvider locale={locale} namespaces={['guidance', 'lesson', 'assignments']}>
+    <I18nProvider locale={locale} namespaces={['guidance', 'lesson', 'assignments', 'voice']}>
       <main className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col gap-3 px-4 pt-3 pb-safe sm:px-6 lg:h-dvh">
         <Button asChild variant="ghost" className="self-start">
           <Link href={learnerRoutes.home()}>

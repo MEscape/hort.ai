@@ -149,7 +149,13 @@ export function createVoiceRouteHandlers(options: {
       const result = await synthesize(
         'phrase' in parsed.data
           ? { speakerId, source: { kind: 'phrase', phrase: parsed.data.phrase } }
-          : { speakerId, source: { kind: 'ticket', ticket: parsed.data.ticket } },
+          : {
+              speakerId,
+              source: { kind: 'ticket', ticket: parsed.data.ticket },
+              ...(parsed.data.childProfileId === undefined
+                ? {}
+                : { childProfileId: parsed.data.childProfileId }),
+            },
       );
       return result.match(
         (spoken) =>

@@ -13,10 +13,12 @@ interface TranscriptLineProps {
   /** Who said it, for screen readers ("Max", "You"). */
   readonly speaker: string;
   readonly text: string;
+  /** A small control under the line (the companion's "read aloud"). */
+  readonly action?: ReactNode;
 }
 
 /** One line of a side panel's transcript: the companion on the left, the child on the right. */
-export function TranscriptLine({ who, speaker, text }: TranscriptLineProps) {
+export function TranscriptLine({ who, speaker, text, action }: TranscriptLineProps) {
   return (
     <li
       className={cn(
@@ -28,6 +30,7 @@ export function TranscriptLine({ who, speaker, text }: TranscriptLineProps) {
     >
       <span className="sr-only">{speaker}: </span>
       {text}
+      {action === undefined ? null : <div className="mt-2">{action}</div>}
     </li>
   );
 }

@@ -79,14 +79,37 @@ describe('teacher material section', () => {
     renderSection();
     await chooseAndUpload(new File(['x'], 'notes.txt', { type: 'text/plain' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'The file could not be read. Please upload a UTF-8 text file.',
+      'The file could not be read. Please upload an unencrypted Word or PowerPoint document or a UTF-8 text file.',
     );
   });
 
   it('refuses a file of another type before uploading', async () => {
     renderSection();
     await chooseAndUpload(new File(['png'], 'photo.png', { type: 'image/png' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Please choose a text file (.txt).');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Please choose a Word (.docx) or PowerPoint (.pptx) document or a text file (.txt).',
+    );
+    expect(actions.upload).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['Plan.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    ['Folien.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'],
+    ['Plan.docx', ''],
+    ['Folien.PPTX', 'application/octet-stream'],
+  ])('accepts the Office file %s (type %j) and uploads it', async (name, type) => {
+    renderSection();
+    await chooseAndUpload(new File(['PK'], name, { type }));
+    await waitFor(() => {
+      expect(actions.upload).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('refuses the old binary Office formats and tells how to convert them', async () => {
+    renderSection();
+    await chooseAndUpload(new File(['x'], 'Plan.doc', { type: 'application/msword' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Save older .doc and .ppt files');
     expect(actions.upload).not.toHaveBeenCalled();
   });
 

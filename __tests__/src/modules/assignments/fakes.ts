@@ -176,6 +176,7 @@ export function createWorld() {
           auditEvents.push(event);
         },
       },
+      clock: { now: () => new Date(TODAY_INSTANT) },
     };
   }
 
@@ -194,6 +195,9 @@ export function createWorld() {
 
   return { rows, auditEvents, repository, dependenciesFor, as };
 }
+
+/** The fake clock: noon, 25 October 2026 in Berlin. */
+export const TODAY_INSTANT = '2026-10-25T11:00:00.000Z';
 
 export const DRAFT = {
   title: 'Murmeln verteilen',

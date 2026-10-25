@@ -34,6 +34,7 @@ export {
   SECONDS_PER_HOUR,
   SECONDS_PER_MINUTE,
   type DateInput,
+  calendarDayIn,
 } from './date';
 
 export { debounce, identity, noop, once } from './function';

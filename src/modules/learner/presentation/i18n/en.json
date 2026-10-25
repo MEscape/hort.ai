@@ -181,7 +181,7 @@
       },
       "insights": {
         "title": "Notes for your summary",
-        "description": "Hort may note which kinds of tasks {name} needed help with, for your summary later. No chats are kept. The summary is still being built.",
+        "description": "Hort may note which kinds of tasks {name} needed help with, for your summary in the parent area. No chats are kept.",
         "on": "Notes are on",
         "off": "Notes are off"
       },

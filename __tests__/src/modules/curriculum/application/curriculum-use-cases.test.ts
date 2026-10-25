@@ -61,7 +61,7 @@ function deps() {
   const record = vi.fn();
   const saveDocument = vi.fn(() => okAsync('created' as const));
   const dependencies: CurriculumDependencies = {
-    competencies: { listCandidates, saveDocument, findByCodes: () => okAsync([]) },
+    competencies: { listCandidates, saveDocument },
     teacherMaterial: { listForClassroom },
     audit: { record },
   };

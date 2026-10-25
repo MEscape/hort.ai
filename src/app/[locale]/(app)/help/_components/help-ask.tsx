@@ -32,6 +32,8 @@ interface HelpAskProps {
   readonly topic: StartTopic | null;
   /** The class's assignments, or `null` when none can be shown. */
   readonly assignments: readonly ChildAssignmentView[] | null;
+  /** What the parent stored: dictation only with it. */
+  readonly voiceConsent?: boolean;
 }
 
 /**
@@ -39,7 +41,14 @@ interface HelpAskProps {
  * for the task, the child writes it (or picks one of the teacher's assignments), and the screen
  * turns into the session. There is no separate start page any more.
  */
-export function HelpAsk({ childProfileId, companion, openTask, topic, assignments }: HelpAskProps) {
+export function HelpAsk({
+  childProfileId,
+  companion,
+  openTask,
+  topic,
+  assignments,
+  voiceConsent = false,
+}: HelpAskProps) {
   const t = useTranslations('app');
   const [draft, setDraft] = useState('');
   return (
@@ -58,6 +67,7 @@ export function HelpAsk({ childProfileId, companion, openTask, topic, assignment
           childProfileId={childProfileId}
           openTask={openTask}
           topic={topic}
+          voiceConsent={voiceConsent}
         />
         {assignments !== null && assignments.length > 0 && (
           <ChildSchoolTasks

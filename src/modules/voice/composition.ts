@@ -3,6 +3,7 @@ import 'server-only';
 import { randomBytes } from 'node:crypto';
 
 import { getAccessControl, getAuthQueries } from '@modules/auth';
+import { getHelpSessionQueries } from '@modules/guidance';
 import { getLearnerQueries } from '@modules/learner';
 
 import { systemClock } from '@lib/clock';
@@ -14,12 +15,14 @@ import { getObjectStore } from '@lib/storage/server';
 import { once } from '@lib/utils';
 
 import { GetHostedSpeech } from './application/queries/get-hosted-speech';
+import { IssueReadAloudTicket } from './application/queries/issue-read-aloud-ticket';
 import { IssueSpeechTicket } from './application/queries/issue-speech-ticket';
 import { SynthesizeSpeech } from './application/queries/synthesize-speech';
 import { TranscribeSpeech } from './application/queries/transcribe-speech';
 import { catalogChannelLines } from './infrastructure/catalog/catalog-channel-lines';
 import { catalogSpeakerVoices } from './infrastructure/catalog/catalog-speaker-voices';
 import { catalogSystemPhrases } from './infrastructure/catalog/catalog-system-phrases';
+import { helpSessionCompanionMessages } from './infrastructure/guidance/help-session-companion-messages';
 import { learnerChildVoiceConsent } from './infrastructure/learner/learner-child-voice-consent';
 import { objectStoreSpeechClips } from './infrastructure/storage/object-store-speech-clips';
 import { hmacSpokenTextTickets } from './infrastructure/tickets/hmac-spoken-text-tickets';
@@ -39,19 +42,25 @@ const getSpeechClips = once(() => {
     : null;
 });
 
+/** One ticket signer for every use case, so a ticket issued by one redeems in another. */
+const speechTickets = once(() =>
+  hmacSpokenTextTickets({ secret: ticketSecret(), clock: systemClock }),
+);
+
 /**
  * The module's composition root. Built on first use, so a build that imports a voice route needs
  * no speech configuration; without `ELEVENLABS_API_KEY` the use cases answer `voice.disabled`.
  */
 export const getVoiceQueries = once(() => {
   const authorization = getAccessControl();
+  // Synthesis is cached once, in the use case (`clips`), so the provider is not wrapped again.
   const dependencies = {
     authorization,
     rateLimiter: getRateLimiter(),
     speech: getSpeechProvider(),
     voices: catalogSpeakerVoices(),
     phrases: catalogSystemPhrases(),
-    tickets: hmacSpokenTextTickets({ secret: ticketSecret(), clock: systemClock }),
+    tickets: speechTickets(),
     consent: learnerChildVoiceConsent((id) => getLearnerQueries().getChildProfileById.execute(id)),
     clips: getSpeechClips(),
   };
@@ -59,25 +68,36 @@ export const getVoiceQueries = once(() => {
     synthesizeSpeech: new SynthesizeSpeech(dependencies),
     transcribeSpeech: new TranscribeSpeech(dependencies),
     issueSpeechTicket: new IssueSpeechTicket(dependencies),
+    issueReadAloudTicket: new IssueReadAloudTicket({
+      authorization,
+      tickets: dependencies.tickets,
+      voices: dependencies.voices,
+      messages: helpSessionCompanionMessages({
+        getChildProfile: (id) => getLearnerQueries().getChildProfileById.execute(id),
+        getOpenHelpSession: (childProfileId) =>
+          getHelpSessionQueries().getOpenHelpSession.execute({ childProfileId }),
+      }),
+    }),
   } as const;
 });
 
 /**
- * Speech behind a short-lived URL for server-side channels (Alexa), for fixed lines only. Without
- * `ELEVENLABS_API_KEY` or a private storage container it answers `voice.disabled` /
- * `voice.hosting_disabled`, and the channel keeps its own voice. Needs no auth wiring: it has no actor.
+ * Speech behind a short-lived URL for server-side channels (Alexa): fixed lines, and read-aloud
+ * tickets redeemed by a channel acting for a child. Without `ELEVENLABS_API_KEY` or a private storage
+ * container it answers `voice.disabled` / `voice.hosting_disabled`, and the channel keeps its own voice.
  */
-export const getHostedSpeech = once(
-  () =>
-    new GetHostedSpeech({
-      rateLimiter: getRateLimiter(),
-      speech: getSpeechProvider(),
-      voices: catalogSpeakerVoices(),
-      phrases: catalogSystemPhrases(),
-      channelLines: catalogChannelLines(),
-      clips: getSpeechClips(),
-    }),
-);
+export const getHostedSpeech = once(() => {
+  return new GetHostedSpeech({
+    authorization: getAccessControl(),
+    tickets: speechTickets(),
+    rateLimiter: getRateLimiter(),
+    speech: getSpeechProvider(),
+    voices: catalogSpeakerVoices(),
+    phrases: catalogSystemPhrases(),
+    channelLines: catalogChannelLines(),
+    clips: getSpeechClips(),
+  });
+});
 
 /**
  * Speech tickets are signed with a key derived from `AUTH_SECRET`, which every deployment with

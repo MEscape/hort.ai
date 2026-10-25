@@ -13,10 +13,11 @@ import { PrismaTeacherMaterialRepository } from './infrastructure/prisma/prisma-
 import { ClassroomTeacherMaterialSource } from './infrastructure/teacher-material/classroom-teacher-material-source';
 
 const materialRepository = new PrismaTeacherMaterialRepository();
+const competencyRepository = new PrismaCompetencyRepository();
 
 /** Public curriculum plus private material, re-authorized against the child's actual class. */
 const dependencies = {
-  competencies: new PrismaCompetencyRepository(),
+  competencies: competencyRepository,
   teacherMaterial: new ClassroomTeacherMaterialSource({
     childClassroom: classroomQueries.getChildClassroom,
     list: (classroomId, limit, childProfileId) =>
@@ -41,7 +42,8 @@ export const curriculumCommands = {
 
 export const curriculumQueries = {
   findRelevantCompetencies: new FindRelevantCompetencies(dependencies),
-  describeCompetencies: new DescribeCompetencies(dependencies),
+  /** Names a help session's stored competency in a learning summary (#35). */
+  describeCompetencies: new DescribeCompetencies({ texts: competencyRepository }),
 } as const;
 
 /**

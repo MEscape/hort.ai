@@ -28,6 +28,14 @@ interface IslandPageParams {
 /** The task entry that starts a help session; without `?child=` it uses the onboarded child. */
 const START_HREF = '/start';
 
+/**
+ * The segment is untrusted and per request: one placeholder id lets the build prerender the shell
+ * (the layout reads the locale), every other id renders on demand.
+ */
+export function generateStaticParams() {
+  return [{ areaId: 'placeholder' }];
+}
+
 export async function generateMetadata({ params }: IslandPageParams) {
   const { locale, areaId } = await params;
   const t = await getTranslations({ locale: requireLocale(locale), namespace: 'app' });

@@ -65,6 +65,41 @@
       "panelTitle": "Mit {name} schreiben",
       "panelOpen": "Schreiben",
       "close": "Schließen"
+    },
+    "insights": {
+      "parent": {
+        "title": "Wo {name} Hilfe brauchte",
+        "window": "Die letzten 14 Tage, ohne Gesprächstexte.",
+        "off": "Die Notizen für deine Zusammenfassung sind aus, darum zeigt Hort hier nichts.",
+        "empty": "Noch keine Hilfe-Sitzung in den letzten 14 Tagen.",
+        "manyHints": "Hier brauchte {name} viele Tipps: {topics}",
+        "understood": "Das hat {name} verstanden: {topics}",
+        "ownTask": "Eigene Aufgabe",
+        "sessionsLabel": "Hilfe-Sitzungen",
+        "hints": "{count, plural, =0 {noch kein Tipp} one {# Tipp} other {# Tipps}}",
+        "highestLevel": "bis „{level}“",
+        "comprehensionAnswered": "Verständnisfrage beantwortet",
+        "status": {
+          "completed": "geschafft",
+          "active": "noch offen",
+          "abandoned": "pausiert/gewechselt"
+        },
+        "level": {
+          "understand_task": "Aufgabe verstehen",
+          "activate_prior_knowledge": "Vorwissen",
+          "next_step": "nächster Schritt",
+          "similar_example": "ähnliches Beispiel"
+        }
+      },
+      "class": {
+        "title": "Klassenüberblick",
+        "description": "Zahlen für die ganze Klasse, nie für einzelne Kinder.",
+        "empty": "Noch keine Aufgaben in dieser Klasse.",
+        "tooFew": "Ab 3 Kindern zeigt Hort hier Zahlen – zum Schutz der Kinder.",
+        "children": "{count, plural, one {# Kind} other {# Kinder}} mit Hilfe",
+        "completed": "davon {count} geschafft",
+        "medianHints": "typisch {median} Tipps"
+      }
     }
   }
 }

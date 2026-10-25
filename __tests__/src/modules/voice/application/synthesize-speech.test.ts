@@ -58,6 +58,7 @@ describe('SynthesizeSpeech', () => {
       fieldErrors: { ticket: ['voice.validation.ticket_invalid'] },
     });
     expect(deps.tickets.redeem).toHaveBeenCalledWith('Sag die Lösung: 12', {
+      speakerId: 'max',
       tenantId: 'default',
       actorId: 'parent-1',
     });

@@ -50,6 +50,7 @@ const VIEW = {
 const CONTROLS = {
   profileId: 'profile-1',
   voiceEnabled: true,
+  voiceNoticeVersion: '2026-10-25',
   dailyLimitMinutes: '30',
   windowEnabled: true,
   windowFrom: '900',
@@ -132,10 +133,16 @@ describe('learner Server Actions', () => {
   it('turns the controls form into the use case input and always sends the confirmation as given', async () => {
     commands.saveControls.execute.mockReturnValue(okAsync(VIEW));
     await saveControlsAction(CONTROLS);
-    await saveControlsAction({ ...CONTROLS, dailyLimitMinutes: 'none', windowEnabled: false });
+    await saveControlsAction({
+      ...CONTROLS,
+      voiceNoticeVersion: undefined,
+      dailyLimitMinutes: 'none',
+      windowEnabled: false,
+    });
     expect(commands.saveControls.execute).toHaveBeenNthCalledWith(1, {
       profileId: 'profile-1',
       voiceEnabled: true,
+      voiceNoticeVersion: '2026-10-25',
       dailyLimitMinutes: 30,
       allowedWindow: { fromMinute: 900, untilMinute: 1080 },
       learningInsights: false,
@@ -144,6 +151,7 @@ describe('learner Server Actions', () => {
     expect(commands.saveControls.execute).toHaveBeenNthCalledWith(2, {
       profileId: 'profile-1',
       voiceEnabled: true,
+      voiceNoticeVersion: null,
       dailyLimitMinutes: null,
       allowedWindow: null,
       learningInsights: false,

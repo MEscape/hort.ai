@@ -14,7 +14,8 @@ export async function describeTopics(codes: ReadonlyArray<string | null>): Promi
   const described = await orFail(
     curriculumQueries.describeCompetencies.execute(codes.filter(isDefined)),
   );
+  // The curriculum describes a competency by its statement; a topic is named by that.
   return Object.fromEntries(
-    Array.from(described, ([code, { section, text }]) => [code, { section, statement: text }]),
+    described.map(({ code, text }) => [code, { section: null, statement: text }]),
   );
 }

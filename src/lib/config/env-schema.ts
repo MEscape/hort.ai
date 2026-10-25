@@ -28,6 +28,7 @@ const DEFAULT_LOG_LEVEL = 'info' as const;
 /** Max, the dog: the first tutor of the catalog. */
 const DEFAULT_ALEXA_TUTOR_ID = 'max';
 const DEFAULT_AUDIT_RETENTION_DAYS = 365;
+const DEMO_ID_MAX_LENGTH = 128;
 
 const serverEnvBaseSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default(DEFAULT_NODE_ENV),
@@ -48,6 +49,13 @@ const serverEnvBaseSchema = z.object({
     .string()
     .regex(/^[a-z][a-z0-9-]{1,30}$/)
     .default(DEFAULT_ALEXA_TUTOR_ID),
+
+  /**
+   * Alexa demo coupling: the guardian (user id) and the one child profile of that guardian the skill
+   * speaks for. Both or neither; unset keeps the anonymous channel (tutor introductions, test sentence).
+   */
+  ALEXA_DEMO_GUARDIAN_ID: z.string().trim().min(1).max(DEMO_ID_MAX_LENGTH).optional(),
+  ALEXA_DEMO_CHILD_PROFILE_ID: z.string().trim().min(1).max(DEMO_ID_MAX_LENGTH).optional(),
 
   DATABASE_POOL_SIZE: integerSetting(DEFAULT_DATABASE_POOL_SIZE),
 
@@ -83,6 +91,13 @@ const isProduction = (env: ServerEnvShape) => env.NODE_ENV === 'production';
 
 /** What production demands of the domains together; a domain's own requirements stay in its file. */
 const productionRules: ReadonlyArray<EnvRule<ServerEnvShape>> = [
+  {
+    path: 'ALEXA_DEMO_CHILD_PROFILE_ID',
+    violated: (env) =>
+      (env.ALEXA_DEMO_GUARDIAN_ID === undefined) !==
+      (env.ALEXA_DEMO_CHILD_PROFILE_ID === undefined),
+    message: 'ALEXA_DEMO_GUARDIAN_ID and ALEXA_DEMO_CHILD_PROFILE_ID must be set together.',
+  },
   {
     path: 'AUTH_ENABLED',
     violated: (env) => isProduction(env) && !env.AUTH_ENABLED,

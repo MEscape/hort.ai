@@ -1,7 +1,7 @@
 {
   "learner": {
     "metadata": {
-      "title": "Dein Kind einrichten",
+      "title": "Kinderprofil einrichten",
       "description": "Ein paar kurze Schritte: das Profil deines Kindes, ein Begleiter und die Einstellungen, die du möchtest."
     },
     "stepper": {
@@ -19,7 +19,7 @@
         },
         "interests": {
           "title": "Interessen",
-          "hint": "Was gefällt ihm"
+          "hint": "Was dein Kind mag"
         },
         "tutor": {
           "title": "Begleiter",
@@ -181,7 +181,7 @@
       },
       "insights": {
         "title": "Notizen für deine Zusammenfassung",
-        "description": "Hort darf festhalten, bei welchen Aufgabenarten {name} Hilfe brauchte, für deine spätere Zusammenfassung. Gespräche werden nicht gespeichert. Die Zusammenfassung ist noch in Arbeit.",
+        "description": "Hort darf festhalten, bei welchen Aufgabenarten {name} Hilfe brauchte, für deine Zusammenfassung im Elternbereich. Gespräche werden nicht gespeichert.",
         "on": "Notizen sind an",
         "off": "Notizen sind aus"
       },

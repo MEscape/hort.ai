@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 
 import { ChildClassroomPanel, classroomQueries } from '@modules/classroom';
-import { getHelpSessionQueries } from '@modules/guidance';
+import { getHelpSessionQueries, LearningSummaryCard } from '@modules/guidance';
 import {
   ParentAssignments,
   ParentControlsForm,
@@ -100,19 +100,22 @@ export async function ParentContent({
     return <ParentLearning {...learning} topics={topics} />;
   }
   return (
-    <ParentOverview
-      {...learning}
-      companion={
-        <Suspense
-          fallback={
-            <ParentPanel title={t('companionTitle')}>
-              <p role="status">{t('loading')}</p>
-            </ParentPanel>
-          }
-        >
-          <ParentCompanion child={child} />
-        </Suspense>
-      }
-    />
+    <div className="space-y-6">
+      <LearningSummaryCard childProfileId={child.id} childName={child.displayName} />
+      <ParentOverview
+        {...learning}
+        companion={
+          <Suspense
+            fallback={
+              <ParentPanel title={t('companionTitle')}>
+                <p role="status">{t('loading')}</p>
+              </ParentPanel>
+            }
+          >
+            <ParentCompanion child={child} />
+          </Suspense>
+        }
+      />
+    </div>
   );
 }

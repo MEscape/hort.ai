@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition, type ChangeEvent, type SubmitEvent } from 'react';
 
 import { startHelpSessionAction } from '@modules/guidance/client';
+import { VoiceInputButton } from '@modules/voice/client';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert';
 import { Button } from '@components/ui/button';
@@ -40,6 +41,8 @@ interface TaskEntryProps {
   /** The child's open task: a different one is started only after the child agreed. */
   readonly openTask: OpenTask | null;
   readonly topic?: StartTopic | null;
+  /** What the parent stored: dictation only with it. */
+  readonly voiceConsent?: boolean;
 }
 
 /** What the session starts with besides the task: the island's subject and place, or plain maths. */
@@ -103,6 +106,7 @@ export function TaskEntry({
   childProfileId,
   openTask,
   topic = null,
+  voiceConsent = false,
 }: TaskEntryProps) {
   const t = useTranslations('app');
   const router = useRouter();
@@ -196,6 +200,13 @@ export function TaskEntry({
             <p id="task-error" role="alert" className="font-semibold text-nudge">
               {t('start.entry.empty')}
             </p>
+          )}
+          {childProfileId !== null && (
+            <VoiceInputButton
+              childProfileId={childProfileId}
+              allowed={voiceConsent}
+              onTranscript={onDraftChange}
+            />
           )}
           <div className="flex flex-wrap gap-3">
             <Button type="submit" size="lg" disabled={isPending}>

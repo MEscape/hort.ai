@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 
 import type { TutorOption } from '@modules/learner/client';
 import { learnerRoutes } from '@modules/learner/client';
+import { ReadAloudButton } from '@modules/voice/client';
 
 import { Stage } from '@components/shared/stage';
 import { StageCompanion } from '@components/shared/stage-companion';
@@ -37,6 +38,8 @@ interface HelpConversationProps {
   readonly companion: TutorOption;
   /** The canvas for the task (a similar example to try), drawn by the page; `null` when none fits. */
   readonly scene?: ReactNode;
+  /** What the parent stored: read aloud and dictation only with it. */
+  readonly voiceConsent?: boolean;
 }
 
 /** The one sentence on the stage: thinking, done, the opening, or what the companion said last. */
@@ -118,10 +121,16 @@ export function HelpConversation({
   initial,
   companion,
   scene = null,
+  voiceConsent = false,
 }: HelpConversationProps) {
   const t = useTranslations('guidance');
   const state = useHelpConversation(childProfileId, initial);
   const line = useLine(state, initial, companion.name);
+  // The stage sentence read aloud: the opening, or what the companion said last.
+  const spoken =
+    initial.opening === null
+      ? state.lines.filter((said) => said.kind !== 'child').at(-1)?.speech
+      : { kind: 'opening' as const, sessionId: initial.sessionId };
   const [isPanelOpen, setPanelOpen] = useState(true);
   const current = PHASES.indexOf(state.phase) + 1;
 
@@ -135,7 +144,18 @@ export function HelpConversation({
         <StageCompanion companion={companion} mascot={mascotOf(state)} beat={state.lines.length} />
       }
       line={line}
-      action={<StageAction state={state} initial={initial} />}
+      action={
+        <>
+          {spoken !== undefined && state.phase !== 'understood' && !state.isPending && (
+            <ReadAloudButton
+              childProfileId={childProfileId}
+              allowed={voiceConsent}
+              message={spoken}
+            />
+          )}
+          <StageAction state={state} initial={initial} />
+        </>
+      }
       tools={
         <>
           <Button asChild variant="ghost" size="sm">
@@ -162,6 +182,8 @@ export function HelpConversation({
           <HelpSidePanel
             state={state}
             companionName={companion.name}
+            childProfileId={childProfileId}
+            voiceConsent={voiceConsent}
             hasOpening={initial.opening !== null}
             onClose={() => {
               setPanelOpen(false);

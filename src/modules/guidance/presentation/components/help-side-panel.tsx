@@ -1,75 +1,39 @@
 'use client';
 
 import { SidePanelFrame } from '@components/shared/side-panel';
-import { Button } from '@components/ui/button';
-import { Label } from '@components/ui/label';
 
 import { useTranslations } from '@i18n/client';
 
 import { ConversationTranscript } from './conversation-lines';
+import { HelpDraftForm } from './help-draft-form';
 import { StepStatus } from './step-status';
 
 import type { HelpConversationState } from '../hooks/use-help-conversation';
 
-const DRAFT_MAX_LENGTH = 1000;
-
-function DraftForm({
-  state,
-  kind,
-}: {
-  readonly state: HelpConversationState;
-  readonly kind: 'answer' | 'reply';
-}) {
-  const t = useTranslations('guidance');
-  const id = `help-${kind}`;
-  return (
-    <form
-      className="flex flex-col gap-2"
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (kind === 'answer') {
-          state.submitAnswer();
-        } else {
-          state.submitReply();
-        }
-      }}
-    >
-      <Label htmlFor={id} className="font-heading text-lg font-semibold">
-        {t(kind === 'answer' ? 'conversation.answerLabel' : 'conversation.replyLabel')}
-      </Label>
-      {/* @ui-plain textarea The shared UI package has no textarea primitive yet. */}
-      <textarea
-        id={id}
-        value={state.draft}
-        onChange={(event) => {
-          state.setDraft(event.currentTarget.value);
-        }}
-        maxLength={DRAFT_MAX_LENGTH}
-        rows={2}
-        autoComplete="off"
-        className="block w-full rounded-token-lg border-2 border-border-strong bg-surface p-3 text-lead text-copy"
-      />
-      <Button type="submit" size="lg" disabled={state.isPending}>
-        {t(kind === 'answer' ? 'conversation.checkAnswer' : 'conversation.sendReply')}
-      </Button>
-    </form>
-  );
-}
-
 interface HelpSidePanelProps {
   readonly state: HelpConversationState;
   readonly companionName: string;
+  readonly childProfileId: string;
+  /** What the parent stored: read aloud and dictation only with it. */
+  readonly voiceConsent: boolean;
   /** The session opened with a fixed question or redirect: nothing to answer here. */
   readonly hasOpening: boolean;
   readonly onClose: () => void;
 }
 
 /**
- * The help session's side panel: the whole conversation as text and the child's own answer to the
- * task (or the reply to the comprehension question). Until the child can speak, writing is how the
- * own task is answered, so the panel starts open here.
+ * The help session's side panel: the whole conversation as text (each companion line can be read
+ * aloud) and the child's own answer to the task or reply to the comprehension question, typed or
+ * dictated. The own task is answered here, so the panel starts open.
  */
-export function HelpSidePanel({ state, companionName, hasOpening, onClose }: HelpSidePanelProps) {
+export function HelpSidePanel({
+  state,
+  companionName,
+  childProfileId,
+  voiceConsent,
+  hasOpening,
+  onClose,
+}: HelpSidePanelProps) {
   const t = useTranslations('guidance');
   return (
     <SidePanelFrame
@@ -77,12 +41,25 @@ export function HelpSidePanel({ state, companionName, hasOpening, onClose }: Hel
       closeLabel={t('conversation.close')}
       onClose={onClose}
       scrollKey={state.lines.length}
-      transcript={<ConversationTranscript lines={state.lines} companionName={companionName} />}
+      transcript={
+        <ConversationTranscript
+          lines={state.lines}
+          companionName={companionName}
+          childProfileId={childProfileId}
+          voiceConsent={voiceConsent}
+        />
+      }
       footer={
         <div className="flex flex-col gap-3">
           <StepStatus state={state} companionName={companionName} />
-          {state.phase === 'working' && !hasOpening && <DraftForm state={state} kind="answer" />}
-          {state.phase === 'comprehension' && <DraftForm state={state} kind="reply" />}
+          {(state.phase === 'comprehension' || (state.phase === 'working' && !hasOpening)) && (
+            <HelpDraftForm
+              state={state}
+              kind={state.phase === 'comprehension' ? 'reply' : 'answer'}
+              childProfileId={childProfileId}
+              voiceConsent={voiceConsent}
+            />
+          )}
         </div>
       }
     />

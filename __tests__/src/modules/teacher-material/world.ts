@@ -3,6 +3,7 @@ import type { Actor } from '@modules/auth/domain/models/actor';
 import { toActorId } from '@modules/auth/domain/models/ids';
 import type { MaterialDependencies } from '@modules/teacher-material/application/material-dependencies';
 import type { Material } from '@modules/teacher-material/domain/models/material';
+import { officeMaterialConverter } from '@modules/teacher-material/infrastructure/office/office-material-converter';
 
 import { conflictError, forbiddenError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
@@ -127,6 +128,7 @@ export function world() {
         { text: text.replace(/^- /, ''), code: 's00-01', section: 'Dokument', page: null },
       ],
     },
+    converter: officeMaterialConverter,
     newId: () => 'material-1',
     rateLimiter: createTestRateLimiter(),
     audit: { record: () => undefined },

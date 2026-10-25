@@ -110,6 +110,62 @@ describe('class created dialog', () => {
   });
 });
 
+describe('class form input (#124)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    actions.create.mockResolvedValue(CREATED);
+  });
+
+  function typeInto(label: RegExp, value: string) {
+    return act(async () => {
+      fireEvent.change(screen.getByLabelText(label), { target: { value } });
+    });
+  }
+
+  it('stops the class name at a grade and one letter', () => {
+    render(<Page hasClass={false} />);
+    expect(screen.getByLabelText(/Class name/)).toHaveAttribute('maxlength', '2');
+  });
+
+  it.each(['99', '5a', 'xy'])(
+    'refuses the name %j with a message and sends nothing',
+    async (name) => {
+      render(<Page hasClass={false} />);
+      await typeInto(/Class name/, name);
+      fireEvent.click(screen.getByRole('button', { name: 'Create class' }));
+
+      expect(await screen.findByText(/digit from 1 to 4 followed by one letter/)).toBeVisible();
+      expect(actions.create).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['5', '0', '99', '2.5'])(
+    'refuses the grade %s with a message and sends nothing',
+    async (grade) => {
+      render(<Page hasClass={false} />);
+      await typeInto(/Class name/, '3b');
+      await typeInto(/Grade/, grade);
+      fireEvent.click(screen.getByRole('button', { name: 'Create class' }));
+
+      expect(await screen.findByText('Enter a grade from 1 to 4.')).toBeVisible();
+      expect(actions.create).not.toHaveBeenCalled();
+    },
+  );
+
+  it('sends the name in lower case', async () => {
+    render(<Page hasClass={false} />);
+    await typeInto(/Class name/, '3B');
+    await typeInto(/Grade/, '3');
+    fireEvent.click(screen.getByRole('button', { name: 'Create class' }));
+
+    await waitFor(() => {
+      expect(actions.create).toHaveBeenCalledWith(
+        expect.objectContaining({ name: '3b', grade: 3 }),
+      );
+    });
+  });
+});
+
 describe('invite code in the class details', () => {
   beforeEach(() => {
     vi.clearAllMocks();

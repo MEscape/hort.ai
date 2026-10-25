@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 
+import type { CompanionMessageRef } from '@modules/voice/client';
+
 import { checkAnswerAction } from '../actions/check-answer-action';
 import { replyComprehensionAction } from '../actions/reply-comprehension-action';
 import { requestHintAction } from '../actions/request-hint-action';
@@ -12,10 +14,16 @@ import type { HelpSessionDto } from '../dto/guidance-dto';
 
 /** One line of the conversation, built only from what the backend returned. */
 export type ConversationLine =
-  | { readonly id: string; readonly kind: 'hint'; readonly hint: HintOutcome }
+  | {
+      readonly id: string;
+      readonly kind: 'hint';
+      readonly hint: HintOutcome;
+      readonly speech: CompanionMessageRef;
+    }
   | {
       readonly id: string;
       readonly kind: 'feedback';
+      readonly speech: CompanionMessageRef;
       readonly text: FeedbackText;
       /** For predefined encouragement: how the answer was assessed, `null` when it could not be. */
       readonly result: 'partly_correct' | 'not_yet' | null;
@@ -47,10 +55,24 @@ function initialLines(session: HelpSessionDto): ConversationLine[] {
     id: `hint-${index}`,
     kind: 'hint',
     hint,
+    speech: { kind: 'hint', index, sessionId: session.sessionId },
   }));
   return session.openQuestion === null
     ? hints
-    : [...hints, { id: 'question', kind: 'feedback', text: session.openQuestion, result: null }];
+    : [
+        ...hints,
+        {
+          id: 'question',
+          kind: 'feedback',
+          text: session.openQuestion,
+          result: null,
+          speech: {
+            kind: 'answer_question',
+            index: session.answerChecks.length - 1,
+            sessionId: session.sessionId,
+          },
+        },
+      ];
 }
 
 /**
@@ -70,6 +92,8 @@ export function useHelpConversation(childProfileId: string, initial: HelpSession
   const pending = useRef<{ step: Step; requestId: string; text: string } | null>(null);
   const lastStep = useRef<Step>('hint');
   const opened = useRef(false);
+  const nextHint = useRef(initial.hints.length);
+  const nextAnswer = useRef(initial.answerChecks.length);
 
   const fail = (error: { code: string; retryAfterSeconds?: number } | undefined) => {
     setFailure({ code: error?.code ?? null, retryAfterSeconds: error?.retryAfterSeconds ?? null });
@@ -90,7 +114,12 @@ export function useHelpConversation(childProfileId: string, initial: HelpSession
       }
       pending.current = null;
       setHintCount((count) => count + 1);
-      add({ id: `hint-${requestId}`, kind: 'hint', hint: result.data.hint });
+      add({
+        id: `hint-${requestId}`,
+        kind: 'hint',
+        hint: result.data.hint,
+        speech: { kind: 'hint', index: nextHint.current++, sessionId },
+      });
     });
   };
 
@@ -109,13 +138,26 @@ export function useHelpConversation(childProfileId: string, initial: HelpSession
       pending.current = null;
       setDraft('');
       const feedback = result.data;
+      const answerIndex = nextAnswer.current++;
       const own: ConversationLine = { id: `answer-${requestId}`, kind: 'child', text: answer };
       if (feedback.result === 'correct') {
         setPhase('comprehension');
         add(
           own,
-          { id: `praise-${requestId}`, kind: 'feedback', text: feedback.praise, result: null },
-          { id: `question-${requestId}`, kind: 'feedback', text: feedback.question, result: null },
+          {
+            id: `praise-${requestId}`,
+            kind: 'feedback',
+            text: feedback.praise,
+            result: null,
+            speech: { kind: 'answer_feedback', index: answerIndex, sessionId },
+          },
+          {
+            id: `question-${requestId}`,
+            kind: 'feedback',
+            text: feedback.question,
+            result: null,
+            speech: { kind: 'answer_question', index: answerIndex, sessionId },
+          },
         );
         return;
       }
@@ -123,6 +165,7 @@ export function useHelpConversation(childProfileId: string, initial: HelpSession
         id: `message-${requestId}`,
         kind: 'feedback',
         text: feedback.message,
+        speech: { kind: 'answer_feedback', index: answerIndex, sessionId },
         result: feedback.result,
       });
     });

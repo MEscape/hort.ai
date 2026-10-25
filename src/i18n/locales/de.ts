@@ -6,6 +6,7 @@ import { deLearner as learner } from '@modules/learner';
 import { deLesson as lesson } from '@modules/lesson';
 import { deProgression as progression } from '@modules/progression';
 import { deTeacherMaterial as teacherMaterial } from '@modules/teacher-material';
+import { deVoice as voice } from '@modules/voice';
 
 import deApp from '../messages/de.json';
 
@@ -27,6 +28,7 @@ const messages = {
   lesson: lesson.lesson,
   progression: progression.progression,
   teacherMaterial: teacherMaterial.teacherMaterial,
+  voice: voice.voice,
 } as const satisfies TranslationSchema<MessageCatalog>;
 
 export default messages;

@@ -101,6 +101,7 @@ describe('the roles', () => {
       'account.read',
       'account.update',
       'hint.request',
+      'progression.daily_reward',
       'progression.read',
       'progression.update',
       'voice.use',

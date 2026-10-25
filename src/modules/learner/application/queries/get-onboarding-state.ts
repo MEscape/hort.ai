@@ -12,7 +12,10 @@ import type { LearnerDependencies } from '../learner-dependencies';
 
 export type GetOnboardingStateError = AuthorizationError | InfrastructureAppError;
 
-/** Where the signed-in parent stands in the child setup. Looks only at their own profiles. */
+/**
+ * Where the signed-in parent stands in the child setup. Looks only at their own profiles, all of them,
+ * so it needs `learner.list`: a channel bound to one child (`learner.read` only) is refused.
+ */
 export class GetOnboardingState {
   constructor(private readonly deps: LearnerDependencies) {}
 
@@ -20,7 +23,7 @@ export class GetOnboardingState {
     const { authorization, childProfiles } = this.deps;
 
     return authorization
-      .requireInTenant('learner.read')
+      .requireInTenant('learner.list')
       .andThen((actor) => childProfiles.listByOwner(actor.id, actor.tenantId, OWN_PROFILES_LIMIT))
       .map((profiles) => toOnboardingStateView(onboardingStateOf(profiles)));
   }

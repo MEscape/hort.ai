@@ -31,7 +31,6 @@ it('grounds only the class member, marks teacher text untrusted, and stops immed
     competencies: {
       listCandidates: () => okAsync([]),
       saveDocument: () => okAsync('created'),
-      findByCodes: () => okAsync([]),
     },
     teacherMaterial,
     audit: { record: () => undefined },

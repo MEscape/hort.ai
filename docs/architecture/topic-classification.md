@@ -8,19 +8,19 @@ The classification never solves or explains anything. It only decides whether Ho
 
 ## Two classifications, in a fixed order
 
-|             | 1. Safety                                                                        | 2. Topic (this document)                              |
-| ----------- | -------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| Categories  | closed, fixed groups with fixed actions                                          | open, the model sorts in                              |
-| Who decides | backend (word lists, then Jev); the model may only make it stricter              | the model proposes, the backend validates and decides |
-| Where       | `checkChildSafeText`, `JevSafetyClassifier` (#11); distress on child input (#90) | `classifyTopic`                                       |
-| On failure  | the text is not used (safe fallback)                                             | today's flow: homework, no competency                 |
+|             | 1. Safety                                                           | 2. Topic (this document)                              |
+| ----------- | ------------------------------------------------------------------- | ----------------------------------------------------- |
+| Categories  | closed, fixed groups with fixed actions                             | open, the model sorts in                              |
+| Who decides | backend (word lists, then Jev); the model may only make it stricter | the model proposes, the backend validates and decides |
+| Where       | `checkChildSafeText`, `JevSafetyClassifier` (#11)                   | `classifyTopic`                                       |
+| On failure  | the text is not used (safe fallback)                                | today's flow: homework, no competency                 |
 
-The session start of #17 calls the service `classifyTopic` once on the task text, after the safety checks and the distress check of #90, and once more on the child's reply to a clarifying question (the reply appended to the task text). A text that safety stopped never reaches it, and its result can never unblock anything safety blocked: the service returns only a `TopicDecision`, which has no way to express a safety outcome.
+The session start of #17 calls the service `classifyTopic` once on the task text, after the safety checks, and once more on the child's reply to a clarifying question (the reply appended to the task text). A text that safety stopped never reaches it, and its result can never unblock anything safety blocked: the service returns only a `TopicDecision`, which has no way to express a safety outcome.
 
 ## Flow
 
 ```text
-session start (#17), after safety (#11) and distress (#90)
+session start (#17), after safety (#11)
   └─ findRelevantCompetencies (#28): at most five candidates of the child's own state, grade and class
       └─ classifyTopic
           └─ TopicClassifier.classify({ task, subject, candidates })   untrusted, `unknown`
@@ -111,16 +111,18 @@ Jev answers probabilities only (yes/no "noul" questions on `POST /v1/systemone`)
 - A missed deadline is `timeout`; any other failure is `unavailable`, with the HTTP status at most, never the key or the text.
 - Jev cannot propose an open label; only a text model can. A `GeminiTopicClassifier` for that is the optional step 12 of #92 and not built.
 
-The questions are in English, Jev's strongest language; German messages are rated less accurately. The thresholds above are the starting values from #92 and have **not yet** been tuned against Jev. Before the demo, run this matrix once against Jev and record the result here:
+The questions are in English, Jev's strongest language; German messages are rated less accurately. The thresholds above are the starting values from #92. They were checked once against Jev (`jev-1.14.0`, 25 Oct 2026) with this matrix, picked subject `math` and five fixed candidates (four basic-arithmetic, measurement and pattern statements of the KMK standards, one of them the intended match). All six messages were decided as expected, so the starting values stay:
 
-| Message                                               | Expected              |
-| ----------------------------------------------------- | --------------------- |
-| Ich muss 23 + 24 rechnen                              | homework, addition    |
-| Tim verteilt 12 Äpfel gerecht an 3 Kinder             | homework, division    |
-| Wie spät ist es in 45 Minuten, wenn es 15:45 Uhr ist? | homework, time spans  |
-| Warum ist der Himmel blau?                            | curiosity → redirect  |
-| Hallo Max, wie geht's dir?                            | small talk → redirect |
-| Hilfe                                                 | clarify               |
+| Message                                               | Expected              | Intent (score)    | Topic (score)                  | Decision                |
+| ----------------------------------------------------- | --------------------- | ----------------- | ------------------------------ | ----------------------- |
+| Ich muss 23 + 24 rechnen                              | homework, addition    | homework (0.75)   | operations competency (0.77)   | `help` with competency  |
+| Tim verteilt 12 Äpfel gerecht an 3 Kinder             | homework, division    | homework (0.65)   | word-problem competency (0.83) | `help` with competency  |
+| Wie spät ist es in 45 Minuten, wenn es 15:45 Uhr ist? | homework, time spans  | homework (0.85)   | time-span competency (0.81)    | `help` with competency  |
+| Warum ist der Himmel blau?                            | curiosity → redirect  | curiosity (0.94)  | none                           | `redirect` (curiosity)  |
+| Hallo Max, wie geht's dir?                            | small talk → redirect | small talk (0.98) | none                           | `redirect` (small talk) |
+| Hilfe                                                 | clarify               | homework (0.39)   | operations competency (0.27)   | `clarify`               |
+
+The margin is thin for one message: the division word problem scores 0.65 as homework, 0.05 above the `0.6` intent threshold. A shorter or less school-like German text can fall below it and then gets the one fixed clarifying question, which is the intended safe direction. Six messages are a smoke test, not a calibration; widen the matrix before raising or lowering a threshold.
 
 ## Logging
 
@@ -142,7 +144,7 @@ The child's reply to a clarifying question goes in through `startHelpSessionActi
 
 **Grounding on the stored competency (#35).** Every hint and every answer check of a session with a stored `competencyCode` is grounded in that competency alone (`groundInCurriculum` in `application/services/session-step.ts`). The code is not trusted on its own: the step retrieves the child's current candidates as before and uses the code only when it is still one of them, so a code of another state, grade or an older curriculum never reaches the AI. When it is not (or retrieval fails), the step is grounded exactly as an unclassified session is, and a missing code is logged as `guidance.stored_competency_unavailable` (`warn`, level only). An open topic label never grounds anything.
 
-Still open: the distress check (#90) must run before the classification, so a stopped text never reaches it; learning events do not aggregate on `competencyCode` yet (#35).
+Still open: learning events do not aggregate on `competencyCode` yet (#35).
 
 ## Changing the contract
 

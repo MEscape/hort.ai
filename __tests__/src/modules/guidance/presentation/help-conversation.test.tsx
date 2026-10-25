@@ -11,6 +11,32 @@ const actions = vi.hoisted(() => ({
   reply: vi.fn(),
 }));
 
+vi.mock('@modules/voice/client', () => ({
+  VoiceInputButton: ({
+    allowed,
+    onTranscript,
+  }: {
+    allowed: boolean;
+    onTranscript: (text: string) => void;
+  }) => (
+    <button
+      type="button"
+      disabled={!allowed}
+      onClick={() => {
+        onTranscript('My spoken answer');
+      }}
+    >
+      Microphone
+    </button>
+  ),
+  ReadAloudButton: ({ allowed, message }: { allowed: boolean; message: unknown }) =>
+    allowed ? (
+      <button type="button" data-ref={JSON.stringify(message)}>
+        Read aloud
+      </button>
+    ) : null,
+}));
+
 vi.mock('@i18n/client', () => ({ useTranslations: () => (key: string) => key }));
 vi.mock('@i18n', () => ({
   Link: ({ href, children }: { href: string; children: React.ReactNode }) => (
@@ -69,6 +95,28 @@ const renderScreen = (initial: HelpSessionDto) =>
 const transcript = () => within(screen.getByRole('complementary'));
 
 describe('HelpConversation', () => {
+  it('inserts the spoken answer into the editable field without sending, with server message refs for playback', () => {
+    render(
+      <HelpConversation
+        childProfileId="child-1"
+        initial={session()}
+        companion={companion}
+        voiceConsent
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Microphone' }));
+    expect(screen.getByRole('textbox')).toHaveValue('My spoken answer');
+    expect(actions.checkAnswer).not.toHaveBeenCalled();
+    // The stage sentence and its transcript line read the same hint by the same server reference.
+    const refs = screen
+      .getAllByRole('button', { name: 'Read aloud' })
+      .map((button) => JSON.parse(button.getAttribute('data-ref') ?? '{}') as unknown);
+    expect(refs.length).toBeGreaterThan(0);
+    for (const ref of refs) {
+      expect(ref).toEqual({ kind: 'hint', index: 0, sessionId: 'session-1' });
+    }
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });

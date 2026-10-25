@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import { SaveControls } from '@modules/learner/application/commands/save-controls';
 import type { SaveControlsInput } from '@modules/learner/application/contracts/learner-inputs';
-import { GUARDIAN_CONSENT_VERSION } from '@modules/learner/domain/models/parent-controls';
+import {
+  GUARDIAN_CONSENT_VERSION,
+  VOICE_NOTICE_VERSION,
+} from '@modules/learner/domain/models/parent-controls';
 
 import { okAsync } from '@lib/result';
 
@@ -13,6 +16,7 @@ const OWN = profileOf({ id: 'own', setupStep: 'controls' });
 const INPUT: SaveControlsInput = {
   profileId: 'own',
   voiceEnabled: true,
+  voiceNoticeVersion: VOICE_NOTICE_VERSION,
   dailyLimitMinutes: 45,
   allowedWindow: { fromMinute: 900, untilMinute: 1140 },
   learningInsights: true,
@@ -51,7 +55,97 @@ describe('SaveControls', () => {
         allowedWindowChanged: true,
       },
       { type: 'learner.guardian_consent_recorded', ...IDS, consentVersion: '2026-10-24' },
+      {
+        type: 'learner.voice_consent_changed',
+        ...IDS,
+        allowed: true,
+        noticeVersion: VOICE_NOTICE_VERSION,
+      },
     ]);
+  });
+
+  it('gives a current voice consent when the parent allows voice, so speech input works at once', async () => {
+    const { deps, childProfiles } = build(PARENT_A, OWN);
+
+    const view = (await new SaveControls(deps).execute(INPUT))._unsafeUnwrap();
+
+    expect(view.voiceConsent).toBe(true);
+    expect(childProfiles.rows[0]?.voiceNotice).toEqual({
+      confirmedAt: NOW,
+      version: VOICE_NOTICE_VERSION,
+    });
+  });
+
+  it('gives no voice consent with voice off, and clears an earlier one', async () => {
+    const { deps, childProfiles } = build(PARENT_A, OWN);
+    const save = new SaveControls(deps);
+    await save.execute(INPUT);
+
+    const view = (
+      await save.execute({ ...INPUT, voiceEnabled: false, voiceNoticeVersion: null })
+    )._unsafeUnwrap();
+
+    expect(view.voiceConsent).toBe(false);
+    expect(childProfiles.rows[0]?.voiceNotice).toBeNull();
+  });
+
+  it('refuses voice on with an outdated notice version and stores nothing', async () => {
+    const { deps, childProfiles, audit } = build(PARENT_A, OWN);
+
+    const result = await new SaveControls(deps).execute({
+      ...INPUT,
+      voiceNoticeVersion: '2000-01-01',
+    });
+
+    expect(result._unsafeUnwrapErr()).toMatchObject({ code: 'learner.voice_notice_outdated' });
+    expect(childProfiles.writes).toBe(0);
+    expect(audit.events).toEqual([]);
+  });
+
+  it('gives no voice consent for voice on without an opt-in in this form', async () => {
+    const { deps, childProfiles } = build(PARENT_A, OWN);
+
+    const view = (
+      await new SaveControls(deps).execute({ ...INPUT, voiceNoticeVersion: null })
+    )._unsafeUnwrap();
+
+    expect(view.voiceConsent).toBe(false);
+    expect(view.controls.voiceEnabled).toBe(false);
+    expect(childProfiles.rows[0]?.voiceNotice).toBeNull();
+  });
+
+  it('keeps a current consent when an unchanged form is saved again', async () => {
+    const { deps, childProfiles } = build(PARENT_A, OWN);
+    const save = new SaveControls(deps);
+    await save.execute(INPUT);
+
+    const view = (
+      await save.execute({ ...INPUT, dailyLimitMinutes: 30, voiceNoticeVersion: null })
+    )._unsafeUnwrap();
+
+    expect(view.voiceConsent).toBe(true);
+    expect(childProfiles.rows[0]?.voiceNotice).toEqual({
+      confirmedAt: NOW,
+      version: VOICE_NOTICE_VERSION,
+    });
+  });
+
+  it('does not let an older open form restore a consent withdrawn in another form', async () => {
+    const { deps, childProfiles } = build(PARENT_A, OWN);
+    const save = new SaveControls(deps);
+    await save.execute(INPUT);
+    // Form A: voice off.
+    await save.execute({ ...INPUT, voiceEnabled: false, voiceNoticeVersion: null });
+
+    // Form B, loaded before the withdrawal, still shows voice on and only changes the limit.
+    const view = (
+      await save.execute({ ...INPUT, dailyLimitMinutes: 30, voiceNoticeVersion: null })
+    )._unsafeUnwrap();
+
+    expect(view.voiceConsent).toBe(false);
+    expect(view.controls.voiceEnabled).toBe(false);
+    expect(view.controls.dailyLimitMinutes).toBe(30);
+    expect(childProfiles.rows[0]?.voiceNotice).toBeNull();
   });
 
   it('accepts the restrictive defaults and then audits only the confirmation', async () => {
@@ -95,6 +189,7 @@ describe('SaveControls', () => {
         dailyLimitChanged: true,
         allowedWindowChanged: false,
       },
+      { type: 'learner.voice_consent_changed', ...IDS, allowed: false, noticeVersion: null },
     ]);
   });
 

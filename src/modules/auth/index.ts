@@ -13,7 +13,8 @@ export { toActorId, toTenantId } from './domain/models/ids';
 export { PERMISSIONS } from './domain/models/permission';
 export type { Permission } from './domain/models/permission';
 export type { ResourceScope } from './domain/models/authorize';
-export type { Actor } from './domain/models/actor';
+export type { Actor, AuditedActor } from './domain/models/actor';
+export { auditedActor } from './domain/models/actor';
 export { actorHasPermission } from './domain/models/authorize';
 
 /** Authorization: every protected use case of every module receives this. */
@@ -22,6 +23,8 @@ export { getAccessControl, getAuthQueries, isAuthEnabled } from './composition';
 export { getParentAreaServices, withParentProof } from './composition';
 export { ParentAccessForm } from './presentation/components/parent-access-form';
 export { ReturnToChildButton } from './presentation/components/return-to-child-button';
+/** The Alexa demo coupling: a server-verified channel acting for one configured child only. */
+export { runAsChildChannel } from './composition';
 
 /**
  * The use cases a sign-in, sign-up, sign-out or password-reset screen calls, with the inputs and
@@ -63,9 +66,8 @@ export { ForgotPasswordForm } from './presentation/components/forgot-password-fo
 export { ResetPasswordForm } from './presentation/components/reset-password-form';
 export { ResetPasswordLinkMissing } from './presentation/components/reset-password-link-missing';
 export { EmailVerificationResult } from './presentation/components/email-verification-result';
-export { SignOutButton } from './presentation/components/sign-out-button';
 /** The signed-in areas: the header with the account menu, and the account settings page. */
-export { AccountHeader } from './presentation/components/account-header';
+export { AccountControl, AccountHeader } from './presentation/components/account-header';
 export { AccountSettings } from './presentation/components/account-settings';
 export { default as enAuth } from './presentation/i18n/en.json';
 export { default as deAuth } from './presentation/i18n/de.json';

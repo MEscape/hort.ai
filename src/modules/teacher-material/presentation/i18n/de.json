@@ -15,7 +15,7 @@
       "title": "Material für diese Klasse",
       "description": "Lade eigenes Unterrichtsmaterial hoch. hort.ai nutzt es für die Hinweise an die Kinder deiner Klasse. Die Kinder sehen die Datei selbst nicht.",
       "fileLabel": "Datei auswählen",
-      "fileHint": "Textdatei (.txt, UTF-8), höchstens {maxSize}.",
+      "fileHint": "Word (.docx), PowerPoint (.pptx) oder Textdatei (.txt, UTF-8), höchstens {maxSize}. Ältere .doc- und .ppt-Dateien bitte als .docx bzw. .pptx speichern.",
       "upload": "Hochladen",
       "uploading": "Wird hochgeladen …",
       "uploaded": "„{title}“ ist hochgeladen.",
@@ -38,12 +38,12 @@
         "FAILED": "Fehlgeschlagen",
         "DELETED": "Gelöscht"
       },
-      "failedReason": "Die Datei konnte nicht gelesen werden. Prüfe, ob es eine Textdatei in UTF-8 ist, und lade sie neu hoch.",
+      "failedReason": "Die Datei konnte nicht gelesen werden. Prüfe, ob es ein Word- oder PowerPoint-Dokument (.docx, .pptx) oder eine Textdatei in UTF-8 ist, und lade sie neu hoch.",
       "errors": {
         "noFile": "Bitte wähle zuerst eine Datei aus.",
-        "wrongType": "Bitte wähle eine Textdatei (.txt) aus.",
+        "wrongType": "Bitte wähle ein Word- (.docx), ein PowerPoint-Dokument (.pptx) oder eine Textdatei (.txt) aus. Ältere .doc- und .ppt-Dateien speicherst du vorher als .docx bzw. .pptx.",
         "tooLarge": "Die Datei ist zu groß. Erlaubt sind höchstens {maxSize}.",
-        "invalidFile": "Die Datei konnte nicht gelesen werden. Bitte lade eine Textdatei in UTF-8 hoch.",
+        "invalidFile": "Die Datei konnte nicht gelesen werden. Bitte lade ein unverschlüsseltes Word- oder PowerPoint-Dokument oder eine Textdatei in UTF-8 hoch.",
         "archived": "Diese Klasse ist archiviert. Hier kannst du kein Material mehr hochladen.",
         "rateLimited": "Du hast gerade viele Dateien hochgeladen. Bitte warte kurz.",
         "generic": "Das hat nicht geklappt. Bitte versuche es noch einmal."

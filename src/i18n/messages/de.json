@@ -112,6 +112,7 @@
     "greeting": "Hallo!",
     "question": "Brauchst du Hilfe?",
     "back": "Zurück",
+    "home": "Startseite",
     "actions": {
       "task": "Meine Aufgabe",
       "school": "Schulaufgaben",

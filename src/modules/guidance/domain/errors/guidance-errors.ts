@@ -52,6 +52,7 @@ export const GUIDANCE_VALIDATION_CODES = {
   assignmentIdInvalid: 'guidance.validation.assignment_id_invalid',
   /** Not a world island, or a place of another island (or a place without an island). */
   areaInvalid: 'guidance.validation.area_invalid',
+  classroomIdInvalid: 'guidance.validation.classroom_id_invalid',
 } as const;
 
 export type GuidanceValidationCode =
