@@ -178,6 +178,21 @@ async function openBinariesToPostgresUser(packageDirectory: string) {
   }
 }
 
+/** Lists owner, group and permission bits along the path to the binaries, for a failed initdb. */
+async function describeBinaryAccess(packageDirectory: string) {
+  const binaries = join(packageDirectory, 'native', 'bin');
+  const lines: string[] = [];
+  for (let path = binaries; path !== dirname(path); path = dirname(path)) {
+    try {
+      const { mode, uid, gid } = await stat(path);
+      lines.push(`${(mode & 0o777).toString(8)} ${String(uid)}:${String(gid)} ${path}`);
+    } catch (error) {
+      lines.push(`${path} (${String(error)})`);
+    }
+  }
+  return lines.join('\n');
+}
+
 async function main(sentinel: string) {
   const files = await readdir(process.cwd());
   if (files.some((file) => /^\.env(?:$|\.)/.test(file) && !file.endsWith('.example'))) {
