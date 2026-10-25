@@ -89,7 +89,10 @@ describe('catalogSystemPhrases', () => {
 
 describe('learnerChildVoiceConsent', () => {
   it('answers from the child profile', async () => {
-    const profile = { id: 'child-1', controls: { voiceEnabled: true } } as unknown as ChildProfileView;
+    const profile = {
+      id: 'child-1',
+      controls: { voiceEnabled: true },
+    } as unknown as ChildProfileView;
     const consent = learnerChildVoiceConsent(() => okAsync(profile));
 
     expect((await consent.voiceConsentOf(toChildProfileId('child-1')))._unsafeUnwrap()).toBe(true);
