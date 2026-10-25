@@ -21,7 +21,7 @@ The product requirements do not say whether a child ever signs in with credentia
 - **auth** establishes identity and sessions and answers "may this parent do this to this resource". It does not create, store or validate child profiles, and logging in never creates one.
 - **account/parent module (when needed)** owns account-level capabilities beyond credentials (display name, settings). It may orchestrate "an authenticated parent creates a child profile" by calling the learner module's use case.
 - **learner module** owns the profile's rules (display name, federal state, grade, voice consent), its lifecycle and its persistence. Every profile row stores `ownerId` (the guardian's `ActorId`) and `tenantId`. Its use cases call `authorization.requireInTenant('learner.create')` first (the returned actor is the owner to store), and `requireOnResource('learner.read' | 'learner.update' | 'learner.delete', { tenantId, ownerId })` on the loaded record.
-- **learning/progress module** reaches progress through the child profile, so the same ownership check applies; it never trusts a profile id as proof of access.
+- **learning/progress module** reaches progress through the child profile, so the same ownership check applies; it never trusts a profile id as proof of access. The progression module ([progression.md](progression.md)) does this with `progression.read` / `progression.update`: it authorizes in the tenant first, then asks the learner module whether the signed-in parent owns the child.
 
 ## Authorization
 
@@ -32,6 +32,16 @@ The product requirements do not say whether a child ever signs in with credentia
 3. **Permission**: any of the actor's roles grants it (`parent` grants every `learner.*` permission; the table is code, not data).
 
 `AuthorizationService` exposes two calls on purpose: `requireInTenant(permission)` (create, list your own) and `requireOnResource(permission, scope)` (a loaded resource). A caller cannot drop the scope by passing `undefined`. Every denial is the one `auth.permission_denied` error; the precise reason (`tenant_mismatch`, `owner_mismatch`, `permission_missing`) goes only to the audit log, because telling them apart would disclose that a resource exists for someone else.
+
+### Platform admin
+
+`AUTH_PLATFORM_ADMIN_EMAILS` (comma-separated, validated and lower-cased by the env schema) names the bootstrap admins. `BetterAuthCurrentActorProvider` gives a **confirmed** account with a listed address the roles `[parent, platform_admin]`; an unconfirmed address is signed out before this is looked at, so registering an admin's address first grants nothing. The role is derived on every request, never stored: removing the address revokes it with the next request, and a session needs no re-issue.
+
+- `platform_admin` holds every permission, like `parent`. `decide` skips only the **owner** comparison for it; the **tenant** comparison still applies.
+- Every access past a foreign owner records `authorization.admin_override` (actor, permission, owner id; `warn`, member) through `AuthorizationService`. The data is children's: an admin's reach must stay visible.
+- `requireInTenant` still returns the admin as the owner of what they create or list. "Everything of all parents" is a use case of its own, not a side effect of the role.
+- With `AUTH_ENABLED=false` the fixed dev actor stays a plain parent: there is no e-mail to match. To test admin behavior locally, enable auth.
+- Promoting other people later: store a grant (a column or table in the auth database) and have the provider add the role for it next to the env list. The role table, `decide` and the audit event stay unchanged. The env list then remains the break-glass admin that cannot be demoted from inside the app.
 
 ## Tenant configuration
 
@@ -58,6 +68,7 @@ Only the audit module's domain, application and infrastructure layers are used. 
 | `authentication.sign_in_failed`           | provider after-hook (`/sign-in`) | visitor     |
 | `authentication.password_reset_completed` | provider `onPasswordReset`       | member      |
 | `authorization.denied`                    | `AuthorizationService`           | member      |
+| `authorization.admin_override`            | `AuthorizationService`           | member      |
 
 - **Content**: ids, error codes and enum values only. No address, name, password, token, cookie or IP is ever an event field, and the trail keeps only plain values. A failed sign-in carries our error code, not the address that was tried. Child details are never recorded.
 - **Mechanism**: in-process, fire and forget. No outbox, broker or transaction. The authentication tables live in a separate database from the trail, so a shared transaction is not available anyway.

@@ -108,6 +108,7 @@ describe.skipIf(!isEnabled)('Better Auth adapters against the auth database', ()
           sessionMaxLifetimeMs: 24 * 3600 * 1000,
           clock: systemClock,
           tenantId: TENANT,
+          platformAdminEmails: [],
         }),
     };
   }

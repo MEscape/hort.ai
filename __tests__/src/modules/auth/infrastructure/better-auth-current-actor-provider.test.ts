@@ -24,7 +24,11 @@ function session(overrides: Partial<SessionSnapshot['user']> & { createdAt?: Dat
   return snapshot;
 }
 
-function build(source: SessionSource, headers = new Headers()) {
+function build(
+  source: SessionSource,
+  headers = new Headers(),
+  platformAdminEmails: readonly string[] = [],
+) {
   const seen: Headers[] = [];
   const provider = new BetterAuthCurrentActorProvider({
     sessions: {
@@ -37,6 +41,7 @@ function build(source: SessionSource, headers = new Headers()) {
     sessionMaxLifetimeMs: MAX_LIFETIME_MS,
     clock,
     tenantId: TENANT,
+    platformAdminEmails,
   });
   return { provider, seen };
 }
@@ -137,10 +142,47 @@ describe('BetterAuthCurrentActorProvider', () => {
       sessionMaxLifetimeMs: MAX_LIFETIME_MS,
       clock,
       tenantId: TENANT,
+      platformAdminEmails: [],
     });
 
     const result = await provider.getCurrentActor();
 
     expect(result.isErr() && result.error.code).toBe('auth.session_lookup_failed');
+  });
+
+  describe('platform admins', () => {
+    const ADMINS = ['mara@example.org'];
+
+    it('adds the admin role for a confirmed address on the list, whatever its letter case', async () => {
+      const { provider } = build(
+        sessionOf(session({ email: 'Mara@Example.org' })),
+        undefined,
+        ADMINS,
+      );
+
+      const result = await provider.getCurrentActor();
+
+      expect(result.isOk() && result.value.roles).toEqual(['parent', 'platform_admin']);
+    });
+
+    it('does not promote an address that is not on the list', async () => {
+      const { provider } = build(
+        sessionOf(session({ email: 'other@example.org' })),
+        undefined,
+        ADMINS,
+      );
+
+      const result = await provider.getCurrentActor();
+
+      expect(result.isOk() && result.value.roles).toEqual(['parent']);
+    });
+
+    it('does not promote an unconfirmed address: whoever registers it first gets nothing', async () => {
+      const { provider } = build(sessionOf(session({ emailVerified: false })), undefined, ADMINS);
+
+      const result = await provider.getCurrentActor();
+
+      expect(result.isErr() && result.error.code).toBe('auth.unauthenticated');
+    });
   });
 });

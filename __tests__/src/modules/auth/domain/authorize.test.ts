@@ -5,7 +5,7 @@ import { toActorId } from '@modules/auth/domain/models/ids';
 import { PERMISSIONS } from '@modules/auth/domain/models/permission';
 import { permissionsForRole } from '@modules/auth/domain/models/role';
 
-import { OTHER_TENANT, TENANT, parent } from '../fakes';
+import { OTHER_TENANT, TENANT, admin, parent } from '../fakes';
 
 const OWN_PROFILE = { tenantId: TENANT, ownerId: toActorId('parent-1') };
 
@@ -54,6 +54,22 @@ describe('decide', () => {
   });
 });
 
+describe('decide for a platform admin', () => {
+  const FOREIGN = { tenantId: TENANT, ownerId: toActorId('parent-2') };
+
+  it("lets an admin act on another parent's resource", () => {
+    for (const permission of PERMISSIONS) {
+      expect(decide(admin(), permission, FOREIGN)).toEqual({ isAllowed: true });
+    }
+  });
+
+  it("still refuses a resource of another tenant: the tenant boundary is not the admin's to cross", () => {
+    const decision = decide(admin(), 'learner.read', { ...FOREIGN, tenantId: OTHER_TENANT });
+
+    expect(decision).toEqual({ isAllowed: false, reason: 'tenant_mismatch' });
+  });
+});
+
 describe('actorHasPermission', () => {
   it('is true for every permission a parent role grants', () => {
     for (const permission of permissionsForRole('parent')) {
@@ -66,8 +82,11 @@ describe('actorHasPermission', () => {
   });
 });
 
-describe('the parent role', () => {
-  it('holds every permission of the closed set, so a new permission is a deliberate grant', () => {
-    expect([...permissionsForRole('parent')].sort()).toEqual([...PERMISSIONS].sort());
-  });
+describe('the roles', () => {
+  it.each(['parent', 'platform_admin'] as const)(
+    'holds every permission of the closed set, so a new permission is a deliberate grant: %s',
+    (role) => {
+      expect([...permissionsForRole(role)].sort()).toEqual([...PERMISSIONS].sort());
+    },
+  );
 });

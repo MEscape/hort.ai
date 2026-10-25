@@ -17,6 +17,14 @@ export type SecurityEvent =
       readonly reason: DenialReason;
     }
   | {
+      /** A platform admin was let into a resource of another parent (`ownerId`). */
+      readonly type: 'authorization.admin_override';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      readonly permission: Permission;
+      readonly ownerId: ActorId;
+    }
+  | {
       readonly type: 'authentication.sign_in_failed';
       readonly tenantId: TenantId;
       readonly errorCode: string;
