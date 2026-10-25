@@ -1,6 +1,6 @@
 import { isDefined } from '@lib/utils';
 
-import { permissionsForRole } from './role';
+import { PLATFORM_ADMIN_ROLE, permissionsForRole } from './role';
 
 import type { Actor } from './actor';
 import type { ActorId, TenantId } from './ids';
@@ -41,7 +41,7 @@ export function actorHasPermission(actor: Actor, permission: Permission): boolea
  *
  *  1. Tenant first. A resource in another tenant is denied before anything else.
  *  2. Then the owner. A parent holds the permission for their own learners only; being a parent
- *     grants nothing on another parent's.
+ *     grants nothing on another parent's. A platform admin is exempt here, never from the tenant.
  *  3. Then the permission, through the actor's roles.
  *
  * `scope` present means the operation targets a specific resource. Absent
@@ -57,7 +57,7 @@ export function decide(
     if (scope.tenantId !== actor.tenantId) {
       return { isAllowed: false, reason: 'tenant_mismatch' };
     }
-    if (scope.ownerId !== actor.id) {
+    if (scope.ownerId !== actor.id && !actor.roles.includes(PLATFORM_ADMIN_ROLE)) {
       return { isAllowed: false, reason: 'owner_mismatch' };
     }
   }

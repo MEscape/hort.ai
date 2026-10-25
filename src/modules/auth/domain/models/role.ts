@@ -1,6 +1,11 @@
 import { literalGuard } from '@lib/utils';
 
-import { GUIDANCE_PERMISSIONS, LEARNER_PERMISSIONS, TEACHER_PERMISSIONS } from './permission';
+import {
+  GUIDANCE_PERMISSIONS,
+  LEARNER_PERMISSIONS,
+  PERMISSIONS,
+  TEACHER_PERMISSIONS,
+} from './permission';
 
 import type { Permission } from './permission';
 
@@ -15,10 +20,22 @@ import type { Permission } from './permission';
 export const PARENT_ROLE = 'parent';
 export const TEACHER_ROLE = 'teacher';
 export const ROLES = [PARENT_ROLE, TEACHER_ROLE] as const;
-export type Role = (typeof ROLES)[number];
+export type StoredRole = (typeof ROLES)[number];
 
 /** Whether a stored or submitted value is one of the roles; anything else is refused. */
 export const isRole = literalGuard(ROLES);
+
+/**
+ * Operates the platform: holds every permission on any parent's resources of its own tenant (`decide`
+ * skips the owner comparison for it, and the authorization service audits each such access). The
+ * provider grants it to the confirmed accounts named in `AUTH_PLATFORM_ADMIN_EMAILS`, in addition to
+ * `parent`. Promoting further people later means a stored grant read by the provider; this table and
+ * `decide` stay as they are.
+ */
+export const PLATFORM_ADMIN_ROLE = 'platform_admin';
+
+/** Every role an actor can hold: the stored ones plus the platform admin the provider grants. */
+export type Role = StoredRole | typeof PLATFORM_ADMIN_ROLE;
 
 /**
  * Code, not data, on purpose: it is versioned, reviewed, and cannot be changed by a request.
@@ -28,6 +45,7 @@ export const isRole = literalGuard(ROLES);
 const ROLE_PERMISSIONS = {
   parent: [...LEARNER_PERMISSIONS, ...GUIDANCE_PERMISSIONS],
   teacher: TEACHER_PERMISSIONS,
+  platform_admin: PERMISSIONS,
 } as const satisfies Record<Role, readonly Permission[]>;
 
 /** Every permission a single role grants. Combining roles is `decide`'s job. */

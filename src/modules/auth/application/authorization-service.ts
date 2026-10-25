@@ -1,6 +1,7 @@
 import type { ForbiddenAppError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
+import { isDefined } from '@lib/utils';
 
 import { permissionDenied } from '../domain/errors/auth-errors';
 import { decide } from '../domain/models/authorize';
@@ -70,6 +71,16 @@ export function createAuthorizationService(deps: {
       .andThen((actor): AppResultAsync<Actor, AuthorizationError> => {
         const decision = decide(actor, permission, scope);
         if (decision.isAllowed) {
+          // Only a platform admin is ever allowed past a foreign owner (see `decide`).
+          if (isDefined(scope) && scope.ownerId !== actor.id) {
+            deps.audit.record({
+              type: 'authorization.admin_override',
+              actorId: actor.id,
+              tenantId: actor.tenantId,
+              permission,
+              ownerId: scope.ownerId,
+            });
+          }
           return okAsync(actor);
         }
 

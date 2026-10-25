@@ -15,12 +15,17 @@
  *
  * `voice.use` lets the tutors speak and turns the child's speech into text (paid provider calls).
  * The child speaks within the guardian's session, so it is the parent's permission.
+ *
+ * `progression.*` is a child's progress (XP, level, the daily reward). It is held by the child's
+ * parent, on the parent's own children only, like `learner.*`.
  */
 export const LEARNER_PERMISSIONS = [
   'learner.create',
   'learner.read',
   'learner.update',
   'learner.delete',
+  'progression.read',
+  'progression.update',
   'voice.use',
 ] as const;
 

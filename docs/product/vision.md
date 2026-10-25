@@ -1,6 +1,6 @@
 # Product vision
 
-This document is the source of truth for what Hort.ai is. Issues, milestones and design reviews follow it. The [concept overview](flows.md) illustrates the intended experience; it is not binding and cannot add requirements. Engineering rules in [`docs/rules/`](../rules/README.md) take precedence over `AI_RULES.md`. It replaces the earlier learning-path idea (learning paths, XP, streaks and interactive learning scenes), which is no longer part of the product.
+This document is the source of truth for what Hort.ai is. Issues, milestones and design reviews follow it. The [concept overview](flows.md) illustrates the intended experience; it is not binding and cannot add requirements. Engineering rules in [`docs/rules/`](../rules/README.md) take precedence over `AI_RULES.md`. It replaces the earlier learning-path idea (learning paths, streaks and interactive learning scenes), which is no longer part of the product. Only the small progression in Principles ([#64](https://github.com/MEscape/hort.ai/issues/64)) came back.
 
 ## What Hort.ai is
 
@@ -49,14 +49,14 @@ The MVP records deduplicated learning events (competencies, attempts, hint level
 - **Backend is the source of truth** for sessions, hint levels, answers and roles. The AI only suggests wording; it never changes state.
 - **AI output is untrusted** until it is validated against a fixed data contract. Invalid, unsafe or solution-revealing output is replaced with a safe fallback.
 - **Child-safe and never punishing.** Mistakes are part of learning. No pressure, no ranking, no comparison with other children.
-- **No gamification.** No XP, streaks or rewards. Motivation comes from specific praise and from the child understanding their task.
-- **Privacy.** Child profiles store a display name, federal state, grade, up to four interests from a fixed list, the chosen companion and the parent's controls (voice, learning window, daily limit, opt-in notes), and nothing else: no surname, age, photo or free text. Extended for the onboarding in [#53](https://github.com/MEscape/hort.ai/issues/53); the team must confirm. Teachers see only the children in their own classes.
+- **No pressure gamification.** Motivation comes from specific praise and from the child understanding their task. Decided in [#64](https://github.com/MEscape/hort.ai/issues/64) (the team must confirm): a small, gentle progression is allowed, nothing more. It is XP that only the backend grants for a confirmed event (a daily reward once per Berlin calendar day, later confirmed learning events), a handful of levels, and a companion whose look is derived from when the child was last there (relaxed, sleepy and then bored after some days away, with a short upbeat line such as "snack time?", happy to see the child again and cheerful at once after one feeding). It never takes anything away: no streaks, no loss for a missed day, no ranking, no comparison, no timers, no guilt or sad-companion messages: bored and sleepy looks are fine, sad, lonely or "missed you" are not. AI text never decides XP or levels.
+- **Privacy.** Child profiles store a display name, federal state, grade, up to four interests from a fixed list, the chosen companion and the parent's controls (voice, learning window, daily limit, opt-in notes), when the child finished its welcome, and the XP ledger of the small progression (an amount and a reason per confirmed event), and nothing else: no surname, age, photo or free text. Extended for the onboarding in [#53](https://github.com/MEscape/hort.ai/issues/53); the team must confirm. Teachers see only the children in their own classes.
 - **MVP focus.** One subject and grade range end to end before anything else. No overengineering.
 
 ## Out of scope for the MVP
 
 - Exercises, lessons or learning content created by Hort.ai.
-- XP, streaks, rewards, leaderboards and grading.
+- Streaks, leaderboards, grading, loss of XP, and any reward beyond the small progression described under Principles.
 - Photo or worksheet recognition (after the MVP).
 - School administration integrations, Alexa, a full subject library.
 

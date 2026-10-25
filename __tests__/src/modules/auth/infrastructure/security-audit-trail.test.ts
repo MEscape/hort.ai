@@ -80,6 +80,16 @@ const EVENTS = [
       errorCode: 'auth.invalid_credentials',
     },
   ],
+  [
+    'authorization.admin_override',
+    {
+      type: 'authorization.admin_override',
+      actorId: ACTOR,
+      tenantId: TENANT,
+      permission: 'learner.read',
+      ownerId: toActorId('parent-2'),
+    },
+  ],
 ] as const satisfies ReadonlyArray<readonly [SecurityEvent['type'], SecurityEvent]>;
 
 let stdout: ReturnType<typeof vi.spyOn>;
@@ -138,6 +148,7 @@ describe('security events and the audit trail', () => {
     );
     expect(severities).toEqual({
       'authorization.denied': 'warn',
+      'authorization.admin_override': 'warn',
       'authentication.session_created': 'info',
       'authentication.session_revoked': 'info',
       'authentication.account_created': 'info',
@@ -154,7 +165,7 @@ describe('security events and the audit trail', () => {
     const detailKeys = new Set(
       (store.appended as NewAuditEntry[]).flatMap((entry) => Object.keys(entry.details)),
     );
-    expect([...detailKeys].sort()).toEqual(['errorCode', 'permission', 'reason']);
+    expect([...detailKeys].sort()).toEqual(['errorCode', 'ownerId', 'permission', 'reason']);
   });
 
   it('writes the log line as well as the trail entry', () => {

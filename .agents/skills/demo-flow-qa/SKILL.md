@@ -28,7 +28,7 @@ Write the demo path down first as numbered steps (for example: parent signs up, 
 4. **States:** loading, empty, error and success states exist and are understandable for the audience (a primary-school child must understand the child screens without reading much).
 5. **Console and network:** no errors in the browser console, no failed requests, no secrets or personal data in responses or logs.
 6. **Accessibility basics:** keyboard-only path works, visible focus, labels on inputs, sufficient contrast, touch targets on mobile.
-7. **Product guardrails:** the companion never gives away the solution; no points, streaks or other gamification; only the child data the feature needs.
+7. **Product guardrails:** the companion never gives away the solution; no streaks, rankings or pressure mechanics (only the small progression of the vision); only the child data the feature needs.
 
 Take a screenshot of every finding and of the final state of each step.
 

@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import type { ReactNode } from 'react';
 
 import { assignmentRoutes } from '@modules/assignments';
 import {
@@ -16,6 +17,8 @@ import {
   isDevResetAvailable,
   requireOnboarded,
 } from '@modules/learner';
+import { loadProgressDto } from '@modules/progression';
+import { CompanionCard } from '@modules/progression/client';
 
 import { Hort } from '@components/brand/hort';
 import { I18nProvider } from '@components/providers/i18n-provider';
@@ -28,6 +31,8 @@ import { getTranslations } from '@i18n/server';
 
 import { buildPrivateMetadata } from '@lib/seo';
 import { buildQueryString } from '@lib/utils';
+
+import { buildTutorOptions, preloadTutorPictures } from '../onboarding/tutor-options';
 
 export async function generateMetadata({
   params,
@@ -63,32 +68,57 @@ async function ChildActions({ child }: { readonly child: { id: string; displayNa
   );
 }
 
+/** The card every signed-in home shows; its body depends on the role. */
+async function HomeCard({ children }: { readonly children: ReactNode }) {
+  const t = await getTranslations('app');
+  return (
+    <Card>
+      <CardHeader>
+        <Hort mood="happy" />
+        <h1 className="text-3xl">{t('home.title')}</h1>
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
+  );
+}
+
 async function TeacherHome() {
   const t = await getTranslations('app');
   return (
-    <>
+    <HomeCard>
       <p className="text-center text-copy-muted">{t('home.teacherDescription')}</p>
       <Button asChild>
         <Link href={assignmentRoutes.teacher()}>{t('home.teacherAssignments')}</Link>
       </Button>
-    </>
+      {isAuthEnabled && <SignOutButton />}
+    </HomeCard>
   );
 }
 
 async function ParentHome() {
   const child = await requireOnboarded();
   const t = await getTranslations('app');
+  const tutors = buildTutorOptions();
+  preloadTutorPictures(tutors, child.tutorId);
+  const companion = tutors.find((option) => option.id === child.tutorId);
+  const progress = companion === undefined ? null : await loadProgressDto(child.id);
   return (
-    <>
-      <p className="text-center text-copy-muted">{t('home.description')}</p>
-      <ChildActions child={child} />
-      <VoiceConsentSwitch
-        profileId={child.id}
-        name={child.displayName}
-        allowed={child.voiceConsent}
-      />
-      {isDevResetAvailable() && <ResetOnboardingButton />}
-    </>
+    <div className="flex flex-col gap-6">
+      {companion !== undefined && progress !== null && (
+        <CompanionCard companion={companion} progress={progress} />
+      )}
+      <HomeCard>
+        <p className="text-center text-copy-muted">{t('home.description')}</p>
+        <ChildActions child={child} />
+        <VoiceConsentSwitch
+          profileId={child.id}
+          name={child.displayName}
+          allowed={child.voiceConsent}
+        />
+        {isAuthEnabled && <SignOutButton />}
+        {isDevResetAvailable() && <ResetOnboardingButton />}
+      </HomeCard>
+    </div>
   );
 }
 
@@ -99,19 +129,7 @@ async function ParentHome() {
  */
 async function Home() {
   const actor = await requireSignedIn('/home');
-  const t = await getTranslations('app');
-  return (
-    <Card>
-      <CardHeader>
-        <Hort mood="happy" />
-        <h1 className="text-3xl">{t('home.title')}</h1>
-      </CardHeader>
-      <CardContent>
-        {actor.roles.includes(TEACHER_ROLE) ? <TeacherHome /> : <ParentHome />}
-        {isAuthEnabled && <SignOutButton />}
-      </CardContent>
-    </Card>
-  );
+  return actor.roles.includes(TEACHER_ROLE) ? <TeacherHome /> : <ParentHome />;
 }
 
 export default async function HomePage({
@@ -121,7 +139,7 @@ export default async function HomePage({
 }) {
   const locale = requireLocale((await params).locale);
   return (
-    <I18nProvider locale={locale} namespaces={['auth', 'learner', 'classroom']}>
+    <I18nProvider locale={locale} namespaces={['auth', 'learner', 'classroom', 'progression']}>
       <AuthShell>
         <Suspense fallback={<AuthFormSkeleton />}>
           <Home />

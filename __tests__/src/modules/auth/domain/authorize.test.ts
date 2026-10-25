@@ -5,7 +5,7 @@ import { toActorId } from '@modules/auth/domain/models/ids';
 import { PERMISSIONS } from '@modules/auth/domain/models/permission';
 import { permissionsForRole, ROLES } from '@modules/auth/domain/models/role';
 
-import { OTHER_TENANT, TENANT, parent } from '../fakes';
+import { OTHER_TENANT, TENANT, admin, parent } from '../fakes';
 
 const OWN_PROFILE = { tenantId: TENANT, ownerId: toActorId('parent-1') };
 
@@ -54,6 +54,22 @@ describe('decide', () => {
   });
 });
 
+describe('decide for a platform admin', () => {
+  const FOREIGN = { tenantId: TENANT, ownerId: toActorId('parent-2') };
+
+  it("lets an admin act on another parent's resource", () => {
+    for (const permission of PERMISSIONS) {
+      expect(decide(admin(), permission, FOREIGN)).toEqual({ isAllowed: true });
+    }
+  });
+
+  it("still refuses a resource of another tenant: the tenant boundary is not the admin's to cross", () => {
+    const decision = decide(admin(), 'learner.read', { ...FOREIGN, tenantId: OTHER_TENANT });
+
+    expect(decision).toEqual({ isAllowed: false, reason: 'tenant_mismatch' });
+  });
+});
+
 describe('actorHasPermission', () => {
   it('is true for every permission a parent role grants', () => {
     for (const permission of permissionsForRole('parent')) {
@@ -68,16 +84,20 @@ describe('actorHasPermission', () => {
 
 describe('the roles', () => {
   it('together grant every permission of the closed set, so a new permission is a deliberate grant', () => {
-    const granted = ROLES.flatMap((role) => permissionsForRole(role));
+    const granted = [...ROLES, 'platform_admin' as const].flatMap((role) =>
+      permissionsForRole(role),
+    );
 
     expect([...new Set(granted)].sort()).toEqual([...PERMISSIONS].sort());
   });
 
-  it('give a parent the learner permissions, voice, the hint request and nothing of a class', () => {
+  it('give a parent the learner permissions, progression, voice, the hint request and nothing of a class', () => {
     const permissions = permissionsForRole('parent');
 
     expect(permissions.filter((permission) => !permission.startsWith('learner.')).sort()).toEqual([
       'hint.request',
+      'progression.read',
+      'progression.update',
       'voice.use',
     ]);
     expect(permissions).not.toContain('classroom.read');
@@ -106,5 +126,9 @@ describe('the roles', () => {
     for (const permission of permissionsForRole('teacher')) {
       expect(actorHasPermission(parent(), permission)).toBe(false);
     }
+  });
+
+  it('gives the platform admin every permission of the closed set', () => {
+    expect([...permissionsForRole('platform_admin')].sort()).toEqual([...PERMISSIONS].sort());
   });
 });

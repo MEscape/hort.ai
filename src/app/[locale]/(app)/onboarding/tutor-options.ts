@@ -1,7 +1,9 @@
 import 'server-only';
 
+import { preload } from 'react-dom';
+
 import type { TutorOption } from '@modules/learner';
-import { tutorCatalog, tutorImageKey, tutorIntroKey } from '@modules/tutors';
+import { tutorCatalog, tutorFace, tutorImageUrl, tutorIntroKey } from '@modules/tutors';
 
 import { serverEnv } from '@lib/config/server';
 
@@ -23,7 +25,9 @@ const MOUTH_ALIGNMENT: Readonly<Record<string, TutorOption['openAlignment']>> = 
  * ready, with just what the setup shows. Pictures and the spoken introduction live in the public
  * container of the environment the app runs in: `STORAGE_PUBLIC_BASE_URL` is set per environment
  * (local, preview, production), so each one reads its own container. Without an address the URLs
- * stay empty, the cards fall back to an icon and the play button says the sound is unavailable.
+ * stay empty, the cards fall back to an icon and the play button says the sound is unavailable. The
+ * pictures' addresses carry the pictures' version (`TUTOR_IMAGE_VERSION`), so a re-uploaded picture
+ * is fetched at once instead of after the browser's cached copy expires.
  */
 export function buildTutorOptions(): readonly TutorOption[] {
   const base = serverEnv.STORAGE_PUBLIC_BASE_URL?.replace(/\/$/, '');
@@ -40,9 +44,27 @@ export function buildTutorOptions(): readonly TutorOption[] {
       topics: tutor.lieblingsthemen,
       greeting: tutor.begruessung,
       voice: tutor.stimme.charakter,
-      imageUrl: url(tutorImageKey(tutor.id, 'mund_zu')),
-      imageOpenUrl: url(tutorImageKey(tutor.id, 'mund_auf')),
+      imageUrl: tutorImageUrl(base, tutor.id, 'mund_zu'),
+      imageOpenUrl: tutorImageUrl(base, tutor.id, 'mund_auf'),
       openAlignment: MOUTH_ALIGNMENT[tutor.id],
+      face: tutorFace(tutor.id),
       introUrl: url(tutorIntroKey(tutor.id)),
     }));
+}
+
+/**
+ * Tells the browser, in the page's head, to fetch the active companion's two pictures right away
+ * and at high priority, so they are there (and decoded) by the time the screen draws the companion
+ * and no empty frame appears where it stands. Call it on the server for the chosen companion.
+ */
+export function preloadTutorPictures(
+  tutors: readonly TutorOption[],
+  activeTutorId: string | null | undefined,
+): void {
+  const active = tutors.find((tutor) => tutor.id === activeTutorId);
+  for (const href of [active?.imageUrl, active?.imageOpenUrl]) {
+    if (href !== undefined && href !== '') {
+      preload(href, { as: 'image', fetchPriority: 'high' });
+    }
+  }
 }

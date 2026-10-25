@@ -1,0 +1,48 @@
+{
+  "progression": {
+    "mood": {
+      "new": "{name} waves hello, curious to meet you.",
+      "cheerful": "{name} is happy you are here!",
+      "calm": "{name} is relaxed and happy to see you.",
+      "sleepy": "{name} is sleepy and happy to see you.",
+      "bored": "{name} yawns and would love a snack."
+    },
+    "meter": {
+      "label": "Your level",
+      "level": "Level {level}",
+      "toNext": "{current} of {total} stars to level {next}",
+      "max": "Highest level reached",
+      "valueText": "Level {level}, {progress}",
+      "levelsLabel": "All levels",
+      "levelReached": "Level {level}, reached",
+      "levelCurrent": "Level {level}, your level",
+      "levelAhead": "Level {level}, still to come"
+    },
+    "feed": {
+      "title": "Snack time!",
+      "hint": "Tap or drag",
+      "foodLabel": "Feed {name}",
+      "tomorrow": "See you tomorrow!",
+      "retry": "Try again",
+      "continue": "Continue",
+      "gainedSr": "You got {xp, plural, one {# star} other {# stars}}.",
+      "says": {
+        "hungry": "I am hungry!",
+        "snack": "Snack time?",
+        "sleepy": "Yawn … snack?",
+        "bored": "Snack time?",
+        "pending": "Mmm …",
+        "granted": "Yum, thank you!",
+        "levelUp": "Level {level}! Yay!",
+        "full": "Full and happy!",
+        "error": "Oops!"
+      }
+    },
+    "errors": {
+      "notFound": "We could not find that. Please ask a grown-up.",
+      "validation": "That did not work. Please try again.",
+      "infrastructure": "That did not work. Please try again.",
+      "unexpected": "That did not work. Please try again."
+    }
+  }
+}

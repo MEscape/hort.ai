@@ -520,3 +520,254 @@ body {
   --hortai-font-heading: var(--font-atkinson), system-ui, sans-serif;
   --hortai-font-body: var(--font-atkinson), system-ui, sans-serif;
 }
+
+/* ── Progression motion: the companion's idle by mood, and the star of the daily reward ──
+ * Transform and opacity only. Calm mode and reduced motion stop all of it through the rules
+ * above; the star is not even drawn then (see `useCalmMotion`), the text says the same.
+ */
+@theme inline {
+  --animate-companion-lively: companion-lively 2.6s ease-in-out infinite;
+  --animate-companion-calm: companion-calm 7s ease-in-out infinite;
+  --animate-companion-wave: companion-wave 2.2s ease-in-out infinite;
+  --animate-companion-cheer: companion-cheer 900ms cubic-bezier(0.34, 1.4, 0.64, 1) 1;
+  --animate-star-fly: star-fly 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-companion-sleepy: companion-sleepy 9s ease-in-out infinite;
+  --animate-companion-chew: companion-chew 460ms ease-in-out 4;
+  --animate-thought: thought-float 4s ease-in-out infinite;
+  --animate-food-bob: food-bob 2.6s ease-in-out infinite;
+  --animate-heart-rise: heart-rise 1800ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-burst: burst 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* A sleepy or bored companion only breathes. */
+@keyframes companion-sleepy {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.006, 0.988);
+  }
+}
+
+/* Chewing: a small squash on every bite. */
+@keyframes companion-chew {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.025, 0.965);
+  }
+}
+
+@keyframes thought-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* The treat on the tray bobs gently: it is the one thing to touch. */
+@keyframes food-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6%);
+  }
+}
+
+/* A heart rises from the mouth; the variable --hx is how far it drifts sideways. */
+@keyframes heart-rise {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.4);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--hx, 0), -200%) scale(1);
+  }
+}
+
+/* A sparkle flies out of the middle to the point (--bx, --by) and fades: a level-up. */
+@keyframes burst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--bx, 0), var(--by, 0)) scale(1);
+  }
+}
+
+@keyframes companion-lively {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5%);
+  }
+}
+
+/* Slower and softer than the lively idle: a companion at ease. */
+@keyframes companion-calm {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-1.5%) scale(1.012);
+  }
+}
+
+/* A curious little sway for a companion the child has not met yet. */
+@keyframes companion-wave {
+  0%,
+  100% {
+    transform: rotate(-2.5deg);
+  }
+  50% {
+    transform: rotate(2.5deg);
+  }
+}
+
+@keyframes companion-cheer {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  20% {
+    transform: translateY(-16%) rotate(-3deg);
+  }
+  40% {
+    transform: translateY(0) rotate(0);
+  }
+  60% {
+    transform: translateY(-12%) rotate(3deg);
+  }
+  80% {
+    transform: translateY(0) rotate(0);
+  }
+}
+
+/* The star leaves the reward and sinks into the meter; `--fly-x/--fly-y` are measured in the browser. */
+@keyframes star-fly {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(0, -8px) scale(1.15);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--fly-x, 0), var(--fly-y, 0)) scale(0.45);
+  }
+}
+
+/* ── Child onboarding motion: the voice preview's listening ring ───────────────
+ * Transform and opacity only. Calm mode and reduced motion stop it through the rules above; the
+ * "speaking" text, the stop button and the moving mouth say the same without it.
+ */
+@theme inline {
+  --animate-ripple: ripple 1.8s ease-out infinite;
+}
+
+/* A soft ring that grows and fades behind the character while it speaks. */
+@keyframes ripple {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.25);
+  }
+}
+
+/* ── Child welcome motion: the sky's stars and the "not now" shake ─────────────
+ * Transform and opacity only. Calm mode and reduced motion stop it through the rules above; the
+ * stars are paint and the shake always comes with a spoken line and `aria-disabled`.
+ */
+@theme inline {
+  --animate-twinkle: twinkle 4s ease-in-out infinite;
+  --animate-wobble: wobble 360ms ease-in-out 1;
+  --animate-confetti: confetti 4.2s ease-in infinite;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.1);
+  }
+}
+
+/* A tiny sideways shake: "that one is not free right now". Plays once. */
+@keyframes wobble {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px) rotate(-1deg);
+  }
+  75% {
+    transform: translateX(3px) rotate(1deg);
+  }
+}
+
+/* A star drifting down while turning: soft confetti for the end of the welcome. */
+@keyframes confetti {
+  0% {
+    opacity: 0;
+    transform: translateY(0) rotate(0);
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(min(60dvh, 28rem)) rotate(200deg);
+  }
+}
+
+/* ── Character face motion: the sleepy "z"s float up and fade ────────────────────
+ * Transform and opacity only. Calm mode and reduced motion draw the "z"s without this class.
+ */
+@theme inline {
+  --animate-face-zzz: face-zzz 3.2s ease-in-out infinite;
+}
+
+@keyframes face-zzz {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0.02px);
+  }
+  30%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0.012px, -0.03px);
+  }
+}
