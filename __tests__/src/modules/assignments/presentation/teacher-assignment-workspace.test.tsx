@@ -44,20 +44,33 @@ const SAVED: TeacherAssignmentView = {
   solutionKey: 'TEACHER_PRIVATE_KEY',
 };
 
-function renderWorkspace(assignments: readonly TeacherAssignmentView[] = []) {
-  return render(
+const CLASSROOMS = [
+  { id: 'class-a', name: '3a', grade: 3 },
+  { id: 'class-b', name: '4b', grade: 4 },
+];
+
+function Workspace({
+  assignments = [],
+  classrooms = CLASSROOMS,
+}: {
+  readonly assignments?: readonly TeacherAssignmentView[];
+  readonly classrooms?: typeof CLASSROOMS;
+}) {
+  return (
     <I18nClientProvider locale="en" timeZone="Pacific/Kiritimati" messages={messages} isDevelopment>
       <TeacherAssignmentWorkspace
-        classrooms={[
-          { id: 'class-a', name: '3a', grade: 3 },
-          { id: 'class-b', name: '4b', grade: 4 },
-        ]}
+        classrooms={classrooms}
         classroomId="class-a"
         classroomName="3a"
         assignments={assignments}
+        classroomActions={<button type="button">Add class</button>}
       />
-    </I18nClientProvider>,
+    </I18nClientProvider>
   );
+}
+
+function renderWorkspace(assignments: readonly TeacherAssignmentView[] = []) {
+  return render(<Workspace assignments={assignments} />);
 }
 
 async function fill(label: string, value: string) {
@@ -245,7 +258,7 @@ describe('teacher assignment workspace', () => {
   });
 
   describe('switching classes', () => {
-    const classB = () => screen.getByRole('link', { name: /4b/ });
+    const classB = () => screen.getByRole('link', { name: /^4b/ });
 
     it('asks before discarding an unsaved draft, and keeps it when asked to', async () => {
       renderWorkspace();
@@ -283,6 +296,20 @@ describe('teacher assignment workspace', () => {
       expect(classB()).toHaveAttribute('aria-disabled', 'true');
       expect(screen.queryByText('Switch class and discard your changes?')).not.toBeInTheDocument();
       expect(push).not.toHaveBeenCalled();
+    });
+
+    it('keeps an unsaved draft when another class is created and the page refreshes', async () => {
+      const view = renderWorkspace();
+      expect(screen.getByRole('button', { name: 'Add class' })).toBeVisible();
+      fireEvent.click(screen.getByRole('button', { name: 'New assignment' }));
+      await fill('Assignment title', 'Unsaved draft');
+
+      // The refresh after "Add class": one more class, the selected one unchanged.
+      view.rerender(
+        <Workspace classrooms={[...CLASSROOMS, { id: 'class-c', name: '2c', grade: 2 }]} />,
+      );
+      expect(screen.getByRole('link', { name: /^2c/ })).toBeInTheDocument();
+      expect(screen.getByLabelText('Assignment title')).toHaveValue('Unsaved draft');
     });
   });
 });

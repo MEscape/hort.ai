@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'07483865e11ab7887d81d0a4e936540f0b0813e59dc953d55fed5029f530b865'>;
+  StorageHashBase<'df028899cf6d03459369581c0d338055d77b7232cf36e23c686f7b0e33287ceb'>;
 export type ExecutionHash =
   ExecutionHashBase<'5388a8400147d76b9e718711335599d04f7ca67a9c7f7b82d886bf9fb1c1aec5'>;
 export type ProfileHash =
@@ -906,6 +906,7 @@ export namespace Models {
     federalState: FieldOutputTypes['public']['Classroom']['federalState'];
     grade: FieldOutputTypes['public']['Classroom']['grade'];
     id: FieldOutputTypes['public']['Classroom']['id'];
+    inviteCodeCiphertext: FieldOutputTypes['public']['Classroom']['inviteCodeCiphertext'];
     inviteCodeHash: FieldOutputTypes['public']['Classroom']['inviteCodeHash'];
     inviteCodeIssuedAt: FieldOutputTypes['public']['Classroom']['inviteCodeIssuedAt'];
     name: FieldOutputTypes['public']['Classroom']['name'];
@@ -1708,6 +1709,12 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly inviteCodeCiphertext: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly inviteCodeHash: {
@@ -3275,6 +3282,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly inviteCodeCiphertext: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly inviteCodeHash: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -3357,6 +3368,7 @@ type ContractBase = Omit<
                 readonly federalState: { readonly column: 'federalState' };
                 readonly grade: { readonly column: 'grade' };
                 readonly id: { readonly column: 'id' };
+                readonly inviteCodeCiphertext: { readonly column: 'inviteCodeCiphertext' };
                 readonly inviteCodeHash: { readonly column: 'inviteCodeHash' };
                 readonly inviteCodeIssuedAt: { readonly column: 'inviteCodeIssuedAt' };
                 readonly name: { readonly column: 'name' };

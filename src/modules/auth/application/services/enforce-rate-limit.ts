@@ -5,7 +5,8 @@ import type { AppResultAsync } from '@lib/result';
 
 import { fromRateLimitFailure } from '../../domain/errors/auth-errors';
 
-import type { AuthenticationDependencies } from '../auth-dependencies';
+import type { Actor } from '../../domain/models/actor';
+import type { AccountDependencies, AuthenticationDependencies } from '../auth-dependencies';
 
 export type RateLimitError = RateLimitedAppError | InfrastructureAppError;
 
@@ -46,4 +47,18 @@ export function enforceClientAndAccountLimits(
     { policy: policies.client, subject: client },
     { policy: policies.account, subject: { kind: 'identifier', value: email } },
   ]);
+}
+
+/** Counts one attempt against the signed-in actor (an account-settings change). */
+export function enforceActorLimit(
+  deps: Pick<AccountDependencies, 'rateLimiter'>,
+  policy: RateLimitPolicy,
+  actor: Actor,
+): AppResultAsync<void, RateLimitError> {
+  return deps.rateLimiter
+    .enforceAll([
+      { policy, subject: { kind: 'actor', tenantId: actor.tenantId, actorId: actor.id } },
+    ])
+    .map(() => undefined)
+    .mapErr(fromRateLimitFailure);
 }
