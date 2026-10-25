@@ -9,6 +9,7 @@
 /** @keep the home page decides from it whether to render the dev reset button (wired by the UI next). */
 export { getLearnerCommands, getLearnerQueries, isDevResetAvailable } from './composition';
 
+export type { AdoptSchoolSettingsError } from './application/commands/adopt-school-settings';
 export type { ChooseTutorError } from './application/commands/choose-tutor';
 export type { CompleteSetupError } from './application/commands/complete-setup';
 export type { CreateChildProfileError } from './application/commands/create-child-profile';

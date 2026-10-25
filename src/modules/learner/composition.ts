@@ -7,6 +7,7 @@ import { systemClock } from '@lib/clock';
 import { serverEnv } from '@lib/config/server';
 import { once } from '@lib/utils';
 
+import { AdoptSchoolSettings } from './application/commands/adopt-school-settings';
 import { ChooseTutor } from './application/commands/choose-tutor';
 import { CompleteSetup } from './application/commands/complete-setup';
 import { CreateChildProfile } from './application/commands/create-child-profile';
@@ -62,6 +63,7 @@ export const getLearnerCommands = once(() => {
     saveControls: new SaveControls(dependencies),
     completeSetup: new CompleteSetup(dependencies),
     resetOnboarding: new ResetOnboarding(dependencies),
+    adoptSchoolSettings: new AdoptSchoolSettings(dependencies),
   };
 });
 

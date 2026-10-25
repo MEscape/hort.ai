@@ -18,6 +18,7 @@ import type {
   ProfileOwner,
   ProfilePatch,
   SavedProfile,
+  SchoolSettings,
   UnfinishedProfileInput,
 } from '../../domain/ports/child-profile.repository';
 
@@ -179,6 +180,22 @@ export class PrismaChildProfileRepository implements ChildProfileRepository {
           ? profiles().where({ id, ownerId, tenantId }).first()
           : null,
       failures.infraOnly('updateUnfinished'),
+    ).map((record) => (record === null ? null : toChildProfile(record)));
+  }
+
+  updateSchoolSettings(
+    profile: ChildProfile,
+    { federalState, grade }: SchoolSettings,
+  ): AppResultAsync<ChildProfile | null, InfrastructureAppError> {
+    const { id, ownerId, tenantId } = profile;
+    return fromThrowableAsync(
+      async () =>
+        (await profiles()
+          .where({ id, ownerId, tenantId })
+          .updateAndCount({ federalState, grade })) > 0
+          ? profiles().where({ id, ownerId, tenantId }).first()
+          : null,
+      failures.infraOnly('updateSchoolSettings'),
     ).map((record) => (record === null ? null : toChildProfile(record)));
   }
 

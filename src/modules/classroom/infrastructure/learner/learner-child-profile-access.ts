@@ -12,18 +12,18 @@ export interface LearnerUseCases {
   readonly getChildProfileById: {
     execute(id: string): AppResultAsync<ChildProfileView, ChildProfileAccessError>;
   };
-  readonly updateChildProfile: {
+  readonly adoptSchoolSettings: {
     execute(input: {
-      readonly id: string;
-      readonly federalState?: string;
-      readonly grade?: number;
+      readonly profileId: string;
+      readonly federalState: string;
+      readonly grade: number;
     }): AppResultAsync<ChildProfileView, ChildProfileAccessError>;
   };
 }
 
 /**
  * `ChildProfileAccess` over the learner module's own use cases, which authorize the signed-in
- * parent on the stored profile (`learner.read` / `learner.update`) and audit the change.
+ * parent on the stored profile (`learner.read` / `learner.update`).
  */
 export class LearnerChildProfileAccess implements ChildProfileAccess {
   constructor(private readonly learner: LearnerUseCases) {}
@@ -36,8 +36,12 @@ export class LearnerChildProfileAccess implements ChildProfileAccess {
     childProfileId: string,
     settings: { readonly federalState: string; readonly grade: number },
   ): AppResultAsync<void, ChildProfileAccessError> {
-    return this.learner.updateChildProfile
-      .execute({ id: childProfileId, federalState: settings.federalState, grade: settings.grade })
+    return this.learner.adoptSchoolSettings
+      .execute({
+        profileId: childProfileId,
+        federalState: settings.federalState,
+        grade: settings.grade,
+      })
       .map(() => undefined);
   }
 }
