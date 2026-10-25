@@ -2,10 +2,10 @@
 
 import { RouteErrorPanel } from '@components/shared/route-error-panel';
 
-export default function OnboardingError({ reset }: { readonly reset: () => void }) {
+export default function OnboardingError({ retry }: { readonly retry: () => void }) {
   return (
     <main className="flex min-h-dvh items-center justify-center px-4">
-      <RouteErrorPanel onRetry={reset} />
+      <RouteErrorPanel onRetry={retry} />
     </main>
   );
 }

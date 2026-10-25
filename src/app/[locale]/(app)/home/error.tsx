@@ -3,10 +3,10 @@
 import { PageMain } from '@components/layout/layout-primitives';
 import { RouteErrorPanel } from '@components/shared/route-error-panel';
 
-export default function HomeError({ reset }: { readonly reset: () => void }) {
+export default function HomeError({ retry }: { readonly retry: () => void }) {
   return (
     <PageMain variant="centered">
-      <RouteErrorPanel onRetry={reset} />
+      <RouteErrorPanel onRetry={retry} />
     </PageMain>
   );
 }
