@@ -3,7 +3,12 @@ import type { ActorId, TenantId } from '@modules/auth';
 import type { InfrastructureAppError, NotFoundAppError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
 
-import type { Assignment, AssignmentDraft, ChildAssignment } from '../models/assignment';
+import type {
+  Assignment,
+  AssignmentDraft,
+  AssignmentForHelp,
+  ChildAssignment,
+} from '../models/assignment';
 import type { AssignmentId, ClassroomId } from '../models/ids';
 
 /** Scope always comes from the authorized actor, never from request fields. */
@@ -56,4 +61,14 @@ export interface AssignmentRepository {
     tenantId: TenantId,
     limit: number,
   ): AppResultAsync<readonly ChildAssignment[], InfrastructureAppError>;
+  /**
+   * One assignment of a class, with its solution key, for the help on it (#33). Not pinned to the
+   * teacher: the caller has already established that the signed-in parent's child is a member of
+   * this class. `null` when the class has no such assignment.
+   */
+  findForHelp(
+    id: AssignmentId,
+    classroomId: ClassroomId,
+    tenantId: TenantId,
+  ): AppResultAsync<AssignmentForHelp | null, InfrastructureAppError>;
 }

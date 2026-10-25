@@ -12,6 +12,10 @@ import {
   GUIDANCE_VALIDATION_CODES,
 } from '../../domain/errors/guidance-errors';
 import { SOLUTION_LEAK_VALIDATION_CODES } from '../../domain/errors/solution-leak-errors';
+import {
+  TOPIC_CLASSIFICATION_ERROR_CODES,
+  TOPIC_CLASSIFICATION_VALIDATION_CODES,
+} from '../../domain/errors/topic-classification-errors';
 import { CHILD_DISTRESS_ERROR_CODES } from '../../domain/errors/child-distress-errors';
 
 /**
@@ -27,6 +31,8 @@ export {
   GUIDANCE_ERROR_CODES,
   GUIDANCE_VALIDATION_CODES,
   SOLUTION_LEAK_VALIDATION_CODES,
+  TOPIC_CLASSIFICATION_ERROR_CODES,
+  TOPIC_CLASSIFICATION_VALIDATION_CODES,
   CHILD_DISTRESS_ERROR_CODES,
 };
 export { CHILD_TASK_TEXT_MAX_LENGTH } from '../../domain/models/child-task-text';
@@ -46,4 +52,6 @@ export type GuidanceCode =
   | ValuesOf<typeof GUIDANCE_ERROR_CODES>
   | ValuesOf<typeof GUIDANCE_VALIDATION_CODES>
   | ValuesOf<typeof SOLUTION_LEAK_VALIDATION_CODES>
+  | ValuesOf<typeof TOPIC_CLASSIFICATION_ERROR_CODES>
+  | ValuesOf<typeof TOPIC_CLASSIFICATION_VALIDATION_CODES>
   | ValuesOf<typeof CHILD_DISTRESS_ERROR_CODES>;

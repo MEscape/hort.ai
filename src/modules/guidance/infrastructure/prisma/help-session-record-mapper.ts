@@ -2,8 +2,13 @@ import { instantToDate } from '@lib/db';
 import type { InstantRecord } from '@lib/db';
 import { isDefined, literalGuard } from '@lib/utils';
 
-import { parseChildTaskText } from '../../domain/models/child-task-text';
-import { toChildProfileId, toHelpSessionId, toStepRequestId } from '../../domain/models/ids';
+import { parseAssignmentTaskText } from '../../domain/models/child-task-text';
+import {
+  toAssignmentId,
+  toChildProfileId,
+  toHelpSessionId,
+  toStepRequestId,
+} from '../../domain/models/ids';
 
 import type { AssessmentResult } from '../../domain/ai-output/ai-output';
 import type { ChildTaskText } from '../../domain/models/child-task-text';
@@ -25,6 +30,7 @@ import type { AnswerAssessor } from '../../domain/ports/hint-session-store.port'
 export const SESSION_SELECT = [
   'id',
   'childProfileId',
+  'assignmentId',
   'taskText',
   'subject',
   'status',
@@ -106,6 +112,7 @@ export type LevelValue = ValueOf<typeof LEVEL_RECORD>;
 export interface SessionRecord {
   readonly id: string;
   readonly childProfileId: string;
+  readonly assignmentId: string | null;
   readonly taskText: string;
   readonly subject: ValueOf<typeof SUBJECT_RECORD>;
   readonly status: ValueOf<typeof STATUS_RECORD>;
@@ -149,8 +156,9 @@ export interface SessionRecords {
   readonly questions: readonly QuestionRecord[];
 }
 
-function toChildText(raw: string): ChildTaskText | null {
-  const parsed = parseChildTaskText(raw);
+/** A stored task is the child's own or a teacher's assignment text; the longer bound holds for both. */
+function toTaskText(raw: string): ChildTaskText | null {
+  const parsed = parseAssignmentTaskText(raw);
   return parsed.isOk() ? parsed.value : null;
 }
 
@@ -202,7 +210,7 @@ export function toHelpSession({
   questions,
 }: SessionRecords): HelpSession | null {
   const questionByKey = new Map(questions.map((question) => [question.idempotencyKey, question]));
-  const task = toChildText(session.taskText);
+  const task = toTaskText(session.taskText);
   const givenHints = allOrNull(hints.map(toGivenHint));
   const answerChecks = allOrNull(answers.map((answer) => toAnswerCheck(answer, questionByKey)));
   if (task === null || givenHints === null || answerChecks === null) {
@@ -211,6 +219,7 @@ export function toHelpSession({
   return {
     id: toHelpSessionId(session.id),
     childProfileId: toChildProfileId(session.childProfileId),
+    assignmentId: session.assignmentId === null ? null : toAssignmentId(session.assignmentId),
     task,
     subject: SUBJECT[session.subject],
     status: STATUS[session.status],

@@ -14,7 +14,12 @@ import { parseChildTaskText } from '../../domain/models/child-task-text';
 import { GUIDANCE_RATE_LIMITS } from '../rate-limits';
 import { toRecordedAnswerCheck } from '../services/answer-record';
 import { checkForDistress } from '../services/distress-check';
-import { groundInCurriculum, openOwnSession, parseSessionStep } from '../services/session-step';
+import {
+  groundInCurriculum,
+  openOwnSession,
+  parseSessionStep,
+  solutionKeyOf,
+} from '../services/session-step';
 
 import type { ChildTaskText } from '../../domain/models/child-task-text';
 import type { StepRequestId } from '../../domain/models/ids';
@@ -85,12 +90,14 @@ export class CheckAnswer {
   ): Promise<AnswerFeedback> {
     const { answers, sessions, audit } = this.deps;
     const level = currentHintLevel(session.state);
-    const competencies = await groundInCurriculum(this.deps, session, level);
+    const [competencies, solutionKey] = await Promise.all([
+      groundInCurriculum(this.deps, session, level),
+      solutionKeyOf(this.deps, session, 'answer_check'),
+    ]);
     const feedback = await answers.check({
       task: session.state.task,
       answer,
-      // TODO(#33): a teacher's assignment brings its solution key; a child's own task has none.
-      solutionKey: null,
+      solutionKey,
       level,
       competencies,
     });

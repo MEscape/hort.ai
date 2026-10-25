@@ -25,6 +25,7 @@
       "childInputInvalid": "Bitte schreib deine Antwort noch einmal.",
       "sessionNotFound": "Diese Aufgabe ist nicht mehr offen. Starte sie bitte neu.",
       "noOpenQuestion": "Gerade gibt es keine Frage zu beantworten.",
+      "assignmentNotFound": "Diese Schulaufgabe gibt es nicht mehr. Such dir eine andere aus oder frag deine Lehrerin oder deinen Lehrer.",
       "rateLimited": "Mach kurz eine Pause und versuch es gleich noch einmal.",
       "infrastructure": "Gerade klappt etwas nicht. Bitte versuch es gleich noch einmal.",
       "unexpected": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal."

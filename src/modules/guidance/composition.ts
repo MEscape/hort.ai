@@ -1,4 +1,5 @@
 import 'server-only';
+import { assignmentsQueries } from '@modules/assignments';
 import { getAccessControl } from '@modules/auth';
 
 import { systemClock } from '@lib/clock';
@@ -8,23 +9,27 @@ import { errAsync } from '@lib/result';
 import { once } from '@lib/utils';
 
 import { CheckAnswer } from './application/commands/check-answer';
+import { ClassifyChildTask } from './application/commands/classify-child-task';
 import { ReplyToComprehensionQuestion } from './application/commands/reply-to-comprehension-question';
 import { RequestHint } from './application/commands/request-hint';
 import { StartHelpSession } from './application/commands/start-help-session';
 import { GetOpenHelpSession } from './application/queries/get-open-help-session';
 import { AnswerCoach } from './application/services/answer-coach';
 import { HintOrchestrator } from './application/services/hint-orchestrator';
+import { AssignmentsModuleAccess } from './infrastructure/assignments/assignments-module-access';
 import { loggerGuidanceAuditLog } from './infrastructure/audit/logger-guidance-audit-log';
 import { curriculumCompetencyRetrieval } from './infrastructure/curriculum/curriculum-competency-retrieval';
 import { GeminiProvider } from './infrastructure/gemini/gemini-provider';
 import { learnerChildProfileAccess } from './infrastructure/learner/learner-child-profile-access';
 import { PrismaHelpSessionRepository } from './infrastructure/prisma/prisma-help-session.repository';
 import { JevSafetyClassifier } from './infrastructure/typesafe/jev-safety-classifier';
+import { JevTopicClassifier } from './infrastructure/typesafe/jev-topic-classifier';
 
 import type { HelpSessionDependencies } from './application/help-session-dependencies';
 import type { FeedbackProvider } from './domain/ports/feedback-provider.port';
 import type { HintProvider } from './domain/ports/hint-provider.port';
 import type { SafetyClassifier } from './domain/ports/safety-classifier.port';
+import type { TopicClassifier } from './domain/ports/topic-classifier.port';
 
 /** One AI model words both the hints and the feedback on the child's answer. */
 type AiProvider = HintProvider & FeedbackProvider;
@@ -49,17 +54,29 @@ const getAiProvider = once((): AiProvider => {
   });
 });
 
-/** Jev as the second safety check when `TYPESAFE_API_KEY` is set; otherwise only the word lists. */
-const getSafetyClassifier = once((): SafetyClassifier | undefined => {
+/** The Jev settings, or `undefined` while `TYPESAFE_API_KEY` is not set. */
+function jevOptions() {
   const env = serverEnv;
   return env.TYPESAFE_API_KEY === undefined
     ? undefined
-    : new JevSafetyClassifier({
+    : {
         apiKey: env.TYPESAFE_API_KEY,
         apiUrl: env.TYPESAFE_API_URL,
         modelId: env.TYPESAFE_MODEL_ID,
         timeoutMs: env.TYPESAFE_TIMEOUT_MS,
-      });
+      };
+}
+
+/** Jev as the second safety check when `TYPESAFE_API_KEY` is set; otherwise only the word lists. */
+const getSafetyClassifier = once((): SafetyClassifier | undefined => {
+  const options = jevOptions();
+  return options === undefined ? undefined : new JevSafetyClassifier(options);
+});
+
+/** Jev as the topic classifier (#92) when `TYPESAFE_API_KEY` is set; without one every task is homework. */
+const getTopicClassifier = once((): TopicClassifier | undefined => {
+  const options = jevOptions();
+  return options === undefined ? undefined : new JevTopicClassifier(options);
 });
 
 /**
@@ -77,6 +94,11 @@ export function createHintOrchestrator(
   });
 }
 
+/** Teacher assignments of the child's class (#33): their text to start on, their key for each step. */
+const getAssignmentAccess = once(
+  () => new AssignmentsModuleAccess(assignmentsQueries.getAssignmentForHelp),
+);
+
 /**
  * The server-side store of help sessions (#17). One instance, so the hint ladder (#30) and the
  * session use cases share it.
@@ -86,9 +108,11 @@ const getHelpSessionRepository = once(() => new PrismaHelpSessionRepository(syst
 /** The guidance use cases, over the configured AI provider and safety classifier. */
 export const getGuidanceCommands = once(() => {
   const safety = getSafetyClassifier();
+  const classifier = getTopicClassifier();
   const deps = {
     authorization: getAccessControl(),
     childProfiles: learnerChildProfileAccess,
+    assignments: getAssignmentAccess(),
     competencies: curriculumCompetencyRetrieval,
     rateLimiter: getRateLimiter(),
     sessions: getHelpSessionRepository(),
@@ -99,13 +123,19 @@ export const getGuidanceCommands = once(() => {
       ...(safety === undefined ? {} : { safety }),
     }),
     audit: loggerGuidanceAuditLog,
+    ...(classifier === undefined ? {} : { classifier }),
   };
-  return { requestHint: new RequestHint(deps), checkAnswer: new CheckAnswer(deps) };
+  return {
+    requestHint: new RequestHint(deps),
+    checkAnswer: new CheckAnswer(deps),
+    classifyChildTask: new ClassifyChildTask(deps),
+  };
 });
 
 const getHelpSessionDependencies = once((): HelpSessionDependencies => ({
   authorization: getAccessControl(),
   childProfiles: learnerChildProfileAccess,
+  assignments: getAssignmentAccess(),
   rateLimiter: getRateLimiter(),
   sessions: getHelpSessionRepository(),
   audit: loggerGuidanceAuditLog,
