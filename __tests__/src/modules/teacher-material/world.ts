@@ -4,7 +4,7 @@ import { toActorId } from '@modules/auth/domain/models/ids';
 import type { MaterialDependencies } from '@modules/teacher-material/application/material-dependencies';
 import type { Material } from '@modules/teacher-material/domain/models/material';
 
-import { forbiddenError } from '@lib/errors';
+import { conflictError, forbiddenError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 import type { ObjectLocation } from '@lib/storage';
 
@@ -26,6 +26,9 @@ export function world() {
     size: bytes.length,
     mime: 'text/plain',
     deleted: false,
+    deletedKeys: [] as string[],
+    readKeys: [] as string[],
+    written: new Map<string, Uint8Array>(),
     rows,
     sections,
     input: {
@@ -98,13 +101,27 @@ export function world() {
       head: () =>
         okAsync({ byteSize: state.size, contentType: state.mime, etag: null, lastModified: null }),
       readStart: (_location, count) => okAsync(state.bytes.slice(0, count)),
-      delete: () => {
+      delete: (location) => {
+        state.deletedKeys.push(location.key);
         state.deleted = true;
         return okAsync(undefined);
       },
-      createReadUrl: () => okAsync('https://storage.test/read'),
+      createReadUrl: ({ key }) => {
+        state.readKeys.push(key);
+        return okAsync('https://storage.test/read');
+      },
     },
-    textReader: { read: () => okAsync(state.bytes) },
+    textReader: { read: (location) => okAsync(state.written.get(location.key) ?? state.bytes) },
+    writer: {
+      // Create-only, like the real If-None-Match write.
+      write: (location, written) => {
+        if (state.written.has(location.key)) {
+          return errAsync(conflictError('teacher_material.already_written', 'Exists'));
+        }
+        state.written.set(location.key, written);
+        return okAsync(undefined);
+      },
+    },
     ingest: {
       extract: (text) => [
         { text: text.replace(/^- /, ''), code: 's00-01', section: 'Dokument', page: null },
