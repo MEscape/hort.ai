@@ -5,6 +5,7 @@ import type {
   ConflictAppError,
   InfrastructureAppError,
   NotFoundAppError,
+  RateLimitedAppError,
   ValidationAppError,
 } from '@lib/errors';
 import { ResultAsync, errAsync, okAsync } from '@lib/result';
@@ -15,6 +16,7 @@ import { GUIDANCE_ERROR_CODES } from '../../domain/errors/guidance-errors';
 import { parseChildTaskText } from '../../domain/models/child-task-text';
 import { isSessionUnderstood, openQuestionCheck } from '../../domain/models/help-session';
 import { parseChildProfileId, parseHelpSessionId } from '../../domain/models/ids';
+import { requireWindowOpen } from '../services/learning-time';
 import { ownChildScope } from '../services/own-child-session';
 
 import type { ReplyToComprehensionQuestionInput } from '../contracts/help-session-inputs';
@@ -26,6 +28,7 @@ export type ReplyToComprehensionQuestionError =
   | ValidationAppError
   | NotFoundAppError
   | ConflictAppError
+  | RateLimitedAppError
   | InfrastructureAppError;
 
 const noOpenQuestion = () =>
@@ -38,7 +41,7 @@ const noOpenQuestion = () =>
  * understood task completes the session, so "Continue" no longer offers it.
  *
  * The reply is not judged: answering is what counts, and nothing a child writes here takes
- * anything away. No rate limit, because no provider is called.
+ * anything away. No rate limit, because no provider is called; the parent's learning window still applies (#88).
  */
 export class ReplyToComprehensionQuestion {
   constructor(private readonly deps: HelpSessionDependencies) {}
@@ -56,13 +59,17 @@ export class ReplyToComprehensionQuestion {
           ),
         )
         .asyncAndThen(({ id, sessionId, reply }) =>
-          ownChildScope(this.deps, actor, id).andThen(({ owner, childProfileId }) => {
+          ownChildScope(this.deps, actor, id).andThen(({ owner, childProfileId, child }) => {
             const ref = { ...owner, childProfileId, sessionId };
             return sessions.loadSession(ref, true).andThen((session) => {
               // A lost HTTP response must not turn a stored completion into an error. No new
               // write or reward: return only the authenticated session's proven completion.
               if (session.status === 'completed' && isSessionUnderstood(session)) {
                 return okAsync({ sessionId, status: 'understood' as const });
+              }
+              const refusal = requireWindowOpen(this.deps, child);
+              if (refusal.isErr()) {
+                return errAsync(refusal.error);
               }
               const check = openQuestionCheck(session);
               if (check === null) {

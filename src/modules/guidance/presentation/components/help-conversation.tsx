@@ -16,6 +16,7 @@ import { messageKeyForCode } from '../messages/message-keys';
 import { guidanceRoutes } from '../routes';
 
 import { ConversationLines } from './conversation-lines';
+import { LearningPauseNote } from './learning-pause-note';
 
 import type { HelpSessionDto } from '../dto/guidance-dto';
 import type { HelpConversationState } from '../hooks/use-help-conversation';
@@ -48,7 +49,8 @@ function StepStatus({
           {t('conversation.thinking', { name: companionName })}
         </p>
       )}
-      {failure !== null && (
+      {failure?.pause != null && <LearningPauseNote pause={failure.pause} />}
+      {failure !== null && failure.pause === null && (
         <div role="alert" className="flex flex-wrap items-center gap-3">
           <p className="font-semibold text-nudge">
             {failure.code === 'empty'

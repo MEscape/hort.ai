@@ -1,7 +1,7 @@
 import { MS_PER_MINUTE, isDefined } from '@lib/utils';
 
 import { LEARNER_LIMITS } from './learner-limits';
-import { minutesSinceMidnight } from './parent-controls';
+import { berlinDay, minutesSinceMidnight } from './parent-controls';
 
 import type { AllowedWindow } from './parent-controls';
 
@@ -73,15 +73,11 @@ export function computeScreenTime(input: ScreenTimeInput): ScreenTime {
   const window = controls.allowedWindow;
 
   if (window !== null && (minute < window.fromMinute || minute >= window.untilMinute)) {
-    // shortcut: whole minutes added to `now`, off by an hour only on the night of a clock change; use a zoned date library if that ever matters.
-    const wait =
-      (window.fromMinute - minute + (minute < window.fromMinute ? 0 : LEARNER_LIMITS.dayMinutes)) *
-      MS_PER_MINUTE;
     return {
       status: 'closed_outside_window',
       usage,
       minutesLeft: 0,
-      reopensAt: new Date(now.getTime() - (now.getTime() % MS_PER_MINUTE) + wait),
+      reopensAt: firstOpenInstant(window, now, () => true),
     };
   }
 
@@ -97,4 +93,44 @@ export function computeScreenTime(input: ScreenTimeInput): ScreenTime {
   const isLow = minutesLeft !== null && minutesLeft <= LOW_TIME_MINUTES;
 
   return { status: isLow ? 'low' : 'open', usage, minutesLeft, reopensAt: null };
+}
+
+const SEARCH_STEP_MS = LEARNER_LIMITS.windowStepMinutes * MS_PER_MINUTE;
+/** Two days of search steps: the longest Berlin day is 25 hours, so the next opening is always inside. */
+const SEARCH_STEPS = (2 * LEARNER_LIMITS.dayMinutes) / LEARNER_LIMITS.windowStepMinutes;
+
+const isInWindow = (window: AllowedWindow | null, instant: Date) => {
+  const minute = minutesSinceMidnight(instant);
+  return window === null || (minute >= window.fromMinute && minute < window.untilMinute);
+};
+
+/**
+ * The first instant after `now` that lies inside `window` (any instant without one) and passes
+ * `accepts`. The window is read as Berlin clock time, so this follows the real timeline through a
+ * clock change: a swallowed hour opens at the first existing minute, a repeated hour at its first pass.
+ * Window edges are multiples of the step (`isValidWindow`), so stepping by it finds them exactly.
+ */
+function firstOpenInstant(
+  window: AllowedWindow | null,
+  now: Date,
+  accepts: (instant: Date) => boolean,
+): Date {
+  const first = now.getTime() - (now.getTime() % SEARCH_STEP_MS) + SEARCH_STEP_MS;
+  for (let step = 0; step < SEARCH_STEPS; step += 1) {
+    const instant = new Date(first + step * SEARCH_STEP_MS);
+    if (isInWindow(window, instant) && accepts(instant)) {
+      return instant;
+    }
+  }
+  // Unreachable for a valid window; the end of the search is a safe, late answer.
+  return new Date(first + SEARCH_STEPS * SEARCH_STEP_MS);
+}
+
+/**
+ * When the child may learn again after a day's limit is used up: the first moment of the next
+ * Berlin calendar day that the allowed window permits (the start of the day without a window).
+ */
+export function nextDayOpening(controls: ScreenTimeInput['controls'], now: Date): Date {
+  const today = berlinDay(now);
+  return firstOpenInstant(controls.allowedWindow, now, (instant) => berlinDay(instant) !== today);
 }

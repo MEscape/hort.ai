@@ -9,9 +9,10 @@ import type { ChildProfileAccess } from '../domain/ports/child-profile-access.po
 import type { CompetencyRetrieval } from '../domain/ports/competency-retrieval.port';
 import type { GuidanceAuditLog } from '../domain/ports/guidance-audit-log.port';
 import type { HintSessionStore } from '../domain/ports/hint-session-store.port';
+import type { LearningTimeDependencies } from './learning-time-dependencies';
 
 /** What every guidance use case about one step of a child's help session is built from. */
-export interface SessionStepDependencies {
+export interface SessionStepDependencies extends LearningTimeDependencies {
   readonly authorization: AuthorizationService;
   readonly childProfiles: ChildProfileAccess;
   /** The teacher's solution key of a session on an assignment (#33). */

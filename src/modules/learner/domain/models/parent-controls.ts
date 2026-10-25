@@ -43,7 +43,7 @@ export interface AllowedWindow {
 /** What the parent decides about how the child uses Hort. */
 export interface ParentControls {
   readonly voiceEnabled: boolean;
-  /** Stored only: nothing counts a child's usage yet, so nothing enforces it. */
+  /** Enforced by the help session: with the day's help time used up, no new task starts that day (#88). */
   readonly dailyLimitMinutes: DailyLimitMinutes | null;
   /** `null`: any time of day. */
   readonly allowedWindow: AllowedWindow | null;
@@ -124,6 +124,18 @@ const clockTime = new Intl.DateTimeFormat('en-GB', {
   minute: '2-digit',
   hourCycle: 'h23',
 });
+
+const calendarDay = new Intl.DateTimeFormat('en-CA', {
+  timeZone: LEARNER_TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+/** The calendar day (`YYYY-MM-DD`) at `instant` in `LEARNER_TIME_ZONE`: what "today" means for a limit. */
+export function berlinDay(instant: Date): string {
+  return calendarDay.format(instant);
+}
 
 /** The minute of the day at `instant` on the clock of `LEARNER_TIME_ZONE`. */
 export function minutesSinceMidnight(instant: Date): number {

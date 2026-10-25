@@ -9,9 +9,10 @@ import type { GuidanceAuditLog } from '../domain/ports/guidance-audit-log.port';
 import type { HelpSessionRepository } from '../domain/ports/help-session.repository';
 import type { SessionReward } from '../domain/ports/session-reward.port';
 import type { TopicClassifier } from '../domain/ports/topic-classifier.port';
+import type { LearningTimeDependencies } from './learning-time-dependencies';
 
 /** What the help-session use cases are built from. */
-export interface HelpSessionDependencies {
+export interface HelpSessionDependencies extends LearningTimeDependencies {
   readonly authorization: AuthorizationService;
   readonly childProfiles: ChildProfileAccess;
   readonly assignments: AssignmentAccess;

@@ -4,7 +4,7 @@ import type {
   AllowedWindow,
   DailyLimitMinutes,
 } from '@modules/learner/domain/models/parent-controls';
-import { computeScreenTime } from '@modules/learner/domain/models/screen-time';
+import { computeScreenTime, nextDayOpening } from '@modules/learner/domain/models/screen-time';
 
 /** 11:00 in Berlin (winter time, UTC+1). */
 const ELEVEN = new Date('2026-01-15T10:00:00Z');
@@ -129,5 +129,36 @@ describe('computeScreenTime', () => {
   it('follows the Berlin clock across the switch to summer time', () => {
     const summer = new Date('2026-07-15T13:00:00Z'); // 15:00 in Berlin (UTC+2)
     expect(build({ allowedWindow: afternoon, now: summer }).status).toBe('open');
+  });
+
+  it('reopens at the first existing minute after the swallowed hour of the spring clock change', () => {
+    const night: AllowedWindow = { fromMinute: 2 * 60 + 30, untilMinute: 4 * 60 };
+    // 2026-03-29: 02:00 -> 03:00 in Berlin, so 02:30 does not exist; 03:00 CEST is the first open minute.
+    const result = build({ allowedWindow: night, now: new Date('2026-03-28T23:00:00Z') });
+    expect(result.status).toBe('closed_outside_window');
+    expect(result.reopensAt).toEqual(new Date('2026-03-29T01:00:00Z'));
+  });
+
+  describe('nextDayOpening', () => {
+    const controls = (allowedWindow: AllowedWindow | null) => ({
+      dailyLimitMinutes: 15 as const,
+      allowedWindow,
+    });
+
+    it('is the window start of the next Berlin day', () => {
+      expect(nextDayOpening(controls(afternoon), at(16, 0))).toEqual(
+        new Date(at(15, 0).getTime() + 24 * 60 * 60 * 1000),
+      );
+    });
+
+    it('is midnight of the next Berlin day without a window', () => {
+      expect(nextDayOpening(controls(null), at(16, 0))).toEqual(new Date('2026-01-15T23:00:00Z'));
+    });
+
+    it('does not open earlier the same day when the limit is reached before the window ends', () => {
+      expect(nextDayOpening(controls(afternoon), at(15, 30)).getTime()).toBeGreaterThan(
+        at(23, 59).getTime(),
+      );
+    });
   });
 });

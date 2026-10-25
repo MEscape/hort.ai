@@ -23,6 +23,16 @@ export const GUIDANCE_ERROR_CODES = {
    * or the child is in no class. One code for all, so an id of another class discloses nothing.
    */
   assignmentNotFound: 'guidance.assignment_not_found',
+  /**
+   * The parent's learning window is closed (#88): no help session starts or goes on until it opens
+   * again. Carries how long to wait, like a rate limit.
+   */
+  learningWindowClosed: 'guidance.learning_window_closed',
+  /**
+   * The day's help time reached the parent's daily limit (#88): no new task starts until the next
+   * Berlin calendar day. The task the child is in the middle of can still be finished.
+   */
+  dailyLimitReached: 'guidance.daily_limit_reached',
 } as const;
 
 /** Field-level codes, carried in `fieldErrors`. */
@@ -61,6 +71,19 @@ export function fromRateLimitFailure(
         'The rate limit could not be checked.',
         failure.cause,
       );
+}
+
+/**
+ * A calm refusal because of the parent's controls (#88). Waiting is the only remedy, so it carries
+ * how long, as a rate limit does; nothing about it is a failure of the child or the system.
+ */
+export function learningTimeClosed(
+  code:
+    | typeof GUIDANCE_ERROR_CODES.learningWindowClosed
+    | typeof GUIDANCE_ERROR_CODES.dailyLimitReached,
+  retryAfterSeconds: number,
+): RateLimitedAppError {
+  return rateLimitedError(code, 'Learning is paused for now.', retryAfterSeconds);
 }
 
 /** See `GUIDANCE_ERROR_CODES.assignmentNotFound`. */

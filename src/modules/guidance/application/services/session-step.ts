@@ -11,6 +11,7 @@ import {
 } from '../../domain/models/ids';
 
 import { spendChildBudget } from './child-budget';
+import { requireWindowOpen } from './learning-time';
 
 import type { HintLadderState } from '../../domain/models/help-session-state';
 import type { HintLevel } from '../../domain/models/hint-level';
@@ -34,7 +35,7 @@ export interface SessionStep {
   readonly requestId: StepRequestId;
 }
 
-/** An active session of one of the actor's own children, admitted within the child's budget. */
+/** An active session of one of the actor's own children, admitted within the parent's window and the child's budget. */
 export interface OpenSession {
   readonly child: OwnChildProfile;
   readonly ref: HelpSessionRef;
@@ -65,17 +66,17 @@ export function parseSessionStep(
  * help), and the session must be an active one of exactly this parent and child.
  */
 export function openOwnSession(
-  {
-    childProfiles,
-    rateLimiter,
-    sessions,
-  }: Pick<SessionStepDependencies, 'childProfiles' | 'rateLimiter' | 'sessions'>,
+  deps: Pick<
+    SessionStepDependencies,
+    'childProfiles' | 'rateLimiter' | 'sessions' | 'clock' | 'learningTime'
+  >,
   {
     actor,
     step,
     policy,
   }: { readonly actor: Actor; readonly step: SessionStep; readonly policy: RateLimitPolicy },
 ): AppResultAsync<OpenSession, OpenSessionError> {
+  const { childProfiles, rateLimiter, sessions } = deps;
   return childProfiles.findOwn(step.childProfileId).andThen((child) => {
     const ref: HelpSessionRef = {
       tenantId: actor.tenantId,
@@ -83,7 +84,11 @@ export function openOwnSession(
       childProfileId: child.id,
       sessionId: step.sessionId,
     };
-    return spendChildBudget(rateLimiter, { actor, childProfileId: child.id, policy })
+    // The parent's window first: a closed window must not use up the child's help budget.
+    return requireWindowOpen(deps, child)
+      .asyncAndThen(() =>
+        spendChildBudget(rateLimiter, { actor, childProfileId: child.id, policy }),
+      )
       .andThen(() => sessions.load(ref))
       .map((state) => ({ child, ref, state }));
   });

@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 
+import { learningPauseOf } from '../components/learning-pause';
 import { checkAnswerAction } from '../actions/check-answer-action';
 import { replyComprehensionAction } from '../actions/reply-comprehension-action';
 import { requestHintAction } from '../actions/request-hint-action';
 
 import type { FeedbackText } from '../../application/contracts/answer-views';
 import type { HintOutcome } from '../../application/contracts/hint-views';
+import type { LearningPause } from '../components/learning-pause';
 import type { HelpSessionDto } from '../dto/guidance-dto';
 
 /** One line of the conversation, built only from what the backend returned. */
@@ -28,6 +30,8 @@ export type ConversationPhase = 'working' | 'comprehension' | 'understood';
 export interface StepFailure {
   readonly code: string | null;
   readonly retryAfterSeconds: number | null;
+  /** Set when the parent's learning window or daily limit refused the step (#88). */
+  readonly pause: LearningPause | null;
 }
 
 type Step = 'hint' | 'answer' | 'reply';
@@ -72,7 +76,11 @@ export function useHelpConversation(childProfileId: string, initial: HelpSession
   const opened = useRef(false);
 
   const fail = (error: { code: string; retryAfterSeconds?: number } | undefined) => {
-    setFailure({ code: error?.code ?? null, retryAfterSeconds: error?.retryAfterSeconds ?? null });
+    setFailure({
+      code: error?.code ?? null,
+      retryAfterSeconds: error?.retryAfterSeconds ?? null,
+      pause: learningPauseOf(error),
+    });
   };
 
   const add = (...added: ConversationLine[]) => {

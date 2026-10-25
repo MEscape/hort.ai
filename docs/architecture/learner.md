@@ -123,7 +123,7 @@ To build the real linking, replace the body of `presentation/hooks/use-alexa-lin
 
 ## Known gaps
 
-- `dailyLimitMinutes` is stored, not enforced: nothing counts a child's usage yet. `isLearningAllowedNow` covers only the allowed window and nothing calls it yet. Do not present either as a working limit until the help session (#34) uses them.
+- The allowed window and `dailyLimitMinutes` are enforced when a help session starts or goes on, by the guidance use cases (see [help sessions](help-sessions.md#parents-learning-window-and-daily-limit-88)); the home strip does not show used minutes (it never counts down).
 - `learningInsights` is only stored until the parent summary (#35).
 - The save order is not enforced on the server: a client can save the controls before choosing a tutor (the profile then reaches `review` with `tutorId = null`). Only the monotonic step and the `review` requirement of `CompleteSetup` are guaranteed.
 - One child per parent: there is no list, edit or delete of finished profiles, and no way to change the controls after the setup finished, except the speech-to-text switch (`SetVoiceConsent`).

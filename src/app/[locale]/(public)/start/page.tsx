@@ -71,7 +71,7 @@ export default async function StartPage({ params, searchParams }: StartPageProps
   const locale = requireLocale((await params).locale);
 
   return (
-    <I18nProvider locale={locale} namespaces={['assignments', 'auth']}>
+    <I18nProvider locale={locale} namespaces={['assignments', 'auth', 'guidance']}>
       <StartPageShell header={<AccountHeader />}>
         <Suspense fallback={<StartScreen schoolAssignments={null} childProfileId={null} />}>
           <StartContent searchParams={searchParams} />
