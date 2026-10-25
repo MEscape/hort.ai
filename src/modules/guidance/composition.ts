@@ -1,4 +1,5 @@
 import 'server-only';
+import { assignmentsQueries } from '@modules/assignments';
 import { getAccessControl } from '@modules/auth';
 
 import { systemClock } from '@lib/clock';
@@ -14,6 +15,7 @@ import { StartHelpSession } from './application/commands/start-help-session';
 import { GetOpenHelpSession } from './application/queries/get-open-help-session';
 import { AnswerCoach } from './application/services/answer-coach';
 import { HintOrchestrator } from './application/services/hint-orchestrator';
+import { AssignmentsModuleAccess } from './infrastructure/assignments/assignments-module-access';
 import { loggerGuidanceAuditLog } from './infrastructure/audit/logger-guidance-audit-log';
 import { curriculumCompetencyRetrieval } from './infrastructure/curriculum/curriculum-competency-retrieval';
 import { GeminiProvider } from './infrastructure/gemini/gemini-provider';
@@ -91,6 +93,11 @@ export function createHintOrchestrator(
   });
 }
 
+/** Teacher assignments of the child's class (#33): their text to start on, their key for each step. */
+const getAssignmentAccess = once(
+  () => new AssignmentsModuleAccess(assignmentsQueries.getAssignmentForHelp),
+);
+
 /**
  * The server-side store of help sessions (#17). One instance, so the hint ladder (#30) and the
  * session use cases share it.
@@ -103,6 +110,7 @@ export const getGuidanceCommands = once(() => {
   const deps = {
     authorization: getAccessControl(),
     childProfiles: learnerChildProfileAccess,
+    assignments: getAssignmentAccess(),
     competencies: curriculumCompetencyRetrieval,
     rateLimiter: getRateLimiter(),
     sessions: getHelpSessionRepository(),
@@ -122,6 +130,7 @@ const getHelpSessionDependencies = once((): HelpSessionDependencies => {
   return {
     authorization: getAccessControl(),
     childProfiles: learnerChildProfileAccess,
+    assignments: getAssignmentAccess(),
     rateLimiter: getRateLimiter(),
     sessions: getHelpSessionRepository(),
     audit: loggerGuidanceAuditLog,

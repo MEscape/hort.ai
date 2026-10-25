@@ -140,6 +140,7 @@ export class PrismaHelpSessionRepository implements HelpSessionRepository {
             tenantId: owner.tenantId,
             ownerId: owner.ownerId,
             childProfileId: session.childProfileId,
+            assignmentId: session.assignmentId,
             taskText: session.task,
             subject: SUBJECT_RECORD[session.subject],
             ...toTopicRecord(session.topic),

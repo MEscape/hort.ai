@@ -6,7 +6,7 @@ import type { FeedbackKind } from '../models/feedback-request';
 import type { HintFallbackReason } from '../models/hint-fallback-reason';
 import type { HintLevel } from '../models/hint-level';
 import type { HintSubject } from '../models/hint-subject';
-import type { ChildProfileId, HelpSessionId } from '../models/ids';
+import type { AssignmentId, ChildProfileId, HelpSessionId } from '../models/ids';
 import type { SessionOpening } from '../topic/session-topic';
 import type { ChildMessageIntent, TopicDecision, TopicGuess } from '../topic/topic-classification';
 
@@ -54,6 +54,15 @@ export type GuidanceEvent =
       readonly code: string;
     }
   | {
+      /**
+       * A step of a session on an assignment went ahead without the teacher's key (#33): the child
+       * left the class, the assignment was deleted, or it could not be read. The code says which.
+       */
+      readonly type: 'guidance.solution_key_unavailable';
+      readonly step: 'hint' | 'answer_check';
+      readonly code: string;
+    }
+  | {
       readonly type: 'guidance.answer_checked';
       readonly tenantId: TenantId;
       readonly actorId: ActorId;
@@ -69,6 +78,8 @@ export type GuidanceEvent =
       readonly actorId: ActorId;
       readonly childProfileId: ChildProfileId;
       readonly sessionId: HelpSessionId;
+      /** The teacher's assignment the session is on (#33), `null` for the child's own task. */
+      readonly assignmentId: AssignmentId | null;
       readonly subject: HintSubject;
       /** The open session this one replaced, which ended `abandoned`. */
       readonly replaced: HelpSessionId | null;

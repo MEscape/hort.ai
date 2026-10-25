@@ -8,7 +8,8 @@ import type { GuidanceAuditLog, GuidanceEvent } from '../../domain/ports/guidanc
  * keeps breaking the rules; that holds for the topic classification (#92) too. A step the session
  * could not store is `warn`: the child got it, but the learning record has a gap. A hint without
  * curriculum grounding still helps the child, but its cause
- * must be visible, so that is `warn` too.
+ * must be visible, so that is `warn` too, as is a step on an assignment that went ahead without the
+ * teacher's key.
  */
 export const LEVEL_BY_EVENT = {
   'guidance.hint_fallback_used': 'warn',
@@ -17,6 +18,7 @@ export const LEVEL_BY_EVENT = {
   'guidance.hint_requested': 'info',
   'guidance.answer_checked': 'info',
   'guidance.step_not_recorded': 'warn',
+  'guidance.solution_key_unavailable': 'warn',
   'guidance.session_started': 'info',
   'guidance.comprehension_replied': 'info',
   'guidance.topic_classification_fallback_used': 'warn',

@@ -5,7 +5,12 @@ import type { InstantRecord } from '@lib/db';
 
 import { toAssignmentId, toClassroomId } from '../../domain/models/ids';
 
-import type { Assignment, AssignmentDraft, ChildAssignment } from '../../domain/models/assignment';
+import type {
+  Assignment,
+  AssignmentDraft,
+  AssignmentForHelp,
+  ChildAssignment,
+} from '../../domain/models/assignment';
 
 export interface AssignmentRecord {
   readonly id: string;
@@ -69,6 +74,23 @@ export function toChildAssignmentRecord(record: ChildAssignmentRecord): ChildAss
     title: record.title,
     text: record.taskText,
     dueDate: record.dueDate,
+  };
+}
+
+/** The help on an assignment (#33) reads the text and the key, nothing about the teacher. */
+export const HELP_ASSIGNMENT_SELECT = [
+  'id',
+  'taskText',
+  'solutionKey',
+] as const satisfies ReadonlyArray<keyof AssignmentRecord>;
+
+export type HelpAssignmentRecord = Pick<AssignmentRecord, (typeof HELP_ASSIGNMENT_SELECT)[number]>;
+
+export function toAssignmentForHelp(record: HelpAssignmentRecord): AssignmentForHelp {
+  return {
+    id: toAssignmentId(record.id),
+    text: record.taskText,
+    solutionKey: record.solutionKey,
   };
 }
 

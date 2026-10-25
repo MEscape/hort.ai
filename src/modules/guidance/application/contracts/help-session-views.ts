@@ -21,6 +21,9 @@ export interface AnswerCheckView {
  */
 export interface HelpSessionView {
   readonly sessionId: string;
+  /** The teacher's assignment the session is on (#33), `null` for the child's own task. */
+  readonly assignmentId: string | null;
+  /** The child's own text, or the assignment's text. Never the solution key. */
   readonly task: string;
   readonly subject: HintSubject;
   readonly status: HelpSessionProgress;
