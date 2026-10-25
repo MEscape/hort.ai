@@ -22,6 +22,8 @@ The prompt that asks for the output is built by `buildHintPrompt` (`domain/promp
 
 On any rejection the caller discards the output, logs the rejection code (never the text or the child's input), and uses a predefined fallback for the requested kind and hint level (#10).
 
+The child's own message is classified separately, after the safety checks: intent and curriculum topic, validated against the candidates of the request and decided by the backend. See [`topic-classification.md`](topic-classification.md) (#92).
+
 ## Provider: Gemini API (#10)
 
 The adapter is `GeminiProvider` (`infrastructure/gemini/`): Gemini 3.8 Flash (`gemini-3.8-flash`) through `generateContent` on the Gemini API, plain `fetch`, no SDK. The fixed instructions go in as the system instruction, the JSON data block as the only user message, with JSON output and every safety category at `BLOCK_LOW_AND_ABOVE`. The key travels in the `x-goog-api-key` header, never in the URL. A missed deadline is `timeout`, everything else `unavailable` with the HTTP status or the error name at most, never the key or the child's text.

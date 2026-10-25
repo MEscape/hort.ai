@@ -20,3 +20,9 @@ export interface CheckAnswerInput extends RequestHintInput {
   /** The answer as the child typed or dictated it. */
   readonly answer: string;
 }
+
+/**
+ * Classifying the task a child starts with (#92). There is no field for an earlier clarifying
+ * question: whether one was asked is session state, which the backend stores with #17.
+ */
+export type ClassifyChildTaskInput = Pick<RequestHintInput, 'childProfileId' | 'task' | 'subject'>;

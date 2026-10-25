@@ -7,6 +7,7 @@ import type { HintOrchestrator } from './services/hint-orchestrator';
 import type { ChildProfileAccess } from '../domain/ports/child-profile-access.port';
 import type { CompetencyRetrieval } from '../domain/ports/competency-retrieval.port';
 import type { GuidanceAuditLog } from '../domain/ports/guidance-audit-log.port';
+import type { TopicClassifier } from '../domain/ports/topic-classifier.port';
 
 /** What every guidance use case about one child's task is built from. */
 export interface ChildTaskDependencies {
@@ -23,4 +24,9 @@ export interface RequestHintDependencies extends ChildTaskDependencies {
 
 export interface CheckAnswerDependencies extends ChildTaskDependencies {
   readonly answers: AnswerCoach;
+}
+
+export interface ClassifyChildTaskDependencies extends ChildTaskDependencies {
+  /** Without one (no `TYPESAFE_API_KEY`) every task goes ahead as homework without a competency. */
+  readonly classifier?: TopicClassifier;
 }
