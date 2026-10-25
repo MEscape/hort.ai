@@ -331,6 +331,30 @@ describe('onboarding flow', () => {
     );
   });
 
+  it('sends no notice version when voice was already on and the parent left the switch alone', async () => {
+    vi.mocked(saveControlsAction).mockResolvedValue({
+      ok: true,
+      data: { ...PROFILE, guardianConfirmed: true },
+    });
+    renderFlow({
+      step: 'controls',
+      profile: {
+        ...PROFILE,
+        tutorId: 'max',
+        voiceEnabled: true,
+        voiceConsent: true,
+        guardianConfirmed: true,
+      },
+    });
+    expect(screen.getByRole('switch', { name: 'Talking to Max' })).toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    expect(await screen.findByRole('heading', { name: 'Is everything right?' })).toBeVisible();
+    // Unchanged is not a new opt-in: the server keeps whatever is stored by then (#98).
+    expect(saveControlsAction).toHaveBeenCalledWith(
+      expect.objectContaining({ voiceEnabled: true, voiceNoticeVersion: null }),
+    );
+  });
+
   it('shows what was stored, returns to the review after a change, and says "ready" only after the backend finished', async () => {
     const stored = { ...PROFILE, tutorId: 'max', guardianConfirmed: true, interests: ['sports'] };
     vi.mocked(createChildProfileAction).mockResolvedValue({
