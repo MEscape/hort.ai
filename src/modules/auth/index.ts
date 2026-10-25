@@ -19,6 +19,8 @@ export { actorHasPermission } from './domain/models/authorize';
 /** Authorization: every protected use case of every module receives this. */
 export type { AuthorizationError, AuthorizationService } from './application/authorization-service';
 export { getAccessControl, getAuthQueries, isAuthEnabled } from './composition';
+/** The Alexa demo coupling: a server-verified channel acting for one configured child only. */
+export { runAsChildChannel } from './composition';
 
 /**
  * The use cases a sign-in, sign-up, sign-out or password-reset screen calls, with the inputs and

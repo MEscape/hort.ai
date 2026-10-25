@@ -34,8 +34,16 @@ export const isRole = literalGuard(ROLES);
  */
 export const PLATFORM_ADMIN_ROLE = 'platform_admin';
 
-/** Every role an actor can hold: the stored ones plus the platform admin the provider grants. */
-export type Role = StoredRole | typeof PLATFORM_ADMIN_ROLE;
+/**
+ * A voice channel acting for ONE child of its guardian (the Alexa demo coupling): the child-side reads
+ * and the daily reward, nothing a parent decides (settings, consent, onboarding, voice, hints) and
+ * nothing of a teacher. Never stored and never given by sign-in: only the channel scope in
+ * infrastructure/channel grants it, for the duration of one server-verified channel request.
+ */
+export const CHILD_CHANNEL_ROLE = 'child_channel';
+
+/** Every role an actor can hold: the stored ones plus the roles the server grants itself. */
+export type Role = StoredRole | typeof PLATFORM_ADMIN_ROLE | typeof CHILD_CHANNEL_ROLE;
 
 /**
  * Code, not data, on purpose: it is versioned, reviewed, and cannot be changed by a request.
@@ -46,6 +54,7 @@ const ROLE_PERMISSIONS = {
   parent: [...LEARNER_PERMISSIONS, ...GUIDANCE_PERMISSIONS],
   teacher: TEACHER_PERMISSIONS,
   platform_admin: PERMISSIONS,
+  child_channel: ['learner.read', 'progression.read', 'progression.update'],
 } as const satisfies Record<Role, readonly Permission[]>;
 
 /** Every permission a single role grants. Combining roles is `decide`'s job. */

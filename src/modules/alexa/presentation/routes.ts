@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import type { UnauthorizedAppError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
-import { parseJson, TimeoutError, withTimeout } from '@lib/utils';
+import { parseJson } from '@lib/utils';
 
 import {
   parseConversationId,
@@ -12,6 +12,10 @@ import {
   type TutorTurn,
 } from '../application/contracts/tutor-conversation-model';
 
+import { renderAudio, speak, voiced } from './speech/alexa-speech';
+import { respondToChild } from './speech/child-channel';
+
+import type { ChildChannel } from './speech/child-channel';
 import type { TutorIntroduction, TutorVoice } from '../application/contracts/tutor-voice-model';
 
 /** 24 KiB; Alexa request envelopes are far smaller. */
@@ -41,19 +45,6 @@ const NOT_UNDERSTOOD_SENTENCE = 'Das habe ich nicht verstanden. Sag es bitte noc
 const TUTOR_FAILED_SENTENCE =
   'Da ist gerade etwas schiefgelaufen. Versuch es bitte gleich noch einmal.';
 
-/**
- * Time the tutor's voice may take (synthesis and upload on a cache miss) before the answer falls back to
- * Alexa's voice. Alexa waits 8 s in total; verification (a cold certificate download) and a cold start need
- * the rest.
- */
-const VOICE_DEADLINE_MS = 4_000;
-/**
- * APL for Audio plays on every Alexa device and needs no interface in the skill manifest, so requests do not
- * list it in `supportedInterfaces` (verified in the simulator); there is nothing to check per device.
- */
-const APLA_INTERFACE = 'Alexa.Presentation.APLA';
-/** APL for Audio specification version (Amazon: "Currently 0.91"). */
-const APLA_VERSION = '0.91';
 /** Sent when Alexa could not play a clip (for example an expired URL); notification only, no answer. */
 const APLA_RUNTIME_ERROR = 'Alexa.Presentation.APLA.RuntimeError';
 const TUTOR_INTROS_TOKEN = 'tutor-intros';
@@ -65,6 +56,7 @@ const envelopeSchema = z.object({
     .object({
       sessionId: z.string(),
       application: z.object({ applicationId: z.string() }),
+      attributes: z.record(z.string(), z.unknown()).optional(),
     })
     .optional(),
   request: z.object({
@@ -101,11 +93,17 @@ interface AlexaEndpointOptions {
   readonly voiceDeadlineMs?: number;
   /** Told why a reply fell back to Alexa's voice (an error code or `timeout`); never the text or a URL. */
   readonly onVoiceFallback?: (reason: string) => void;
+  /**
+   * Demo coupling: the skill speaks for this one configured child (its own companion, feeding, level,
+   * teacher tasks). `null`/absent keeps the anonymous channel: introductions and tutor turns as before.
+   */
+  readonly child?: ChildChannel | null;
 }
 
 /**
  * Alexa voice channel: verifies the request, maps it onto one tutor turn and the reply back to Alexa speech.
- * Anonymous by design: no profile, persistence or user-id logging; Alexa's ephemeral session id is the only context.
+ * Without a demo coupling it is anonymous: no profile, persistence or user-id logging. With one, it acts for
+ * the single configured child only (see `ChildChannel`); Alexa's user, device and person ids are never read.
  */
 export function createAlexaEndpoint(
   options: AlexaEndpointOptions,
@@ -144,22 +142,53 @@ function isForSkill(envelope: Envelope, skillId: string): boolean {
 
 async function respond(envelope: Envelope, options: AlexaEndpointOptions): Promise<Response> {
   const { request } = envelope;
-  if (request.type === APLA_RUNTIME_ERROR) {
-    options.onVoiceFallback?.('apla_runtime_error');
-  }
   if (request.type === 'SessionEndedRequest' || request.type === APLA_RUNTIME_ERROR) {
-    return Response.json({ version: '1.0', response: {} });
+    return acknowledge(request.type, options);
   }
   const conversationId = parseConversationId(envelope.session?.sessionId ?? request.requestId);
   if (conversationId.isErr()) {
     return failure(HTTP.badRequest, 'invalid_envelope');
   }
   const introductions = options.introductions ?? [];
+  if (options.child) {
+    return answerChild(envelope, options.child, options);
+  }
   if (request.type === 'LaunchRequest' && introductions.length > 0) {
     return introduce(introductions, options);
   }
   const next = route(request, conversationId.value);
   return 'speech' in next ? speak(next) : answer(next, options);
+}
+
+/** A notification (session ended, a clip failed to play): acknowledged without speech. */
+function acknowledge(type: string, options: AlexaEndpointOptions): Response {
+  if (type === APLA_RUNTIME_ERROR) {
+    options.onVoiceFallback?.('apla_runtime_error');
+  }
+  return Response.json({ version: '1.0', response: {} });
+}
+
+/** The demo coupling: the request goes to the bound child's dialog (see speech/child-channel.ts). */
+function answerChild(
+  envelope: Envelope,
+  child: ChildChannel,
+  options: AlexaEndpointOptions,
+): Promise<Response> {
+  const { request } = envelope;
+  return respondToChild(
+    {
+      type: request.type === 'LaunchRequest' ? 'LaunchRequest' : 'IntentRequest',
+      intent: request.intent?.name,
+      utterance: request.intent?.slots?.[FREE_INPUT_SLOT]?.value,
+      attributes: envelope.session?.attributes,
+    },
+    {
+      ...options,
+      child,
+      introductions: options.introductions ?? [],
+      voice: options.voice ?? null,
+    },
+  );
 }
 
 /** One tutor turn; the reply in the tutor's voice when possible, else in Alexa's. Never fails. */
@@ -200,28 +229,7 @@ async function introduce(
     const url = urls[index];
     return url ? { type: 'Audio', source: url } : { type: 'Speech', content: intro.text };
   });
-  return renderAudio(reply, { type: 'Sequencer', items }, TUTOR_INTROS_TOKEN);
-}
-
-/** A clip URL within the deadline, or `null` for Alexa's own voice. Never fails. */
-async function voiced(
-  load: () => AppResultAsync<string>,
-  options: AlexaEndpointOptions,
-): Promise<string | null> {
-  const { onVoiceFallback } = options;
-  try {
-    const url = await withTimeout(
-      Promise.resolve(load()),
-      options.voiceDeadlineMs ?? VOICE_DEADLINE_MS,
-    );
-    if (url.isOk()) {
-      return url.value;
-    }
-    onVoiceFallback?.(url.error.code);
-  } catch (thrown) {
-    onVoiceFallback?.(thrown instanceof TimeoutError ? 'timeout' : 'unexpected');
-  }
-  return null;
+  return renderAudio(reply, { item: { type: 'Sequencer', items }, token: TUTOR_INTROS_TOKEN });
 }
 
 /** Either a tutor turn, or a reply the channel gives itself (stop, help, nothing understood). */
@@ -248,49 +256,12 @@ function route(
 
 const TUTOR_FAILED_REPLY: TutorReply = { speech: TUTOR_FAILED_SENTENCE, conversation: 'closed' };
 
-/** PlainText keeps Alexa's standard voice; an open conversation re-prompts with the same text. */
-function speak(reply: TutorReply): Response {
-  const outputSpeech = { type: 'PlainText', text: reply.speech };
-  const isOpen = reply.conversation === 'open';
-  return Response.json({
-    version: '1.0',
-    response: {
-      outputSpeech,
-      ...(isOpen ? { reprompt: { outputSpeech } } : {}),
-      shouldEndSession: !isOpen,
-    },
-  });
-}
-
 /**
  * The reply as an audio clip (APL for Audio: mp3 up to 48 kHz from a public HTTPS URL). An open
  * conversation re-prompts with the same text in Alexa's voice when the child stays silent.
  */
 function speakAudio(reply: TutorReply, audioUrl: string): Response {
-  return renderAudio(reply, { type: 'Audio', source: audioUrl }, 'tutor-voice');
-}
-
-/** One APL for Audio document whose main template plays `item` (a clip, or a sequence of parts). */
-function renderAudio(reply: TutorReply, item: Record<string, unknown>, token: string): Response {
-  const isOpen = reply.conversation === 'open';
-  return Response.json({
-    version: '1.0',
-    response: {
-      directives: [
-        {
-          type: `${APLA_INTERFACE}.RenderDocument`,
-          token,
-          document: {
-            type: 'APLA',
-            version: APLA_VERSION,
-            mainTemplate: { item },
-          },
-        },
-      ],
-      ...(isOpen ? { reprompt: { outputSpeech: { type: 'PlainText', text: reply.speech } } } : {}),
-      shouldEndSession: !isOpen,
-    },
-  });
+  return renderAudio(reply, { item: { type: 'Audio', source: audioUrl }, token: 'tutor-voice' });
 }
 
 function readJson(raw: string): unknown {
