@@ -17,6 +17,14 @@ import { ParentLoading } from '../../_components/parent-loading';
 
 type Params = Promise<{ locale: string; taskId: string }>;
 
+/**
+ * The segment is untrusted and per request: one placeholder id lets the build prerender the shell
+ * (the layout reads the locale), every other id renders on demand.
+ */
+export function generateStaticParams() {
+  return [{ taskId: 'placeholder' }];
+}
+
 export async function generateMetadata({ params }: { readonly params: Params }) {
   const t = await getTranslations({
     locale: requireLocale((await params).locale),
@@ -36,22 +44,25 @@ async function ParentTask({
   return <ParentTaskDetail task={task} />;
 }
 
-/** `params` is read inside Suspense, so the dynamic segment never blocks the prerendered shell. */
-async function ParentTaskArea({ params }: { readonly params: Params }) {
-  const { locale, taskId } = await params;
+/**
+ * The provider sits outside Suspense, as on the parent overview, so the loading shell translates
+ * from the request locale; only the signed-in, per-child part is read inside Suspense.
+ */
+function ParentTaskArea({ taskId }: { readonly taskId: string }) {
   return (
-    <I18nProvider locale={requireLocale(locale)} namespaces={['auth', 'learner']}>
-      <ParentFrame section="learning" range="week">
-        {(child) => <ParentTask profileId={child.id} taskId={taskId} />}
-      </ParentFrame>
-    </I18nProvider>
+    <ParentFrame section="learning" range="week">
+      {(child) => <ParentTask profileId={child.id} taskId={taskId} />}
+    </ParentFrame>
   );
 }
 
-export default function ParentTaskPage({ params }: { readonly params: Params }) {
+export default async function ParentTaskPage({ params }: { readonly params: Params }) {
+  const { locale, taskId } = await params;
   return (
-    <Suspense fallback={<ParentLoading />}>
-      <ParentTaskArea params={params} />
-    </Suspense>
+    <I18nProvider locale={requireLocale(locale)} namespaces={['auth', 'learner']}>
+      <Suspense fallback={<ParentLoading />}>
+        <ParentTaskArea taskId={taskId} />
+      </Suspense>
+    </I18nProvider>
   );
 }
