@@ -37,6 +37,7 @@ export {
   AUTH_VALIDATION_CODES,
   CREDENTIAL_LIMITS,
   EMAIL_PATTERN,
+  TEACHER_ROLE,
 } from './application/contracts/auth-constraints';
 export type { AuthCode } from './application/contracts/auth-constraints';
 export type {

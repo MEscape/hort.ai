@@ -3,9 +3,10 @@ import { useId } from 'react';
 import { useFormState } from 'react-hook-form';
 
 import { TextField } from '@components/shared/text-field';
+import { Alert, AlertDescription } from '@components/ui/alert';
 import { Button } from '@components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@components/ui/card';
-import { Eye, Lock } from '@components/ui/icons';
+import { Eye, Lock, TriangleAlert } from '@components/ui/icons';
 
 import { useTranslations } from '@i18n/client';
 
@@ -15,31 +16,41 @@ import { ASSIGNMENT_DRAFT_LIMITS } from '../schemas/assignment-draft-schema';
 
 import { AssignmentTextArea } from './assignment-text-area';
 
-import type { AssignmentDraftState } from '../hooks/use-assignment-draft';
+import type { AssignmentWorkspaceState } from '../hooks/use-assignment-workspace';
 
 interface AssignmentFormProps {
-  readonly state: AssignmentDraftState;
+  readonly state: AssignmentWorkspaceState;
 }
 
 export function AssignmentForm({ state }: AssignmentFormProps) {
   const t = useTranslations('assignments');
   const id = useId();
   const headingRef = useFocusOnMount<HTMLHeadingElement>(true);
-  const { form, errorText } = state;
+  const { editor, errorText } = state;
+  const { form } = editor;
   // Subscribe here: React Compiler can reuse this component while the stable form object changes internally.
   const { errors } = useFormState({ control: form.control });
 
   return (
     <Card>
-      <form onSubmit={state.onPreview} noValidate>
+      <form onSubmit={editor.onSave} noValidate aria-busy={editor.isSaving}>
         <CardHeader className="items-start text-left">
           <h1 ref={headingRef} tabIndex={-1} className="font-heading text-3xl text-copy">
-            {t('form.title')}
+            {editor.isEditing ? t('form.editTitle') : t('form.title')}
           </h1>
           <p className="text-base text-copy-muted">{t('form.requiredNote')}</p>
         </CardHeader>
         <CardContent>
-          <fieldset disabled={state.isDiscarding} className="grid min-w-0 gap-6 lg:grid-cols-3">
+          {editor.formErrorCode !== null && (
+            <Alert variant="nudge" role="alert" className="mb-6">
+              <TriangleAlert aria-hidden="true" />
+              <AlertDescription>{errorText(editor.formErrorCode)}</AlertDescription>
+            </Alert>
+          )}
+          <fieldset
+            disabled={editor.isDiscarding || editor.isSaving}
+            className="grid min-w-0 gap-6 lg:grid-cols-3"
+          >
             <div className="space-y-6 lg:col-span-2">
               <TextField
                 id={`${id}-title`}
@@ -90,14 +101,29 @@ export function AssignmentForm({ state }: AssignmentFormProps) {
             </div>
           </fieldset>
         </CardContent>
-        <CardFooter className="justify-between gap-3">
-          <Button type="button" variant="ghost" onClick={state.requestOverview}>
+        <CardFooter className="flex-wrap justify-between gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={editor.isSaving}
+            onClick={editor.requestOverview}
+          >
             {t('form.cancel')}
           </Button>
-          <Button type="submit" disabled={state.isDiscarding}>
-            <Eye aria-hidden="true" />
-            {t('form.preview')}
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={editor.isDiscarding || editor.isSaving}
+              onClick={editor.onPreview}
+            >
+              <Eye aria-hidden="true" />
+              {t('form.preview')}
+            </Button>
+            <Button type="submit" disabled={editor.isDiscarding || editor.isSaving}>
+              {editor.isSaving ? t('form.saving') : t('form.save')}
+            </Button>
+          </div>
         </CardFooter>
       </form>
     </Card>

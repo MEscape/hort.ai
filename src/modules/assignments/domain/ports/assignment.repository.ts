@@ -3,7 +3,7 @@ import type { ActorId, TenantId } from '@modules/auth';
 import type { InfrastructureAppError, NotFoundAppError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
 
-import type { Assignment, AssignmentDraft } from '../models/assignment';
+import type { Assignment, AssignmentDraft, ChildAssignment } from '../models/assignment';
 import type { AssignmentId, ClassroomId } from '../models/ids';
 
 /** Scope always comes from the authorized actor, never from request fields. */
@@ -23,6 +23,14 @@ export interface AssignmentRepository {
     id: AssignmentId,
     scope: AssignmentOwnerScope,
   ): AppResultAsync<Assignment | null, InfrastructureAppError>;
+  /**
+   * Loads within the tenant only, for `loadAuthorizedAssignment`, which then compares the STORED
+   * owner with the actor (`requireOnResource`): another teacher's assignment is refused.
+   */
+  findInTenant(
+    id: AssignmentId,
+    tenantId: TenantId,
+  ): AppResultAsync<Assignment | null, InfrastructureAppError>;
   listByClassroom(
     classroomId: ClassroomId,
     scope: AssignmentOwnerScope,
@@ -38,4 +46,14 @@ export interface AssignmentRepository {
     id: AssignmentId,
     scope: AssignmentOwnerScope,
   ): AppResultAsync<void, InfrastructureAppError>;
+  /**
+   * A class's assignments as its children see them, newest first. Not pinned to the teacher: the
+   * caller has already established that the signed-in parent's child is a member of this class.
+   * The solution key is never read.
+   */
+  listForChild(
+    classroomId: ClassroomId,
+    tenantId: TenantId,
+    limit: number,
+  ): AppResultAsync<readonly ChildAssignment[], InfrastructureAppError>;
 }

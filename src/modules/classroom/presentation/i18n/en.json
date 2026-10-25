@@ -16,6 +16,33 @@
       "tooLong": "This value is too long.",
       "numberInvalid": "Enter a grade from 1 to 4.",
       "optionUnknown": "Choose one of the available options."
+    },
+    "create": {
+      "nameLabel": "Class name",
+      "nameHint": "For example “3b”. Up to 80 characters.",
+      "gradeLabel": "Grade",
+      "scopeNote": "Hort.ai currently supports mathematics in Hessen.",
+      "submit": "Create class",
+      "submitting": "Creating …",
+      "createdTitle": "Your class is ready",
+      "codeLabel": "Invite code:",
+      "codeHint": "Give this invite code to the parents of your class. It is shown only now; you can create a new one later.",
+      "continue": "Continue to assignments"
+    },
+    "join": {
+      "title": "Class",
+      "body": "Enter the invite code from {name}’s teacher. Then {name} sees the class tasks under “School tasks”.",
+      "codeLabel": "Invite code",
+      "codeHint": "For example ABCD-EFGH, as the teacher gave it to you.",
+      "submit": "Join class",
+      "submitting": "Joining …",
+      "current": "{name} is in class {classroom} (grade {grade}).",
+      "leave": "Leave class",
+      "leaveTitle": "Leave class {classroom}?",
+      "leaveBody": "{name} will no longer see this class’s tasks. You can join again with the teacher’s current code.",
+      "leaveKeep": "Stay in the class",
+      "leaveConfirm": "Leave class",
+      "leaving": "Leaving …"
     }
   }
 }

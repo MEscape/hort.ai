@@ -16,7 +16,7 @@ import { ListClassroomMembers } from '@modules/classroom/application/queries/lis
 import { ListClassrooms } from '@modules/classroom/application/queries/list-classrooms';
 import { CLASSROOM_ERROR_CODES } from '@modules/classroom/domain/errors/classroom-errors';
 import type { Classroom } from '@modules/classroom/domain/models/classroom';
-import { toChildProfileId, toClassroomId } from '@modules/classroom/domain/models/ids';
+import { toClassMembershipId, toClassroomId } from '@modules/classroom/domain/models/ids';
 import type { ChildProfileAccess } from '@modules/classroom/domain/ports/child-profile-access.port';
 import type { ClassroomEvent } from '@modules/classroom/domain/ports/classroom-audit-log.port';
 import type { ClassroomRepository } from '@modules/classroom/domain/ports/classroom.repository';
@@ -119,7 +119,11 @@ function world() {
       const room = member && rooms.find((row) => row.id === member.classroomId);
       return okAsync(member && room ? { classroom: strip(room), joinedAt: member.joinedAt } : null);
     },
-    addMember: ({ classroomId, childProfileId }) => {
+    addMember: ({ classroomId, childProfileId, inviteCodeHash }) => {
+      const room = rooms.find((row) => row.id === classroomId);
+      if (room?.status !== 'active' || room.inviteCodeHash !== inviteCodeHash) {
+        return errAsync(notFoundError(CLASSROOM_ERROR_CODES.inviteCodeInvalid, ''));
+      }
       if (members.some((row) => row.childProfileId === childProfileId)) {
         return errAsync({
           kind: 'conflict',
@@ -143,7 +147,7 @@ function world() {
           .filter((row) => row.classroomId === classroomId)
           .slice(0, limit)
           .map((row) => ({
-            childProfileId: toChildProfileId(row.childProfileId),
+            memberId: toClassMembershipId(`membership-${row.childProfileId}`),
             displayName: children.get(row.childProfileId)!.displayName,
             joinedAt: row.joinedAt,
           })),
@@ -298,7 +302,7 @@ describe('joining with an invite code', () => {
     expect((await w.childClassroom.execute('child-1'))._unsafeUnwrap()?.classroomId).toBe(id);
   });
 
-  it('shows the teacher only the display names of the children in their own class', async () => {
+  it('shows the teacher only display name and join date of the children in their own class', async () => {
     const w = world();
     const { id, code } = await classWithCode(w);
     const foreign = await classWithCode(w, OTHER_TEACHER);
@@ -309,9 +313,42 @@ describe('joining with an invite code', () => {
 
     w.as(TEACHER);
     const listed = (await w.listMembers.execute(id))._unsafeUnwrap();
-    expect(listed).toEqual([{ childProfileId: 'child-1', displayName: 'Lina', joinedAt: NOW }]);
-    expect(Object.keys(listed[0]!)).toEqual(['childProfileId', 'displayName', 'joinedAt']);
+    expect(listed).toEqual([
+      { memberId: 'membership-child-1', displayName: 'Lina', joinedAt: NOW },
+    ]);
+    expect(Object.keys(listed[0]!)).toEqual(['memberId', 'displayName', 'joinedAt']);
+    expect(JSON.stringify(listed)).not.toContain('"child-1"');
     expect((await w.listMembers.execute(foreign.id))._unsafeUnwrapErr().kind).toBe('not_found');
+  });
+
+  it('refuses a code replaced between the lookup and the membership write', async () => {
+    const w = world();
+    const { id, code } = await classWithCode(w);
+    const { classrooms } = w.deps();
+    // The teacher issues a new code right after the parent's code was looked up.
+    const racing = new JoinClassroom(
+      w.deps({
+        classrooms: {
+          ...classrooms,
+          findActiveByInviteCodeHash: (hash, tenantId) =>
+            classrooms.findActiveByInviteCodeHash(hash, tenantId).andThen((found) => {
+              const room = w.rooms.find((row) => row.id === id)!;
+              room.inviteCodeHash = 'f'.repeat(64);
+              return okAsync(found);
+            }),
+        },
+      }),
+    );
+    w.as(MARA);
+
+    const result = await racing.execute({ childProfileId: 'child-1', inviteCode: code });
+
+    expect(result._unsafeUnwrapErr().code).toBe(CLASSROOM_ERROR_CODES.inviteCodeInvalid);
+    expect(w.members).toHaveLength(0);
+    expect(w.children.get('child-1')).toMatchObject({ federalState: 'by', grade: 2 });
+    expect(w.events).toContainEqual(
+      expect.objectContaining({ type: 'classroom.join_refused', reason: 'invite_code_invalid' }),
+    );
   });
 
   it('rejects an unknown or malformed code, and audits it without the code', async () => {

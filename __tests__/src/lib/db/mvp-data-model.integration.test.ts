@@ -24,10 +24,11 @@ describe.skipIf(!isEnabled)('MVP data model constraints against Postgres', () =>
     return `${prefix}${String(sequence)}`;
   };
 
+  // One parent per profile: a parent may hold only one unfinished profile (#63 constraint).
   function childProfile() {
     return db.orm.public.ChildProfile.create({
       tenantId,
-      ownerId: 'parent-1',
+      ownerId: unique('parent-'),
       displayName: 'Mia',
       federalState: 'HE',
       grade: 3,

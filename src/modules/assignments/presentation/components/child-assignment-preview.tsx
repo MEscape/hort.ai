@@ -1,32 +1,22 @@
 'use client';
 
-import { Temporal } from 'temporal-polyfill';
-
 import { Hort } from '@components/brand/hort';
 import { Card, CardContent } from '@components/ui/card';
 
-import { I18N_CONFIG } from '@i18n';
+import { useTranslations } from '@i18n/client';
 
-import { useAppFormatters, useTimeZone, useTranslations } from '@i18n/client';
+import { useCalendarDateText } from '../hooks/use-calendar-date-text';
 
-import type { ChildAssignmentView } from '../dto/child-assignment-dto';
+import type { ChildAssignmentContent } from '../dto/child-assignment-dto';
 
 interface ChildAssignmentPreviewProps {
-  readonly assignment: ChildAssignmentView;
+  readonly assignment: ChildAssignmentContent;
 }
 
-/** Receives only the explicitly projected child DTO, never the teacher draft or solution key. */
+/** Receives only the explicitly projected child content, never the teacher draft or solution key. */
 export function ChildAssignmentPreview({ assignment }: ChildAssignmentPreviewProps) {
   const t = useTranslations('assignments');
-  const format = useAppFormatters();
-  const timeZone = useTimeZone() ?? I18N_CONFIG.defaultTimeZone;
-  const dueDate =
-    assignment.dueDate === null
-      ? null
-      : format.date(
-          Temporal.PlainDate.from(assignment.dueDate).toZonedDateTime(timeZone).epochMilliseconds,
-          { dateStyle: 'long' },
-        );
+  const dateText = useCalendarDateText();
 
   return (
     <Card>
@@ -38,9 +28,11 @@ export function ChildAssignmentPreview({ assignment }: ChildAssignmentPreviewPro
           </h2>
         </div>
         <p className="whitespace-pre-wrap break-words text-lead text-copy">{assignment.taskText}</p>
-        {assignment.dueDate !== null && dueDate !== null && (
+        {assignment.dueDate !== null && (
           <p className="border-t border-border pt-4 text-base text-copy-muted">
-            <time dateTime={assignment.dueDate}>{t('child.due', { date: dueDate })}</time>
+            <time dateTime={assignment.dueDate}>
+              {t('child.due', { date: dateText(assignment.dueDate) })}
+            </time>
           </p>
         )}
       </CardContent>

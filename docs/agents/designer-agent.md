@@ -63,7 +63,7 @@ Before reviewing a feature, understand:
 - What feedback the child needs.
 - What could cause confusion, frustration, or uncertainty.
 - How the child can recover from a mistake.
-- What makes the activity interesting and rewarding.
+- What makes working on their own task feel manageable and satisfying.
 
 Do not assume every child has the same reading ability, attention span, motor skills, or prior knowledge.
 
@@ -180,6 +180,8 @@ A small, well-timed transformation can feel more magical than an entire screen f
 Treat the mascot as a potential companion with a recognizable personality, not a logo pasted onto screens.
 
 The child chooses one predefined companion: Max the dog, Lili the rabbit or Fina the dragon. Each combines appearance, personality and voice. Do not introduce a mix-and-match character builder. Persona changes presentation, not correctness, hint policy or safety rules.
+
+The companion appears at the edge of the screen while it guides (a thinking prompt, a hint, praise, a comprehension question) and steps back when the child works on their own. It never covers the task or the answer field, and with reduced motion it appears and leaves without movement.
 
 When a mascot is part of the feature, evaluate:
 
