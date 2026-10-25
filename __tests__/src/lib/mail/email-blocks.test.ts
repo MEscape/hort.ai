@@ -9,7 +9,7 @@ const action = { label: 'Open', url: 'https://example.org/x' };
 
 describe('renderAction link hint', () => {
   it.each([
-    ['de', 'Funktioniert die Schaltfläche nicht? Öffnen Sie diesen Link:'],
+    ['de', 'Funktioniert die Schaltfläche nicht? Öffne diesen Link:'],
     ['en', 'Button not working? Open this link:'],
   ])('is said in %s', (locale, hint) => {
     expect(renderAction(action, styles, locale)).toContain(hint);
