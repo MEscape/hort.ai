@@ -19,10 +19,11 @@ const BACK_ARROW = '←';
 interface StartScreenProps {
   /** The child's class's assignments (child-safe views), or `null` when none can be shown. */
   readonly schoolAssignments: readonly ChildAssignmentView[] | null;
+  readonly childProfileId?: string | null;
 }
 
 /** Drafts live only in this mounted route; leaving or reloading it clears them. */
-export function StartScreen({ schoolAssignments }: StartScreenProps) {
+export function StartScreen({ schoolAssignments, childProfileId }: StartScreenProps) {
   const t = useTranslations('app');
   const [view, setView] = useState<StartView>('home');
   const [draft, setDraft] = useState('');
@@ -60,7 +61,12 @@ export function StartScreen({ schoolAssignments }: StartScreenProps) {
         {t('start.back')}
       </Button>
       {view === 'task' && (
-        <TaskEntry draft={draft} onDraftChange={setDraft} headingRef={headingRef} />
+        <TaskEntry
+          draft={draft}
+          onDraftChange={setDraft}
+          headingRef={headingRef}
+          childProfileId={childProfileId ?? null}
+        />
       )}
       {view === 'school' && schoolAssignments !== null && (
         <ChildSchoolTasks assignments={schoolAssignments} />

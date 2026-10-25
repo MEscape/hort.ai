@@ -28,6 +28,27 @@
       "rateLimited": "Take a short break and try again in a moment.",
       "infrastructure": "Something is not working right now. Please try again in a moment.",
       "unexpected": "Something went wrong. Please try again."
+    },
+    "conversation": {
+      "label": "Conversation with your companion",
+      "you": "You",
+      "taskTitle": "Your task",
+      "thinking": "{name} is thinking …",
+      "hint": "I'd like a hint",
+      "hintsUsed": "Hints used: {count}",
+      "answerLabel": "My answer",
+      "checkAnswer": "Check my answer",
+      "replyLabel": "Tell me in your own words",
+      "sendReply": "Reply",
+      "empty": "Write something first.",
+      "retry": "Try again",
+      "later": "Continue later",
+      "doneTitle": "You did it!",
+      "doneBody": "You worked it out yourself and explained it. {name} is happy with you!",
+      "home": "Back to home",
+      "emptyTitle": "No task is open right now",
+      "emptyBody": "Start a new task and I'll help you think it through.",
+      "newTask": "New task"
     }
   }
 }

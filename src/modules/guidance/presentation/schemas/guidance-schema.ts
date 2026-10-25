@@ -29,3 +29,21 @@ export const checkAnswerSchema = requestHintSchema.extend({
     .string({ message: CHILD_INPUT_VALIDATION_CODES.empty })
     .max(ANSWER_INPUT_MAX, { message: CHILD_INPUT_VALIDATION_CODES.tooLong }),
 });
+
+const childTextSchema = z
+  .string({ message: CHILD_INPUT_VALIDATION_CODES.empty })
+  .max(ANSWER_INPUT_MAX, { message: CHILD_INPUT_VALIDATION_CODES.tooLong });
+
+export const startHelpSessionSchema = z.object({
+  childProfileId: idSchema(CODES.childProfileIdInvalid),
+  task: childTextSchema,
+  subject: z.string({ message: CODES.subjectInvalid }).max(GUIDANCE_ID_MAX_LENGTH, {
+    message: CODES.subjectInvalid,
+  }),
+});
+
+export const replyToComprehensionQuestionSchema = z.object({
+  childProfileId: idSchema(CODES.childProfileIdInvalid),
+  sessionId: idSchema(CODES.sessionIdInvalid),
+  reply: childTextSchema,
+});

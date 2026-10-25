@@ -3,6 +3,7 @@ import type { AuthorizationService } from '@modules/auth';
 import type { ChildProfileAccess } from '../domain/ports/child-profile-access.port';
 import type { GuidanceAuditLog } from '../domain/ports/guidance-audit-log.port';
 import type { HelpSessionRepository } from '../domain/ports/help-session.repository';
+import type { SessionReward } from '../domain/ports/session-reward.port';
 
 /** What the help-session use cases are built from. */
 export interface HelpSessionDependencies {
@@ -10,4 +11,6 @@ export interface HelpSessionDependencies {
   readonly childProfiles: ChildProfileAccess;
   readonly sessions: HelpSessionRepository;
   readonly audit: GuidanceAuditLog;
+  /** Grants the understood task's XP once (#83); without it nothing is granted. */
+  readonly reward?: SessionReward;
 }

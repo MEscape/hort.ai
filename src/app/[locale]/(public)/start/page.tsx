@@ -53,7 +53,14 @@ async function loadSchoolAssignments(
 }
 
 async function StartContent({ searchParams }: Pick<StartPageProps, 'searchParams'>) {
-  return <StartScreen schoolAssignments={await loadSchoolAssignments(searchParams)} />;
+  const params = await searchParams;
+  const parsed = parseChildTasksPageParams(params);
+  return (
+    <StartScreen
+      schoolAssignments={await loadSchoolAssignments(Promise.resolve(params))}
+      childProfileId={parsed.childProfileId ?? null}
+    />
+  );
 }
 
 export default async function StartPage({ params, searchParams }: StartPageProps) {
@@ -62,7 +69,7 @@ export default async function StartPage({ params, searchParams }: StartPageProps
   return (
     <StartPageShell>
       <I18nProvider locale={locale} namespaces={['assignments']}>
-        <Suspense fallback={<StartScreen schoolAssignments={null} />}>
+        <Suspense fallback={<StartScreen schoolAssignments={null} childProfileId={null} />}>
           <StartContent searchParams={searchParams} />
         </Suspense>
       </I18nProvider>

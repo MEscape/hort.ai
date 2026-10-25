@@ -7,7 +7,7 @@ import type {
   NotFoundAppError,
   ValidationAppError,
 } from '@lib/errors';
-import { errAsync } from '@lib/result';
+import { ResultAsync, errAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
 import { isTaskUnderstood } from '../../domain/answer-check/answer-decision';
@@ -73,6 +73,13 @@ export class ReplyToComprehensionQuestion {
                   text: reply,
                   completes: understood,
                 })
+                .andThen((outcome) =>
+                  outcome === 'recorded' && understood && this.deps.reward !== undefined
+                    ? ResultAsync.fromSafePromise(
+                        this.deps.reward.award(childProfileId, sessionId),
+                      ).map(() => outcome)
+                    : okAsync(outcome),
+                )
                 .map((outcome): ComprehensionReplyView => {
                   if (outcome === 'recorded') {
                     audit.record({

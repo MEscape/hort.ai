@@ -19,6 +19,7 @@ import { curriculumCompetencyRetrieval } from './infrastructure/curriculum/curri
 import { GeminiProvider } from './infrastructure/gemini/gemini-provider';
 import { learnerChildProfileAccess } from './infrastructure/learner/learner-child-profile-access';
 import { PrismaHelpSessionRepository } from './infrastructure/prisma/prisma-help-session.repository';
+import { progressionSessionReward } from './infrastructure/progression/progression-session-reward';
 import { JevSafetyClassifier } from './infrastructure/typesafe/jev-safety-classifier';
 
 import type { HelpSessionDependencies } from './application/help-session-dependencies';
@@ -108,6 +109,7 @@ const getHelpSessionDependencies = once((): HelpSessionDependencies => ({
   childProfiles: learnerChildProfileAccess,
   sessions: getHelpSessionRepository(),
   audit: loggerGuidanceAuditLog,
+  reward: progressionSessionReward,
 }));
 
 /** Starting a help session and the comprehension reply (#17, #78). */

@@ -81,8 +81,38 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
       return session === null ? errAsync(notFound()) : okAsync(session);
     },
     load: (ref) => repository.loadSession(ref).map(toLadderState),
-    recordHint: () => okAsync('recorded'),
-    recordAnswerCheck: () => okAsync('recorded'),
+    recordHint: (ref, hint) => {
+      const session = active(ref.childProfileId, ref.sessionId);
+      if (session === null) {
+        return errAsync(notFound());
+      }
+      if (session.hints.some((given) => given.requestId === hint.requestId)) {
+        return okAsync('duplicate');
+      }
+      sessions.set(session.id, {
+        ...session,
+        hintLevel: hint.level,
+        hints: [...session.hints, hint],
+      });
+      return okAsync('recorded');
+    },
+    recordAnswerCheck: (ref, check) => {
+      const session = active(ref.childProfileId, ref.sessionId);
+      if (session === null) {
+        return errAsync(notFound());
+      }
+      if (session.answerChecks.some((stored) => stored.requestId === check.requestId)) {
+        return okAsync('duplicate');
+      }
+      const step = {
+        ...check,
+        hintLevel: session.hintLevel,
+        question: check.question === null ? null : { text: check.question.text, reply: null },
+        occurredAt: UPDATED_AT,
+      };
+      sessions.set(session.id, { ...session, answerChecks: [...session.answerChecks, step] });
+      return okAsync('recorded');
+    },
     recordComprehensionReply: (ref, reply) => {
       const session = active(ref.childProfileId, ref.sessionId);
       if (session === null) {

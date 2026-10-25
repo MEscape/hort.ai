@@ -4,7 +4,8 @@
     "description": "Dein Elternkonto ist bereit. Hier startet bald das Lernabenteuer für deine Familie.",
     "teacherDescription": "Dein Lehrkraft-Konto ist bereit. Hier stellst du Aufgaben für deine Klasse ein.",
     "teacherAssignments": "Zu den Aufgaben",
-    "startHomework": "Zur Hausaufgabenhilfe"
+    "startHomework": "Zur Hausaufgabenhilfe",
+    "continueHelp": "Weiter: {task}"
   },
   "metadata": {
     "description": "Ein KI-gestützter, kindgerechter Lernbegleiter, der Lernen zu einer interaktiven Reise macht."
@@ -47,12 +48,14 @@
       "title": "Was ist deine Aufgabe?",
       "label": "Deine Aufgabe",
       "placeholder": "Schreibe deine Hausaufgabe hier …",
-      "note": "Bis zu {limit} Zeichen. Dein Text bleibt auf dieser Seite und wird nicht gespeichert.",
+      "note": "Bis zu {limit} Zeichen.",
       "empty": "Schreibe zuerst deine Aufgabe auf.",
       "review": "Fertig",
       "clear": "Text löschen",
       "unavailableTitle": "Hilfe kommt bald",
-      "unavailableBody": "Deine Aufgabe wurde nicht gesendet oder gespeichert. Du kannst sie hier weiter bearbeiten."
+      "unavailableBody": "Deine Aufgabe wurde nicht gesendet oder gespeichert. Du kannst sie hier weiter bearbeiten.",
+      "sending": "Wird gestartet …",
+      "failed": "Das hat gerade nicht geklappt. Versuch es bitte noch einmal."
     },
     "school": {
       "title": "Schulaufgaben",
@@ -60,7 +63,8 @@
     },
     "resume": {
       "title": "Weiter",
-      "body": "Gespeicherte Aufgaben sind hier noch nicht verfügbar."
+      "body": "Gespeicherte Aufgaben sind hier noch nicht verfügbar.",
+      "continue": "Zur Hilfe"
     }
   }
 }
