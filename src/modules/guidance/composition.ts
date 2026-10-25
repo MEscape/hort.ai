@@ -106,6 +106,7 @@ export const getGuidanceCommands = once(() => {
 const getHelpSessionDependencies = once((): HelpSessionDependencies => ({
   authorization: getAccessControl(),
   childProfiles: learnerChildProfileAccess,
+  rateLimiter: getRateLimiter(),
   sessions: getHelpSessionRepository(),
   audit: loggerGuidanceAuditLog,
 }));
