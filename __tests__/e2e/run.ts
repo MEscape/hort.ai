@@ -48,8 +48,8 @@ function execute(
   });
 }
 
-/** Shared libraries of Chromium's headless shell that Vercel's Amazon Linux 2023 build image lacks. */
-const CHROMIUM_LIBRARIES = [
+/** What Vercel's Amazon Linux 2023 build image lacks: Chromium headless-shell libraries and useradd. */
+const VERCEL_HOST_PACKAGES = [
   'alsa-lib',
   'at-spi2-atk',
   'atk',
@@ -64,6 +64,8 @@ const CHROMIUM_LIBRARIES = [
   'libxkbcommon',
   'mesa-libgbm',
   'nss',
+  // useradd, for the unprivileged user embedded-postgres creates when the build runs as root.
+  'shadow-utils',
 ];
 
 const runsAsRoot = process.getuid?.() === 0;
@@ -94,7 +96,7 @@ async function main() {
   };
   if (process.env['VERCEL'] === '1' && runsAsRoot) {
     await execute(
-      ['install', '-y', '-q', ...CHROMIUM_LIBRARIES],
+      ['install', '-y', '-q', ...VERCEL_HOST_PACKAGES],
       process.env,
       process.cwd(),
       'dnf',
