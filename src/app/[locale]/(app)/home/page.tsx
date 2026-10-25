@@ -1,9 +1,9 @@
 import { Suspense } from 'react';
 
-import { assignmentRoutes } from '@modules/assignments';
+import { assignmentRoutes, assignmentsQueries } from '@modules/assignments';
 import { AccountHeader, AuthShell, requireSignedIn, TEACHER_ROLE } from '@modules/auth';
 import { classroomQueries } from '@modules/classroom';
-import { loadOpenHelpSession } from '@modules/guidance';
+import { getHelpSessionQueries, loadOpenHelpSession } from '@modules/guidance';
 import { requireOnboarded } from '@modules/learner';
 import { loadProgressDto } from '@modules/progression';
 import { FALLBACK_AREA_ID, worldIsland } from '@modules/world';
@@ -19,8 +19,12 @@ import { getLocale, getMessages, getTranslations } from '@i18n/server';
 
 import { systemClock } from '@lib/clock';
 import { serverEnv } from '@lib/config/server';
+import { logger } from '@lib/logger';
+import type { AppResultAsync } from '@lib/result';
 import { buildPrivateMetadata } from '@lib/seo';
-import { isDefined } from '@lib/utils';
+import { isDefined, truncate } from '@lib/utils';
+
+import { loadHomeworkAreaIds } from '@/app/_lib/homework-area-ids';
 
 import { buildTutorOptions, preloadTutorPictures } from '../onboarding/tutor-options';
 
@@ -29,7 +33,7 @@ import { HomeScreen } from './_components/home-screen';
 
 import type { UnfinishedTask, WorldPreviewIsland } from './_components/home-types';
 
-/** The islands the card shows. Only the starting island is clear: nothing records a discovery yet. */
+/** The islands the card shows: the start is always clear, the others once the child did homework there. */
 const PREVIEW_AREA_IDS = [FALLBACK_AREA_ID, 'zahlenwald', 'maerchenwald'] as const;
 
 const TASK_PREVIEW_LIMIT = 48;
@@ -46,10 +50,11 @@ export async function generateMetadata({
   return buildPrivateMetadata(t('home.title'));
 }
 
-async function previewIslands(): Promise<readonly WorldPreviewIsland[]> {
+async function previewIslands(childProfileId: string): Promise<readonly WorldPreviewIsland[]> {
   const { app } = await getMessages();
+  const homework = await loadHomeworkAreaIds(childProfileId);
   return PREVIEW_AREA_IDS.map((areaId) =>
-    worldIsland(areaId, serverEnv.STORAGE_PUBLIC_BASE_URL, app.world.areas),
+    worldIsland(areaId, serverEnv.STORAGE_PUBLIC_BASE_URL, app.world.areas, homework),
   ).filter(isDefined);
 }
 
@@ -66,12 +71,40 @@ async function unfinishedOf(session: OpenHelpSession | null): Promise<Unfinished
     general_studies: t('world.subjects.natur'),
   } as const satisfies Record<OpenHelpSession['subject'], string>;
   return {
-    title: session.task.slice(0, TASK_PREVIEW_LIMIT),
+    title: truncate(session.task, TASK_PREVIEW_LIMIT),
     area: subjects[session.subject],
-    lastStep: t('home.continue.hints', { count: session.hints.length }),
+    // The opening thinking prompt (only without a clarify or redirect opening) is not a hint the child asked for.
+    lastStep: t('home.continue.hints', {
+      count: Math.max(0, session.hints.length - (session.opening === null ? 1 : 0)),
+    }),
     updatedAt: session.updatedAt,
     href: '/help',
   };
+}
+
+/**
+ * Home's optional sources: one that fails must not take the child's whole Home down. It is
+ * logged with its code and the card or strip shows its "not available" state instead.
+ */
+async function valueOrNull<T>(source: string, load: AppResultAsync<T>): Promise<T | null> {
+  const result = await load;
+  if (result.isOk()) {
+    return result.value;
+  }
+  logger.warn('home.source_unavailable', { source, code: result.error.code });
+  return null;
+}
+
+/** The open help session, or `null` when there is none or it cannot be read right now. */
+async function openSessionOf(childProfileId: string): Promise<OpenHelpSession | null> {
+  try {
+    return await loadOpenHelpSession(childProfileId);
+  } catch (error) {
+    // The guard throws with the error code as its message.
+    const code = error instanceof Error ? error.message : 'unexpected';
+    logger.warn('home.source_unavailable', { source: 'open_help_session', code });
+    return null;
+  }
 }
 
 async function ChildHome() {
@@ -85,6 +118,16 @@ async function ChildHome() {
   }
   const now = systemClock.now();
   const locale = await getLocale();
+  const [usedMinutes, assignments, open] = await Promise.all([
+    // The same count the use cases enforce the daily limit against; `null` shows "not available".
+    valueOrNull(
+      'help_minutes',
+      getHelpSessionQueries().getTodayHelpMinutes.execute({ childProfileId: child.id }),
+    ),
+    // shortcut: nothing records which assignment the child opened, so every open one counts as new.
+    valueOrNull('assignments', assignmentsQueries.listChildAssignments.execute(child.id)),
+    openSessionOf(child.id),
+  ]);
 
   return (
     <HomeScreen
@@ -98,13 +141,12 @@ async function ChildHome() {
           allowedWindow: child.allowedWindow,
         },
         serverNow: now.toISOString(),
-        // Nothing measures learning time yet, so a daily limit shows "time not available".
-        usedMinutes: null,
-        // The time strip's live session (#17) and teacher assignment counts (#33) are not wired yet.
+        usedMinutes,
+        // The time strip's live session chip (#17) is not wired yet; the continue card shows it.
         session: null,
-        unfinished: await unfinishedOf(await loadOpenHelpSession(child.id)),
-        teacherNewCount: null,
-        world: await previewIslands(),
+        unfinished: await unfinishedOf(open),
+        teacherNewCount: assignments === null ? null : assignments.length,
+        world: await previewIslands(child.id),
         // The voices speak German and only while the parent's voice control is on; otherwise the
         // lines stay text.
         speech: { speakerId: companion.id, isAllowed: child.voiceConsent && locale === 'de' },

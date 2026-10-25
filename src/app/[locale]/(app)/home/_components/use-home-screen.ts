@@ -13,20 +13,11 @@ import { useScreenTime } from './use-screen-time';
 
 import type { HomeData } from './home-types';
 
-type TeacherLine = 'teacherSoon' | 'teacherNew' | 'teacherNone';
-
 type TimeLine = 'closedLimit' | 'closedWindow' | 'stripUnavailable' | 'stripTime';
-
-function teacherLine(newCount: number | null): TeacherLine {
-  if (newCount === null) {
-    return 'teacherSoon';
-  }
-  return newCount > 0 ? 'teacherNew' : 'teacherNone';
-}
 
 /** Everything the home screen needs, wired once: the time, the guide and what each tap says. */
 export function useHomeScreen(data: HomeData, rootRef: RefObject<HTMLDivElement | null>) {
-  const { unfinished, serverNow, teacherNewCount } = data;
+  const { unfinished, serverNow } = data;
   const screenTime = useScreenTime({
     controls: data.controls,
     serverNow,
@@ -82,9 +73,6 @@ export function useHomeScreen(data: HomeData, rootRef: RefObject<HTMLDivElement 
     },
     sayVoiceOff: () => {
       say('task', 'voiceOff');
-    },
-    sayTeacher: () => {
-      say('teacher', teacherLine(teacherNewCount));
     },
     sayTime: () => {
       say('strip', timeLine());

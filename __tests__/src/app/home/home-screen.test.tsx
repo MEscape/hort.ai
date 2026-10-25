@@ -98,7 +98,7 @@ describe('HomeScreen', () => {
   it('keeps the original companion throughout a guide interaction without mounting a copy', () => {
     renderHome();
     const original = screen.getByText('stage companion');
-    fireEvent.click(screen.getByRole('button', { name: /From my teacher/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Take a photo' }));
     speak(800);
     expect(screen.queryByText('copy')).not.toBeInTheDocument();
     expect(screen.getByText('stage companion')).toBe(original);
@@ -110,17 +110,20 @@ describe('HomeScreen', () => {
   it('cancels the arrival greeting when the child already chose an interaction', () => {
     window.sessionStorage.clear();
     renderHome();
-    fireEvent.click(screen.getByRole('button', { name: /From my teacher/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Take a photo' }));
     speak(1500);
     expect(screen.queryByText('Hello! I am glad you are here.')).not.toBeInTheDocument();
-    expect(screen.getAllByText('Teacher tasks are coming soon.').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Photos are coming soon!').length).toBeGreaterThan(0);
   });
   it('shows the status strip, the companion and the cards, and no navigation bar', () => {
     renderHome();
     expect(screen.getByRole('heading', { level: 1, name: 'Hi Mia!' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Your day' })).toBeVisible();
     expect(screen.getByRole('heading', { name: 'I have a task' })).toBeVisible();
-    expect(screen.getByRole('button', { name: /From my teacher/ })).toBeVisible();
+    expect(screen.getByRole('link', { name: /From my teacher/ })).toHaveAttribute(
+      'href',
+      '/help?new=1',
+    );
     expect(screen.getByRole('link', { name: /Mia's world/i })).toHaveAttribute('href', '/world');
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
   });
@@ -147,21 +150,19 @@ describe('HomeScreen', () => {
   it('has no bubble while the companion is silent, and one line when a card that stays is tapped', () => {
     renderHome();
     expect(bubble()).toHaveLength(0);
-    fireEvent.click(screen.getByRole('button', { name: /From my teacher/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Take a photo' }));
     expect(bubble()).toHaveLength(0);
     speak(800);
     expect(bubble()).toHaveLength(1);
-    expect(screen.getAllByText('Teacher tasks are coming soon.').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Photos are coming soon!').length).toBeGreaterThan(0);
   });
 
-  it('says that nothing is new when the teacher has nothing, and writes the count when there is', () => {
+  it('writes that nothing is new when the teacher has nothing, and the count when there is', () => {
     renderHome({ teacherNewCount: 0 });
-    expect(screen.getByRole('button', { name: /Nothing new right now\./ })).toBeVisible();
+    expect(screen.getByRole('link', { name: /Nothing new right now\./ })).toBeVisible();
     document.body.innerHTML = '';
     renderHome({ teacherNewCount: 2 });
-    fireEvent.click(screen.getByRole('button', { name: /2 new/ }));
-    speak(800);
-    expect(screen.getAllByText('New tasks from your teacher!').length).toBeGreaterThan(0);
+    expect(screen.getByRole('link', { name: /2 new/ })).toHaveAttribute('href', '/help?new=1');
   });
 
   it('fades the level meter while the stage itself speaks, so the bubble covers nothing', () => {
@@ -229,11 +230,11 @@ describe('HomeScreen', () => {
   it('does not move in calm mode: a ring marks the card and the bubble still speaks', () => {
     stubMotion(true);
     renderHome();
-    fireEvent.click(screen.getByRole('button', { name: /From my teacher/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Take a photo' }));
     speak(100);
     expect(bubble()).toHaveLength(1);
     expect(document.querySelector('[data-guide-copy]')).toBeNull();
-    expect(screen.getByRole('button', { name: /From my teacher/ })).toHaveAttribute(
+    expect(document.querySelector('[data-guide-target="task"]')).toHaveAttribute(
       'data-guided',
       'true',
     );
@@ -350,22 +351,22 @@ describe('HomeScreen voice', () => {
 
   it('says what it shows when a card is tapped', async () => {
     renderHome({ speech: { speakerId: 'lili', isAllowed: true } });
-    fireEvent.click(screen.getByRole('button', { name: /From my teacher/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Take a photo' }));
     await act(async () => {
       await Promise.resolve();
     });
-    expect(phrases()).toEqual([{ speakerId: 'lili', phrase: 'teacherSoon' }]);
+    expect(phrases()).toEqual([{ speakerId: 'lili', phrase: 'photoSoon' }]);
   });
 
   it('stays quiet, with no request, when sound is not allowed', async () => {
     window.sessionStorage.clear();
     renderHome({ speech: { speakerId: 'lili', isAllowed: false } });
-    fireEvent.click(screen.getByRole('button', { name: /From my teacher/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Take a photo' }));
     speak(1500);
     await act(async () => {
       await Promise.resolve();
     });
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(screen.getAllByText('Teacher tasks are coming soon.').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Photos are coming soon!').length).toBeGreaterThan(0);
   });
 });

@@ -4,19 +4,19 @@
 
 ## What is real and what is not yet
 
-| Part                                  | Source today                                                                                                                              |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Name, companion, voice, limit, window | The child profile (`requireOnboarded`).                                                                                                   |
-| Companion mood, feeding               | `loadProgressDto`, `CompanionCard` (the feeding game is untouched).                                                                       |
-| Screen-time state                     | `computeScreenTime` (learner domain) on the **server's** clock; the browser keeps it current from the server time, not the device's.      |
-| Learning time used today              | **Not measured.** With a daily limit the strip says "time is not shown yet", never "unlimited". Pass `usedMinutes` once something counts. |
-| Running session, unfinished task      | **No backend yet** (#17 sessions, #12 session start). `session` and `unfinished` are `null`; the continue card and session chip hide.     |
-| Teacher assignments                   | **No child-facing list yet** (#33). `teacherNewCount` is `null`: the card says "not here yet".                                            |
-| World preview                         | Islands from the world module. Nothing records discoveries yet, so only the starting island is clear and the rest lie in fog.             |
-| Photo task                            | Out of the MVP scope in `docs/product/vision.md` and no upload backend: the camera button only has the companion say so.                  |
-| "Type or say it"                      | Links to the existing task entry at `/start`.                                                                                             |
+| Part                                  | Source today                                                                                                                                                                                                             |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Name, companion, voice, limit, window | The child profile (`requireOnboarded`).                                                                                                                                                                                  |
+| Companion mood, feeding               | `loadProgressDto`, `CompanionCard` (the feeding game is untouched).                                                                                                                                                      |
+| Screen-time state                     | `computeScreenTime` (learner domain) on the **server's** clock; the browser keeps it current from the server time, not the device's.                                                                                     |
+| Learning time used today              | Guidance `GetTodayHelpMinutes`: help minutes since midnight in Berlin, the count the limit is enforced against. A failed read is `null` ("time is not shown yet", never "unlimited").                                    |
+| Running session, unfinished task      | `loadOpenHelpSession` fills the continue card (task preview, hints the child asked for); a failed read is logged and the card hides. The strip's session chip (`session`) is not wired yet.                              |
+| Teacher assignments                   | The card links to the school tasks on `/start`. `teacherNewCount` counts the class's open assignments (nothing records which one the child opened yet); a failed read is `null` and the card says "see my school tasks". |
+| World preview                         | Islands from the world module. Nothing records discoveries yet, so only the starting island is clear and the rest lie in fog.                                                                                            |
+| Photo task                            | Out of the MVP scope in `docs/product/vision.md` and no upload backend: the camera button only has the companion say so.                                                                                                 |
+| "Type or say it"                      | Links to the existing task entry at `/start`.                                                                                                                                                                            |
 
-Enforcement of a closed day (limit reached, outside the allowed hours) must be done by the use cases that start a task; this screen only reflects it. `computeScreenTime` is the one function both should call.
+A closed day (limit reached, outside the allowed hours) is enforced by the guidance use cases on the server (`guidance.learning_paused`, see `docs/architecture/help-sessions.md`); this screen only reflects it. Both use the learner's `computeScreenTime`. One failing optional source (minutes, assignments, open session) never takes Home down.
 
 ## The guide
 

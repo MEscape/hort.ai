@@ -93,11 +93,7 @@ export function HomeScreen({ data, companion, progress }: HomeScreenProps) {
                 isGuided={activeTarget === 'continue'}
               />
             )}
-            <TeacherCard
-              newCount={data.teacherNewCount}
-              isGuided={activeTarget === 'teacher'}
-              onTap={home.sayTeacher}
-            />
+            <TeacherCard newCount={data.teacherNewCount} isGuided={activeTarget === 'teacher'} />
             <div inert={home.isRestPaused}>
               <WorldCard
                 childName={data.childName}
