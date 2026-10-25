@@ -1,0 +1,123 @@
+{
+  "lesson": {
+    "errors": {
+      "notFound": "This activity is not available right now.",
+      "validation": "That did not work. Please try again.",
+      "unexpected": "Something went wrong. Please try again in a moment.",
+      "childDistress": "It sounds like you are not feeling okay right now. Please tell a grown-up you trust – your parents or your teacher. In Germany you can also call the Nummer gegen Kummer for free: 116 111."
+    },
+    "stage": {
+      "progress": "Step {current} of {total}",
+      "next": "Next",
+      "checking": "{name} is having a look …",
+      "finishTitle": "You did it!",
+      "again": "Once more",
+      "home": "Back home",
+      "unclear": {
+        "compare-bridges": "I didn't quite get that. Tap a bridge or write: top, bottom or same.",
+        "build-bridge": "I didn't quite get that. Write how many planks you lay, for example: 2.",
+        "number-line": "I didn't quite get that. Tap a number or write it, for example: 12.",
+        "groups": "I didn't quite get that. Tap a number or write it, for example: 12."
+      }
+    },
+    "scene": {
+      "topBridge": "Upper bridge: {laid} of {parts} planks laid",
+      "bottomBridge": "Lower bridge: {laid} of {parts} planks laid",
+      "same": "Both the same",
+      "bridge": "Bridge with {parts} planks",
+      "plank": "Plank {number}",
+      "laidCount": "{laid} of {parts} planks laid",
+      "buildDone": "Bridge finished"
+    },
+    "lessons": {
+      "compare-fractions": {
+        "title": "Bridges over the river",
+        "conclusion": "The more parts, the smaller each part. And sometimes two fractions are exactly the same size!",
+        "halfOrQuarter": {
+          "narration": "Two bridges cross the river. Which one has more wood?",
+          "correct": "Exactly! One half is more than one quarter.",
+          "notYet": "Hmm, look closely: which bridge reaches further across the water?",
+          "hint": "I'll draw lines where the wood ends. Which line is further across?"
+        },
+        "sameParts": {
+          "narration": "Both bridges have five planks of the same size. Where are more laid?",
+          "correct": "Right! Four fifths are more than two fifths.",
+          "notYet": "Almost! Count the planks that are already laid.",
+          "hint": "Look at the lines: where does the wood reach further?"
+        },
+        "buildThreeQuarters": {
+          "narration": "Now you build! The bridge has four planks. Lay three quarters of it.",
+          "correct": "Great building! Three of four planks are three quarters.",
+          "notYet": "The bridge still wobbles. Three quarters means three of four planks.",
+          "hint": "I'll count with you. Tap the planks until there are three."
+        },
+        "moreParts": {
+          "narration": "The upper bridge has three planks, the lower one six. Where is more wood: one third or one sixth?",
+          "correct": "Brilliant! More parts means each part is smaller. One third is more.",
+          "notYet": "Six is more than three, that's true. But look how small the sixth planks are!",
+          "hint": "Look at the lines: where does the wood end?"
+        },
+        "twoQuartersHalf": {
+          "narration": "And now? Two quarters on top, one half below.",
+          "correct": "The same! Two quarters are exactly one half.",
+          "notYet": "Hmm, compare where the wood ends.",
+          "hint": "The lines help: are they in the same place?"
+        }
+      }
+    },
+    "side": {
+      "open": "Write",
+      "close": "Close",
+      "title": "Write with {name}",
+      "you": "You",
+      "input": "Your answer",
+      "send": "Send",
+      "hintCompare": "Write for example: top, bottom or same.",
+      "hintBuild": "Write how many planks you lay, for example: 2."
+    },
+    "scenes": {
+      "compare-bridges": {
+        "narration": "Look at the two bridges. Which one has more wood?",
+        "correct": "Exactly! You can compare the fractions in your task the same way.",
+        "notYet": "Hmm, look again: which bridge reaches further across the water?",
+        "hint": "I'll draw lines where the wood ends. Which one is further across?"
+      },
+      "build-bridge": {
+        "narration": "Lay {numerator} of {denominator} planks.",
+        "correct": "Great building! That is what this fraction looks like.",
+        "notYet": "The bridge still wobbles. Count the planks again.",
+        "hint": "I'll count with you. Tap the planks."
+      },
+      "number-line": {
+        "narration": "We start at {start} and jump {steps} {sign, select, minus {back} other {forward}}. Where do we land?",
+        "correct": "Exactly, at {landing}! You can jump the same way in your task.",
+        "notYet": "Almost! Count the steps again from {start}.",
+        "hint": "I'll show you every step. Count along!"
+      },
+      "groups-total": {
+        "narration": "Here are {groups} plates with {each} dots each. How many dots are there in all?",
+        "correct": "Right, {total}! {groups} times {each} is {total}. Try your task the same way.",
+        "notYet": "Hmm, count plate by plate.",
+        "hint": "I'll number the dots. Count along!"
+      },
+      "groups-each": {
+        "narration": "{total} dots are shared fairly onto {groups} plates. How many does each plate get?",
+        "correct": "Exactly, {each} on each plate! You can share the same way in your task.",
+        "notYet": "Almost! Share the dots out one by one.",
+        "hint": "I'll share them out for you, one by one."
+      }
+    },
+    "sceneLabels": {
+      "numberLine": "Number line from {from} to {to}, start at {start}",
+      "choices": "How many?",
+      "plate": "Plate {number}: {count} dots",
+      "emptyPlate": "Plate {number}: empty",
+      "pile": "A pile of {total} dots",
+      "landing": "Where do we land?"
+    },
+    "task": {
+      "label": "Your task",
+      "example": "An example like your task"
+    }
+  }
+}

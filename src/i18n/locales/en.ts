@@ -3,6 +3,7 @@ import { enAuth as auth } from '@modules/auth';
 import { enClassroom as classroom } from '@modules/classroom';
 import { enGuidance as guidance } from '@modules/guidance';
 import { enLearner as learner } from '@modules/learner';
+import { enLesson as lesson } from '@modules/lesson';
 import { enProgression as progression } from '@modules/progression';
 import { enTeacherMaterial as teacherMaterial } from '@modules/teacher-material';
 
@@ -21,6 +22,7 @@ const messages = {
   classroom: classroom.classroom,
   guidance: guidance.guidance,
   learner: learner.learner,
+  lesson: lesson.lesson,
   progression: progression.progression,
   teacherMaterial: teacherMaterial.teacherMaterial,
 } as const;

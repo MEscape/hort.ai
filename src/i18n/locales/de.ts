@@ -3,6 +3,7 @@ import { deAuth as auth } from '@modules/auth';
 import { deClassroom as classroom } from '@modules/classroom';
 import { deGuidance as guidance } from '@modules/guidance';
 import { deLearner as learner } from '@modules/learner';
+import { deLesson as lesson } from '@modules/lesson';
 import { deProgression as progression } from '@modules/progression';
 import { deTeacherMaterial as teacherMaterial } from '@modules/teacher-material';
 
@@ -23,6 +24,7 @@ const messages = {
   classroom: classroom.classroom,
   guidance: guidance.guidance,
   learner: learner.learner,
+  lesson: lesson.lesson,
   progression: progression.progression,
   teacherMaterial: teacherMaterial.teacherMaterial,
 } as const satisfies TranslationSchema<MessageCatalog>;

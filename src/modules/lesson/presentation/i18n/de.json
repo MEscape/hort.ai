@@ -1,0 +1,123 @@
+{
+  "lesson": {
+    "errors": {
+      "notFound": "Diese Aufgabe gibt es gerade nicht.",
+      "validation": "Das hat nicht geklappt. Versuch es noch einmal.",
+      "unexpected": "Da ist etwas schiefgegangen. Versuch es gleich noch einmal.",
+      "childDistress": "Das klingt, als ginge es dir gerade nicht gut. Bitte erzähl es einem Erwachsenen, dem du vertraust – deinen Eltern, deiner Lehrerin oder deinem Lehrer. Du kannst auch kostenlos die Nummer gegen Kummer anrufen: 116 111."
+    },
+    "stage": {
+      "progress": "Schritt {current} von {total}",
+      "next": "Weiter",
+      "checking": "{name} schaut nach …",
+      "finishTitle": "Geschafft!",
+      "again": "Noch einmal",
+      "home": "Zur Startseite",
+      "unclear": {
+        "compare-bridges": "Das habe ich nicht ganz verstanden. Tippe auf eine Brücke oder schreib: oben, unten oder gleich.",
+        "build-bridge": "Das habe ich nicht ganz verstanden. Schreib, wie viele Bretter du legst, zum Beispiel: 2.",
+        "number-line": "Das habe ich nicht ganz verstanden. Tippe auf eine Zahl oder schreib sie, zum Beispiel: 12.",
+        "groups": "Das habe ich nicht ganz verstanden. Tippe auf eine Zahl oder schreib sie, zum Beispiel: 12."
+      }
+    },
+    "scene": {
+      "topBridge": "Obere Brücke: {laid} von {parts} Brettern liegen",
+      "bottomBridge": "Untere Brücke: {laid} von {parts} Brettern liegen",
+      "same": "Beide gleich viel",
+      "bridge": "Brücke mit {parts} Brettern",
+      "plank": "Brett {number}",
+      "laidCount": "{laid} von {parts} Brettern liegen",
+      "buildDone": "Fertig gebaut"
+    },
+    "lessons": {
+      "compare-fractions": {
+        "title": "Brücken über den Fluss",
+        "conclusion": "Je mehr Teile, desto kleiner ist jedes Teil. Und manchmal sind zwei Brüche genau gleich groß!",
+        "halfOrQuarter": {
+          "narration": "Zwei Brücken führen über den Fluss. Auf welcher liegt mehr Holz?",
+          "correct": "Genau! Eine Hälfte ist mehr als ein Viertel.",
+          "notYet": "Hmm, schau noch mal genau: Welche Brücke reicht weiter über das Wasser?",
+          "hint": "Ich ziehe Linien, wo das Holz aufhört. Welche Linie liegt weiter drüben?"
+        },
+        "sameParts": {
+          "narration": "Beide Brücken haben fünf gleich große Bretter. Wo liegen mehr?",
+          "correct": "Richtig! Vier Fünftel sind mehr als zwei Fünftel.",
+          "notYet": "Fast! Zähl mal die Bretter, die schon liegen.",
+          "hint": "Schau auf die Linien: Wo reicht das Holz weiter?"
+        },
+        "buildThreeQuarters": {
+          "narration": "Jetzt baust du! Die Brücke hat vier Bretter. Lege drei Viertel davon.",
+          "correct": "Super gebaut! Drei von vier Brettern sind drei Viertel.",
+          "notYet": "Die Brücke wackelt noch. Drei Viertel heißt: drei von vier Brettern.",
+          "hint": "Ich zähle mit. Tippe die Bretter an, bis es drei sind."
+        },
+        "moreParts": {
+          "narration": "Oben hat die Brücke drei Bretter, unten sechs. Wo liegt mehr Holz: bei einem Drittel oder bei einem Sechstel?",
+          "correct": "Stark! Mehr Teile heißt: Jedes Teil ist kleiner. Ein Drittel ist mehr.",
+          "notYet": "Sechs ist mehr als drei, stimmt. Aber schau mal, wie klein die Sechstel-Bretter sind!",
+          "hint": "Schau auf die Linien: Wo hört das Holz auf?"
+        },
+        "twoQuartersHalf": {
+          "narration": "Und jetzt? Oben liegen zwei Viertel, unten eine Hälfte.",
+          "correct": "Gleich viel! Zwei Viertel sind genau eine Hälfte.",
+          "notYet": "Hmm, vergleich mal, wo das Holz aufhört.",
+          "hint": "Die Linien helfen: Liegen sie an derselben Stelle?"
+        }
+      }
+    },
+    "side": {
+      "open": "Schreiben",
+      "close": "Schließen",
+      "title": "Mit {name} schreiben",
+      "you": "Du",
+      "input": "Deine Antwort",
+      "send": "Senden",
+      "hintCompare": "Schreib zum Beispiel: oben, unten oder gleich.",
+      "hintBuild": "Schreib, wie viele Bretter du legst, zum Beispiel: 2."
+    },
+    "scenes": {
+      "compare-bridges": {
+        "narration": "Schau dir die zwei Brücken an. Auf welcher liegt mehr Holz?",
+        "correct": "Genau! So kannst du auch die Brüche in deiner Aufgabe vergleichen.",
+        "notYet": "Hmm, schau noch mal: Welche Brücke reicht weiter über das Wasser?",
+        "hint": "Ich ziehe Linien, wo das Holz aufhört. Welche liegt weiter drüben?"
+      },
+      "build-bridge": {
+        "narration": "Lege {numerator} von {denominator} Brettern.",
+        "correct": "Super gebaut! So sieht dieser Bruch aus.",
+        "notYet": "Die Brücke wackelt noch. Zähl die Bretter noch einmal.",
+        "hint": "Ich zähle mit. Tippe die Bretter an."
+      },
+      "number-line": {
+        "narration": "Wir starten bei {start} und springen {steps} {sign, select, minus {zurück} other {weiter}}. Wo landen wir?",
+        "correct": "Genau, bei {landing}! So kannst du auch in deiner Aufgabe springen.",
+        "notYet": "Fast! Zähl die Schritte noch einmal von {start} aus.",
+        "hint": "Ich zeige dir jeden Schritt. Zähl mit!"
+      },
+      "groups-total": {
+        "narration": "Hier sind {groups} Teller mit je {each} Punkten. Wie viele Punkte sind es zusammen?",
+        "correct": "Richtig, {total}! {groups} mal {each} sind {total}. Probier deine Aufgabe genauso.",
+        "notYet": "Hmm, zähl Teller für Teller.",
+        "hint": "Ich nummeriere die Punkte. Zähl mit!"
+      },
+      "groups-each": {
+        "narration": "{total} Punkte sollen fair auf {groups} Teller. Wie viele bekommt jeder Teller?",
+        "correct": "Genau, {each} auf jeden Teller! So kannst du auch in deiner Aufgabe teilen.",
+        "notYet": "Fast! Verteil die Punkte einen nach dem anderen.",
+        "hint": "Ich verteile sie für dich, einen nach dem anderen."
+      }
+    },
+    "sceneLabels": {
+      "numberLine": "Zahlenstrahl von {from} bis {to}, Start bei {start}",
+      "choices": "Wie viele?",
+      "plate": "Teller {number}: {count} Punkte",
+      "emptyPlate": "Teller {number}: leer",
+      "pile": "Ein Haufen mit {total} Punkten",
+      "landing": "Wo landen wir?"
+    },
+    "task": {
+      "label": "Deine Aufgabe",
+      "example": "Ein Beispiel wie deine Aufgabe"
+    }
+  }
+}
