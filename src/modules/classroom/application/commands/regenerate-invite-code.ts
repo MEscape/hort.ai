@@ -11,8 +11,8 @@ import type { LoadClassroomError } from '../load-authorized-classroom';
 
 /**
  * Gives one of the teacher's own active classes a new invite code. The old code is invalid from
- * the same write on; children already in the class stay in it. Since only a hash is stored, this is
- * also how a teacher sees a code again.
+ * the same write on; children already in the class stay in it. Where no key seals codes
+ * (`InviteCodeVault`), this is also how a teacher sees a code again.
  */
 export class RegenerateInviteCode {
   constructor(private readonly deps: ClassroomDependencies) {}
@@ -20,18 +20,18 @@ export class RegenerateInviteCode {
   execute(
     input: ClassroomIdInput,
   ): AppResultAsync<ClassroomWithInviteCodeView, LoadClassroomError | ConflictAppError> {
-    const { classrooms, inviteCodes, audit } = this.deps;
+    const { classrooms, inviteCodes, inviteCodeVault, audit } = this.deps;
 
     return loadAuthorizedClassroom(this.deps, input.id, 'classroom.update')
       .andThen(requireActive)
       .andThen(({ actor, classroom }) => {
         const issued = inviteCodes.issue();
+        const owner = { tenantId: actor.tenantId, ownerId: actor.id };
         return classrooms
-          .replaceInviteCode(
-            classroom.id,
-            { tenantId: actor.tenantId, ownerId: actor.id },
-            issued.hash,
-          )
+          .replaceInviteCode(classroom.id, owner, {
+            hash: issued.hash,
+            sealed: inviteCodeVault.seal(issued.code, owner),
+          })
           .map((updated) => {
             audit.record({
               type: 'classroom.invite_code_regenerated',

@@ -19,6 +19,7 @@ import { loggerMaterialAuditLog } from './infrastructure/audit/logger-material-a
 import { OwnedMaterialClassrooms } from './infrastructure/classroom/owned-material-classrooms';
 import { curriculumMaterialIngest } from './infrastructure/curriculum/curriculum-material-ingest';
 import { PrismaMaterialRepository } from './infrastructure/prisma/prisma-material.repository';
+import { SignedMaterialObjectWriter } from './infrastructure/storage/signed-material-object-writer';
 import { SignedMaterialTextReader } from './infrastructure/storage/signed-material-text-reader';
 
 import type { MaterialDependencies } from './application/material-dependencies';
@@ -41,6 +42,7 @@ const dependencies: MaterialDependencies = {
   classrooms: new OwnedMaterialClassrooms(classroomQueries.getClassroomById),
   store,
   textReader: new SignedMaterialTextReader(store),
+  writer: new SignedMaterialObjectWriter(store),
   ingest: curriculumMaterialIngest,
   newId: randomUUID,
   rateLimiter: getRateLimiter(),

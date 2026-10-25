@@ -7,8 +7,8 @@ import { DeleteMaterial } from '@modules/teacher-material/application/commands/d
 import { GetMaterialReadUrl } from '@modules/teacher-material/application/queries/get-material-read-url';
 import { ListMaterials } from '@modules/teacher-material/application/queries/list-materials';
 
-import { validationError } from '@lib/errors';
-import { errAsync } from '@lib/result';
+import { infrastructureError, validationError } from '@lib/errors';
+import { ResultAsync, errAsync, okAsync } from '@lib/result';
 
 import { createBrokenRateLimiter } from '../../support/rate-limiting';
 import { parent } from '../auth/fakes';
@@ -23,8 +23,56 @@ it('persists an owned material before signing a private upload keyed by trusted 
   expect(w.signedAfterRow).toBe(true);
   expect(w.location).toEqual({
     visibility: 'private',
-    key: 'classes/class-1/materials/material-1',
+    key: 'uploads/classes/class-1/materials/material-1',
   });
+  expect(w.rows[0]?.objectKey).toBe('classes/class-1/materials/material-1');
+});
+
+const UPLOAD_KEY = 'uploads/classes/class-1/materials/material-1';
+const PUBLISHED_KEY = 'classes/class-1/materials/material-1';
+
+it('publishes the checked bytes under a key no upload names and removes the upload', async () => {
+  const w = world();
+  await new BeginMaterialUpload(w.deps).execute(w.input);
+  const checked = w.bytes;
+  w.deps.textReader.read = () => {
+    // The upload URL is still valid: the teacher replaces the object right after it was read.
+    const read = w.bytes;
+    w.bytes = new TextEncoder().encode('<script>alert(1)</script>');
+    return okAsync(read);
+  };
+
+  expect((await new CompleteMaterialUpload(w.deps).execute('material-1')).isOk()).toBe(true);
+
+  expect([...w.written.keys()]).toEqual([PUBLISHED_KEY]);
+  expect(w.written.get(PUBLISHED_KEY)).toEqual(checked);
+  expect(w.deletedKeys).toEqual([UPLOAD_KEY]);
+  expect((await new GetMaterialReadUrl(w.deps).execute('material-1')).isOk()).toBe(true);
+  expect(w.readKeys).toEqual([PUBLISHED_KEY]);
+});
+
+it('fails the material and removes both objects when the checked copy cannot be written', async () => {
+  const w = world();
+  await new BeginMaterialUpload(w.deps).execute(w.input);
+  w.deps.writer.write = () => errAsync(infrastructureError('teacher_material.write_failed', ''));
+
+  const result = await new CompleteMaterialUpload(w.deps).execute('material-1');
+
+  expect(result._unsafeUnwrapErr().code).toBe('teacher_material.write_failed');
+  expect(w.rows[0]?.status).toBe('FAILED');
+  expect(w.sections.size).toBe(0);
+  expect(w.deletedKeys).toEqual([UPLOAD_KEY, PUBLISHED_KEY]);
+  expect((await new GetMaterialReadUrl(w.deps).execute('material-1')).isErr()).toBe(true);
+});
+
+it('removes the published copy and a leftover upload when the material is deleted', async () => {
+  const w = world();
+  await new BeginMaterialUpload(w.deps).execute(w.input);
+  await new CompleteMaterialUpload(w.deps).execute('material-1');
+  w.deletedKeys.length = 0;
+
+  expect((await new DeleteMaterial(w.deps).execute('material-1')).isOk()).toBe(true);
+  expect(w.deletedKeys).toEqual([PUBLISHED_KEY, UPLOAD_KEY]);
 });
 
 it('validates stored bytes and publishes extracted statements, idempotently', async () => {
@@ -114,6 +162,66 @@ it('does not remove a processed object when another completion fails concurrentl
   await new CompleteMaterialUpload(w.deps).execute('material-1');
   expect(w.rows[0]?.status).toBe('PROCESSED');
   expect(w.deleted).toBe(false);
+});
+
+it('never overwrites a published copy when two completions read different upload versions', async () => {
+  const w = world();
+  await new BeginMaterialUpload(w.deps).execute(w.input);
+  const first = new TextEncoder().encode('- Zahlen bis 1000 vergleichen und ordnen.');
+  const second = new TextEncoder().encode('- Zahlen bis 9999 vergleichen und ordnen.');
+  expect(second.length).toBe(first.length);
+  // Both completions read the upload before either writes; the teacher replaced it in between.
+  const versions = [first, second];
+  let release: () => void = () => undefined;
+  const bothRead = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let reads = 0;
+  const read = w.deps.textReader.read;
+  w.deps.textReader.read = (location, max) => {
+    if (location.key !== UPLOAD_KEY) {
+      return read(location, max);
+    }
+    const version = versions[reads++] ?? first;
+    if (reads === 2) {
+      release();
+    }
+    return okAsync(undefined)
+      .andThen(() => ResultAsync.fromSafePromise(bothRead))
+      .map(() => version);
+  };
+
+  const complete = new CompleteMaterialUpload(w.deps);
+  const results = await Promise.all([
+    complete.execute('material-1'),
+    complete.execute('material-1'),
+  ]);
+
+  expect(results.filter((r) => r.isOk()).length).toBeGreaterThanOrEqual(1);
+  expect(w.rows[0]?.status).toBe('PROCESSED');
+  const served = new TextDecoder().decode(w.written.get(PUBLISHED_KEY));
+  expect(served).toBe(new TextDecoder().decode(first));
+  // The stored statements belong to the served bytes, whichever completion won the CAS.
+  expect(w.sections.get('material-1')?.map((s) => s.text)).toEqual([served.replace(/^- /, '')]);
+});
+
+it('removes its late copy when the material was deleted during the completion', async () => {
+  const w = world();
+  await new BeginMaterialUpload(w.deps).execute(w.input);
+  const read = w.deps.textReader.read;
+  w.deps.textReader.read = (location, max) =>
+    read(location, max).andThen((bytes) =>
+      // The teacher deletes the material after the check, before the copy is written.
+      new DeleteMaterial(w.deps).execute('material-1').map(() => bytes),
+    );
+  w.deletedKeys.length = 0;
+
+  expect((await new CompleteMaterialUpload(w.deps).execute('material-1')).isErr()).toBe(true);
+
+  expect(w.rows[0]?.status).toBe('DELETED');
+  // The delete removed both objects first; the copy written afterwards is removed again.
+  expect(w.written.has(PUBLISHED_KEY)).toBe(true);
+  expect(w.deletedKeys).toEqual([PUBLISHED_KEY, UPLOAD_KEY, PUBLISHED_KEY, UPLOAD_KEY]);
 });
 
 it('bounds upload attempts per teacher and refuses a broken limiter', async () => {

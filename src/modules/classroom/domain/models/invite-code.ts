@@ -9,8 +9,11 @@ import { MS_PER_DAY } from '@lib/utils';
  *   classes with odds below 1 in 10 million; with the per-parent and per-address budgets on
  *   joining (`CLASSROOM_RATE_LIMITS`) guessing is not a practical way in.
  * - It is shown as two groups of four (`ABCD-EFGH`); spaces, dashes and lower case are accepted.
- * - Only a hash is stored and looked up (unique index), so there is no string comparison whose
- *   timing depends on the secret, and a new code replaces the old hash at once.
+ * - Only a hash is looked up (unique index), so there is no string comparison whose timing
+ *   depends on the secret, and a new code replaces the old hash at once. For showing the code to
+ *   its teacher again it may also be stored encrypted (`InviteCodeVault`, AES-256-GCM under
+ *   `CLASSROOM_INVITE_CODE_KEY`); without that key only the hash exists and a code can be replaced,
+ *   never recovered.
  * - It expires `INVITE_CODE_VALIDITY_DAYS` after it was issued (`inviteCodeIssuedAt`), checked by
  *   the server on lookup and again when the membership is written; the teacher issues a new one.
  */
@@ -22,6 +25,11 @@ const GROUP_SIZE = 4;
 /** The earliest issue time a code may have at `now` and still admit a child. */
 export function inviteCodeValidSince(now: Date): Date {
   return new Date(now.getTime() - INVITE_CODE_VALIDITY_DAYS * MS_PER_DAY);
+}
+
+/** When a code issued at `issuedAt` stops admitting children. */
+export function inviteCodeExpiresAt(issuedAt: Date): Date {
+  return new Date(issuedAt.getTime() + INVITE_CODE_VALIDITY_DAYS * MS_PER_DAY);
 }
 
 /** Longest raw input looked at; anything longer is not a code (and is not normalised). */

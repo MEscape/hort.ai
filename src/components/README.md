@@ -30,7 +30,7 @@ Create a folder with its first component; do not add empty ones.
 - Styling uses the design tokens in `src/app/globals.css` (`--hortai-*`) through Tailwind; no hard-coded colours.
 - Text comes from translations; an icon-only control has an accessible name.
 
-- `ui/`: token-styled shadcn `Button`, `Input`, `Label`, `Alert`, `Card`, `Skeleton`, `Select` (dropdown), `Switch`, `Checkbox` and `ToggleGroup` (pressable chips). Curated Lucide icons are exported by `ui/icons.tsx`.
+- `ui/`: token-styled shadcn `Button`, `Input`, `Label`, `Alert`, `Card`, `Skeleton`, `Select` (dropdown), `Switch`, `Checkbox`, `ToggleGroup` (pressable chips), `Dialog` (small modal; focus trap, Escape, focus return) and `DropdownMenu` (menu button with keyboard navigation). Curated Lucide icons are exported by `ui/icons.tsx`.
 - `brand/`: `HortaiLogo`, the five-mood owl companion `Hort`, and the decorative warm-paper landscape `WorldScene`. Hort references the canonical artwork in `public/brand/owl.svg`; `npm run brand:generate` exports matching icons and email assets. Interface colors come from semantic tokens; ambient motion respects calm mode and the OS preference. See [branding](../../docs/architecture/branding.md).
 - `shared/`: `TextField` associates labels, hints and errors; `PasswordField` adds visibility and Caps Lock feedback; `FieldMessage` supplies consistent field feedback. `RouteErrorPanel` and `NotFoundPanel` provide translated recovery states.
 - `shared/` also holds the single-card screen frame `HortPanel` (Hort on the edge, heading, content, footer), `SubmitButton`, and `FormAlert`; `brand/hort-mood.ts` (`hortMoodOf`) picks Hort's mood for a form.

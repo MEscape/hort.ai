@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import { assignmentRoutes } from '@modules/assignments';
 import {
+  AccountHeader,
   AuthFormSkeleton,
   AuthShell,
   isAuthEnabled,
@@ -140,7 +141,7 @@ export default async function HomePage({
   const locale = requireLocale((await params).locale);
   return (
     <I18nProvider locale={locale} namespaces={['auth', 'learner', 'classroom', 'progression']}>
-      <AuthShell>
+      <AuthShell header={<AccountHeader />}>
         <Suspense fallback={<AuthFormSkeleton />}>
           <Home />
         </Suspense>
