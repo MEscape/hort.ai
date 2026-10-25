@@ -15,7 +15,7 @@ vi.mock('@i18n/client', () => ({
       'input.problem.mic_denied': 'Hort may not listen right now. No problem, just type.',
       'input.problem.unsupported': "Speaking doesn't work on this device. Just type.",
       'input.problem.nothing_heard': "I didn't hear anything. Try again, close to the microphone.",
-      'input.problem.consent_required': "Your parents haven't switched on speaking yet. Just type.",
+      'input.problem.consentRequired': "Your parents haven't switched on speaking yet. Just type.",
       'input.problem.busy': 'Take a short break and try again in a moment.',
       'input.problem.failed': "That didn't work just now. Try again or type.",
     };

@@ -34,14 +34,14 @@ function wordsIn(
         );
   }
   if (message.kind === 'hint') {
-    const hint = session?.hints[message.index];
+    const hint = session.hints[message.index];
     if (hint === undefined) {
       return null;
     }
     return hint.kind === 'generated' ? hint.text : wording(`hint.fallback.${hint.level}`);
   }
   if (message.kind === 'answer_feedback' || message.kind === 'answer_question') {
-    const check = session?.answerChecks[message.index];
+    const check = session.answerChecks[message.index];
     if (check === undefined) {
       return null;
     }
@@ -56,7 +56,7 @@ function wordsIn(
         : `feedback.fallback.answer_assessment.${check.result ?? 'unassessed'}`;
     return check.feedbackText ?? wording(key);
   }
-  const question = session?.openQuestion ?? null;
+  const question = session.openQuestion;
   if (question === null) {
     return null;
   }

@@ -11,7 +11,7 @@
         "mic_denied": "Hort darf gerade nicht zuhören. Kein Problem, schreib einfach.",
         "unsupported": "Auf diesem Gerät geht Sprechen nicht. Schreib einfach.",
         "nothing_heard": "Ich habe nichts gehört. Versuch es noch einmal, ganz nah am Mikrofon.",
-        "consent_required": "Sprechen haben deine Eltern noch nicht eingeschaltet. Schreib einfach.",
+        "consentRequired": "Sprechen haben deine Eltern noch nicht eingeschaltet. Schreib einfach.",
         "busy": "Mach kurz eine Pause und versuch es gleich noch einmal.",
         "failed": "Das hat gerade nicht geklappt. Versuch es noch einmal oder schreib."
       }
@@ -21,7 +21,7 @@
       "stop": "Stopp",
       "loading": "Einen Moment …",
       "problem": {
-        "consent_required": "Vorlesen haben deine Eltern noch nicht eingeschaltet.",
+        "consentRequired": "Vorlesen haben deine Eltern noch nicht eingeschaltet.",
         "busy": "Mach kurz eine Pause, dann lese ich dir wieder vor.",
         "failed": "Das Vorlesen hat gerade nicht geklappt."
       }

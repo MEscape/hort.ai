@@ -10,7 +10,7 @@ vi.mock('@i18n/client', () => ({
       'readAloud.play': 'Read aloud',
       'readAloud.stop': 'Stop',
       'readAloud.loading': 'Just a moment …',
-      'readAloud.problem.consent_required': "Your parents haven't switched on reading aloud yet.",
+      'readAloud.problem.consentRequired': "Your parents haven't switched on reading aloud yet.",
       'readAloud.problem.busy': "Take a short break, then I'll read to you again.",
       'readAloud.problem.failed': "Reading aloud didn't work just now.",
     };

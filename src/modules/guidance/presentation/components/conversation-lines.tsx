@@ -1,8 +1,7 @@
 'use client';
 
-import { ReadAloudButton } from '@modules/voice/client';
-
 import type { TutorOption } from '@modules/learner/client';
+import { ReadAloudButton } from '@modules/voice/client';
 
 import { Character } from '@components/brand/character';
 

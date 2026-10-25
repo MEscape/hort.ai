@@ -26,6 +26,9 @@ function noteKey(allowed: boolean, voice: VoiceInput) {
   if (voice.status === 'transcribing') {
     return 'input.transcribing';
   }
+  if (voice.problem === 'consent_required') {
+    return 'input.problem.consentRequired';
+  }
   return voice.problem === null ? 'input.hint' : (`input.problem.${voice.problem}` as const);
 }
 

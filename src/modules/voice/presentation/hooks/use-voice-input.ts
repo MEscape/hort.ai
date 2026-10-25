@@ -32,11 +32,10 @@ function supportedType(): string | undefined {
 
 function problemOf(code: unknown): VoiceInputProblem {
   const key = messageKeyForCode(typeof code === 'string' ? code : '');
-  return key === 'input.problem.consent_required'
-    ? 'consent_required'
-    : key === 'input.problem.busy'
-      ? 'busy'
-      : 'failed';
+  if (key === 'input.problem.consentRequired') {
+    return 'consent_required';
+  }
+  return key === 'input.problem.busy' ? 'busy' : 'failed';
 }
 
 async function transcribe(childProfileId: string, recording: Blob): Promise<string> {

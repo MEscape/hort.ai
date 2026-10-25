@@ -11,7 +11,7 @@
         "mic_denied": "Hort may not listen right now. No problem, just type.",
         "unsupported": "Speaking doesn't work on this device. Just type.",
         "nothing_heard": "I didn't hear anything. Try again, close to the microphone.",
-        "consent_required": "Your parents haven't switched on speaking yet. Just type.",
+        "consentRequired": "Your parents haven't switched on speaking yet. Just type.",
         "busy": "Take a short break and try again in a moment.",
         "failed": "That didn't work just now. Try again or type."
       }
@@ -21,7 +21,7 @@
       "stop": "Stop",
       "loading": "Just a moment …",
       "problem": {
-        "consent_required": "Your parents haven't switched on reading aloud yet.",
+        "consentRequired": "Your parents haven't switched on reading aloud yet.",
         "busy": "Take a short break, then I'll read to you again.",
         "failed": "Reading aloud didn't work just now."
       }

@@ -1,13 +1,11 @@
 'use client';
 
-import { VoiceInputButton, ReadAloudButton } from '@modules/voice/client';
-
 import type { TutorOption } from '@modules/learner/client';
 import { learnerRoutes } from '@modules/learner/client';
+import { ReadAloudButton } from '@modules/voice/client';
 
 import { Button } from '@components/ui/button';
 import { Card, CardContent, CardHeader } from '@components/ui/card';
-import { Label } from '@components/ui/label';
 
 import { Link } from '@i18n';
 
@@ -18,11 +16,11 @@ import { messageKeyForCode } from '../messages/message-keys';
 import { guidanceRoutes } from '../routes';
 
 import { ConversationLines } from './conversation-lines';
+import { HelpDraftForm } from './help-draft-form';
 
 import type { HelpSessionDto } from '../dto/guidance-dto';
 import type { HelpConversationState } from '../hooks/use-help-conversation';
 
-const DRAFT_MAX_LENGTH = 1000;
 const REDIRECT_KEY = {
   small_talk: 'opening.redirect.small_talk',
   curiosity: 'opening.redirect.curiosity',
@@ -73,58 +71,6 @@ function StepStatus({
         </div>
       )}
     </>
-  );
-}
-
-function DraftForm({
-  state,
-  kind,
-  childProfileId,
-  voiceConsent,
-}: {
-  readonly state: HelpConversationState;
-  readonly kind: 'answer' | 'reply';
-  readonly childProfileId: string;
-  readonly voiceConsent: boolean;
-}) {
-  const t = useTranslations('guidance');
-  const id = `help-${kind}`;
-  return (
-    <form
-      className="space-y-3"
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (kind === 'answer') {
-          state.submitAnswer();
-        } else {
-          state.submitReply();
-        }
-      }}
-    >
-      <Label htmlFor={id} className="block font-heading text-xl font-semibold">
-        {t(kind === 'answer' ? 'conversation.answerLabel' : 'conversation.replyLabel')}
-      </Label>
-      {/* @ui-plain textarea The shared UI package has no textarea primitive yet. */}
-      <textarea
-        id={id}
-        value={state.draft}
-        onChange={(event) => {
-          state.setDraft(event.currentTarget.value);
-        }}
-        maxLength={DRAFT_MAX_LENGTH}
-        rows={3}
-        autoComplete="off"
-        className="block min-h-28 w-full rounded-token-lg border-2 border-border-strong bg-surface p-3 text-lead text-copy"
-      />
-      <VoiceInputButton
-        childProfileId={childProfileId}
-        allowed={voiceConsent}
-        onTranscript={state.setDraft}
-      />
-      <Button type="submit" size="lg" disabled={state.isPending}>
-        {t(kind === 'answer' ? 'conversation.checkAnswer' : 'conversation.sendReply')}
-      </Button>
-    </form>
   );
 }
 
@@ -190,7 +136,7 @@ export function HelpConversation({
                 </span>
               )}
             </div>
-            <DraftForm
+            <HelpDraftForm
               state={state}
               kind="answer"
               childProfileId={childProfileId}
@@ -202,7 +148,7 @@ export function HelpConversation({
       {state.phase === 'comprehension' && (
         <Card>
           <CardContent>
-            <DraftForm
+            <HelpDraftForm
               state={state}
               kind="reply"
               childProfileId={childProfileId}

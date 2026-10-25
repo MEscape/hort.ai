@@ -68,7 +68,11 @@ function ReadAloudControl({
       </Button>
       {voice.problem !== null && (
         <p role="status" className="mt-1 text-sm text-copy-muted">
-          {t(`readAloud.problem.${voice.problem}`)}
+          {t(
+            voice.problem === 'consent_required'
+              ? 'readAloud.problem.consentRequired'
+              : `readAloud.problem.${voice.problem}`,
+          )}
         </p>
       )}
     </div>
