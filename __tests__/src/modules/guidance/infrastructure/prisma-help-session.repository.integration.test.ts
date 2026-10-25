@@ -3,9 +3,13 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { toActorId, toTenantId } from '@modules/auth/domain/models/ids';
 import type { ActorId, TenantId } from '@modules/auth/domain/models/ids';
-import { parseChildTaskText } from '@modules/guidance/domain/models/child-task-text';
+import {
+  parseAssignmentTaskText,
+  parseChildTaskText,
+} from '@modules/guidance/domain/models/child-task-text';
 import type { ChildTaskText } from '@modules/guidance/domain/models/child-task-text';
 import {
+  toAssignmentId,
   toChildProfileId,
   toHelpSessionId,
   toStepRequestId,
@@ -70,6 +74,7 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
     const { session } = (
       await repository.start(owner, {
         childProfileId,
+        assignmentId: null,
         task: text('Rechne 23 + 19.'),
         subject: 'math',
         replaces: null,
@@ -134,6 +139,7 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
     expect(open).toEqual(loaded);
     expect(ladder).toEqual({
       task: 'Rechne 23 + 19.',
+      assignmentId: null,
       subject: 'math',
       hints: loaded.hints,
       answers: ['not_yet', 'correct'],
@@ -287,6 +293,7 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
     const next = (
       await repository.start(owner, {
         childProfileId,
+        assignmentId: null,
         task: text('Rechne 50 - 8.'),
         subject: 'math',
         replaces: ref.sessionId,
@@ -309,6 +316,7 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
     const start = () =>
       repository.start(owner, {
         childProfileId,
+        assignmentId: null,
         task: text('Rechne 23 + 19.'),
         subject: 'math',
         replaces: null,
@@ -319,5 +327,45 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
     const results = [first._unsafeUnwrap(), second._unsafeUnwrap()];
     expect(results.map((result) => result.created).sort()).toEqual([false, true]);
     expect(results[0]?.session.id).toBe(results[1]?.session.id);
+  });
+
+  it("stores the teacher's assignment a session is on, with its longer text, and never a key (#33)", async () => {
+    const { owner, childProfileId } = await freshChild();
+    const classroom = await db.orm.public.Classroom.create({
+      tenantId: owner.tenantId,
+      ownerId: toActorId('teacher-a'),
+      name: 'Klasse 2a',
+      federalState: 'BY',
+      grade: 2,
+      subject: 'MATH',
+      inviteCodeHash: 'e'.repeat(64),
+    });
+    const assignmentText =
+      `Rechne die Aufgaben auf dem Blatt. ${'36 + 47 = ? '.repeat(150)}`.trim();
+    const assignment = await db.orm.public.Assignment.create({
+      tenantId: owner.tenantId,
+      ownerId: toActorId('teacher-a'),
+      classroomId: classroom.id,
+      title: 'Plusaufgaben',
+      taskText: assignmentText,
+      solutionKey: '83',
+    });
+
+    const { session } = (
+      await repository.start(owner, {
+        childProfileId,
+        assignmentId: toAssignmentId(assignment.id),
+        task: parseAssignmentTaskText(assignmentText)._unsafeUnwrap(),
+        subject: 'math',
+        replaces: null,
+      })
+    )._unsafeUnwrap();
+
+    const ref: HelpSessionRef = { ...owner, childProfileId, sessionId: session.id };
+    const reloaded = (await repository.loadSession(ref))._unsafeUnwrap();
+    expect(reloaded).toMatchObject({ assignmentId: assignment.id, task: assignmentText });
+    expect((await repository.load(ref))._unsafeUnwrap().assignmentId).toBe(assignment.id);
+    expect(JSON.stringify(reloaded)).not.toContain('"83"');
+    await db.orm.public.Classroom.where({ id: classroom.id }).deleteAndCount();
   });
 });

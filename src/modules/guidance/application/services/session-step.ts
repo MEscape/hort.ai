@@ -110,3 +110,26 @@ export async function groundInCurriculum(
   }
   return found.value;
 }
+
+/**
+ * The teacher's solution key when the session is on an assignment (#33), `null` for the child's own
+ * task. Read anew for every step, so the assignments module checks the child's class membership each
+ * time and a key the teacher changed applies at once. When it cannot be read (the child left the
+ * class, the assignment was deleted, the store failed) the step still helps the child: the answer is
+ * assessed by the AI alone and the leak guard checks without the key. That is logged with its code.
+ */
+export async function solutionKeyOf(
+  { assignments, audit }: Pick<SessionStepDependencies, 'assignments' | 'audit'>,
+  { child, state }: OpenSession,
+  step: 'hint' | 'answer_check',
+): Promise<string | null> {
+  if (state.assignmentId === null) {
+    return null;
+  }
+  const found = await assignments.findForChild(child.id, state.assignmentId);
+  if (found.isErr()) {
+    audit.record({ type: 'guidance.solution_key_unavailable', step, code: found.error.code });
+    return null;
+  }
+  return found.value.solutionKey;
+}

@@ -18,6 +18,7 @@ The development preview (`/dev/teacher-assignments`) is gone; the real route rep
 | `UpdateAssignment`             | `assignment.update` | `loadAuthorizedAssignment`: load by tenant, `requireOnResource` on the stored owner; writes stay pinned.   |
 | `DeleteAssignment`             | `assignment.delete` | As update.                                                                                                 |
 | `ListChildAssignments`         | `learner.read`      | Classroom module checks the child is the parent's and returns its current class (`getChildClassroom`).     |
+| `GetAssignmentForHelp`         | `learner.read`      | As `ListChildAssignments`; finds one assignment only in the child's current class, else `not_found` (#33). |
 
 A parent is refused every teacher operation before storage is touched; the teacher screen then shows "For teachers only". Another teacher's assignment is refused with `auth.permission_denied`. Owner and tenant always come from the authorized actor; the action schemas drop any sent by the browser.
 
@@ -25,7 +26,7 @@ The classroom module is reached only through `ClassroomAccess` (domain port), im
 
 ## The solution key
 
-`solutionKey` is teacher-only. The child path never has it: `listForChild` does not select the column, `ChildAssignment` and `ChildAssignmentView` have no such field, and the teacher's preview shows `ChildAssignmentContent` built by an allowlist. It is never put into URLs, browser storage, logs or audit events (ids only). Only the answer check (#14) and the solution-leak guard (#31) will read it.
+`solutionKey` is teacher-only. The child path never has it: `listForChild` does not select the column, `ChildAssignment` and `ChildAssignmentView` have no such field, and the teacher's preview shows `ChildAssignmentContent` built by an allowlist. It is never put into URLs, browser storage, logs or audit events (ids only). Only the answer check (#14) and the solution-leak guard (#31) read it, on the server: `GetAssignmentForHelp` is the one read that returns it to another module (guidance), and only for an assignment of the class the signed-in parent's child is in now. No action and no page calls it.
 
 ## Teacher screen
 
@@ -36,4 +37,4 @@ Limits (domain, repeated by the database checks): title 120, task text 4,000, so
 ## Not done here
 
 - Several children per parent: onboarding (#63) creates one profile, and `/home` links to it. A picker comes with multi-child support.
-- Help on a school task: selecting one shows it and says help is coming; starting an AI help session needs the session use case (#12, #17).
+- Help on a school task in the UI: selecting one shows it and says help is coming. The backend is ready: `StartHelpSession` takes the `assignmentId` (guidance module, see `docs/architecture/help-sessions.md`); the start screen still has to call it (#12).
