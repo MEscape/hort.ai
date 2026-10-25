@@ -190,3 +190,49 @@ describe('findSolutionLeaks on feedback after a correct answer', () => {
     );
   });
 });
+
+describe('findSolutionLeaks on money and clock times (S3, S4 of docs/product/mvp-scope.md)', () => {
+  const MONEY: SolutionContext = {
+    task: 'Ein Heft kostet 2 € 50 ct. Tim kauft 3 Hefte. Wie viel muss er bezahlen?',
+    solutionKey: null,
+    answer: null,
+  };
+  const TIME_SPAN: SolutionContext = {
+    task: 'Der Film beginnt um 15:45 Uhr und dauert 50 Minuten. Wann ist er zu Ende?',
+    solutionKey: null,
+    answer: null,
+  };
+
+  it.each([
+    'Tim muss 7,50 € bezahlen.',
+    'Das sind zusammen 7 € 50 ct.',
+    'Er zahlt 7 Euro und 50 Cent.',
+  ])('rejects the amount in %j', (text) => {
+    expect(leaksOf(hint(text), MONEY)).not.toEqual([]);
+  });
+
+  it.each(['Der Film ist um 16:35 Uhr zu Ende.', 'Er endet um 16:35.'])(
+    'rejects the end time in %j',
+    (text) => {
+      expect(leaksOf(hint(text), TIME_SPAN)).not.toEqual([]);
+    },
+  );
+
+  it.each([
+    [MONEY, 'Beispiel: 2 Stifte zu je 1 € 20 ct → 2 € und 40 ct = 2,40 €.'],
+    [MONEY, 'Rechne erst die Euro, dann die Cent für alle Hefte.'],
+    [TIME_SPAN, 'Wie viele Minuten sind es von 15:45 bis zur vollen Stunde?'],
+    [
+      TIME_SPAN,
+      'Beispiel: Start 10:50, Dauer 30 Minuten: 10 Minuten bis 11:00, dann noch 20 → 11:20.',
+    ],
+  ])('lets the ladder hint %#  through', (context, text) => {
+    expect(leaksOf(hint(text, 'similar_example'), context)).toEqual([]);
+  });
+
+  it('keeps "20:10" without a time word a division', () => {
+    const division: SolutionContext = { task: 'Rechne: 20:10', solutionKey: null, answer: null };
+
+    expect(leaksOf(hint('Es kommt 2 heraus.'), division)).not.toEqual([]);
+  });
+});
