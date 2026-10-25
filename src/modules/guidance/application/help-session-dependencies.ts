@@ -1,0 +1,13 @@
+import type { AuthorizationService } from '@modules/auth';
+
+import type { ChildProfileAccess } from '../domain/ports/child-profile-access.port';
+import type { GuidanceAuditLog } from '../domain/ports/guidance-audit-log.port';
+import type { HelpSessionRepository } from '../domain/ports/help-session.repository';
+
+/** What the help-session use cases are built from. */
+export interface HelpSessionDependencies {
+  readonly authorization: AuthorizationService;
+  readonly childProfiles: ChildProfileAccess;
+  readonly sessions: HelpSessionRepository;
+  readonly audit: GuidanceAuditLog;
+}

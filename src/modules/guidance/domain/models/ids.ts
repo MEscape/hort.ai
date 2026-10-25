@@ -24,3 +24,21 @@ export const parseChildProfileId = createIdParser({
   mapError: () =>
     guidanceFieldInvalid('childProfileId', GUIDANCE_VALIDATION_CODES.childProfileIdInvalid),
 });
+
+/** One help session of a child (#17). Only the guidance module creates them. */
+export type HelpSessionId = Brand<string, 'HelpSessionId'>;
+
+/** The database's own id; a longer value cannot name a session. */
+const HELP_SESSION_ID_MAX_LENGTH = 128;
+
+/** Brands an id that came back from the session store. Only infrastructure adapters call this. */
+export function toHelpSessionId(raw: string): HelpSessionId {
+  return raw as HelpSessionId; // Brand constructor: the cast is only permitted here.
+}
+
+/** Brands a session id that arrived from a request, after checking its shape. */
+export const parseHelpSessionId = createIdParser({
+  isValid: (raw: string) => raw.length > 0 && raw.length <= HELP_SESSION_ID_MAX_LENGTH,
+  brand: toHelpSessionId,
+  mapError: () => guidanceFieldInvalid('sessionId', GUIDANCE_VALIDATION_CODES.sessionIdInvalid),
+});

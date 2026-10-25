@@ -129,6 +129,12 @@ enum AssessmentResult {
   NOT_YET
 }
 
+/// Who decided an answer's result (`AssessedBy` of the guidance module): the teacher's solution key or the AI.
+enum AssessedBy {
+  SOLUTION_KEY
+  AI
+}
+
 /// A child's profile in the learner module: the minimum the product keeps about a child
 /// (display name, federal state, grade), the closed-list choices the parent made during setup
 /// (interests, companion, parent controls, guardian confirmation) and how far the setup got.
@@ -366,7 +372,8 @@ model Assignment {
 }
 
 /// One help session of a child on one task (#17): the child's own task text, or an assignment of
-/// its class. The backend is the source of truth; `version` guards concurrent steps.
+/// its class. The backend is the source of truth; `version` guards concurrent steps. `subject`
+/// picks the curriculum that grounds the session's hints. A child has at most one ACTIVE session.
 model HelpSession {
   id               String            @id @onCreate(uuid())
   tenantId         String
@@ -374,6 +381,7 @@ model HelpSession {
   childProfileId   String
   assignmentId     String?
   taskText         String
+  subject          Subject
   status           HelpSessionStatus @default(ACTIVE)
   currentHintLevel HintLevel?
   version          Int               @default(1)
@@ -390,19 +398,22 @@ model HelpSession {
 
   @@index([childProfileId, status, updatedAt])
   @@index([tenantId, ownerId, updatedAt])
+  @@index([childProfileId], where: sql`("status" = 'ACTIVE')`, unique: true, name: "HelpSession_one_active_per_child")
   @@check(expression: sql`char_length("taskText") BETWEEN 1 AND 4000`, name: "HelpSession_task_text_rule")
   @@check(expression: sql`"version" >= 1`, name: "HelpSession_version_rule")
   @@check(expression: sql`("status" = 'ACTIVE') = ("endedAt" IS NULL)`, name: "HelpSession_ended_rule")
 }
 
 /// A hint the child received, at one level of the ladder. A step's `idempotencyKey` is unique per
-/// session, so saving the same step twice is refused by the database (#8, #17).
+/// session, so saving the same step twice is refused by the database (#8, #17). `text` is the
+/// validated AI hint; a predefined prompt stores no text but the `fallbackReason` it was used for.
 model HintEvent {
   id             String      @id @onCreate(uuid())
   sessionId      String
   idempotencyKey String
   level          HintLevel
-  text           String
+  text           String?
+  fallbackReason String?
   competencyCode String?
   occurredAt     DateTime    @default(now())
 
@@ -411,7 +422,9 @@ model HintEvent {
   @@unique([sessionId, idempotencyKey])
   @@index([sessionId, occurredAt])
   @@check(expression: sql`char_length("idempotencyKey") BETWEEN 1 AND 128`, name: "HintEvent_key_rule")
-  @@check(expression: sql`char_length("text") BETWEEN 1 AND 1000`, name: "HintEvent_text_rule")
+  @@check(expression: sql`"text" IS NULL OR char_length("text") BETWEEN 1 AND 1000`, name: "HintEvent_text_rule")
+  @@check(expression: sql`("text" IS NULL) = ("fallbackReason" IS NOT NULL)`, name: "HintEvent_text_or_fallback_rule")
+  @@check(expression: sql`"fallbackReason" IS NULL OR char_length("fallbackReason") BETWEEN 1 AND 64`, name: "HintEvent_fallback_reason_rule")
 }
 
 /// An answer the child gave in a session.
@@ -433,14 +446,18 @@ model ChildAnswer {
   @@check(expression: sql`char_length("text") BETWEEN 1 AND 1000`, name: "ChildAnswer_text_rule")
 }
 
-/// The assessment of one answer (#14): an allowlisted result plus a short text without the solution.
+/// The assessment of one answer (#14, #78): an allowlisted result, who decided it and the hint
+/// level the session was on. `result` and `assessedBy` are both empty when the answer could not be
+/// assessed. `text` is the validated AI feedback; empty when the predefined text was shown.
 model AnswerAssessment {
   id             String           @id @onCreate(uuid())
   sessionId      String
   answerId       String           @unique
   idempotencyKey String
-  result         AssessmentResult
-  text           String
+  result         AssessmentResult?
+  assessedBy     AssessedBy?
+  hintLevel      HintLevel?
+  text           String?
   occurredAt     DateTime         @default(now())
 
   session        HelpSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -451,15 +468,17 @@ model AnswerAssessment {
   /// Implied by `answerId @unique`; Prisma needs it spelled out for the one-to-one composite key.
   @@unique([answerId, sessionId])
   @@check(expression: sql`char_length("idempotencyKey") BETWEEN 1 AND 128`, name: "AnswerAssessment_key_rule")
-  @@check(expression: sql`char_length("text") BETWEEN 1 AND 1000`, name: "AnswerAssessment_text_rule")
+  @@check(expression: sql`"text" IS NULL OR char_length("text") BETWEEN 1 AND 1000`, name: "AnswerAssessment_text_rule")
+  @@check(expression: sql`("result" IS NULL) = ("assessedBy" IS NULL)`, name: "AnswerAssessment_assessed_rule")
 }
 
-/// A comprehension question asked after the task (#15), and the child's reply once given.
+/// A comprehension question asked after the task (#15), and the child's reply once given. `text`
+/// is the validated AI question; empty when the predefined question was shown.
 model ComprehensionQuestion {
   id             String      @id @onCreate(uuid())
   sessionId      String
   idempotencyKey String
-  text           String
+  text           String?
   replyText      String?
   occurredAt     DateTime    @default(now())
   repliedAt      DateTime?
@@ -469,7 +488,7 @@ model ComprehensionQuestion {
   @@unique([sessionId, idempotencyKey])
   @@index([sessionId, occurredAt])
   @@check(expression: sql`char_length("idempotencyKey") BETWEEN 1 AND 128`, name: "ComprehensionQuestion_key_rule")
-  @@check(expression: sql`char_length("text") BETWEEN 1 AND 1000`, name: "ComprehensionQuestion_text_rule")
+  @@check(expression: sql`"text" IS NULL OR char_length("text") BETWEEN 1 AND 1000`, name: "ComprehensionQuestion_text_rule")
   @@check(expression: sql`"replyText" IS NULL OR char_length("replyText") BETWEEN 1 AND 1000`, name: "ComprehensionQuestion_reply_rule")
   @@check(expression: sql`("replyText" IS NULL) = ("repliedAt" IS NULL)`, name: "ComprehensionQuestion_replied_rule")
 }

@@ -4,11 +4,13 @@ import type { AssessmentResult } from '../ai-output/ai-output';
 import type { FeedbackKind } from '../models/feedback-request';
 import type { HintFallbackReason } from '../models/hint-fallback-reason';
 import type { HintLevel } from '../models/hint-level';
-import type { ChildProfileId } from '../models/ids';
+import type { HintSubject } from '../models/hint-subject';
+import type { ChildProfileId, HelpSessionId } from '../models/ids';
 
 /**
- * What operations must see about hints. Never the child's input or the AI's text: only ids, the level,
- * how a request ended, why the fallback was used, and the stable rejection codes (#11).
+ * What operations must see about hints and help sessions. Never the child's input or the AI's text:
+ * only ids, the level, how a request ended, why the fallback was used, and the stable rejection
+ * codes (#11).
  */
 export type GuidanceEvent =
   | {
@@ -46,6 +48,24 @@ export type GuidanceEvent =
       /** `null`: no key and the AI could not assess. */
       readonly result: AssessmentResult | null;
       readonly assessedBy: 'solution_key' | 'ai' | null;
+    }
+  | {
+      readonly type: 'guidance.session_started';
+      readonly tenantId: TenantId;
+      readonly actorId: ActorId;
+      readonly childProfileId: ChildProfileId;
+      readonly sessionId: HelpSessionId;
+      readonly subject: HintSubject;
+      /** The open session this one replaced, which ended `abandoned`. */
+      readonly replaced: HelpSessionId | null;
+    }
+  | {
+      readonly type: 'guidance.comprehension_replied';
+      readonly tenantId: TenantId;
+      readonly actorId: ActorId;
+      readonly childProfileId: ChildProfileId;
+      readonly sessionId: HelpSessionId;
+      readonly understood: boolean;
     };
 
 /** Append-only. `record` is synchronous and MUST NOT throw or block. */
