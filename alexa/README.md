@@ -3,7 +3,8 @@
 `POST /api/alexa` makes Alexa a second channel onto hort.ai's tutor: the child speaks, Alexa transcribes,
 this endpoint hands the free text to the tutor and plays the tutor's answer in the tutor's own (ElevenLabs) voice,
 falling back to Alexa's standard voice whenever that voice is not available in time.
-Alexa holds **no learning logic**. Today a connection-test stub answers every turn with
+Alexa holds **no learning logic**. Opening the skill lets every ready tutor introduce itself in its own voice
+(see [Tutor voice](#tutor-voice)); today a connection-test stub answers every other turn with
 `Lennart wann holen wir uns draußen Suppe` and ends the session.
 
 ## Architecture
@@ -77,9 +78,20 @@ window passes (at most 10 minutes); that trades availability for a hard cap on o
 
 ## Tutor voice
 
-A successful tutor reply is played as an audio clip in a tutor's ElevenLabs voice (default `max`, the dog), via
-an **APL for Audio** directive (`Alexa.Presentation.APLA.RenderDocument`, one `Audio` component). Channel phrases
-(Tschüss, help, not understood) and the failure apology stay in Alexa's voice.
+**Launch:** when the skill opens, every tutor with status `bereit` in the tutors catalog introduces itself in
+catalog order (today Max, Lili, Fina) with its catalog greeting (`begruessung`), each in its own ElevenLabs voice:
+one APLA document whose main template is a `Sequencer` of one `Audio` component per tutor. The clips are fetched
+in parallel under the same 4 s deadline (the clip cache below makes every launch after the first a cache hit).
+A tutor whose clip fails or is late is spoken as an APLA `Speech` component with the same text (Alexa's voice);
+the others keep their own voice. Without any clip (or with `ALEXA_TUTOR_VOICE=false`) the greetings are one
+PlainText answer. The session then ends, as before. The launch no longer reaches the tutor stub, so the
+connection-test sentence is only the answer to free input. Greetings come from
+`infrastructure/tutors/catalog-tutor-introductions.ts` (`@modules/tutors`); the voice is asked through the
+`TutorVoice` port (`greetingUrl`, a hosted `phrase: 'greeting'` of the voice module).
+
+**Replies:** a successful tutor reply is played as an audio clip in a tutor's ElevenLabs voice (`ALEXA_TUTOR_ID`,
+default `max`, the dog), via an **APL for Audio** directive (`Alexa.Presentation.APLA.RenderDocument`, one `Audio`
+component). Channel phrases (Tschüss, help, not understood) and the failure apology stay in Alexa's voice.
 
 1. `voice-module-tutor-voice.ts` calls `getHostedSpeech()` from `@modules/voice` (the channel never calls
    ElevenLabs). The voice module keys a clip by a SHA-256 of voice and text, looks it up in the **private**
@@ -105,13 +117,15 @@ an **APL for Audio** directive (`Alexa.Presentation.APLA.RenderDocument`, one `A
    `az storage account blob-service-properties show … --query cors`; a new account needs the same rule.
 
 Content rule: clips are fetched by Amazon from a public (signed) URL, so they must never contain data about a
-child. The connection-test sentence is fixed text. Before real tutor answers are voiced, the tutor must keep
-names and personal details out of `speech` (or switch `ALEXA_TUTOR_VOICE=false`). Clips live until removed:
-add a storage lifecycle rule (delete `hortai-private/speech-clips/` after 1 day) before dynamic answers are voiced.
+child. Today only fixed text is voiced: the reviewed channel sentences of `channel-lines.json` and the catalog
+greetings; the voice module refuses any other text. Dynamic, child-related answers (generated tutor replies)
+must not be voiced on this path at all: they need a validated, user-bound consent/ticket path first (an
+authenticated actor whose consent covers the Alexa channel, and a server-issued ticket for the validated reply,
+as the web voice uses). Filtering names out of `speech` or a storage lifecycle rule for
+`hortai-private/speech-clips/` does not make them safe; both are hygiene on top, not the safeguard.
 
-Cost: one synthesis per distinct text and voice. The test sentence is 40 characters, billed once (ElevenLabs
-Starter: 40,000 characters a month); cached answers cost nothing at ElevenLabs. Dynamic answers cost their length
-each (about 100–300 characters for a short tutor reply).
+Cost: one synthesis per distinct text and voice. The three greetings are about 200 characters, the test sentence
+40, each billed once (ElevenLabs Starter: 40,000 characters a month); cached clips cost nothing at ElevenLabs.
 
 ## Interaction model
 
@@ -132,7 +146,7 @@ The model in the repository is the one imported in the Developer Console. Change
 | ------------------- | -------- | ---------------------------------------------------------------------- |
 | `ALEXA_SKILL_ID`    | yes      | `amzn1.ask.skill.…` from the console. Unset → endpoint answers 503.    |
 | `ALEXA_TUTOR_VOICE` | no       | `true` (default) speaks tutor replies in a tutor's voice; `false` off. |
-| `ALEXA_TUTOR_ID`    | no       | Tutor catalog id whose voice is used; default `max`.                   |
+| `ALEXA_TUTOR_ID`    | no       | Voice of tutor replies (not the launch greetings); default `max`.      |
 
 The tutor voice also needs `ELEVENLABS_API_KEY` and object storage with `STORAGE_AZURE_PRIVATE_CONTAINER`
 (`STORAGE_PROVIDER=azure`); without them every answer uses Alexa's voice.

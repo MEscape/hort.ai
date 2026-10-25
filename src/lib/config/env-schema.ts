@@ -37,7 +37,7 @@ const serverEnvBaseSchema = z.object({
   /** `false` keeps Alexa's standard voice for every answer; `true` speaks tutor answers in a tutor's voice. */
   ALEXA_TUTOR_VOICE: booleanFlag(true),
 
-  /** Catalog id of the tutor whose voice Alexa uses. An id without a voice falls back to Alexa's voice. */
+  /** Catalog id of the tutor whose voice speaks Alexa tutor replies (launch greetings use each tutor's own). */
   ALEXA_TUTOR_ID: z
     .string()
     .regex(/^[a-z][a-z0-9-]{1,30}$/)
