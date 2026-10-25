@@ -65,7 +65,8 @@ an **APL for Audio** directive (`Alexa.Presentation.APLA.RenderDocument`, one `A
    ElevenLabs). The voice module keys a clip by a SHA-256 of voice and text, looks it up in the **private**
    storage container (`speech-clips/<hash>.mp3`), synthesizes and uploads only on a miss (global budget
    `voice.hosted-synthesize`, 60 per 10 minutes) and returns a **15-minute read-only SAS URL**. A fixed sentence
-   is therefore synthesized once; every later answer is a HEAD plus a local signature.
+   is therefore synthesized once; every later answer is a HEAD plus a local signature. Concurrent misses of the
+   same clip share one synthesis (single flight per server instance).
 2. `routes.ts` waits at most **4 s** for that URL (`withTimeout`), then answers with plain text instead. Any error
    (no key, no storage, unknown tutor, budget spent, provider or upload failure, timeout) has the same outcome:
    Alexa's voice, HTTP 200. Only the reason code is logged (`Alexa tutor voice unavailable`), never text or URL.
@@ -75,6 +76,13 @@ an **APL for Audio** directive (`Alexa.Presentation.APLA.RenderDocument`, one `A
    in `supportedInterfaces` (checked in the simulator), so there is no per-device check. Alexa reports a clip it
    could not play with `Alexa.Presentation.APLA.RuntimeError`; the endpoint acknowledges it (empty response) and
    logs `apla_runtime_error`.
+5. Amazon requires `Access-Control-Allow-Origin: *` on APLA audio URLs
+   ([URL requirements](https://developer.amazon.com/en-US/docs/alexa/alexa-presentation-language/apla-audio.html#url-requirements)).
+   The Blob service of both storage accounts (`sthortaiprod95af81`, `sthortaiprev95af81`) therefore has a second
+   CORS rule: origins `*`, methods `GET`/`HEAD` only, max age 3600 s. It follows the existing `*.vercel.app` /
+   localhost rule (which keeps answering with its own origin). Access still needs the SAS; a write preflight from a
+   foreign origin is refused (403). Read it back with
+   `az storage account blob-service-properties show … --query cors`; a new account needs the same rule.
 
 Content rule: clips are fetched by Amazon from a public (signed) URL, so they must never contain data about a
 child. The connection-test sentence is fixed text. Before real tutor answers are voiced, the tutor must keep

@@ -29,6 +29,7 @@ caller authenticates its own requests (Alexa: Amazon's signature) and passes tru
 voice is synthesized once: the clip is stored in the **private** container as `speech-clips/<sha256>.mp3` (no
 text in the key) and returned as a 15-minute read-only SAS URL. Only a synthesis spends the global budget
 `voice.hosted-synthesize` (60 per 10 minutes, denies when the limiter store is down); a stored clip costs a HEAD.
+Concurrent requests for the same clip share one lookup and synthesis (in-memory single flight per instance).
 The upload uses the store's signed one-object PUT (2 s timeout). Without a private container it answers
 `voice.hosting_disabled`; a storage failure is `voice.clip_failed`. Never pass text that identifies a child: the
 URL is fetched by a third party (Amazon).
