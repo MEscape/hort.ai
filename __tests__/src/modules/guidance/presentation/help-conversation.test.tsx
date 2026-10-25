@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { HelpSessionDto } from '@modules/guidance/client';
@@ -65,6 +65,9 @@ function session(overrides: Partial<HelpSessionDto> = {}): HelpSessionDto {
 const renderScreen = (initial: HelpSessionDto) =>
   render(<HelpConversation childProfileId="child-1" initial={initial} companion={companion} />);
 
+/** The side panel's transcript: the conversation as text (the stage shows the latest line too). */
+const transcript = () => within(screen.getByRole('complementary'));
+
 describe('HelpConversation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -80,7 +83,7 @@ describe('HelpConversation', () => {
   it('continues a stored session: task, hints and the working controls', () => {
     renderScreen(session());
     expect(screen.getByText('What is 2 + 3?')).toBeVisible();
-    expect(screen.getByText('hint.fallback.understand_task')).toBeVisible();
+    expect(transcript().getByText('hint.fallback.understand_task')).toBeVisible();
     expect(screen.getByText('conversation.hint')).toBeVisible();
     expect(screen.getByText('conversation.checkAnswer')).toBeVisible();
     expect(actions.requestHint).not.toHaveBeenCalled();
@@ -99,7 +102,7 @@ describe('HelpConversation', () => {
       sessionId: 'session-1',
       requestId: 'opening',
     });
-    expect(screen.getByText('Was ist gesucht?')).toBeVisible();
+    expect(transcript().getByText('Was ist gesucht?')).toBeVisible();
   });
 
   it('reuses the request id when the child retries a failed hint', async () => {
@@ -125,7 +128,31 @@ describe('HelpConversation', () => {
       ([input]) => (input as { requestId: string }).requestId,
     );
     expect(second).toBe(first);
-    expect(screen.getByText('hint.fallback.activate_prior_knowledge')).toBeVisible();
+    expect(transcript().getByText('hint.fallback.activate_prior_knowledge')).toBeVisible();
+  });
+
+  it('keeps the request id for a retried answer, but makes a new one once the answer changes', async () => {
+    actions.checkAnswer.mockResolvedValue({ ok: false, error: { code: 'x' } });
+    renderScreen(session());
+    const answer = (value: string) => {
+      fireEvent.change(screen.getByLabelText('conversation.answerLabel'), { target: { value } });
+    };
+    answer('5');
+    await act(async () => {
+      fireEvent.click(screen.getByText('conversation.checkAnswer'));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByText('conversation.retry'));
+    });
+    answer('6');
+    await act(async () => {
+      fireEvent.click(screen.getByText('conversation.checkAnswer'));
+    });
+    const [first, retried, changed] = actions.checkAnswer.mock.calls.map(
+      ([input]) => (input as { requestId: string }).requestId,
+    );
+    expect(retried).toBe(first);
+    expect(changed).not.toBe(first);
   });
 
   it('praises a right answer, asks the question and finishes after the reply', async () => {
@@ -148,8 +175,8 @@ describe('HelpConversation', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('conversation.checkAnswer'));
     });
-    expect(screen.getByText('feedback.fallback.praise')).toBeVisible();
-    expect(screen.getByText('Warum plus?')).toBeVisible();
+    expect(transcript().getByText('feedback.fallback.praise')).toBeVisible();
+    expect(transcript().getByText('Warum plus?')).toBeVisible();
 
     fireEvent.change(screen.getByLabelText('conversation.replyLabel'), {
       target: { value: 'Weil es mehr wird.' },
@@ -157,7 +184,7 @@ describe('HelpConversation', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('conversation.sendReply'));
     });
-    expect(screen.getByText('conversation.doneTitle')).toBeVisible();
+    expect(screen.getByText('conversation.doneBody')).toBeVisible();
   });
 
   it('encourages after a not-yet answer and waits for the child to ask for the next hint', async () => {
@@ -176,7 +203,7 @@ describe('HelpConversation', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('conversation.checkAnswer'));
     });
-    expect(screen.getByText('feedback.fallback.answer_assessment.not_yet')).toBeVisible();
+    expect(transcript().getByText('feedback.fallback.answer_assessment.not_yet')).toBeVisible();
     expect(actions.requestHint).not.toHaveBeenCalled();
   });
 
@@ -194,7 +221,77 @@ describe('HelpConversation', () => {
         openQuestion: { kind: 'predefined', feedback: 'comprehension_question', reason: null },
       }),
     );
-    expect(screen.getByText('feedback.fallback.comprehension_question')).toBeVisible();
+    expect(transcript().getByText('feedback.fallback.comprehension_question')).toBeVisible();
     expect(screen.getByText('conversation.sendReply')).toBeVisible();
+  });
+});
+
+describe('HelpConversation errors that a retry cannot fix', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const failHint = async (error: { code: string; retryAfterSeconds?: number }) => {
+    actions.requestHint.mockResolvedValue({ ok: false, error });
+    renderScreen(session());
+    await act(async () => {
+      fireEvent.click(screen.getByText('conversation.hint'));
+    });
+  };
+
+  it.each([
+    ['guidance.session_not_found', 'errors.sessionNotFound'],
+    ['guidance.no_open_question', 'errors.noOpenQuestion'],
+    ['guidance.no_hint_for_opening', 'errors.noHintForOpening'],
+  ])('shows %s with a way back instead of a retry', async (code, message) => {
+    await failHint({ code });
+    expect(screen.getByRole('alert')).toHaveTextContent(message);
+    expect(screen.queryByText('conversation.retry')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'conversation.home' })).toHaveAttribute(
+      'href',
+      '/home',
+    );
+  });
+
+  it('shows a closed day as a calm status with a way home', async () => {
+    await failHint({ code: 'guidance.learning_paused' });
+    expect(screen.getByRole('status')).toHaveTextContent('errors.learningPaused');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.queryByText('conversation.retry')).not.toBeInTheDocument();
+  });
+
+  it('shows the trusted-adult notice for distress, without a retry', async () => {
+    actions.checkAnswer.mockResolvedValue({
+      ok: false,
+      error: { code: 'guidance.child_distress' },
+    });
+    renderScreen(session());
+    fireEvent.change(screen.getByLabelText('conversation.answerLabel'), {
+      target: { value: 'something' },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByText('conversation.checkAnswer'));
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent('errors.childDistress');
+    expect(screen.queryByText('conversation.retry')).not.toBeInTheDocument();
+  });
+
+  it('keeps Retry disabled while the budget pauses, then allows it again', async () => {
+    vi.useFakeTimers();
+    try {
+      await failHint({ code: 'guidance.rate_limited', retryAfterSeconds: 30 });
+      expect(screen.getByRole('alert')).toHaveTextContent('errors.rateLimited');
+      expect(screen.getByRole('button', { name: 'conversation.retry' })).toBeDisabled();
+      act(() => {
+        vi.advanceTimersByTime(29_000);
+      });
+      expect(screen.getByRole('button', { name: 'conversation.retry' })).toBeDisabled();
+      act(() => {
+        vi.advanceTimersByTime(1_000);
+      });
+      expect(screen.getByRole('button', { name: 'conversation.retry' })).toBeEnabled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

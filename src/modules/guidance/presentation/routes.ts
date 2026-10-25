@@ -1,6 +1,11 @@
 import { buildQueryString } from '@lib/utils';
 
-/** App-shell entry to a child's homework help; the locale-aware Link adds the locale. */
+/**
+ * The child's homework help: one canvas screen. `help()` shows the open task, or asks for one when
+ * none is open; `newTask()` asks for a new task even while one is open. The locale-aware Link adds
+ * the locale.
+ */
 export const guidanceRoutes = {
-  start: (childProfileId: string) => `/start${buildQueryString({ child: childProfileId })}`,
+  help: () => '/help',
+  newTask: () => `/help${buildQueryString({ new: '1' })}`,
 } as const;

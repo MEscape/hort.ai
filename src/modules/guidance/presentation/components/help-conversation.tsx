@@ -1,194 +1,181 @@
 'use client';
 
+import { useState } from 'react';
+import type { ReactNode } from 'react';
+
 import type { TutorOption } from '@modules/learner/client';
 import { learnerRoutes } from '@modules/learner/client';
 
+import { Stage } from '@components/shared/stage';
+import { StageCompanion } from '@components/shared/stage-companion';
+import type { MascotState } from '@components/shared/stage-companion';
 import { Button } from '@components/ui/button';
-import { Card, CardContent, CardHeader } from '@components/ui/card';
-import { Label } from '@components/ui/label';
+import { Lightbulb, Pencil, Plus } from '@components/ui/icons';
 
 import { Link } from '@i18n';
 
 import { useTranslations } from '@i18n/client';
 
 import { useHelpConversation } from '../hooks/use-help-conversation';
-import { messageKeyForCode } from '../messages/message-keys';
 import { guidanceRoutes } from '../routes';
 
-import { ConversationLines } from './conversation-lines';
+import { companionText } from './conversation-lines';
+import { HelpSidePanel } from './help-side-panel';
 
 import type { HelpSessionDto } from '../dto/guidance-dto';
 import type { HelpConversationState } from '../hooks/use-help-conversation';
 
-const DRAFT_MAX_LENGTH = 1000;
 const REDIRECT_KEY = {
   small_talk: 'opening.redirect.small_talk',
   curiosity: 'opening.redirect.curiosity',
 } as const;
+const PHASES = ['working', 'comprehension', 'understood'] as const;
 
 interface HelpConversationProps {
   readonly childProfileId: string;
   readonly initial: HelpSessionDto;
   readonly companion: TutorOption;
+  /** The canvas for the task (a similar example to try), drawn by the page; `null` when none fits. */
+  readonly scene?: ReactNode;
 }
 
-function StepStatus({
-  state,
-  companionName,
-}: {
-  readonly state: HelpConversationState;
-  readonly companionName: string;
-}) {
+/** The one sentence on the stage: thinking, done, the opening, or what the companion said last. */
+function useLine(state: HelpConversationState, initial: HelpSessionDto, name: string): string {
   const t = useTranslations('guidance');
-  const { failure } = state;
-  return (
-    <>
-      {state.isPending && (
-        <p role="status" className="text-copy-muted">
-          {t('conversation.thinking', { name: companionName })}
-        </p>
-      )}
-      {failure !== null && (
-        <div role="alert" className="flex flex-wrap items-center gap-3">
-          <p className="font-semibold text-nudge">
-            {failure.code === 'empty'
-              ? t('conversation.empty')
-              : t(
-                  failure.code === null ? 'errors.infrastructure' : messageKeyForCode(failure.code),
-                )}
-          </p>
-          {failure.code !== 'empty' && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={state.retry}
-              disabled={state.isPending}
-            >
-              {t('conversation.retry')}
-            </Button>
-          )}
-        </div>
-      )}
-    </>
-  );
+  const said = state.lines.filter((line) => line.kind !== 'child').at(-1);
+  if (state.isPending) {
+    return t('conversation.thinking', { name });
+  }
+  if (state.phase === 'understood') {
+    return t('conversation.doneBody', { name });
+  }
+  if (initial.opening !== null) {
+    return initial.opening.kind === 'clarify'
+      ? t('opening.clarify')
+      : t(REDIRECT_KEY[initial.opening.intent]);
+  }
+  return said === undefined ? '' : companionText(said, t);
 }
 
-function DraftForm({
+function mascotOf(state: HelpConversationState): MascotState {
+  const last = state.lines.at(-1);
+  if (state.isPending) {
+    return 'thinking';
+  }
+  if (state.phase === 'understood') {
+    return 'cheer';
+  }
+  if (last?.kind === 'feedback') {
+    return last.result === null ? 'cheer' : 'oops';
+  }
+  return last?.kind === 'hint' ? 'curious' : 'idle';
+}
+
+function StageAction({
   state,
-  kind,
+  initial,
 }: {
   readonly state: HelpConversationState;
-  readonly kind: 'answer' | 'reply';
+  readonly initial: HelpSessionDto;
 }) {
   const t = useTranslations('guidance');
-  const id = `help-${kind}`;
-  return (
-    <form
-      className="space-y-3"
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (kind === 'answer') {
-          state.submitAnswer();
-        } else {
-          state.submitReply();
-        }
-      }}
-    >
-      <Label htmlFor={id} className="block font-heading text-xl font-semibold">
-        {t(kind === 'answer' ? 'conversation.answerLabel' : 'conversation.replyLabel')}
-      </Label>
-      {/* @ui-plain textarea The shared UI package has no textarea primitive yet. */}
-      <textarea
-        id={id}
-        value={state.draft}
-        onChange={(event) => {
-          state.setDraft(event.currentTarget.value);
-        }}
-        maxLength={DRAFT_MAX_LENGTH}
-        rows={3}
-        autoComplete="off"
-        className="block min-h-28 w-full rounded-token-lg border-2 border-border-strong bg-surface p-3 text-lead text-copy"
-      />
-      <Button type="submit" size="lg" disabled={state.isPending}>
-        {t(kind === 'answer' ? 'conversation.checkAnswer' : 'conversation.sendReply')}
+  if (state.phase === 'understood') {
+    return (
+      <Button asChild size="lg" variant="accent">
+        <Link href={learnerRoutes.home()}>{t('conversation.home')}</Link>
       </Button>
-    </form>
-  );
+    );
+  }
+  if (initial.opening !== null) {
+    return (
+      <Button asChild size="lg">
+        <Link href={guidanceRoutes.newTask()}>{t('conversation.newTask')}</Link>
+      </Button>
+    );
+  }
+  return state.phase === 'working' ? (
+    <Button
+      type="button"
+      size="lg"
+      variant="accent"
+      disabled={state.isPending}
+      onClick={state.askForHint}
+    >
+      <Lightbulb aria-hidden />
+      {t('conversation.hint')}
+    </Button>
+  ) : null;
 }
 
 /**
- * The help session screen (#83, designer guide §10): one conversation, the task stays visible,
- * the chosen companion leads. What the child can do next follows the backend's phase only.
+ * The help session on the canvas stage (R-021): the child's task and a similar example to try in
+ * the middle, the companion with one sentence (the latest hint or feedback) at the bottom, the hint
+ * as the main action, and the conversation with the answer field in the side panel. What the child
+ * can do next follows the backend's phase only; nothing here decides anything.
  */
-export function HelpConversation({ childProfileId, initial, companion }: HelpConversationProps) {
+export function HelpConversation({
+  childProfileId,
+  initial,
+  companion,
+  scene = null,
+}: HelpConversationProps) {
   const t = useTranslations('guidance');
   const state = useHelpConversation(childProfileId, initial);
+  const line = useLine(state, initial, companion.name);
+  const [isPanelOpen, setPanelOpen] = useState(true);
+  const current = PHASES.indexOf(state.phase) + 1;
+
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
-      <Card>
-        <CardHeader className="items-start text-left">
-          <h1 className="font-heading text-2xl">{t('conversation.taskTitle')}</h1>
-        </CardHeader>
-        <CardContent>
-          <p className="text-lead whitespace-pre-wrap">{initial.task}</p>
-        </CardContent>
-      </Card>
-      {initial.opening !== null && (
-        <Card>
-          <CardContent className="gap-4">
-            <p className="font-semibold">{companion.name}</p>
-            <p>
-              {initial.opening.kind === 'clarify'
-                ? t('opening.clarify')
-                : t(REDIRECT_KEY[initial.opening.intent])}
-            </p>
-            <Button asChild size="lg">
-              <Link href={guidanceRoutes.start(childProfileId)}>{t('conversation.newTask')}</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-      <ConversationLines lines={state.lines} companion={companion} />
-      <StepStatus state={state} companionName={companion.name} />
-      {state.phase === 'working' && initial.opening === null && (
-        <Card>
-          <CardContent className="gap-5">
-            <div className="flex flex-wrap items-center gap-3">
-              <Button type="button" size="lg" disabled={state.isPending} onClick={state.askForHint}>
-                {t('conversation.hint')}
-              </Button>
-              {state.hintsUsed > 0 && (
-                <span className="text-sm text-copy-muted">
-                  {t('conversation.hintsUsed', { count: state.hintsUsed })}
-                </span>
-              )}
-            </div>
-            <DraftForm state={state} kind="answer" />
-          </CardContent>
-        </Card>
-      )}
-      {state.phase === 'comprehension' && (
-        <Card>
-          <CardContent>
-            <DraftForm state={state} kind="reply" />
-          </CardContent>
-        </Card>
-      )}
-      {state.phase === 'understood' ? (
-        <Card>
-          <CardContent className="items-center gap-4 py-8 text-center">
-            <h2 className="font-heading text-3xl">{t('conversation.doneTitle')}</h2>
-            <p className="text-lead">{t('conversation.doneBody', { name: companion.name })}</p>
-            <Button asChild size="lg">
-              <Link href={learnerRoutes.home()}>{t('conversation.home')}</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <Button asChild variant="ghost">
-          <Link href={learnerRoutes.home()}>{t('conversation.later')}</Link>
-        </Button>
-      )}
-    </div>
+    <Stage
+      title={t('conversation.taskTitle')}
+      current={current}
+      total={PHASES.length}
+      progressLabel={t('conversation.progress', { current, total: PHASES.length })}
+      companion={
+        <StageCompanion companion={companion} mascot={mascotOf(state)} beat={state.lines.length} />
+      }
+      line={line}
+      action={<StageAction state={state} initial={initial} />}
+      tools={
+        <>
+          <Button asChild variant="ghost" size="sm">
+            <Link href={guidanceRoutes.newTask()}>
+              <Plus aria-hidden />
+              {t('conversation.newTask')}
+            </Link>
+          </Button>
+          <Button
+            variant={isPanelOpen ? 'secondary' : 'outline'}
+            size="sm"
+            aria-expanded={isPanelOpen}
+            onClick={() => {
+              setPanelOpen(!isPanelOpen);
+            }}
+          >
+            <Pencil aria-hidden />
+            {t('conversation.panelOpen')}
+          </Button>
+        </>
+      }
+      side={
+        isPanelOpen ? (
+          <HelpSidePanel
+            state={state}
+            companionName={companion.name}
+            hasOpening={initial.opening !== null}
+            onClose={() => {
+              setPanelOpen(false);
+            }}
+          />
+        ) : null
+      }
+    >
+      <div className="flex w-full max-w-2xl flex-col items-center gap-4">
+        <p className="w-full rounded-token-xl bg-surface p-4 text-lead whitespace-pre-wrap text-copy shadow-soft">
+          {initial.task}
+        </p>
+        {initial.opening === null && state.phase !== 'understood' ? scene : null}
+      </div>
+    </Stage>
   );
 }

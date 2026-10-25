@@ -10,8 +10,8 @@ import { useAppFormatters } from '@i18n/formatters/client';
 
 import type { ClosedReason } from './screen-time-view';
 
-/** The existing task entry; it takes the typed task until sessions can be started (issue #12). */
-const TYPE_TASK_HREF = '/home/task';
+/** The help canvas, asking for a new task (it offers to keep an open one first). */
+const TYPE_TASK_HREF = '/help?new=1';
 
 interface TaskCardProps {
   readonly companionName: string;
@@ -119,13 +119,7 @@ export function TaskCard({
         </Button>
       </div>
       {!hasVoice && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onVoiceInfo}
-          className="self-start"
-        >
+        <Button type="button" variant="ghost" onClick={onVoiceInfo} className="self-start">
           <Info aria-hidden="true" />
           {t('home.task.typingOnly')}
         </Button>

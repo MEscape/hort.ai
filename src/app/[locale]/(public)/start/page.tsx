@@ -1,82 +1,42 @@
 import { Suspense } from 'react';
 
-import type { Metadata } from 'next';
+import { redirect, requireLocale } from '@i18n';
 
-import { assignmentsQueries, parseChildTasksPageParams } from '@modules/assignments';
-import type { ChildAssignmentView } from '@modules/assignments';
-import { AccountHeader, requireSignedIn } from '@modules/auth';
-import { requireOnboarded } from '@modules/learner';
-
-import { I18nProvider } from '@components/providers/i18n-provider';
-
-import { requireLocale } from '@i18n';
-
-import { getTranslations } from '@i18n/server';
-
+import { APP_IDENTITY } from '@lib/config';
 import { buildPrivateMetadata } from '@lib/seo';
 import { buildQueryString } from '@lib/utils';
 
-import { StartPageShell } from './_components/start-page-shell';
-import { StartScreen } from './_components/start-screen';
+export const metadata = buildPrivateMetadata(APP_IDENTITY.name);
 
 interface StartPageProps {
   readonly params: Promise<{ locale: string }>;
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export async function generateMetadata({ params }: StartPageProps): Promise<Metadata> {
-  const locale = requireLocale((await params).locale);
-  const t = await getTranslations({ locale, namespace: 'app' });
-  return buildPrivateMetadata(t('start.metaTitle'));
-}
+const single = (value: string | string[] | undefined) =>
+  typeof value === 'string' ? value : undefined;
 
 /**
- * The assignments of the named child's class, or `null` when there is no child to show them for.
- * The query authorizes the signed-in parent and the child's membership itself; a child that is not
- * theirs (or a teacher, who has no children) gets the plain "not available" state, nothing more.
+ * There is no separate start page any more: homework help is one canvas screen (`/help`), which
+ * asks for the task when none is open. Old links still work: an island's `?area=&place=` is kept
+ * and asks for a new task right away; the help page validates it.
  */
-async function loadSchoolAssignments(
-  searchParams: StartPageProps['searchParams'],
-): Promise<readonly ChildAssignmentView[] | null> {
-  const { childProfileId } = parseChildTasksPageParams(await searchParams);
-  if (childProfileId === undefined) {
-    return null;
-  }
-  await requireSignedIn(`/start${buildQueryString({ child: childProfileId })}`);
-  const result = await assignmentsQueries.listChildAssignments.execute(childProfileId);
-  if (result.isOk()) {
-    return result.value;
-  }
-  if (result.error.kind === 'infrastructure') {
-    throw new Error(result.error.code, { cause: result.error });
-  }
-  return null;
-}
-
-async function StartContent({ searchParams }: Pick<StartPageProps, 'searchParams'>) {
-  const params = await searchParams;
-  const parsed = parseChildTasksPageParams(params);
-  const childProfileId = parsed.childProfileId ?? (await requireOnboarded()).id;
-  return (
-    <StartScreen
-      schoolAssignments={await loadSchoolAssignments(
-        Promise.resolve({ ...params, child: childProfileId }),
-      )}
-      childProfileId={childProfileId}
-    />
-  );
-}
-
-export default async function StartPage({ params, searchParams }: StartPageProps) {
+async function ToHelp({ params, searchParams }: StartPageProps): Promise<never> {
   const locale = requireLocale((await params).locale);
+  const query = await searchParams;
+  const area = single(query['area']);
+  return redirect({
+    href: `/help${buildQueryString(
+      area === undefined ? {} : { new: '1', area, place: single(query['place']) },
+    )}`,
+    locale,
+  });
+}
 
+export default function StartPage(props: StartPageProps) {
   return (
-    <I18nProvider locale={locale} namespaces={['assignments', 'auth']}>
-      <StartPageShell header={<AccountHeader />}>
-        <Suspense fallback={<StartScreen schoolAssignments={null} childProfileId={null} />}>
-          <StartContent searchParams={searchParams} />
-        </Suspense>
-      </StartPageShell>
-    </I18nProvider>
+    <Suspense>
+      <ToHelp {...props} />
+    </Suspense>
   );
 }

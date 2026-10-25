@@ -1,8 +1,6 @@
 'use client';
 
-import type { TutorOption } from '@modules/learner/client';
-
-import { Character } from '@components/brand/character';
+import { TranscriptLine } from '@components/shared/side-panel';
 
 import { useTranslations } from '@i18n/client';
 
@@ -24,7 +22,10 @@ const ASSESSMENT_FALLBACK_KEY = {
 } as const;
 
 /** Validated AI text as it came, or the predefined, translated text of its kind. Never anything else. */
-function companionText(line: Exclude<ConversationLine, { kind: 'child' }>, t: GuidanceT): string {
+export function companionText(
+  line: Exclude<ConversationLine, { kind: 'child' }>,
+  t: GuidanceT,
+): string {
   if (line.kind === 'hint') {
     return line.hint.kind === 'generated' ? line.hint.text : t(HINT_FALLBACK_KEY[line.hint.level]);
   }
@@ -41,41 +42,20 @@ function companionText(line: Exclude<ConversationLine, { kind: 'child' }>, t: Gu
   }
 }
 
-interface ConversationLinesProps {
+interface ConversationTranscriptProps {
   readonly lines: readonly ConversationLine[];
-  readonly companion: TutorOption;
+  readonly companionName: string;
 }
 
-/** The conversation, oldest first: the companion speaks with picture and name, the child's own words on the right. */
-export function ConversationLines({ lines, companion }: ConversationLinesProps) {
+/** The conversation as side-panel lines, oldest first: the companion on the left, the child's own words on the right. */
+export function ConversationTranscript({ lines, companionName }: ConversationTranscriptProps) {
   const t = useTranslations('guidance');
-  return (
-    <ol aria-label={t('conversation.label')} aria-live="polite" className="space-y-4">
-      {lines.map((line) =>
-        line.kind === 'child' ? (
-          <li key={line.id} className="flex justify-end">
-            <p className="max-w-md rounded-token-lg bg-primary-subtle p-4 whitespace-pre-wrap text-copy">
-              <span className="sr-only">{t('conversation.you')}: </span>
-              {line.text}
-            </p>
-          </li>
-        ) : (
-          <li key={line.id} className="flex items-start gap-3">
-            <Character
-              imageUrl={companion.imageUrl}
-              openImageUrl={companion.imageOpenUrl}
-              face={companion.face}
-              openAlignment={companion.openAlignment}
-              alt=""
-              className="size-14 shrink-0"
-            />
-            <div className="rounded-token-lg bg-surface p-4 text-copy shadow-sm">
-              <p className="mb-1 font-semibold">{companion.name}</p>
-              <p className="whitespace-pre-wrap">{companionText(line, t)}</p>
-            </div>
-          </li>
-        ),
-      )}
-    </ol>
-  );
+  return lines.map((line) => (
+    <TranscriptLine
+      key={line.id}
+      who={line.kind === 'child' ? 'child' : 'companion'}
+      speaker={line.kind === 'child' ? t('conversation.you') : companionName}
+      text={line.kind === 'child' ? line.text : companionText(line, t)}
+    />
+  ));
 }
