@@ -25,6 +25,8 @@ export interface BetterAuthAuthenticatorDeps {
     readonly afterEmailVerification: string;
     readonly passwordReset: string;
   };
+  /** Prefixes a path with the visitor's locale, so an emailed link opens in the language they used. */
+  readonly localize: (pathname: string) => Promise<string>;
 }
 
 /**
@@ -53,10 +55,10 @@ export class BetterAuthAuthenticator implements Authenticator {
   constructor(private readonly deps: BetterAuthAuthenticatorDeps) {}
 
   signIn(credentials: SignInCredentials): AppResultAsync<void, AuthenticatorError> {
-    return this.call((api, headers) =>
+    return this.call(async (api, headers) =>
       api.signInEmail({
         ...credentials,
-        callbackURL: this.deps.paths.afterEmailVerification,
+        callbackURL: await this.deps.localize(this.deps.paths.afterEmailVerification),
         headers,
       }),
     ).mapErr(narrowAuthenticatorError);
@@ -69,10 +71,10 @@ export class BetterAuthAuthenticator implements Authenticator {
    * sign-up into an enumeration oracle.
    */
   signUp(draft: SignUpDraft): AppResultAsync<void, AuthenticatorError> {
-    return this.call((api, headers) =>
+    return this.call(async (api, headers) =>
       api.signUpEmail({
         ...draft,
-        callbackURL: this.deps.paths.afterEmailVerification,
+        callbackURL: await this.deps.localize(this.deps.paths.afterEmailVerification),
         headers,
       }),
     )
@@ -93,10 +95,10 @@ export class BetterAuthAuthenticator implements Authenticator {
 
   /** The provider answers identically for unknown addresses, so this cannot enumerate. */
   requestPasswordReset(request: PasswordResetRequest): AppResultAsync<void, AuthenticatorError> {
-    return this.call((api, headers) =>
+    return this.call(async (api, headers) =>
       api.requestPasswordReset({
         email: request.email,
-        redirectTo: this.deps.paths.passwordReset,
+        redirectTo: await this.deps.localize(this.deps.paths.passwordReset),
         headers,
       }),
     ).mapErr(narrowAuthenticatorError);
