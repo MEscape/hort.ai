@@ -173,6 +173,7 @@
     "account": {
       "title": "Account settings",
       "back": "Back",
+      "languageTitle": "Language",
       "menuLabel": "Account of {name}",
       "home": "Home",
       "settings": "Account settings",

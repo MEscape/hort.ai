@@ -1,10 +1,9 @@
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 
 import {
+  AccountControl,
   ReturnToChildButton,
-  SignOutButton,
   getParentAreaServices,
-  isAuthEnabled,
   requireSignedIn,
 } from '@modules/auth';
 import { ParentDashboard, requireOnboarded } from '@modules/learner';
@@ -46,7 +45,10 @@ export async function ParentFrame({
       actions={
         <>
           <ReturnToChildButton />
-          {isAuthEnabled && <SignOutButton />}
+          {/* Language, settings and sign-out live in the shared account menu. */}
+          <Suspense fallback={null}>
+            <AccountControl showHome={false} />
+          </Suspense>
         </>
       }
     >
