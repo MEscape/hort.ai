@@ -1,5 +1,5 @@
 import type { BetterAuthInstance } from './create-auth';
-import type { Role } from '../../domain/models/role';
+import type { StoredRole } from '../../domain/models/role';
 
 /**
  * The five provider calls the authenticator needs, as plain functions.
@@ -18,7 +18,7 @@ export interface AuthenticationApi {
     name: string;
     email: string;
     password: string;
-    role: Role;
+    role: StoredRole;
     callbackURL: string;
     headers: Headers;
   }): Promise<unknown>;

@@ -37,6 +37,27 @@ describe('authEnvSchema defaults', () => {
   });
 });
 
+describe('authEnvSchema platform admins', () => {
+  it('defaults to nobody', () => {
+    expect(authEnvSchema.parse(valid).AUTH_PLATFORM_ADMIN_EMAILS).toEqual([]);
+  });
+
+  it('trims and lower-cases the addresses so the comparison with a session is exact', () => {
+    const parsed = authEnvSchema.parse({
+      ...valid,
+      AUTH_PLATFORM_ADMIN_EMAILS: ' Admin@Example.org, ops@example.org ,',
+    });
+
+    expect(parsed.AUTH_PLATFORM_ADMIN_EMAILS).toEqual(['admin@example.org', 'ops@example.org']);
+  });
+
+  it('rejects an entry that is not an e-mail address', () => {
+    expect(problems({ ...valid, AUTH_PLATFORM_ADMIN_EMAILS: 'admin@example.org, nope' })).toEqual([
+      'AUTH_PLATFORM_ADMIN_EMAILS',
+    ]);
+  });
+});
+
 describe('authEnvSchema default tenant', () => {
   it('takes the configured tenant instead of the default', () => {
     expect(authEnvSchema.parse({ ...valid, AUTH_DEFAULT_TENANT_ID: 'school-7' })).toMatchObject({

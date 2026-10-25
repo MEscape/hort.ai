@@ -10,7 +10,7 @@ import {
   unauthenticated,
 } from '../../domain/errors/auth-errors';
 import { toActorId } from '../../domain/models/ids';
-import { isRole } from '../../domain/models/role';
+import { PLATFORM_ADMIN_ROLE, isRole } from '../../domain/models/role';
 import { hasExceededMaxLifetime } from '../../domain/models/session-policy';
 
 import { mapBetterAuthError } from './map-better-auth-error';
@@ -34,6 +34,8 @@ export interface BetterAuthCurrentActorProviderDeps {
    * the actor's tenant: nothing in the request (header, cookie, query) is read to choose one.
    */
   readonly tenantId: TenantId;
+  /** Lower-cased addresses (validated configuration) whose confirmed accounts are also platform admins. */
+  readonly platformAdminEmails: readonly string[];
 }
 
 /**
@@ -84,10 +86,15 @@ export class BetterAuthCurrentActorProvider implements CurrentActorProvider {
       return errAsync(unauthenticated());
     }
 
+    // Reached only for a confirmed address (above), so registering an admin's address first grants nothing.
+    const isPlatformAdmin = this.deps.platformAdminEmails.includes(
+      session.user.email.toLowerCase(),
+    );
+
     return okAsync({
       id: toActorId(session.user.id),
       tenantId: this.deps.tenantId,
-      roles: [role],
+      roles: isPlatformAdmin ? [role, PLATFORM_ADMIN_ROLE] : [role],
     });
   }
 }

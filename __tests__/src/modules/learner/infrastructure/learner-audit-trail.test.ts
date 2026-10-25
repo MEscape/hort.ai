@@ -41,6 +41,9 @@ const EVENTS: LearnerEvent[] = [
     deletedCount: 2,
   },
   { type: 'learner.setup_completed', ...IDS },
+  { type: 'learner.child_interests_saved', ...IDS, count: 2 },
+  { type: 'learner.child_tutor_chosen', ...IDS, tutorId: toTutorId('max') },
+  { type: 'learner.child_welcome_completed', ...IDS },
 ];
 
 describe('the learner audit trail', () => {
@@ -86,6 +89,9 @@ describe('the learner audit trail', () => {
       },
       { childProfileId: 'profile-1', consentVersion: '2026-10-24' },
       { deletedCount: 2 },
+      { childProfileId: 'profile-1' },
+      { childProfileId: 'profile-1', count: 2 },
+      { childProfileId: 'profile-1', tutorId: 'max' },
       { childProfileId: 'profile-1' },
     ]);
   });

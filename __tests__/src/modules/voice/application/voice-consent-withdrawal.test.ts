@@ -40,7 +40,7 @@ function wire(...profiles: ChildProfile[]) {
   const record = (childProfileId: string) =>
     transcribe.execute({
       childProfileId,
-      audio: new Uint8Array([1, 2, 3]),
+      audio: new Uint8Array([0x1a, 0x45, 0xdf, 0xa3]),
       contentType: 'audio/webm',
     });
   return { setConsent: new SetVoiceConsent(deps), speech, record };

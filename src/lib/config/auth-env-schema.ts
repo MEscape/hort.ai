@@ -50,6 +50,15 @@ const authEnvObjectSchema = z.object({
   AUTH_TRUSTED_PROXIES: commaSeparatedList,
 
   /**
+   * Confirmed accounts with these addresses are platform admins: every `learner.*` permission on any
+   * parent's data in the tenant. The one bootstrap admin who can later promote others; revoking is
+   * removing the address. Lower-cased so the comparison with a session is exact.
+   */
+  AUTH_PLATFORM_ADMIN_EMAILS: commaSeparatedList.pipe(
+    z.array(z.email().transform((email) => email.toLowerCase())),
+  ),
+
+  /**
    * The one tenant every account belongs to. Lower-case letters, digits and single hyphens (the shape
    * of a slug), at most `TENANT_ID_MAX_LENGTH` characters; the auth module's `createTenantId` checks
    * the same rule. No request can choose another.
