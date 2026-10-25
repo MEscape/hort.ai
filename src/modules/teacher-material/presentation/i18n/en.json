@@ -10,6 +10,36 @@
       "idInvalid": "The identifier is invalid.",
       "required": "This field is required.",
       "tooLong": "This value is too long."
+    },
+    "section": {
+      "title": "Material for this class",
+      "description": "Upload your own teaching material. hort.ai uses it for the hints it gives the children in your class. The children never see the file itself.",
+      "fileLabel": "Choose a file",
+      "fileHint": "Text file (.txt, UTF-8), up to {maxSize}.",
+      "upload": "Upload",
+      "uploading": "Uploading …",
+      "uploaded": "“{title}” is uploaded.",
+      "deleted": "“{title}” is deleted.",
+      "empty": "No material in this class yet.",
+      "listLabel": "Uploaded material",
+      "uploadedOn": "Uploaded on {date}",
+      "delete": "Delete",
+      "deleteLabel": "Delete “{title}”",
+      "status": {
+        "UPLOADED": "Processing",
+        "PROCESSED": "Ready",
+        "FAILED": "Failed"
+      },
+      "failedReason": "The file could not be read. Check that it is a UTF-8 text file and upload it again.",
+      "errors": {
+        "noFile": "Please choose a file first.",
+        "wrongType": "Please choose a text file (.txt).",
+        "tooLarge": "The file is too large. The limit is {maxSize}.",
+        "invalidFile": "The file could not be read. Please upload a UTF-8 text file.",
+        "archived": "This class is archived. You can no longer upload material here.",
+        "rateLimited": "You have just uploaded a lot of files. Please wait a moment.",
+        "generic": "That did not work. Please try again."
+      }
     }
   }
 }

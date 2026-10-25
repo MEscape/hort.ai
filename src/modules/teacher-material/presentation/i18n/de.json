@@ -2,14 +2,44 @@
   "teacherMaterial": {
     "errors": {
       "notFound": "Der Eintrag wurde nicht gefunden.",
-      "validation": "Bitte überprüfen Sie Ihre Eingaben.",
-      "infrastructure": "Ein Dienstfehler ist aufgetreten. Bitte versuchen Sie es später erneut.",
+      "validation": "Bitte überprüfe deine Eingaben.",
+      "infrastructure": "Ein Dienstfehler ist aufgetreten. Bitte versuche es später noch einmal.",
       "unexpected": "Ein unerwarteter Fehler ist aufgetreten."
     },
     "validation": {
       "idInvalid": "Die Kennung ist ungültig.",
       "required": "Dieses Feld ist erforderlich.",
       "tooLong": "Dieser Wert ist zu lang."
+    },
+    "section": {
+      "title": "Material für diese Klasse",
+      "description": "Lade eigenes Unterrichtsmaterial hoch. hort.ai nutzt es für die Hinweise an die Kinder deiner Klasse. Die Kinder sehen die Datei selbst nicht.",
+      "fileLabel": "Datei auswählen",
+      "fileHint": "Textdatei (.txt, UTF-8), höchstens {maxSize}.",
+      "upload": "Hochladen",
+      "uploading": "Wird hochgeladen …",
+      "uploaded": "„{title}“ ist hochgeladen.",
+      "deleted": "„{title}“ ist gelöscht.",
+      "empty": "Noch kein Material in dieser Klasse.",
+      "listLabel": "Hochgeladenes Material",
+      "uploadedOn": "Hochgeladen am {date}",
+      "delete": "Löschen",
+      "deleteLabel": "„{title}“ löschen",
+      "status": {
+        "UPLOADED": "Wird verarbeitet",
+        "PROCESSED": "Bereit",
+        "FAILED": "Fehlgeschlagen"
+      },
+      "failedReason": "Die Datei konnte nicht gelesen werden. Prüfe, ob es eine Textdatei in UTF-8 ist, und lade sie neu hoch.",
+      "errors": {
+        "noFile": "Bitte wähle zuerst eine Datei aus.",
+        "wrongType": "Bitte wähle eine Textdatei (.txt) aus.",
+        "tooLarge": "Die Datei ist zu groß. Erlaubt sind höchstens {maxSize}.",
+        "invalidFile": "Die Datei konnte nicht gelesen werden. Bitte lade eine Textdatei in UTF-8 hoch.",
+        "archived": "Diese Klasse ist archiviert. Hier kannst du kein Material mehr hochladen.",
+        "rateLimited": "Du hast gerade viele Dateien hochgeladen. Bitte warte kurz.",
+        "generic": "Das hat nicht geklappt. Bitte versuche es noch einmal."
+      }
     }
   }
 }

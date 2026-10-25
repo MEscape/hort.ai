@@ -11,6 +11,7 @@ import {
 import type { TeacherAssignmentOverview } from '@modules/assignments';
 import { requireSignedIn } from '@modules/auth';
 import { CreateClassroomForm } from '@modules/classroom';
+import { TeacherMaterialPanel } from '@modules/teacher-material';
 
 import { HortaiLogo } from '@components/brand/hortai-logo';
 import { I18nProvider } from '@components/providers/i18n-provider';
@@ -51,6 +52,7 @@ function Overview({ overview }: { readonly overview: TeacherAssignmentOverview }
         classroomName={selected.name}
         assignments={overview.assignments}
       />
+      <TeacherMaterialPanel key={`material-${selected.id}`} classroomId={selected.id} />
     </div>
   );
 }
@@ -90,7 +92,7 @@ export default async function TeacherAssignmentsPage({
         <header>
           <HortaiLogo className="h-12" />
         </header>
-        <I18nProvider locale={locale} namespaces={['assignments', 'classroom']}>
+        <I18nProvider locale={locale} namespaces={['assignments', 'classroom', 'teacherMaterial']}>
           <Suspense fallback={<Skeleton className="h-80 w-full rounded-token-xl" />}>
             <TeacherAssignmentsContent searchParams={searchParams} />
           </Suspense>
