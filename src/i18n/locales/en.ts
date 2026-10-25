@@ -1,6 +1,7 @@
 import { enAssignments as assignments } from '@modules/assignments';
 import { enAuth as auth } from '@modules/auth';
 import { enLearner as learner } from '@modules/learner';
+import { enProgression as progression } from '@modules/progression';
 
 import enApp from '../messages/en.json';
 
@@ -15,6 +16,7 @@ const messages = {
   assignments: assignments.assignments,
   auth: auth.auth,
   learner: learner.learner,
+  progression: progression.progression,
 } as const;
 
 export default messages;
