@@ -68,7 +68,8 @@ async function unfinishedOf(session: OpenHelpSession | null): Promise<Unfinished
   return {
     title: session.task.slice(0, TASK_PREVIEW_LIMIT),
     area: subjects[session.subject],
-    lastStep: t('home.continue.hints', { count: session.hints.length }),
+    // The opening thinking prompt is not a hint the child asked for (the conversation counts the same way).
+    lastStep: t('home.continue.hints', { count: Math.max(0, session.hints.length - 1) }),
     updatedAt: session.updatedAt,
     href: '/help',
   };
