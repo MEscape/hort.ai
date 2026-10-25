@@ -1,12 +1,13 @@
 import type { AppResultAsync } from '@lib/result';
 
+import { materialUploadKey } from '../../domain/models/material';
 import { loadAuthorizedMaterial } from '../load-authorized-material';
 import { MATERIAL_RATE_LIMITS } from '../rate-limits';
 
 import type { MaterialError } from '../../domain/errors/material-errors';
 import type { MaterialDependencies } from '../material-dependencies';
 
-/** Tombstones and removes sections atomically before object deletion. Retry cleans up a failed storage delete. */
+/** Tombstones and removes sections atomically before object deletion (published copy and upload). Retry cleans up a failed storage delete. */
 export class DeleteMaterial {
   constructor(private readonly deps: MaterialDependencies) {}
   execute(id: string): AppResultAsync<void, MaterialError> {
@@ -21,6 +22,9 @@ export class DeleteMaterial {
           materials
             .retire(row, 'DELETED')
             .andThen(() => store.delete({ visibility: 'private', key: row.objectKey }))
+            .andThen(() =>
+              store.delete({ visibility: 'private', key: materialUploadKey(row.objectKey) }),
+            )
             .map(() => {
               audit.record({ type: 'material.deleted', materialId: row.id });
             }),

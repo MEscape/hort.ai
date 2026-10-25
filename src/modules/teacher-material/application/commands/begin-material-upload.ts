@@ -4,7 +4,7 @@ import type { AppResultAsync } from '@lib/result';
 import type { UploadTarget } from '@lib/storage';
 
 import { parseClassroomId, toTeacherMaterialId } from '../../domain/models/ids';
-import { MATERIAL_URL_SECONDS } from '../../domain/models/material';
+import { MATERIAL_URL_SECONDS, materialUploadKey } from '../../domain/models/material';
 import { MATERIAL_RATE_LIMITS } from '../rate-limits';
 import { validateMaterialInput } from '../services/material-validation';
 
@@ -49,7 +49,7 @@ export class BeginMaterialUpload {
                   .andThen((row) =>
                     store
                       .createUploadTarget({
-                        location: { visibility: 'private', key: row.objectKey },
+                        location: { visibility: 'private', key: materialUploadKey(row.objectKey) },
                         contentType: row.contentType,
                         byteSize: row.sizeBytes,
                         cacheControl: 'no-store',

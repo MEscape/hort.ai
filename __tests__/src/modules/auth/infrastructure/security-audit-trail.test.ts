@@ -90,6 +90,14 @@ const EVENTS = [
       ownerId: toActorId('parent-2'),
     },
   ],
+  [
+    'account.password_changed',
+    { type: 'account.password_changed', actorId: ACTOR, tenantId: TENANT },
+  ],
+  [
+    'account.display_name_changed',
+    { type: 'account.display_name_changed', actorId: ACTOR, tenantId: TENANT },
+  ],
 ] as const satisfies ReadonlyArray<readonly [SecurityEvent['type'], SecurityEvent]>;
 
 let stdout: ReturnType<typeof vi.spyOn>;
@@ -150,6 +158,8 @@ describe('security events and the audit trail', () => {
       'authorization.denied': 'warn',
       'authorization.admin_override': 'warn',
       'authentication.session_created': 'info',
+      'account.password_changed': 'info',
+      'account.display_name_changed': 'info',
       'authentication.session_revoked': 'info',
       'authentication.account_created': 'info',
       'authentication.password_reset_completed': 'info',
