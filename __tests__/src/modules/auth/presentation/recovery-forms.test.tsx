@@ -87,6 +87,8 @@ describe('recovery and sign-out interactions', () => {
     vi.mocked(resetPasswordAction).mockResolvedValue({ ok: true, data: undefined });
     fireEvent.click(await screen.findByRole('button', { name: 'Save password' }));
     expect(await screen.findByRole('heading', { name: 'All set!' })).toBeVisible();
+    expect(screen.queryByLabelText('New password')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Repeat new password')).not.toBeInTheDocument();
     expect(resetPasswordAction).toHaveBeenLastCalledWith({
       token: 'token-from-link',
       newPassword: 'a long random passphrase',
