@@ -8,12 +8,13 @@ import { getAuthQueries } from '../../composition';
 import { ROLE_LABEL_KEYS } from '../account/role-label-keys';
 
 import { DisplayNameForm } from './display-name-form';
+import { LanguageSetting } from './language-setting';
 import { PasswordChangeForm } from './password-change-form';
 import { SignOutButton } from './sign-out-button';
 
 /**
  * The signed-in person's account settings: name (editable), address and role (read-only), the
- * password, and signing out. Loaded through the authorized account query; nothing secret leaves it.
+ * password, the interface language, and signing out. Loaded through the authorized account query; nothing secret leaves it.
  */
 export async function AccountSettings() {
   const t = await getTranslations('auth');
@@ -47,6 +48,14 @@ export async function AccountSettings() {
         </CardHeader>
         <CardContent>
           <PasswordChangeForm />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="items-start text-left">
+          <h2 className="font-heading text-2xl text-copy">{t('account.languageTitle')}</h2>
+        </CardHeader>
+        <CardContent>
+          <LanguageSetting />
         </CardContent>
       </Card>
       <Card>

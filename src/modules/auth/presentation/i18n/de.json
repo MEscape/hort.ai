@@ -173,6 +173,7 @@
     "account": {
       "title": "Kontoeinstellungen",
       "back": "Zurück",
+      "languageTitle": "Sprache",
       "menuLabel": "Konto von {name}",
       "home": "Startseite",
       "settings": "Kontoeinstellungen",
