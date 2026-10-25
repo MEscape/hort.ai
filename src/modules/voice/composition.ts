@@ -3,6 +3,7 @@ import 'server-only';
 import { randomBytes } from 'node:crypto';
 
 import { getAccessControl } from '@modules/auth';
+import { getHelpSessionQueries } from '@modules/guidance';
 import { getLearnerQueries } from '@modules/learner';
 
 import { systemClock } from '@lib/clock';
@@ -14,13 +15,16 @@ import { getObjectStore } from '@lib/storage/server';
 import { once } from '@lib/utils';
 
 import { GetHostedSpeech } from './application/queries/get-hosted-speech';
+import { IssueReadAloudTicket } from './application/queries/issue-read-aloud-ticket';
 import { IssueSpeechTicket } from './application/queries/issue-speech-ticket';
 import { SynthesizeSpeech } from './application/queries/synthesize-speech';
 import { TranscribeSpeech } from './application/queries/transcribe-speech';
 import { catalogChannelLines } from './infrastructure/catalog/catalog-channel-lines';
 import { catalogSpeakerVoices } from './infrastructure/catalog/catalog-speaker-voices';
 import { catalogSystemPhrases } from './infrastructure/catalog/catalog-system-phrases';
+import { helpSessionCompanionMessages } from './infrastructure/guidance/help-session-companion-messages';
 import { learnerChildVoiceConsent } from './infrastructure/learner/learner-child-voice-consent';
+import { cachedCompanionSpeech } from './infrastructure/storage/cached-companion-speech';
 import { objectStoreSpeechClips } from './infrastructure/storage/object-store-speech-clips';
 import { hmacSpokenTextTickets } from './infrastructure/tickets/hmac-spoken-text-tickets';
 import { createVoiceRouteHandlers } from './presentation/http/voice-route-handlers';
@@ -37,10 +41,16 @@ const TICKET_KEY_BYTES = 32;
  */
 export const getVoiceQueries = once(() => {
   const authorization = getAccessControl();
+  const provider = getSpeechProvider();
+  const store = getObjectStore();
+  const speech =
+    provider !== null && store?.supports('private') === true
+      ? cachedCompanionSpeech(provider, objectStoreSpeechClips(store, { clock: systemClock }))
+      : provider;
   const dependencies = {
     authorization,
     rateLimiter: getRateLimiter(),
-    speech: getSpeechProvider(),
+    speech,
     voices: catalogSpeakerVoices(),
     phrases: catalogSystemPhrases(),
     tickets: hmacSpokenTextTickets({ secret: ticketSecret(), clock: systemClock }),
@@ -50,6 +60,16 @@ export const getVoiceQueries = once(() => {
     synthesizeSpeech: new SynthesizeSpeech(dependencies),
     transcribeSpeech: new TranscribeSpeech(dependencies),
     issueSpeechTicket: new IssueSpeechTicket(dependencies),
+    issueReadAloudTicket: new IssueReadAloudTicket({
+      authorization,
+      tickets: dependencies.tickets,
+      voices: dependencies.voices,
+      messages: helpSessionCompanionMessages({
+        getChildProfile: (id) => getLearnerQueries().getChildProfileById.execute(id),
+        getOpenHelpSession: (childProfileId) =>
+          getHelpSessionQueries().getOpenHelpSession.execute({ childProfileId }),
+      }),
+    }),
   } as const;
 });
 
