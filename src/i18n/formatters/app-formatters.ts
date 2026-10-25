@@ -3,6 +3,8 @@ import { formatNumber, formatPercent, formatMoney, formatBytes } from '@lib/util
 
 import { I18N_CONFIG, type Locale } from '../config';
 
+import { possessive } from './possessive';
+
 export interface AppFormatters {
   readonly date: (input: DateInput, options?: Intl.DateTimeFormatOptions) => string;
   readonly dateTime: (input: DateInput) => string;
@@ -11,6 +13,7 @@ export interface AppFormatters {
   readonly percent: (ratio: number, fractionDigits?: number) => string;
   readonly money: (minorUnits: number, currency: string) => string;
   readonly bytes: (bytes: number, fractionDigits?: number) => string;
+  readonly possessive: (name: string) => string;
 }
 
 /**
@@ -34,5 +37,6 @@ export function createAppFormatters(
       formatPercent(ratio, locale, fractionDigits),
     money: (minorUnits: number, currency: string) => formatMoney(minorUnits, currency, locale),
     bytes: (bytes: number, fractionDigits?: number) => formatBytes(bytes, locale, fractionDigits),
+    possessive: (name: string) => possessive(name, locale),
   };
 }

@@ -88,4 +88,15 @@ describe('PrismaAssignmentRepository ownership', () => {
     expect(query.where).toHaveBeenCalledWith({ classroomId: 'class', tenantId: scope.tenantId });
     expect(query.limit).toHaveBeenCalledWith(50);
   });
+
+  it('lists a class for a child oldest first, so a series reads in posting order', async () => {
+    await repository.listForChild(toClassroomId('class'), scope.tenantId, 50);
+    const column = (name: string) => ({
+      asc: () => `${name} asc`,
+      desc: () => `${name} desc`,
+    });
+    const row = { createdAt: column('createdAt'), id: column('id') };
+    const [order] = query.orderBy.mock.calls[0] as [Array<(r: typeof row) => string>];
+    expect(order.map((by) => by(row))).toEqual(['createdAt asc', 'id asc']);
+  });
 });

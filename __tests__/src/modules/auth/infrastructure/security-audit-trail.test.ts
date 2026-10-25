@@ -91,6 +91,19 @@ const EVENTS = [
     },
   ],
   [
+    'authentication.parent_area_opened',
+    { type: 'authentication.parent_area_opened', actorId: ACTOR, tenantId: TENANT },
+  ],
+  [
+    'authentication.parent_area_open_failed',
+    {
+      type: 'authentication.parent_area_open_failed',
+      actorId: ACTOR,
+      tenantId: TENANT,
+      errorCode: 'auth.invalid_credentials',
+    },
+  ],
+  [
     'account.password_changed',
     { type: 'account.password_changed', actorId: ACTOR, tenantId: TENANT },
   ],
@@ -164,6 +177,8 @@ describe('security events and the audit trail', () => {
       'authentication.account_created': 'info',
       'authentication.password_reset_completed': 'info',
       'authentication.sign_in_failed': 'warn',
+      'authentication.parent_area_opened': 'info',
+      'authentication.parent_area_open_failed': 'warn',
     });
   });
 

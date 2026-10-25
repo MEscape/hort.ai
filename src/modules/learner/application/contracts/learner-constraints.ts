@@ -16,7 +16,14 @@ export {
   LEARNER_TIME_ZONE,
   VOICE_NOTICE_VERSION,
   isLearningAllowedNow,
+  minutesSinceMidnight,
 } from '../../domain/models/parent-controls';
 export type { AllowedWindow, DailyLimitMinutes } from '../../domain/models/parent-controls';
+export { LOW_TIME_MINUTES, computeScreenTime } from '../../domain/models/screen-time';
+export type {
+  ScreenTime,
+  ScreenTimeStatus,
+  ScreenTimeUsage,
+} from '../../domain/models/screen-time';
 export { SETUP_STEPS } from '../../domain/models/setup-step';
 export type { SetupStep } from '../../domain/models/setup-step';

@@ -1,6 +1,7 @@
 import 'server-only';
 import { assignmentsQueries } from '@modules/assignments';
-import { getAccessControl } from '@modules/auth';
+import { getAccessControl, getParentAreaServices } from '@modules/auth';
+import type { AuthorizationService } from '@modules/auth';
 
 import { systemClock } from '@lib/clock';
 import { serverEnv } from '@lib/config/server';
@@ -158,6 +159,22 @@ export const getHelpSessionQueries = once(() => ({
   getOpenHelpSession: new GetOpenHelpSession(getHelpSessionDependencies()),
 }));
 
+/**
+ * The parent area's check on top of the permission: the child shares the signed-in account on the
+ * device, so the summary also needs the parent's short-lived password proof (`/parent`).
+ */
+function withParentAreaProof(authorization: AuthorizationService): AuthorizationService {
+  const proven = <T>(actor: T) =>
+    getParentAreaServices()
+      .require.execute()
+      .map(() => actor);
+  return {
+    requireInTenant: (permission) => authorization.requireInTenant(permission).andThen(proven),
+    requireOnResource: (permission, scope) =>
+      authorization.requireOnResource(permission, scope).andThen(proven),
+  };
+}
+
 /** The parent's learning summary and the teacher's class overview (#35); no AI provider involved. */
 export const getInsightQueries = once(() => {
   const deps = {
@@ -169,7 +186,10 @@ export const getInsightQueries = once(() => {
     records: new PrismaLearningRecordStore(),
   };
   return {
-    getLearningSummary: new GetLearningSummary(deps),
+    getLearningSummary: new GetLearningSummary({
+      ...deps,
+      authorization: withParentAreaProof(deps.authorization),
+    }),
     getClassLearningOverview: new GetClassLearningOverview(deps),
   };
 });

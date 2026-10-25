@@ -87,7 +87,7 @@ async function classificationOf(
 /**
  * Sorts the child's task into intent and curriculum topic (#92) and decides how the session opens:
  * classifier, then `validateTopicClassification`, then `decideTopic`. The caller runs it only on
- * text that passed the safety checks (#11, #90), and nothing here can change a safety outcome. It
+ * text that passed the safety checks (#11), and nothing here can change a safety outcome. It
  * never fails: no classifier, a timeout, a provider error or a rejected output all end in today's
  * flow (homework, no competency). Logs carry codes, intent, decision and confidence buckets only,
  * never the task, a label or the classifier's answer.

@@ -4,6 +4,7 @@ import type { AuthorizationService } from './authorization-service';
 import type { AccountManager } from '../domain/ports/account-manager.port';
 import type { Authenticator } from '../domain/ports/authenticator.port';
 import type { CurrentActorProvider } from '../domain/ports/current-actor-provider.port';
+import type { ParentAccessPort } from '../domain/ports/parent-access.port';
 import type { SecurityAuditLog } from '../domain/ports/security-audit-log.port';
 
 /**
@@ -22,6 +23,16 @@ export interface AuthenticationDependencies {
 
 export interface CurrentActorDependencies {
   readonly currentActor: CurrentActorProvider;
+}
+
+/** The temporary parent permission is separate from account sign-in. */
+export interface ParentAreaDependencies extends Pick<
+  AuthenticationDependencies,
+  'rateLimiter' | 'clientAddress'
+> {
+  readonly authorization: AuthorizationService;
+  readonly parentAccess: ParentAccessPort;
+  readonly audit: SecurityAuditLog;
 }
 
 /**

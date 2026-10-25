@@ -106,7 +106,7 @@ export class PrismaAssignmentRepository implements AssignmentRepository {
       async () =>
         db.orm.public.Assignment.select(...CHILD_ASSIGNMENT_SELECT)
           .where({ classroomId, tenantId })
-          .orderBy([(row) => row.createdAt.desc(), (row) => row.id.asc()])
+          .orderBy([(row) => row.createdAt.asc(), (row) => row.id.asc()])
           .limit(limit)
           .all(),
       failures.infraOnly('listForChild'),
