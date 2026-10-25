@@ -17,6 +17,7 @@ import {
   classroomQueries,
   CreateClassroomForm,
 } from '@modules/classroom';
+import { ClassLearningOverview } from '@modules/guidance';
 
 import { I18nProvider } from '@components/providers/i18n-provider';
 import { Skeleton } from '@components/ui/skeleton';
@@ -90,6 +91,7 @@ function Overview({
         assignments={overview.assignments}
         classroomActions={<AddClassroomDialog />}
       />
+      <ClassLearningOverview key={`insights-${selected.id}`} classroomId={selected.id} />
       {detailsClassroomId !== undefined && (
         <ClassroomDetails
           selectedClassroomId={selected.id}
