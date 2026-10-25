@@ -4,12 +4,13 @@ import type { RateLimitedAppError, ValidationAppError } from '@lib/errors';
 import type { RateLimitPolicy } from '@lib/rate-limit';
 import type { AppResult, AppResultAsync } from '@lib/result';
 
-import { fromRateLimitFailure } from '../../domain/errors/guidance-errors';
 import {
   parseChildProfileId,
   parseHelpSessionId,
   parseStepRequestId,
 } from '../../domain/models/ids';
+
+import { spendChildBudget } from './child-budget';
 
 import type { HintLadderState } from '../../domain/models/help-session-state';
 import type { HintLevel } from '../../domain/models/hint-level';
@@ -82,12 +83,7 @@ export function openOwnSession(
       childProfileId: child.id,
       sessionId: step.sessionId,
     };
-    return rateLimiter
-      .enforce({
-        policy,
-        subject: { kind: 'identifier', value: `child-profile:${actor.tenantId}:${child.id}` },
-      })
-      .mapErr(fromRateLimitFailure)
+    return spendChildBudget(rateLimiter, { actor, childProfileId: child.id, policy })
       .andThen(() => sessions.load(ref))
       .map((state) => ({ child, ref, state }));
   });

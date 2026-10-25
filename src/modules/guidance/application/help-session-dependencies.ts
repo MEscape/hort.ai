@@ -1,5 +1,7 @@
 import type { AuthorizationService } from '@modules/auth';
 
+import type { RateLimiter } from '@lib/rate-limit';
+
 import type { ChildProfileAccess } from '../domain/ports/child-profile-access.port';
 import type { GuidanceAuditLog } from '../domain/ports/guidance-audit-log.port';
 import type { HelpSessionRepository } from '../domain/ports/help-session.repository';
@@ -8,6 +10,7 @@ import type { HelpSessionRepository } from '../domain/ports/help-session.reposit
 export interface HelpSessionDependencies {
   readonly authorization: AuthorizationService;
   readonly childProfiles: ChildProfileAccess;
+  readonly rateLimiter: RateLimiter;
   readonly sessions: HelpSessionRepository;
   readonly audit: GuidanceAuditLog;
 }
