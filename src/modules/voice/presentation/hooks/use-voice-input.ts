@@ -78,6 +78,7 @@ export function useVoiceInput(
   /** True while the browser asks for the microphone, so a second tap starts nothing. */
   const startingRef = useRef(false);
   const mountedRef = useRef(true);
+  const stopRequestedRef = useRef(false);
   const onTranscriptRef = useRef(onTranscript);
   useEffect(() => {
     onTranscriptRef.current = onTranscript;
@@ -106,6 +107,7 @@ export function useVoiceInput(
   }, []);
 
   const stop = () => {
+    stopRequestedRef.current = true;
     const recorder = recorderRef.current;
     if (recorder !== null && recorder.state !== 'inactive') {
       recorder.stop();
@@ -150,6 +152,7 @@ export function useVoiceInput(
       return;
     }
     startingRef.current = true;
+    stopRequestedRef.current = false;
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -159,7 +162,7 @@ export function useVoiceInput(
     } finally {
       startingRef.current = false;
     }
-    if (!mountedRef.current) {
+    if (!mountedRef.current || stopRequestedRef.current) {
       stream.getTracks().forEach((track) => {
         track.stop();
       });
