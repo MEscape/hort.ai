@@ -8,6 +8,9 @@ import type { ChildProfileId } from '../models/ids';
 /** A child profile the signed-in parent is the guardian of. */
 export interface OwnChildProfile {
   readonly id: ChildProfileId;
+  /** ISO 3166-2:DE suffix as the learner module stores it, e.g. `BY`. */
+  readonly federalState: string;
+  readonly grade: number;
 }
 
 export type ChildProfileAccessError =

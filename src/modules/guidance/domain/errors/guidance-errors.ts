@@ -12,6 +12,7 @@ export const GUIDANCE_ERROR_CODES = {
 /** Field-level codes, carried in `fieldErrors`. */
 export const GUIDANCE_VALIDATION_CODES = {
   childProfileIdInvalid: 'guidance.validation.child_profile_id_invalid',
+  subjectInvalid: 'guidance.validation.subject_invalid',
 } as const;
 
 export type GuidanceValidationCode =
