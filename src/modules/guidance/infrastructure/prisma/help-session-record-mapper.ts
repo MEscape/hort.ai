@@ -3,20 +3,20 @@ import type { InstantRecord } from '@lib/db';
 import { isDefined, literalGuard } from '@lib/utils';
 
 import { parseChildTaskText } from '../../domain/models/child-task-text';
-import { toChildProfileId, toHelpSessionId } from '../../domain/models/ids';
+import { toChildProfileId, toHelpSessionId, toStepRequestId } from '../../domain/models/ids';
 
 import type { AssessmentResult } from '../../domain/ai-output/ai-output';
-import type { AssessedBy } from '../../domain/models/assessed-by';
 import type { ChildTaskText } from '../../domain/models/child-task-text';
 import type {
   AnswerCheckStep,
-  GivenHint,
   HelpSession,
   HelpSessionStatus,
 } from '../../domain/models/help-session';
+import type { GivenHint } from '../../domain/models/help-session-state';
 import type { HintFallbackReason } from '../../domain/models/hint-fallback-reason';
 import type { HintLevel } from '../../domain/models/hint-level';
 import type { HintSubject } from '../../domain/models/hint-subject';
+import type { AnswerAssessor } from '../../domain/ports/hint-session-store.port';
 
 /**
  * The columns the module reads, and nothing else, so no generated database type leaves this layer.
@@ -72,12 +72,13 @@ export const RESULT_RECORD = {
 export const ASSESSED_BY_RECORD = {
   solution_key: 'SOLUTION_KEY',
   ai: 'AI',
-} as const satisfies Record<AssessedBy, string>;
+} as const satisfies Record<AnswerAssessor, string>;
 
 const FALLBACK_REASONS = {
   timeout: true,
   provider_unavailable: true,
   invalid_output: true,
+  solution_leaked: true,
   unsafe_output: true,
 } as const satisfies Record<HintFallbackReason, true>;
 
@@ -154,7 +155,7 @@ function toChildText(raw: string): ChildTaskText | null {
 }
 
 function toGivenHint(record: HintRecord): GivenHint | null {
-  const base = { requestId: record.idempotencyKey, level: LEVEL[record.level] };
+  const base = { requestId: toStepRequestId(record.idempotencyKey), level: LEVEL[record.level] };
   if (record.text !== null) {
     return { ...base, kind: 'generated', text: record.text };
   }
@@ -168,14 +169,13 @@ function toAnswerCheck(
   questions: ReadonlyMap<string, QuestionRecord>,
 ): AnswerCheckStep | null {
   const { assessment } = record;
-  const answer = toChildText(record.text);
-  if (assessment === null || answer === null) {
+  if (assessment === null) {
     return null;
   }
   const question = questions.get(record.idempotencyKey);
   return {
-    requestId: record.idempotencyKey,
-    answer,
+    requestId: toStepRequestId(record.idempotencyKey),
+    answer: record.text,
     result: assessment.result === null ? null : RESULT[assessment.result],
     assessedBy: assessment.assessedBy === null ? null : ASSESSOR[assessment.assessedBy],
     hintLevel: assessment.hintLevel === null ? null : LEVEL[assessment.hintLevel],

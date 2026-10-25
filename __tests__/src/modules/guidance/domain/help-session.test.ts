@@ -7,13 +7,14 @@ import {
   progressOf,
 } from '@modules/guidance/domain/models/help-session';
 import type { AnswerCheckStep } from '@modules/guidance/domain/models/help-session';
+import { toStepRequestId } from '@modules/guidance/domain/models/ids';
 
 import { task } from '../fakes';
 import { storedSession } from '../help-session-fakes';
 
 function check(overrides: Partial<AnswerCheckStep> = {}): AnswerCheckStep {
   return {
-    requestId: 'check-1',
+    requestId: toStepRequestId('check-1'),
     answer: task('42'),
     result: 'correct',
     assessedBy: 'solution_key',

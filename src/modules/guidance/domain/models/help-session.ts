@@ -1,12 +1,11 @@
 import { isTaskUnderstood } from '../answer-check/answer-decision';
 
-import type { AssessedBy } from './assessed-by';
 import type { ChildTaskText } from './child-task-text';
-import type { HintFallbackReason } from './hint-fallback-reason';
+import type { GivenHint, HintLadderState } from './help-session-state';
 import type { HintLevel } from './hint-level';
 import type { HintSubject } from './hint-subject';
 import type { ChildProfileId, HelpSessionId } from './ids';
-import type { AssessmentResult } from '../ai-output/ai-output';
+import type { RecordedAnswerCheck } from '../ports/hint-session-store.port';
 
 /** A session is worked on while `active`; it ends `completed` (understood) or `abandoned` (another task was started). */
 export type HelpSessionStatus = 'active' | 'completed' | 'abandoned';
@@ -17,40 +16,8 @@ export type HelpSessionStatus = 'active' | 'completed' | 'abandoned';
  */
 export const HELP_SESSION_STEP_LIMIT = 100;
 
-/**
- * One hint the child received. `requestId` is the caller's idempotency key: the same request is
- * stored once. A fallback stores no text, only why the predefined prompt of the level was shown.
- */
-export type GivenHint =
-  | {
-      readonly requestId: string;
-      readonly level: HintLevel;
-      readonly kind: 'generated';
-      readonly text: string;
-    }
-  | {
-      readonly requestId: string;
-      readonly level: HintLevel;
-      readonly kind: 'fallback';
-      readonly reason: HintFallbackReason;
-    };
-
-/**
- * One check of the child's own answer (#14, #78). `result` and `assessedBy` are both `null` when it
- * could not be assessed. `feedbackText` and the question's `text` are the validated AI texts,
- * `null` when the predefined text was shown. A question follows a correct answer only.
- */
-export interface NewAnswerCheck {
-  readonly requestId: string;
-  readonly answer: ChildTaskText;
-  readonly result: AssessmentResult | null;
-  readonly assessedBy: AssessedBy | null;
-  readonly feedbackText: string | null;
-  readonly question: { readonly text: string | null } | null;
-}
-
 /** A stored answer check: what was checked, plus the hint level the session was on at the time. */
-export interface AnswerCheckStep extends Omit<NewAnswerCheck, 'question'> {
+export interface AnswerCheckStep extends Omit<RecordedAnswerCheck, 'question'> {
   readonly hintLevel: HintLevel | null;
   readonly question: { readonly text: string | null; readonly reply: string | null } | null;
   readonly occurredAt: Date;
@@ -115,4 +82,14 @@ export function isSameTask(
   subject: HintSubject,
 ): boolean {
   return session.task === task && session.subject === subject;
+}
+
+/** What the hint ladder (#30) decides from: the task, the hints given and the answers' results. */
+export function toLadderState(session: HelpSession): HintLadderState {
+  return {
+    task: session.task,
+    subject: session.subject,
+    hints: session.hints,
+    answers: session.answerChecks.map((check) => check.result),
+  };
 }

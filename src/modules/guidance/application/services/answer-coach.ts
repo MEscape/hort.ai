@@ -48,7 +48,8 @@ export interface AnswerToCheck {
  * decided deterministically against it; without one the AI assesses and its assessment must pass
  * the contract (#6) and the child-safety rules, which also reject punishing wording. Praise and the
  * comprehension question come from the AI under the same checks, each with its predefined fallback.
- * It never fails and never states the solution; every fallback is logged with codes only.
+ * The solution-leak guard (#31) checks every AI text against the task and the key, so an assessment
+ * cannot reveal the expected answer. It never fails and never states the solution; every fallback is logged with codes only.
  */
 export class AnswerCoach {
   constructor(private readonly deps: AnswerCoachDependencies) {}
@@ -105,13 +106,15 @@ export class AnswerCoach {
       : this.fallback(kind, toCheck.level, verdict);
   }
 
-  private ask(kind: FeedbackKind, { task, answer, level, competencies }: AnswerToCheck) {
+  private ask(kind: FeedbackKind, toCheck: AnswerToCheck) {
+    const { task, answer, solutionKey, level, competencies } = toCheck;
     const request: FeedbackRequest = { kind, task, answer, level, competencies };
-    return judgeAiAnswer(
-      () => this.deps.provider.word(request),
-      { kind, hintLevel: level },
-      this.deps.safety,
-    );
+    return judgeAiAnswer({
+      call: () => this.deps.provider.word(request),
+      expected: { kind, hintLevel: level },
+      solution: { task, solutionKey, answer },
+      safety: this.deps.safety,
+    });
   }
 
   /** The predefined text of a kind; logged when it replaces a rejected or missing AI answer. */

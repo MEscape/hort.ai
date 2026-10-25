@@ -1,6 +1,7 @@
 import { createAuthorizationService } from '@modules/auth/application/authorization-service';
 import type { Actor } from '@modules/auth/domain/models/actor';
 import type { HelpSessionDependencies } from '@modules/guidance/application/help-session-dependencies';
+import { toLadderState } from '@modules/guidance/domain/models/help-session';
 import type { HelpSession } from '@modules/guidance/domain/models/help-session';
 import { toHelpSessionId } from '@modules/guidance/domain/models/ids';
 import type {
@@ -75,10 +76,11 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
       return okAsync({ session, created: true });
     },
     findOpen: (_owner, childProfileId) => okAsync(active(childProfileId)),
-    load: (ref) => {
+    loadSession: (ref) => {
       const session = active(ref.childProfileId, ref.sessionId);
       return session === null ? errAsync(notFound()) : okAsync(session);
     },
+    load: (ref) => repository.loadSession(ref).map(toLadderState),
     recordHint: () => okAsync('recorded'),
     recordAnswerCheck: () => okAsync('recorded'),
     recordComprehensionReply: (ref, reply) => {

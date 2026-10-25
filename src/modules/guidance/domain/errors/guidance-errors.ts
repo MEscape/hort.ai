@@ -20,6 +20,7 @@ export const GUIDANCE_VALIDATION_CODES = {
   childProfileIdInvalid: 'guidance.validation.child_profile_id_invalid',
   subjectInvalid: 'guidance.validation.subject_invalid',
   sessionIdInvalid: 'guidance.validation.session_id_invalid',
+  requestIdInvalid: 'guidance.validation.request_id_invalid',
 } as const;
 
 export type GuidanceValidationCode =

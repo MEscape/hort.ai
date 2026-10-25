@@ -7,7 +7,7 @@ import { errAsync, fromThrowableAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
 import { GUIDANCE_ERROR_CODES } from '../../domain/errors/guidance-errors';
-import { HELP_SESSION_STEP_LIMIT } from '../../domain/models/help-session';
+import { HELP_SESSION_STEP_LIMIT, toLadderState } from '../../domain/models/help-session';
 import { toHelpSessionId } from '../../domain/models/ids';
 
 import {
@@ -28,12 +28,14 @@ import type { LevelValue } from './help-session-record-mapper';
 import type { HelpSession } from '../../domain/models/help-session';
 import type { ChildProfileId, HelpSessionId } from '../../domain/models/ids';
 import type {
-  HelpSessionLoadError,
   HelpSessionOwner,
-  HelpSessionRef,
   HelpSessionRepository,
-  StepOutcome,
 } from '../../domain/ports/help-session.repository';
+import type {
+  HelpSessionRef,
+  HintSessionStoreError as HelpSessionLoadError,
+  RecordOutcome as StepOutcome,
+} from '../../domain/ports/hint-session-store.port';
 
 const failures = createPersistenceFailures({
   module: 'guidance.persistence',
@@ -187,7 +189,10 @@ export class PrismaHelpSessionRepository implements HelpSessionRepository {
           ),
     );
 
-  load: HelpSessionRepository['load'] = (ref) => this.read(ref, ref.childProfileId, ref.sessionId);
+  loadSession: HelpSessionRepository['loadSession'] = (ref) =>
+    this.read(ref, ref.childProfileId, ref.sessionId);
+
+  load: HelpSessionRepository['load'] = (ref) => this.loadSession(ref).map(toLadderState);
 
   recordHint: HelpSessionRepository['recordHint'] = (ref, hint) =>
     fromThrowableAsync(

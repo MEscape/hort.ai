@@ -58,7 +58,7 @@ export class ReplyToComprehensionQuestion {
         .asyncAndThen(({ id, sessionId, reply }) =>
           ownChildScope(this.deps, actor, id).andThen(({ owner, childProfileId }) => {
             const ref = { ...owner, childProfileId, sessionId };
-            return sessions.load(ref).andThen((session) => {
+            return sessions.loadSession(ref).andThen((session) => {
               const check = openQuestionCheck(session);
               if (check === null) {
                 return errAsync(noOpenQuestion());

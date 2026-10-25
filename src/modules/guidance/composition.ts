@@ -77,6 +77,12 @@ export function createHintOrchestrator(
   });
 }
 
+/**
+ * The server-side store of help sessions (#17). One instance, so the hint ladder (#30) and the
+ * session use cases share it.
+ */
+const getHelpSessionRepository = once(() => new PrismaHelpSessionRepository(systemClock));
+
 /** The guidance use cases, over the configured AI provider and safety classifier. */
 export const getGuidanceCommands = once(() => {
   const safety = getSafetyClassifier();
@@ -85,6 +91,7 @@ export const getGuidanceCommands = once(() => {
     childProfiles: learnerChildProfileAccess,
     competencies: curriculumCompetencyRetrieval,
     rateLimiter: getRateLimiter(),
+    sessions: getHelpSessionRepository(),
     hints: createHintOrchestrator(getAiProvider(), safety),
     answers: new AnswerCoach({
       provider: getAiProvider(),
@@ -95,12 +102,6 @@ export const getGuidanceCommands = once(() => {
   };
   return { requestHint: new RequestHint(deps), checkAnswer: new CheckAnswer(deps) };
 });
-
-/**
- * The server-side store of help sessions (#17). One instance, so the hint ladder (#30) and the
- * session use cases share it.
- */
-const getHelpSessionRepository = once(() => new PrismaHelpSessionRepository(systemClock));
 
 const getHelpSessionDependencies = once((): HelpSessionDependencies => ({
   authorization: getAccessControl(),

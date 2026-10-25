@@ -1,6 +1,7 @@
 import { deAssignments as assignments } from '@modules/assignments';
 import { deAuth as auth } from '@modules/auth';
 import { deClassroom as classroom } from '@modules/classroom';
+import { deGuidance as guidance } from '@modules/guidance';
 import { deLearner as learner } from '@modules/learner';
 import { deProgression as progression } from '@modules/progression';
 import { deTeacherMaterial as teacherMaterial } from '@modules/teacher-material';
@@ -20,6 +21,7 @@ const messages = {
   assignments: assignments.assignments,
   auth: auth.auth,
   classroom: classroom.classroom,
+  guidance: guidance.guidance,
   learner: learner.learner,
   progression: progression.progression,
   teacherMaterial: teacherMaterial.teacherMaterial,

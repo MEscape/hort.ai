@@ -1,6 +1,7 @@
 import { openQuestionCheck, progressOf } from '../../domain/models/help-session';
 
-import type { GivenHint, HelpSession } from '../../domain/models/help-session';
+import type { HelpSession } from '../../domain/models/help-session';
+import type { GivenHint } from '../../domain/models/help-session-state';
 import type { FeedbackText } from '../contracts/answer-views';
 import type { HelpSessionView } from '../contracts/help-session-views';
 import type { HintOutcome } from '../contracts/hint-views';

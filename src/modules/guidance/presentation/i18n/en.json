@@ -1,0 +1,33 @@
+{
+  "guidance": {
+    "hint": {
+      "step": "Hint {step} of {total}",
+      "fallback": {
+        "understand_task": "Read the task again, slowly. What are you meant to find out?",
+        "activate_prior_knowledge": "What do you already know about a task like this? Have you done something similar before?",
+        "next_step": "What could you do first? Just think about the next small step.",
+        "similar_example": "Think of a similar, easier task. How would you solve that one? Then try it the same way with your task."
+      }
+    },
+    "feedback": {
+      "fallback": {
+        "answer_assessment": {
+          "partly_correct": "You are on a good way! Take another close look at your answer.",
+          "not_yet": "Not quite yet, and that is completely normal. A hint can help you on.",
+          "unassessed": "I could not check that just now. Would you like a hint, or try again in a moment?"
+        },
+        "praise": "Great, you worked that out yourself!",
+        "comprehension_question": "Tell me in your own words how you got to your answer."
+      }
+    },
+    "errors": {
+      "validation": "Something did not fit. Please try again.",
+      "childInputInvalid": "Please write your answer again.",
+      "sessionNotFound": "This task is no longer open. Please start it again.",
+      "noOpenQuestion": "There is no question to answer right now.",
+      "rateLimited": "Take a short break and try again in a moment.",
+      "infrastructure": "Something is not working right now. Please try again in a moment.",
+      "unexpected": "Something went wrong. Please try again."
+    }
+  }
+}

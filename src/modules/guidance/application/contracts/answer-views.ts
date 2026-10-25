@@ -1,5 +1,4 @@
 import type { AssessmentResult } from '../../domain/ai-output/ai-output';
-import type { AssessedBy as DomainAssessedBy } from '../../domain/models/assessed-by';
 import type { FeedbackKind } from '../../domain/models/feedback-request';
 import type { HintFallbackReason } from '../../domain/models/hint-fallback-reason';
 
@@ -18,7 +17,7 @@ export type FeedbackText =
     };
 
 /** Who decided the result: the teacher's solution key, deterministically, or the AI's validated assessment. */
-export type AssessedBy = DomainAssessedBy;
+export type AssessedBy = 'solution_key' | 'ai';
 
 /**
  * The backend's answer to the child's own answer (#14). Correct: praise and one comprehension

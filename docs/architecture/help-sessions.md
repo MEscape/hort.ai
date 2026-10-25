@@ -31,7 +31,7 @@ All use `hint.request`, the guardian's guidance permission, and ask the learner 
 - `GetOpenHelpSession { childProfileId }`: the open session's view for "Continue", or `null`.
 - `ReplyToComprehensionQuestion { childProfileId, sessionId, reply }`: the reply is checked like any child input (`parseChildTaskText`); `guidance.no_open_question` when no question waits for it. Answers `understood` when it completed the task.
 
-The hint ladder (#30) records hints and answer checks through the same repository (`recordHint`, `recordAnswerCheck`).
+`HelpSessionRepository` extends the hint ladder's `HintSessionStore` (#30): `RequestHint` and `CheckAnswer` load the ladder state and record hints and answer checks through the same Prisma repository (`load`, `recordHint`, `recordAnswerCheck`), wired in `composition.ts`.
 
 ## Views and privacy
 

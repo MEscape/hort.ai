@@ -5,6 +5,7 @@ import { ReplyToComprehensionQuestion } from '@modules/guidance/application/comm
 import { StartHelpSession } from '@modules/guidance/application/commands/start-help-session';
 import { GetOpenHelpSession } from '@modules/guidance/application/queries/get-open-help-session';
 import type { AnswerCheckStep } from '@modules/guidance/domain/models/help-session';
+import { toStepRequestId } from '@modules/guidance/domain/models/ids';
 
 import { parent } from '../../auth/fakes';
 import { OTHER_CHILD, OWN_CHILD, task } from '../fakes';
@@ -14,7 +15,7 @@ const TASK = 'Rechne 23 + 19.';
 
 function check(overrides: Partial<AnswerCheckStep> = {}): AnswerCheckStep {
   return {
-    requestId: 'check-1',
+    requestId: toStepRequestId('check-1'),
     answer: task('42'),
     result: 'correct',
     assessedBy: 'ai',
@@ -145,10 +146,23 @@ describe('GetOpenHelpSession', () => {
     const stored = storedSession({
       hintLevel: 'next_step',
       hints: [
-        { requestId: 'h-1', level: 'understand_task', kind: 'generated', text: 'Was weißt du?' },
-        { requestId: 'h-2', level: 'next_step', kind: 'fallback', reason: 'timeout' },
+        {
+          requestId: toStepRequestId('h-1'),
+          level: 'understand_task',
+          kind: 'generated',
+          text: 'Was weißt du?',
+        },
+        {
+          requestId: toStepRequestId('h-2'),
+          level: 'next_step',
+          kind: 'fallback',
+          reason: 'timeout',
+        },
       ],
-      answerChecks: [check({ result: 'not_yet', question: null }), check({ requestId: 'c-2' })],
+      answerChecks: [
+        check({ result: 'not_yet', question: null }),
+        check({ requestId: toStepRequestId('c-2') }),
+      ],
     });
     const { deps } = helpSessionDependencies(inMemorySessions([stored]).repository);
 

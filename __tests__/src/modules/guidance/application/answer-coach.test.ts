@@ -180,6 +180,44 @@ describe('AnswerCoach wording', () => {
   });
 });
 
+describe('AnswerCoach solution-leak guard (#31)', () => {
+  it('gives no verdict on an assessment that reveals the expected answer', async () => {
+    const { coach, events } = build({
+      answer_assessment: output('answer_assessment', 'Fast! Richtig wäre 7.', {
+        result: 'not_yet',
+      }),
+    });
+
+    expect(await coach.check(toCheck('8', null))).toEqual({
+      result: null,
+      assessedBy: null,
+      next: 'hint_ladder',
+      message: { kind: 'predefined', feedback: 'answer_assessment', reason: 'solution_leaked' },
+    });
+    expect(events).toEqual([
+      {
+        type: 'guidance.feedback_fallback_used',
+        kind: 'answer_assessment',
+        level: LEVEL,
+        reason: 'solution_leaked',
+        codes: [
+          'guidance.ai_output.solution_leaked',
+          'guidance.solution_leak.states_result',
+          'guidance.solution_leak.announces_result',
+        ],
+      },
+    ]);
+  });
+
+  it('lets praise repeat the result the child found', async () => {
+    const { coach } = build({ ...WORDING, praise: output('praise', 'Super, 7 Äpfel stimmt!') });
+
+    expect(await coach.check(toCheck('Sie hat 7.'))).toMatchObject({
+      praise: { kind: 'generated', text: 'Super, 7 Äpfel stimmt!' },
+    });
+  });
+});
+
 describe('AnswerCoach with the safety classifier (#11)', () => {
   it('rates the praise and the question, and replaces a flagged one with its predefined text', async () => {
     const { provider } = fakeFeedbackProvider(WORDING);

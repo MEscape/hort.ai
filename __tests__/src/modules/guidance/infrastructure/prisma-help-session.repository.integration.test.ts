@@ -5,11 +5,13 @@ import { toActorId, toTenantId } from '@modules/auth/domain/models/ids';
 import type { ActorId, TenantId } from '@modules/auth/domain/models/ids';
 import { parseChildTaskText } from '@modules/guidance/domain/models/child-task-text';
 import type { ChildTaskText } from '@modules/guidance/domain/models/child-task-text';
-import { toChildProfileId, toHelpSessionId } from '@modules/guidance/domain/models/ids';
-import type {
-  HelpSessionRef,
-  HelpSessionRepository,
-} from '@modules/guidance/domain/ports/help-session.repository';
+import {
+  toChildProfileId,
+  toHelpSessionId,
+  toStepRequestId,
+} from '@modules/guidance/domain/models/ids';
+import type { HelpSessionRepository } from '@modules/guidance/domain/ports/help-session.repository';
+import type { HelpSessionRef } from '@modules/guidance/domain/ports/hint-session-store.port';
 
 import type { db as Db } from '@lib/db';
 
@@ -97,19 +99,19 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
     const { owner, childProfileId, ref } = await started();
 
     await repository.recordHint(ref, {
-      requestId: 'hint-1',
+      requestId: toStepRequestId('hint-1'),
       level: 'understand_task',
       kind: 'generated',
       text: 'Was sollst du herausfinden?',
     });
     await repository.recordHint(ref, {
-      requestId: 'hint-2',
+      requestId: toStepRequestId('hint-2'),
       level: 'next_step',
       kind: 'fallback',
       reason: 'timeout',
     });
     await repository.recordAnswerCheck(ref, {
-      requestId: 'check-1',
+      requestId: toStepRequestId('check-1'),
       answer: text('41'),
       result: 'not_yet',
       assessedBy: 'ai',
@@ -117,7 +119,7 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
       question: null,
     });
     await repository.recordAnswerCheck(ref, {
-      requestId: 'check-2',
+      requestId: toStepRequestId('check-2'),
       answer: text('42'),
       result: 'correct',
       assessedBy: 'solution_key',
@@ -125,10 +127,17 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
       question: { text: null },
     });
 
-    const loaded = (await repository.load(ref))._unsafeUnwrap();
+    const loaded = (await repository.loadSession(ref))._unsafeUnwrap();
     const open = (await repository.findOpen(owner, childProfileId))._unsafeUnwrap();
+    const ladder = (await repository.load(ref))._unsafeUnwrap();
 
     expect(open).toEqual(loaded);
+    expect(ladder).toEqual({
+      task: 'Rechne 23 + 19.',
+      subject: 'math',
+      hints: loaded.hints,
+      answers: ['not_yet', 'correct'],
+    });
     expect(loaded).toMatchObject({
       id: ref.sessionId,
       task: 'Rechne 23 + 19.',
@@ -136,13 +145,23 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
       status: 'active',
       hintLevel: 'next_step',
       hints: [
-        { requestId: 'hint-1', level: 'understand_task', kind: 'generated' },
-        { requestId: 'hint-2', level: 'next_step', kind: 'fallback', reason: 'timeout' },
+        { requestId: toStepRequestId('hint-1'), level: 'understand_task', kind: 'generated' },
+        {
+          requestId: toStepRequestId('hint-2'),
+          level: 'next_step',
+          kind: 'fallback',
+          reason: 'timeout',
+        },
       ],
       answerChecks: [
-        { requestId: 'check-1', result: 'not_yet', hintLevel: 'next_step', question: null },
         {
-          requestId: 'check-2',
+          requestId: toStepRequestId('check-1'),
+          result: 'not_yet',
+          hintLevel: 'next_step',
+          question: null,
+        },
+        {
+          requestId: toStepRequestId('check-2'),
           result: 'correct',
           assessedBy: 'solution_key',
           question: { text: null, reply: null },
@@ -154,13 +173,13 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
   it('stores a repeated step once', async () => {
     const { ref } = await started();
     const hint = {
-      requestId: 'hint-1',
+      requestId: toStepRequestId('hint-1'),
       level: 'understand_task',
       kind: 'generated',
       text: 'Lies die Aufgabe noch einmal.',
     } as const;
     const check = {
-      requestId: 'check-1',
+      requestId: toStepRequestId('check-1'),
       answer: text('42'),
       result: null,
       assessedBy: null,
@@ -173,7 +192,7 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
     expect((await repository.recordAnswerCheck(ref, check))._unsafeUnwrap()).toBe('recorded');
     expect((await repository.recordAnswerCheck(ref, check))._unsafeUnwrap()).toBe('duplicate');
 
-    const loaded = (await repository.load(ref))._unsafeUnwrap();
+    const loaded = (await repository.loadSession(ref))._unsafeUnwrap();
     expect(loaded.hints).toHaveLength(1);
     expect(loaded.answerChecks).toEqual([
       expect.objectContaining({ result: null, assessedBy: null, hintLevel: 'understand_task' }),
@@ -183,14 +202,14 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
   it('stores the comprehension reply once and ends the session when it completes', async () => {
     const { owner, childProfileId, ref } = await started();
     await repository.recordAnswerCheck(ref, {
-      requestId: 'check-1',
+      requestId: toStepRequestId('check-1'),
       answer: text('42'),
       result: 'correct',
       assessedBy: 'ai',
       feedbackText: null,
       question: { text: 'Wie hast du gerechnet?' },
     });
-    const [check] = (await repository.load(ref))._unsafeUnwrap().answerChecks;
+    const [check] = (await repository.loadSession(ref))._unsafeUnwrap().answerChecks;
     if (check === undefined) {
       throw new Error('the check was not stored');
     }
@@ -214,14 +233,14 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
   it('answers a reply to an already answered question as a duplicate', async () => {
     const { ref } = await started();
     await repository.recordAnswerCheck(ref, {
-      requestId: 'check-1',
+      requestId: toStepRequestId('check-1'),
       answer: text('42'),
       result: 'correct',
       assessedBy: 'ai',
       feedbackText: null,
       question: { text: null },
     });
-    const [check] = (await repository.load(ref))._unsafeUnwrap().answerChecks;
+    const [check] = (await repository.loadSession(ref))._unsafeUnwrap().answerChecks;
     if (check === undefined) {
       throw new Error('the check was not stored');
     }
@@ -234,7 +253,7 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
     });
 
     expect(again._unsafeUnwrap()).toBe('duplicate');
-    const loaded = (await repository.load(ref))._unsafeUnwrap();
+    const loaded = (await repository.loadSession(ref))._unsafeUnwrap();
     expect(loaded.answerChecks[0]?.question).toEqual({ text: null, reply: 'Erst die Zehner.' });
   });
 
@@ -242,13 +261,13 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
     const { ref } = await started();
     const foreign = { ...ref, ownerId: toActorId('parent-2') };
 
-    expect((await repository.load(foreign))._unsafeUnwrapErr()).toMatchObject({
+    expect((await repository.loadSession(foreign))._unsafeUnwrapErr()).toMatchObject({
       kind: 'not_found',
     });
     expect(
       (
         await repository.recordHint(foreign, {
-          requestId: 'hint-1',
+          requestId: toStepRequestId('hint-1'),
           level: 'understand_task',
           kind: 'fallback',
           reason: 'timeout',
@@ -256,7 +275,9 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
       )._unsafeUnwrapErr(),
     ).toMatchObject({ kind: 'not_found' });
     expect(
-      (await repository.load({ ...ref, sessionId: toHelpSessionId('missing') }))._unsafeUnwrapErr(),
+      (
+        await repository.loadSession({ ...ref, sessionId: toHelpSessionId('missing') })
+      )._unsafeUnwrapErr(),
     ).toMatchObject({ kind: 'not_found' });
   });
 
@@ -273,7 +294,9 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
     )._unsafeUnwrap();
 
     expect(next.created).toBe(true);
-    expect((await repository.load(ref))._unsafeUnwrapErr()).toMatchObject({ kind: 'not_found' });
+    expect((await repository.loadSession(ref))._unsafeUnwrapErr()).toMatchObject({
+      kind: 'not_found',
+    });
     const rows = await db.orm.public.HelpSession.where({ childProfileId })
       .select('status')
       .orderBy((row) => row.startedAt.asc())
