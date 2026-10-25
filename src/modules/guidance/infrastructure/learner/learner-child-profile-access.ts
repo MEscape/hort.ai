@@ -17,5 +17,6 @@ export const learnerChildProfileAccess: ChildProfileAccess = {
         id: toChildProfileId(profile.id),
         federalState: profile.federalState,
         grade: profile.grade,
+        controls: profile.controls,
       })),
 };

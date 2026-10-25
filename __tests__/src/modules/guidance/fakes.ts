@@ -43,6 +43,7 @@ import type {
   SafetyClassifier,
   SafetyScores,
 } from '@modules/guidance/domain/ports/safety-classifier.port';
+import { learnerLearningTimePolicy } from '@modules/guidance/infrastructure/learner/learner-learning-time-policy';
 
 import { infrastructureError, notFoundError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
@@ -107,7 +108,12 @@ export function ownChildren(owned: readonly ChildProfileId[] = [OWN_CHILD]): Chi
   return {
     findOwn: (id) =>
       owned.includes(id)
-        ? okAsync({ id, federalState: 'BY', grade: 2 })
+        ? okAsync({
+            id,
+            federalState: 'BY',
+            grade: 2,
+            controls: { dailyLimitMinutes: null, allowedWindow: null },
+          })
         : errAsync(notFoundError('child_profile.not_found', 'The child profile was not found.')),
   };
 }
@@ -288,4 +294,12 @@ export function fakeSessionStore(
     checks,
     hintsOf: (ref = openSession().ref) => stored.get(sessionKey(ref))?.hints ?? [],
   };
+}
+
+/** The instant the fake clock shows, 10:00 Berlin: inside any window a test would set around it. */
+export const NOW = new Date('2026-10-25T09:00:00.000Z');
+
+/** The parent's learning window and daily limit (#88) over the real learner rule, on a fixed clock. */
+export function learningTime(now: Date = NOW) {
+  return { clock: { now: () => now }, learningTime: learnerLearningTimePolicy };
 }

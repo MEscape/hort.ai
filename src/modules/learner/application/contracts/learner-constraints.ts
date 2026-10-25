@@ -15,11 +15,16 @@ export {
   GUARDIAN_CONSENT_VERSION,
   LEARNER_TIME_ZONE,
   VOICE_NOTICE_VERSION,
+  berlinDay,
   isLearningAllowedNow,
   minutesSinceMidnight,
 } from '../../domain/models/parent-controls';
 export type { AllowedWindow, DailyLimitMinutes } from '../../domain/models/parent-controls';
-export { LOW_TIME_MINUTES, computeScreenTime } from '../../domain/models/screen-time';
+export {
+  LOW_TIME_MINUTES,
+  computeScreenTime,
+  nextDayOpening,
+} from '../../domain/models/screen-time';
 export type {
   ScreenTime,
   ScreenTimeStatus,

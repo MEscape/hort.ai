@@ -25,6 +25,7 @@ import { curriculumCompetencyLabels } from './infrastructure/curriculum/curricul
 import { curriculumCompetencyRetrieval } from './infrastructure/curriculum/curriculum-competency-retrieval';
 import { GeminiProvider } from './infrastructure/gemini/gemini-provider';
 import { learnerChildProfileAccess } from './infrastructure/learner/learner-child-profile-access';
+import { learnerLearningTimePolicy } from './infrastructure/learner/learner-learning-time-policy';
 import { learnerInsightsConsent } from './infrastructure/learner/learner-insights-consent';
 import { PrismaHelpSessionRepository } from './infrastructure/prisma/prisma-help-session.repository';
 import { PrismaLearningRecordRepository } from './infrastructure/prisma/prisma-learning-record.repository';
@@ -129,6 +130,8 @@ export const getGuidanceCommands = once(() => {
       ...(safety === undefined ? {} : { safety }),
     }),
     audit: loggerGuidanceAuditLog,
+    clock: systemClock,
+    learningTime: learnerLearningTimePolicy,
   };
   return { requestHint: new RequestHint(deps), checkAnswer: new CheckAnswer(deps) };
 });
@@ -144,6 +147,8 @@ const getHelpSessionDependencies = once((): HelpSessionDependencies => {
     audit: loggerGuidanceAuditLog,
     competencies: curriculumCompetencyRetrieval,
     reward: progressionSessionReward,
+    clock: systemClock,
+    learningTime: learnerLearningTimePolicy,
     ...(classifier === undefined ? {} : { classifier }),
   };
 });

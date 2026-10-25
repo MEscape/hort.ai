@@ -17,6 +17,7 @@ import { spendChildBudget } from '../services/child-budget';
 import { classifySessionTask } from '../services/classify-session-task';
 import { parseRequestedTask, resolveSessionSource } from '../services/help-session-source';
 import { toHelpSessionView } from '../services/help-session-view';
+import { requireDailyBudget, requireWindowOpen } from '../services/learning-time';
 import { ownChildScope } from '../services/own-child-session';
 
 import type { HelpSessionSource } from '../../domain/models/help-session';
@@ -67,7 +68,8 @@ export class StartHelpSession {
         )
         .asyncAndThen(({ id, requested, subject }) =>
           ownChildScope(this.deps, actor, id).andThen(({ owner, childProfileId, child }) =>
-            spendChildBudget(rateLimiter, { actor, childProfileId, policy })
+            requireWindowOpen(this.deps, child)
+              .asyncAndThen(() => spendChildBudget(rateLimiter, { actor, childProfileId, policy }))
               .andThen(() =>
                 resolveSessionSource(this.deps, { childProfileId, requested, subject }),
               )
@@ -93,7 +95,7 @@ export class StartHelpSession {
       readonly child: OwnChildProfile;
       readonly source: HelpSessionSource;
     },
-  ): AppResultAsync<StartHelpSessionView, InfrastructureAppError> {
+  ): AppResultAsync<StartHelpSessionView, RateLimitedAppError | InfrastructureAppError> {
     const { sessions, audit } = this.deps;
 
     return sessions.findOpen(owner, childProfileId).andThen((open) => {
@@ -104,14 +106,18 @@ export class StartHelpSession {
         });
       }
       const replaces = open?.id ?? null;
-      return ResultAsync.fromSafePromise(
-        classifySessionTask(this.deps, {
-          child,
-          task: source.task,
-          subject: source.subject,
-          replaces: open,
-        }),
-      )
+      // Only a new task asks for the day's budget; the open one may be finished (#88).
+      return requireDailyBudget(this.deps, sessions, owner, child)
+        .andThen(() =>
+          ResultAsync.fromSafePromise(
+            classifySessionTask(this.deps, {
+              child,
+              task: source.task,
+              subject: source.subject,
+              replaces: open,
+            }),
+          ),
+        )
         .andThen((topic) => sessions.start(owner, { childProfileId, ...source, replaces, topic }))
         .map(({ session, created }): StartHelpSessionView => {
           if (created) {
