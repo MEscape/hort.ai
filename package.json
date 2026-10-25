@@ -34,6 +34,7 @@
     "brand:generate": "tsx scripts/generate-brand-assets.ts",
     "dead-code": "tsx scripts/dead-code.ts",
     "tutors:sync": "tsx scripts/sync-tutors.ts",
+    "curriculum:ingest": "tsx --conditions=react-server scripts/ingest-curriculum.ts",
     "audit:prod": "tsx scripts/audit-production.ts"
   },
   "dependencies": {
