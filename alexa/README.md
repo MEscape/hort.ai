@@ -3,9 +3,13 @@
 `POST /api/alexa` makes Alexa a second channel onto hort.ai's tutor: the child speaks, Alexa transcribes,
 this endpoint hands the free text to the tutor and plays the tutor's answer in the tutor's own (ElevenLabs) voice,
 falling back to Alexa's standard voice whenever that voice is not available in time.
-Alexa holds **no learning logic**. Opening the skill lets every ready tutor introduce itself in its own voice
-(see [Tutor voice](#tutor-voice)); today a connection-test stub answers every other turn with
-`Lennart wann holen wir uns draußen Suppe` and ends the session.
+Alexa holds **no learning logic**. It runs in one of two modes:
+
+- **Anonymous (default, no coupling configured):** opening the skill lets every ready tutor introduce itself in
+  its own voice (see [Tutor voice](#tutor-voice)); a connection-test stub answers every other turn with
+  `Lennart wann holen wir uns draußen Suppe` and ends the session. Unchanged from before.
+- **Demo coupling (phase 1, "Alexa kennt das Kind"):** the skill speaks for exactly **one** configured child
+  profile, through the same use cases, rules and gates as the web. See [Demo coupling](#demo-coupling-child-channel).
 
 ## Architecture
 
@@ -38,6 +42,71 @@ Alexa still gets HTTP 200.
 
 The channel handles only channel matters itself: Stop/Cancel/Home ("Tschüss"), Help, and "nothing understood"
 (`AMAZON.FallbackIntent` or an empty slot). Everything the child says otherwise reaches the tutor.
+
+## Demo coupling (child channel)
+
+`ALEXA_DEMO_GUARDIAN_ID` (the guardian's user id) and `ALEXA_DEMO_CHILD_PROFILE_ID` (one child profile of that
+guardian) bind the skill to that one child. Both or neither (the env schema refuses one alone); unset is the
+anonymous mode above. What the child can do by voice:
+
+| Child says                                                   | Companion                                                                                                                                                                                                                                                                                                                                                                                                                   | Use case                                                                              |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| „Alexa, öffne hort"                                          | outside the guardian's learning window: „Jetzt ist Lernpause. Bis später!" and end. Else at most three sentences: the **own** companion's short hello „Hallo, schön, dass du da bist!" (own voice, not the long catalog introduction); „Deine Lehrerin hat dir eine Aufgabe gegeben." when the class has assignments; „Magst du mich füttern?" (mood variant) when the daily reward is open, else „Was möchtest du machen?" | `getChildProfileById` + `isLearningAllowedNow`, `getProgress`, `listChildAssignments` |
+| „füttern" / „ja" to the snack offer                          | „Lecker, danke! Du hast fünf Sterne bekommen." (+ „Level 3! Juhu!"); claimed: „Satt und froh! …"                                                                                                                                                                                                                                                                                                                            | `claimDailyReward`                                                                    |
+| „welches level habe ich"                                     | „Du bist auf Level 3. Noch 12 Sterne bis Level 4."; top level: its own sentence                                                                                                                                                                                                                                                                                                                                             | `getProgress`                                                                         |
+| „was habe ich auf"                                           | titles of at most three class assignments (never the key), then „Bald kann ich dir hier auch dabei helfen."; no tasks / no class: a friendly sentence                                                                                                                                                                                                                                                                       | `getChildClassroom`, `listChildAssignments`                                           |
+| Hilfe, Wiederholen, Ja/Nein, Stopp/„Tschüss", not understood | context help (snack question or options), last reply again, first miss „Sag es bitte noch einmal", second miss the options; stop always ends                                                                                                                                                                                                                                                                                | –                                                                                     |
+| Phase-2 intents (Aufgabe, Tipp, Antwort, Auswahl, …)         | honest placeholder „Bald kann ich dir hier auch dabei helfen."                                                                                                                                                                                                                                                                                                                                                              | – (help session: phase 2)                                                             |
+
+**How the identity works.** The use cases resolve their actor through auth's `CurrentActorProvider`; an Alexa
+request has no session. `runAsChildChannel({ channel: 'alexa', guardianId, childProfileId }, work)` (auth's
+public API) runs `work` inside an `AsyncLocalStorage` scope whose actor is the guardian's id with the single role
+`child_channel` and a `delegation` to that one child. The scope wraps
+the provider _outside_ the per-request session memo, ends with `work`, and is opened only by
+`infrastructure/child/demo-child-companion.ts` for a request that passed signature, timestamp and skill-id checks.
+Every use case still authorizes itself, unchanged:
+
+- `child_channel` holds only `learner.read`, `progression.read` and `progression.daily_reward` (the snack, apart
+  from `progression.update`, so learning XP via `awardLearningXp` is refused). Settings, consent, the onboarding
+  state with every profile (`learner.list`), voice tickets, hints and every teacher permission are refused by the
+  same `decide` as any missing permission (and audited as denials).
+- Ownership is checked as for the guardian, so another guardian's child is "not found". On top, `decide` keeps a
+  delegated actor to its bound child: a resource scope must name exactly that child profile (`childProfileId`,
+  set by the learner module from the stored profile), so a sibling is refused (`child_mismatch`) even through the
+  real use cases. The child id comes from server configuration only: the `ChildCompanion` port has no child-id
+  parameter.
+- Audit: events the channel causes carry `channel: 'alexa'` and `onBehalfOf: <guardian>` and no `actorId`, so the
+  trail never shows them as the guardian's own action.
+- Web requests never enter the scope; their actor still comes from their own Better Auth session. Tests:
+  `__tests__/src/modules/auth/infrastructure/child-channel-scope.test.ts` and, through the real learner and
+  progression use cases (sibling, parent operations, learning XP, audit), `child-channel-use-cases.test.ts`.
+
+**Timing.** Stop, help, repeat, „nein" and the placeholders need no use case and never wait for the database
+(the voice of the last reply comes from the session attributes). Every request has 7 s from its arrival,
+counted before the signature check (which is never skipped). Of what is left, a turn that needs use cases gives
+them at most 3 s together and keeps 1 s free, then answers calmly („Ich bin gleich wieder für dich da …" on
+launch); clips get at most 3 s and stop 0.2 s before the deadline, else the reply is plain text. So Alexa's 8 s
+hold even with a slow certificate download, a hanging database and a hanging voice provider. Keywords map only `FreieEingabeIntent` (the first model, e.g. „gib ihm was zu
+essen"); an unknown intent is „not understood" whatever its slot holds.
+
+**Surface state only.** Alexa session attributes hold the open yes/no question (`question: 'feed'`), the last
+reply (for „Wiederholen", and to tell a second miss from a first) and the catalog id of the voice that spoke it. Level, stars, mood and tasks are read from the
+backend on every turn. The child's name is never spoken.
+
+**Privacy (Amazon policy 2a).** A custom skill for children under 16 that works with child profiles is not
+allowed without Amazon approval, with account linking, or with collecting personal data. Therefore: Development
+stage only, one demo profile without a real child, no account linking; Alexa's `userId`, `deviceId` and `person`
+are never read, stored or logged. Logs carry codes only (no child input, no task text). Teacher titles and numbers
+are spoken in Alexa's voice and are never voiced into clips; clips hold only fixed lines of `channel-lines.json`
+and catalog greetings. Not publishable as is: a real launch needs per-child consent and Amazon's kids approval.
+
+**Voice.** Fixed lines (`presentation/speech/child-lines.ts`, each also in the voice module's reviewed
+`channel-lines.json`, a test keeps them equal) and the greeting are played in the voice of the child's own
+companion (`tutorId` of the profile, `ALEXA_TUTOR_ID` only when it has none); dynamic sentences are APLA `Speech`
+items in the same `Sequencer`. The 4 s voice deadline and the fallback to Alexa's voice are unchanged.
+
+**Latency.** Launch reads profile, progress and assignments in parallel with the companion lookup (one DB round
+trip deep plus authorization); feeding, level and tasks are one use case each. No AI call in phase 1.
 
 ## Connecting your tutor use case
 
@@ -131,22 +200,32 @@ Cost: one synthesis per distinct text and voice. The three greetings are about 2
 
 `alexa/skill-package/interactionModels/custom/de-DE.json` (invocation name `hort`):
 
-- `FreieEingabeIntent` with slot `eingabe` of the custom type `FREITEXT`: a catch-all. Its sample values only
-  teach the recogniser what typical child input sounds like; Alexa passes on whatever was said. Samples are
-  `{eingabe}` alone plus a few carrier phrases ("die antwort ist {eingabe}", "ich habe eine frage {eingabe}").
-  Chosen over `AMAZON.SearchQuery` because SearchQuery cannot stand alone in a sample (a carrier phrase is
-  mandatory), which would not fit bare answers such as "neun".
-- Built-ins: Stop, Cancel, Help, NavigateHome, Fallback.
+Version 2 (spec appendix A):
 
-The model in the repository is the one imported in the Developer Console. Change both together.
+- Phase 1: `FuetternIntent`, `LevelIntent`, `SchulaufgabenIntent`.
+- Phase 2, already in the model so the console is built once: `AufgabeIntent` (`aufgabe`), `NeueAufgabeIntent`,
+  `TippIntent`, `AntwortIntent` (`antwort`), `AufgabeVorlesenIntent`, `WeitermachenIntent`, `PauseIntent`,
+  `AuswahlIntent` (`position`: `AMAZON.Ordinal`, `zahl`: `AMAZON.NUMBER`). Until phase 2 they answer with the
+  honest placeholder (`PauseIntent` says goodbye).
+- `FreieEingabeIntent` with slot `eingabe` of the custom type `FREITEXT`: a catch-all. Its sample values only
+  teach the recogniser what typical child input sounds like. Samples are `{eingabe}` alone plus two carrier
+  phrases; the answer phrases moved to `AntwortIntent`. Chosen over `AMAZON.SearchQuery` because SearchQuery
+  cannot stand alone in a sample, which would not fit bare answers such as "neun".
+- Built-ins: Yes, No, Help, Repeat, Stop, Cancel, NavigateHome, Fallback.
+
+The code works with this model **and** with the first one (only `FreieEingabeIntent`): free input is mapped by
+keywords („füttern", „level", „was habe ich auf", „ja", „nein", „tschüss", …), so the console can be rebuilt after
+the deploy. The model in the repository is the one imported in the Developer Console. Change both together.
 
 ## Environment
 
-| Name                | Required | Notes                                                                  |
-| ------------------- | -------- | ---------------------------------------------------------------------- |
-| `ALEXA_SKILL_ID`    | yes      | `amzn1.ask.skill.…` from the console. Unset → endpoint answers 503.    |
-| `ALEXA_TUTOR_VOICE` | no       | `true` (default) speaks tutor replies in a tutor's voice; `false` off. |
-| `ALEXA_TUTOR_ID`    | no       | Voice of tutor replies (not the launch greetings); default `max`.      |
+| Name                          | Required | Notes                                                                                      |
+| ----------------------------- | -------- | ------------------------------------------------------------------------------------------ |
+| `ALEXA_SKILL_ID`              | yes      | `amzn1.ask.skill.…` from the console. Unset → endpoint answers 503.                        |
+| `ALEXA_TUTOR_VOICE`           | no       | `true` (default) speaks tutor replies in a tutor's voice; `false` off.                     |
+| `ALEXA_TUTOR_ID`              | no       | Voice of tutor replies (not the launch greetings); default `max`.                          |
+| `ALEXA_DEMO_GUARDIAN_ID`      | no       | Demo coupling: user id of the guardian of the demo child. With the next one or not at all. |
+| `ALEXA_DEMO_CHILD_PROFILE_ID` | no       | Demo coupling: the one child profile the skill speaks for. Unset → anonymous mode.         |
 
 The tutor voice also needs `ELEVENLABS_API_KEY` and object storage with `STORAGE_AZURE_PRIVATE_CONTAINER`
 (`STORAGE_PROVIDER=azure`); without them every answer uses Alexa's voice.
@@ -197,7 +276,8 @@ The skill id is not a secret, but it is environment-specific and therefore not c
   coupled, a separate decision.
 - **Children's policy.** Development stage only; no publication, distribution or certification. No account
   linking, no persistent coupling between an Alexa account/device and a child, no personal data of children;
-  the demo uses a fixed demo profile on the tutor side. A pairing code would be such a coupling and needs its
+  the demo coupling binds the whole skill (every device of the developer account) to one demo profile by server
+  configuration. A pairing code would be such a coupling and needs its
   own review. `isChildDirected` in `skill.json` must be revisited before any distribution.
 
 ## Known security exception

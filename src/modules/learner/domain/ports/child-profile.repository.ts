@@ -67,7 +67,10 @@ export interface SavedProfile {
  */
 export interface ChildProfileRepository {
   /** Updates the finished profile's time and notes controls without writing voice, companion or interests. */
-  updateParentControls(profile: ChildProfile, controls: Omit<ParentControls, 'voiceEnabled'>): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
+  updateParentControls(
+    profile: ChildProfile,
+    controls: Omit<ParentControls, 'voiceEnabled'>,
+  ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
 
   /** The parent's own profile, or `null` for an unknown id and for another parent's alike. */
   findOwned(

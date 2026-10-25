@@ -16,6 +16,8 @@ import type { TutorVoice } from '../../domain/ports/tutor-voice.port';
 export function voiceModuleTutorVoice(speakerId: string): TutorVoice {
   return {
     audioUrl: (text) => hostedUrl({ speakerId, source: { kind: 'channel-line', text } }),
+    lineUrl: (tutorId, text) =>
+      hostedUrl({ speakerId: tutorId, source: { kind: 'channel-line', text } }),
     greetingUrl: (tutorId) =>
       hostedUrl({ speakerId: tutorId, source: { kind: 'phrase', phrase: 'greeting' } }),
   };
