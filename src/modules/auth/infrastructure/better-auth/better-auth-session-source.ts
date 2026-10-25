@@ -1,8 +1,13 @@
 import type { BetterAuthInstance } from './create-auth';
 
-/** The only two facts about a session that this module uses. */
+/** The facts about a session that this module uses. `role` is the stored value, still unchecked. */
 export interface SessionSnapshot {
-  readonly user: { readonly id: string; readonly email: string; readonly emailVerified: boolean };
+  readonly user: {
+    readonly id: string;
+    readonly email: string;
+    readonly emailVerified: boolean;
+    readonly role: unknown;
+  };
   readonly session: { readonly createdAt: Date };
 }
 
@@ -34,6 +39,7 @@ export function sessionSourceFrom(getInstance: () => BetterAuthInstance): Sessio
           id: result.user.id,
           email: result.user.email,
           emailVerified: result.user.emailVerified,
+          role: result.user.role,
         },
         session: { createdAt: result.session.createdAt },
       };

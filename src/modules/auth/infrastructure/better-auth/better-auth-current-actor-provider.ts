@@ -10,7 +10,7 @@ import {
   unauthenticated,
 } from '../../domain/errors/auth-errors';
 import { toActorId } from '../../domain/models/ids';
-import { PARENT_ROLE } from '../../domain/models/role';
+import { isRole } from '../../domain/models/role';
 import { hasExceededMaxLifetime } from '../../domain/models/session-policy';
 
 import { mapBetterAuthError } from './map-better-auth-error';
@@ -37,9 +37,10 @@ export interface BetterAuthCurrentActorProviderDeps {
 }
 
 /**
- * Turns the provider's session into the signed-in parent. There is no membership lookup: with one
- * configured tenant, every confirmed account is a parent of it, and what a parent may touch is
- * decided per resource by ownership (`decide`), not by a role grant stored per person.
+ * Turns the provider's session into the signed-in actor. There is no membership lookup: with one
+ * configured tenant, every confirmed account belongs to it, with the one role stored on the account
+ * at registration (parent or teacher). What an actor may touch is decided per resource by ownership
+ * (`decide`), and the role only says which permissions they hold.
  */
 export class BetterAuthCurrentActorProvider implements CurrentActorProvider {
   constructor(private readonly deps: BetterAuthCurrentActorProviderDeps) {}
@@ -76,10 +77,17 @@ export class BetterAuthCurrentActorProvider implements CurrentActorProvider {
       return errAsync(sessionExpired());
     }
 
+    // The role was chosen at registration and is read from the stored account only. An unknown or
+    // missing value grants nothing: the session is treated as signed out (fail closed).
+    const { role } = session.user;
+    if (typeof role !== 'string' || !isRole(role)) {
+      return errAsync(unauthenticated());
+    }
+
     return okAsync({
       id: toActorId(session.user.id),
       tenantId: this.deps.tenantId,
-      roles: [PARENT_ROLE],
+      roles: [role],
     });
   }
 }

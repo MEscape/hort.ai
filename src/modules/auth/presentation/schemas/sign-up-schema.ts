@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-import { AUTH_VALIDATION_CODES as CODES } from '../../application/contracts/auth-constraints';
+import {
+  AUTH_VALIDATION_CODES as CODES,
+  ROLES,
+} from '../../application/contracts/auth-constraints';
 
 import { emailSchema, nameSchema, newPasswordSchema } from './auth-fields-schema';
 
@@ -9,6 +12,8 @@ import { emailSchema, nameSchema, newPasswordSchema } from './auth-fields-schema
  */
 export const signUpSchema = z
   .object({
+    /** Chosen once, here; nothing after registration changes it. */
+    role: z.enum(ROLES, { message: CODES.roleInvalid }),
     name: nameSchema,
     email: emailSchema,
     password: newPasswordSchema,

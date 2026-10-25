@@ -10,7 +10,7 @@ import {
 } from '@modules/auth/domain/models/credentials';
 
 const LONG_ENOUGH = 'p'.repeat(CREDENTIAL_LIMITS.passwordMin);
-const MARA = { name: 'Mara', email: 'mara@example.org', password: LONG_ENOUGH };
+const MARA = { name: 'Mara', email: 'mara@example.org', password: LONG_ENOUGH, role: 'parent' };
 
 function fieldErrors(result: { readonly isErr: () => boolean; readonly error?: unknown }) {
   const error = result.isErr()
@@ -94,8 +94,28 @@ describe('createSignUpDraft', () => {
     ).toEqual({ name: ['auth.validation.name_too_long'] });
   });
 
+  it.each(['parent', 'teacher'])('keeps the chosen role %s', (role) => {
+    const result = createSignUpDraft({ ...MARA, role });
+
+    expect(result.isOk() && result.value.role).toBe(role);
+  });
+
+  it.each(['', 'admin', 'child', 'Parent'])(
+    'refuses a role outside the closed set (%j)',
+    (role) => {
+      expect(fieldErrors(createSignUpDraft({ ...MARA, role }))?.['role']).toEqual([
+        'auth.validation.role_invalid',
+      ]);
+    },
+  );
+
   it('never echoes the password in the error', () => {
-    const result = createSignUpDraft({ name: '', email: 'bad', password: 'secret-value' });
+    const result = createSignUpDraft({
+      name: '',
+      email: 'bad',
+      password: 'secret-value',
+      role: 'parent',
+    });
 
     expect(JSON.stringify(result.isErr() && result.error)).not.toContain('secret-value');
   });

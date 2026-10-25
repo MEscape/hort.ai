@@ -7,6 +7,7 @@ import { resolveMailLocale } from '@lib/mail/server';
 
 import { AUTH_LINK_LIFETIME_SECONDS, CREDENTIAL_LIMITS } from '../../domain/models/credentials';
 import { toActorId } from '../../domain/models/ids';
+import { ROLES } from '../../domain/models/role';
 
 import { createSecurityAuditOptions } from './create-security-audit-options';
 import { deliverAuthEmail } from './deliver-auth-email';
@@ -71,7 +72,16 @@ export function createAuth(settings: AuthSettings, deps: AuthDeps) {
     // Anyone may sign up, but only through the `SignUp` use case, which carries the
     // rate limits, the validation and the enumeration protection. The raw HTTP path stays disabled so that
     // nothing can bypass them: it answers 404 over HTTP and stays callable in-process.
-    disabledPaths: ['/sign-up/email'],
+    // `/update-user` is disabled too: it could rewrite the role, which is chosen once at registration.
+    disabledPaths: ['/sign-up/email', '/update-user'],
+
+    user: {
+      additionalFields: {
+        // The account's one role (parent or teacher), stored on the provider's "user" row
+        // (migrations/auth/0002_user_role.sql). Set by `SignUp` from the validated draft only.
+        role: { type: [...ROLES], required: true, input: true },
+      },
+    },
 
     emailAndPassword: {
       enabled: true,

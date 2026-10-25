@@ -75,7 +75,7 @@ describe('authentication Server Actions', () => {
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 
-  it('passes only the validated parent identity to registration', async () => {
+  it('passes only the validated identity and the chosen role to registration', async () => {
     commands.signUp.execute.mockReturnValue(okAsync(undefined));
     const password = 'otter lantern velvet mountain';
     expect(
@@ -85,14 +85,33 @@ describe('authentication Server Actions', () => {
         password,
         confirmPassword: password,
         tenantId: 'other',
-        role: 'admin',
+        role: 'teacher',
+        roles: ['admin'],
       }),
     ).toEqual({ ok: true, data: undefined });
     expect(commands.signUp.execute).toHaveBeenCalledWith({
       name: 'Alex',
       email: 'alex@example.test',
       password,
+      role: 'teacher',
     });
+  });
+
+  it('refuses a role outside the closed set before registration', async () => {
+    const password = 'otter lantern velvet mountain';
+    const result = await signUpAction({
+      name: 'Alex',
+      email: 'alex@example.test',
+      password,
+      confirmPassword: password,
+      role: 'admin',
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { fieldErrors: { role: ['auth.validation.role_invalid'] } },
+    });
+    expect(commands.signUp.execute).not.toHaveBeenCalled();
   });
 
   it('preserves retry information on a rate-limited recovery request', async () => {

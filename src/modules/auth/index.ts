@@ -2,12 +2,14 @@
  * Server-side public API of the auth module. Other modules and framework
  * entry points import from here and nowhere deeper. Browser consumers use client.ts.
  *
- * Responsibilities: who is signed in (a parent), and whether that parent may do what a use case
- * asks. Parent account details and child profiles belong to other modules; they only receive the
- * authorization service and the ids and scopes below.
+ * Responsibilities: who is signed in (a parent or a teacher), and whether they may do what a use
+ * case asks. Account details, child profiles and classes belong to other modules; they only receive
+ * the authorization service and the ids and scopes below.
  */
 
 export type { ActorId, TenantId } from './domain/models/ids';
+/** Trusted brand constructors for record mappers of other modules (ids read back from storage). */
+export { toActorId, toTenantId } from './domain/models/ids';
 export { PERMISSIONS } from './domain/models/permission';
 export type { Permission } from './domain/models/permission';
 export type { ResourceScope } from './domain/models/authorize';

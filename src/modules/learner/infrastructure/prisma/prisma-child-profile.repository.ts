@@ -35,6 +35,7 @@ interface Owner {
   readonly ownerId: ActorId;
 }
 
+/** @owner-scope builder Every caller below pins `tenantId` and `ownerId` (or sets them on create). */
 const profiles = () => db.orm.public.ChildProfile.select(...CHILD_PROFILE_SELECT);
 
 /** The parent's unfinished profile: at most one row, by the partial unique index. */
