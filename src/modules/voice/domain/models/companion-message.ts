@@ -7,12 +7,14 @@ export type ReadAloudFeedback = (typeof READ_ALOUD_FEEDBACK)[number];
  * (by position, oldest first), the comprehension question waiting for a reply, or a fixed feedback
  * line. The words are looked up on the server, so the browser can never choose them.
  */
-export type CompanionMessageRef =
+export type CompanionMessageRef = { readonly sessionId?: string | undefined } & (
   | { readonly kind: 'hint'; readonly index: number }
   | { readonly kind: 'answer_feedback'; readonly index: number }
   | { readonly kind: 'answer_question'; readonly index: number }
   | { readonly kind: 'question' }
-  | { readonly kind: 'feedback'; readonly feedback: ReadAloudFeedback };
+  | { readonly kind: 'opening' }
+  | { readonly kind: 'feedback'; readonly feedback: ReadAloudFeedback }
+);
 
 /**
  * The wording of a predefined line of the guidance catalog (e.g. `hint.fallback.next_step`) in the

@@ -1,5 +1,7 @@
 'use client';
 
+import { VoiceInputButton, ReadAloudButton } from '@modules/voice/client';
+
 import type { TutorOption } from '@modules/learner/client';
 import { learnerRoutes } from '@modules/learner/client';
 
@@ -30,6 +32,7 @@ interface HelpConversationProps {
   readonly childProfileId: string;
   readonly initial: HelpSessionDto;
   readonly companion: TutorOption;
+  readonly voiceConsent?: boolean;
 }
 
 function StepStatus({
@@ -76,9 +79,13 @@ function StepStatus({
 function DraftForm({
   state,
   kind,
+  childProfileId,
+  voiceConsent,
 }: {
   readonly state: HelpConversationState;
   readonly kind: 'answer' | 'reply';
+  readonly childProfileId: string;
+  readonly voiceConsent: boolean;
 }) {
   const t = useTranslations('guidance');
   const id = `help-${kind}`;
@@ -109,6 +116,11 @@ function DraftForm({
         autoComplete="off"
         className="block min-h-28 w-full rounded-token-lg border-2 border-border-strong bg-surface p-3 text-lead text-copy"
       />
+      <VoiceInputButton
+        childProfileId={childProfileId}
+        allowed={voiceConsent}
+        onTranscript={state.setDraft}
+      />
       <Button type="submit" size="lg" disabled={state.isPending}>
         {t(kind === 'answer' ? 'conversation.checkAnswer' : 'conversation.sendReply')}
       </Button>
@@ -120,7 +132,12 @@ function DraftForm({
  * The help session screen (#83, designer guide §10): one conversation, the task stays visible,
  * the chosen companion leads. What the child can do next follows the backend's phase only.
  */
-export function HelpConversation({ childProfileId, initial, companion }: HelpConversationProps) {
+export function HelpConversation({
+  childProfileId,
+  initial,
+  companion,
+  voiceConsent = false,
+}: HelpConversationProps) {
   const t = useTranslations('guidance');
   const state = useHelpConversation(childProfileId, initial);
   return (
@@ -142,13 +159,23 @@ export function HelpConversation({ childProfileId, initial, companion }: HelpCon
                 ? t('opening.clarify')
                 : t(REDIRECT_KEY[initial.opening.intent])}
             </p>
+            <ReadAloudButton
+              childProfileId={childProfileId}
+              allowed={voiceConsent}
+              message={{ kind: 'opening', sessionId: initial.sessionId }}
+            />
             <Button asChild size="lg">
               <Link href={guidanceRoutes.start(childProfileId)}>{t('conversation.newTask')}</Link>
             </Button>
           </CardContent>
         </Card>
       )}
-      <ConversationLines lines={state.lines} companion={companion} />
+      <ConversationLines
+        lines={state.lines}
+        companion={companion}
+        childProfileId={childProfileId}
+        voiceConsent={voiceConsent}
+      />
       <StepStatus state={state} companionName={companion.name} />
       {state.phase === 'working' && initial.opening === null && (
         <Card>
@@ -163,14 +190,24 @@ export function HelpConversation({ childProfileId, initial, companion }: HelpCon
                 </span>
               )}
             </div>
-            <DraftForm state={state} kind="answer" />
+            <DraftForm
+              state={state}
+              kind="answer"
+              childProfileId={childProfileId}
+              voiceConsent={voiceConsent}
+            />
           </CardContent>
         </Card>
       )}
       {state.phase === 'comprehension' && (
         <Card>
           <CardContent>
-            <DraftForm state={state} kind="reply" />
+            <DraftForm
+              state={state}
+              kind="reply"
+              childProfileId={childProfileId}
+              voiceConsent={voiceConsent}
+            />
           </CardContent>
         </Card>
       )}

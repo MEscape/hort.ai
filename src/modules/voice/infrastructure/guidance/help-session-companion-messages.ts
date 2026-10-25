@@ -19,6 +19,20 @@ function wordsIn(
   message: SessionMessage,
   wording: PredefinedWording,
 ): string | null {
+  if (
+    session === null ||
+    (message.sessionId !== undefined && session.sessionId !== message.sessionId)
+  ) {
+    return null;
+  }
+  if (message.kind === 'opening') {
+    const opening = session.opening;
+    return opening === null
+      ? null
+      : wording(
+          opening.kind === 'clarify' ? 'opening.clarify' : `opening.redirect.${opening.intent}`,
+        );
+  }
   if (message.kind === 'hint') {
     const hint = session?.hints[message.index];
     if (hint === undefined) {

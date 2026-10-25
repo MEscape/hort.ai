@@ -53,7 +53,14 @@ async function HelpContent() {
       </Card>
     );
   }
-  return <HelpConversation childProfileId={child.id} initial={session} companion={companion} />;
+  return (
+    <HelpConversation
+      childProfileId={child.id}
+      initial={session}
+      companion={companion}
+      voiceConsent={child.voiceConsent}
+    />
+  );
 }
 
 export default async function HelpPage({
@@ -63,7 +70,7 @@ export default async function HelpPage({
 }) {
   const locale = requireLocale((await params).locale);
   return (
-    <I18nProvider locale={locale} namespaces={['guidance']}>
+    <I18nProvider locale={locale} namespaces={['guidance', 'voice']}>
       <AuthShell>
         <Suspense fallback={null}>
           <HelpContent />
