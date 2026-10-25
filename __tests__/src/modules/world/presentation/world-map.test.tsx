@@ -192,7 +192,7 @@ describe('IslandPicture', () => {
 describe('IslandView', () => {
   it('names every place and shows which homework belongs to the one tapped', () => {
     renderInEnglish(
-      <IslandView island={islandOf('zahlenwald')} startHref="/start" labels={LABELS} />,
+      <IslandView island={islandOf('zahlenwald')} startHref="/help" labels={LABELS} />,
     );
     const bridge = screen.getByRole('button', { name: 'Zählbrücke' });
     expect(bridge).toHaveAttribute('aria-pressed', 'false');
@@ -205,23 +205,23 @@ describe('IslandView', () => {
     expect(screen.getByText('Für Aufgaben zum Zählen und Abzählen.')).toBeVisible();
     expect(screen.getByRole('link', { name: 'Start a homework task' })).toHaveAttribute(
       'href',
-      '/en/start?area=zahlenwald&place=zaehlbruecke',
+      '/en/help?area=zahlenwald&place=zaehlbruecke',
     );
   });
 
   it('starts homework on the island itself before a place is picked', () => {
     renderInEnglish(
-      <IslandView island={islandOf('zahlenwald')} startHref="/start" labels={LABELS} />,
+      <IslandView island={islandOf('zahlenwald')} startHref="/help" labels={LABELS} />,
     );
     expect(screen.getByRole('link', { name: 'Start a homework task' })).toHaveAttribute(
       'href',
-      '/en/start?area=zahlenwald',
+      '/en/help?area=zahlenwald',
     );
   });
 
   it('shows an island in the mist without its places or a way to start there', () => {
     const misty = worldIsland('zahlenwald', undefined, undefined, new Set());
-    renderInEnglish(<IslandView island={misty!} startHref="/start" labels={LABELS} />);
+    renderInEnglish(<IslandView island={misty!} startHref="/help" labels={LABELS} />);
 
     expect(screen.queryByRole('button', { name: 'Zählbrücke' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Start a homework task' })).toBeNull();
@@ -230,7 +230,7 @@ describe('IslandView', () => {
 
   it('keeps one place selected at a time', () => {
     renderInEnglish(
-      <IslandView island={islandOf('zahlenwald')} startHref="/start" labels={LABELS} />,
+      <IslandView island={islandOf('zahlenwald')} startHref="/help" labels={LABELS} />,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Zählbrücke' }));
     fireEvent.click(screen.getByRole('button', { name: 'Plus-Mulde' }));

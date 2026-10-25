@@ -21,6 +21,7 @@ interface TranscriptLineProps {
 export function TranscriptLine({ who, speaker, text, action }: TranscriptLineProps) {
   return (
     <li
+      data-who={who}
       className={cn(
         'max-w-5/6 rounded-token-lg px-3 py-2 whitespace-pre-wrap text-copy',
         who === 'child'

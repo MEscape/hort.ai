@@ -25,8 +25,8 @@ interface IslandPageParams {
   readonly params: Promise<{ locale: string; areaId: string }>;
 }
 
-/** The task entry that starts a help session; without `?child=` it uses the onboarded child. */
-const START_HREF = '/start';
+/** The help screen asks for a new task there; the island and place travel along as `?area=&place=`. */
+const START_HREF = '/help';
 
 /**
  * The segment is untrusted and per request: one placeholder id lets the build prerender the shell

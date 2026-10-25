@@ -4,7 +4,6 @@ import type { ReactElement, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import HelpPage from '@/app/[locale]/(app)/help/page';
-import StartPage from '@/app/[locale]/(public)/start/page';
 
 const OPEN = { sessionId: 's1', task: 'Add 347 and 256', assignmentId: null };
 const SCENE = {
@@ -122,6 +121,15 @@ describe('the help canvas page', () => {
     expect(screen.props['openTask']).toEqual({ task: 'Add 347 and 256', assignmentId: null });
   });
 
+  it('asks for a task from an island link even while one is open, never showing the open one', async () => {
+    deps.openSession.mockResolvedValue(OPEN);
+
+    const screen = await content({ area: 'zahlenwald', place: 'plus-mulde' });
+
+    expect(screen.props['openTask']).toEqual({ task: 'Add 347 and 256', assignmentId: null });
+    expect(screen.props['topic']).toMatchObject({ areaId: 'zahlenwald', placeId: 'plus-mulde' });
+  });
+
   it('hands a validated island and place on as the task’s context', async () => {
     const screen = await content({ new: '1', area: 'zahlenwald', place: 'plus-mulde' });
 
@@ -145,30 +153,5 @@ describe('the help canvas page', () => {
     expect(
       (await content({ area: 'maerchenwald', place: 'plus-mulde' })).props['topic'],
     ).toBeNull();
-  });
-});
-
-describe('the old start page', () => {
-  async function redirectOf(searchParams: Record<string, string>) {
-    const page = StartPage({
-      params: Promise.resolve({ locale: 'en' }),
-      searchParams: Promise.resolve(searchParams),
-    }) as ReactElement<AnyProps>;
-    const inner = page.props.children as ReactElement<AnyProps>;
-    await expect((inner.type as (props: unknown) => Promise<never>)(inner.props)).rejects.toThrow(
-      'redirected',
-    );
-    return deps.redirect.mock.calls.at(-1)?.[0];
-  }
-
-  it('sends old links to the help canvas', async () => {
-    expect(await redirectOf({})).toEqual({ href: '/help', locale: 'en' });
-  });
-
-  it('keeps an island link’s area and place and asks for a new task', async () => {
-    expect(await redirectOf({ area: 'zahlenwald', place: 'plus-mulde' })).toEqual({
-      href: '/help?new=1&area=zahlenwald&place=plus-mulde',
-      locale: 'en',
-    });
   });
 });

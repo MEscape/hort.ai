@@ -11,10 +11,10 @@ interface TaskPageProps {
   readonly params: Promise<{ locale: string }>;
 }
 
-/** The old placeholder entry: old links land on the real task entry at "/start". */
+/** The old placeholder entry: old links land on the help screen, which asks for the task. */
 async function ToStart({ params }: TaskPageProps): Promise<never> {
   const locale = requireLocale((await params).locale);
-  return redirect({ href: '/start', locale });
+  return redirect({ href: '/help', locale });
 }
 
 export default function TaskPage(props: TaskPageProps) {

@@ -25,15 +25,21 @@ async function signIn(page: Page, email = PARENT_EMAIL, child = OWN_CHILD) {
 }
 
 /**
- * The current product has one active child per parent, not a profile-picker screen: the real help
- * entry selects the signed-in parent's own child and carries it to the task entry.
+ * The current product has one active child per parent, not a profile-picker screen: the help canvas
+ * asks for a task for the signed-in parent's own child, with the class's assignments as choices.
  */
-async function openTaskEntry(page: Page, child = OWN_CHILD) {
-  await page.goto('/de/help');
-  await expect(page.getByRole('heading', { name: 'Gerade ist keine Aufgabe offen' })).toBeVisible();
-  const entry = page.getByRole('link', { name: 'Neue Aufgabe', exact: true });
-  await expect(entry).toHaveAttribute('href', new RegExp(`child=${child.id}(?:&|$)`));
-  await entry.click();
+async function openTaskEntry(page: Page) {
+  await page.goto('/de/help?new=1');
+  await expect(page.getByRole('heading', { name: 'Was ist deine Aufgabe?' })).toBeVisible();
+}
+
+/** The side panel's transcript: everything said, as text, beside the canvas stage. */
+const transcript = (page: Page) => page.getByRole('region', { name: /schreiben$/ });
+const companionLines = (page: Page) => transcript(page).locator('li[data-who="companion"]');
+
+/** One companion line with `text` (the stage repeats the latest as its sentence). */
+async function companionSaid(page: Page, text: string) {
+  await expect(companionLines(page).filter({ hasText: text }).first()).toBeVisible();
 }
 
 async function signOut(page: Page) {
@@ -142,11 +148,8 @@ async function sessionRecord(sessionId: string) {
 }
 
 async function noModelSolution(page: Page) {
-  const companionLines = page
-    .getByRole('list', { name: 'Gespräch mit deinem Begleiter' })
-    .locator('li > div');
-  await expect(companionLines.first()).toBeVisible();
-  for (const text of await companionLines.allTextContents()) {
+  await expect(companionLines(page).first()).toBeVisible();
+  for (const text of await companionLines(page).allTextContents()) {
     expect(text).not.toMatch(/\b(?:7|83)\b|Die Lösung ist|Richtig wäre/);
   }
 }
@@ -154,29 +157,21 @@ async function noModelSolution(page: Page) {
 async function complete(page: Page, answer: string, fallback = 'valid') {
   await page.getByLabel('Meine Antwort', { exact: true }).fill('6');
   await page.getByRole('button', { name: 'Antwort prüfen', exact: true }).click();
-  await expect(page.getByRole('list', { name: 'Gespräch mit deinem Begleiter' })).toContainText(
-    /Schau dir|Noch nicht ganz/,
-  );
+  await expect(transcript(page)).toContainText(/Schau dir|Noch nicht ganz/);
   await expect(page.getByLabel('Meine Antwort', { exact: true })).toBeVisible();
   await noModelSolution(page);
   await page.getByLabel('Meine Antwort', { exact: true }).fill(answer);
   await page.getByRole('button', { name: 'Antwort prüfen', exact: true }).click();
-  await expect(
-    page.getByText(
-      fallback === 'invalid' ? 'Super, das hast du selbst herausgefunden!' : 'Gut überlegt!',
-      {
-        exact: true,
-      },
-    ),
-  ).toBeVisible();
-  await expect(
-    page.getByText(
-      fallback !== 'valid'
-        ? 'Erklär mir in deinen eigenen Worten, wie du auf deine Antwort gekommen bist.'
-        : 'Warum hast du hier addiert?',
-      { exact: true },
-    ),
-  ).toBeVisible();
+  await companionSaid(
+    page,
+    fallback === 'invalid' ? 'Super, das hast du selbst herausgefunden!' : 'Gut überlegt!',
+  );
+  await companionSaid(
+    page,
+    fallback !== 'valid'
+      ? 'Erklär mir in deinen eigenen Worten, wie du auf deine Antwort gekommen bist.'
+      : 'Warum hast du hier addiert?',
+  );
   await noModelSolution(page);
   await page.reload();
   await expect(page.getByLabel('Erzähl es mir in deinen Worten')).toBeVisible();
@@ -184,7 +179,7 @@ async function complete(page: Page, answer: string, fallback = 'valid') {
     .getByLabel('Erzähl es mir in deinen Worten')
     .fill('Ich habe addiert, weil etwas dazukommt.');
   await page.getByRole('button', { name: 'Antworten', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Geschafft!', exact: true })).toBeVisible();
+  await expect(page.getByText(/Du hast die Aufgabe selbst herausgefunden/).first()).toBeVisible();
   const session = await stored();
   expect(session?.status).toBe('COMPLETED');
   const client = testClient();
@@ -229,7 +224,6 @@ test('parent login → own task → every hint → wrong/right → re-login/resu
 }) => {
   await signIn(page);
   await openTaskEntry(page);
-  await page.getByRole('button', { name: 'Meine Aufgabe', exact: true }).click();
   await page
     .getByLabel('Deine Aufgabe', { exact: true })
     .fill('Lisa hat 3 Äpfel und bekommt 4 dazu. Wie viele Äpfel hat sie?');
@@ -243,9 +237,7 @@ test('parent login → own task → every hint → wrong/right → re-login/resu
     if (index > 0) {
       await page.getByRole('button', { name: 'Ich möchte einen Tipp' }).click();
     }
-    await expect(
-      page.getByText(`Denkanstoß ${level}: Was weißt du schon über die Aufgabe?`, { exact: true }),
-    ).toBeVisible();
+    await companionSaid(page, `Denkanstoß ${level}: Was weißt du schon über die Aufgabe?`);
     await noModelSolution(page);
   }
   const before = await stored();
@@ -260,29 +252,20 @@ test('parent login → own task → every hint → wrong/right → re-login/resu
   const untouched = await sessionRecord(victim.sessionId);
   expect(untouched).toMatchObject({ hints: 4, answers: 0, assessments: 0 });
   await signIn(page, 'other@example.org', FOREIGN_CHILD);
-  await openTaskEntry(page, FOREIGN_CHILD);
+  await openTaskEntry(page);
   await expect(page.getByText('Lisa hat 3 Äpfel und bekommt 4 dazu.')).toHaveCount(0);
-  // Naming the first parent's child in the task-entry URL reveals neither the child nor its class work:
-  // the loaded page (its streamed content names the requested child) carries nothing of the other family.
-  const document = await page.goto(`/de/start?child=${OWN_CHILD.id}`);
+  // Naming the first parent's child in the help URL reveals neither the child nor its class work:
+  // the page serves only the signed-in parent's own child, so it carries nothing of the other family.
+  const document = await page.goto(`/de/help?new=1&child=${OWN_CHILD.id}`);
   const delivered = (await document?.text()) ?? '';
-  expect(delivered).toContain(OWN_CHILD.id);
-  expect(delivered).not.toMatch(/Unsere Plusaufgabe|Rechne 36|e2e-assignment|\bMia\b/);
-  await expect(async () => {
-    await page.getByRole('button', { name: 'Schulaufgaben', exact: true }).click({ timeout: 2000 });
-    await expect(
-      page.getByText('Aufgaben von deiner Lehrkraft sind hier noch nicht verfügbar.', {
-        exact: true,
-      }),
-    ).toBeVisible({ timeout: 3000 });
-  }).toPass({ timeout: 60_000 });
+  expect(delivered).not.toMatch(/Unsere Plusaufgabe|Rechne 36|e2e-assignment|\bMia\b|Lisa hat 3/);
+  await expect(page.getByRole('heading', { name: 'Was ist deine Aufgabe?' })).toBeVisible();
   await expect(page.getByText('Unsere Plusaufgabe')).toHaveCount(0);
   await expect(page.getByLabel('Meine Antwort', { exact: true })).toHaveCount(0);
   // A forged Server Action from the second parent's own browser: same real endpoint and cookie, but it
   // names the first child's open session. The server must refuse it and write nothing.
-  await openTaskEntry(page, FOREIGN_CHILD);
+  await openTaskEntry(page);
   const forgedHint = forgeNextAction(page, 'hint', victim);
-  await page.getByRole('button', { name: 'Meine Aufgabe', exact: true }).click();
   await page
     .getByLabel('Deine Aufgabe', { exact: true })
     .fill('Tom hat 5 Murmeln und bekommt 6 dazu. Wie viele Murmeln hat er?');
@@ -326,7 +309,6 @@ for (const mode of ['valid', 'invalid', 'leaking']) {
       }
     });
     await openTaskEntry(page);
-    await page.getByRole('button', { name: 'Schulaufgaben', exact: true }).click();
     await page.getByRole('button', { name: /Unsere Plusaufgabe/ }).click();
     await expect(page.getByText('Rechne 36 + 47', { exact: false })).toBeVisible();
     await page.getByRole('button', { name: 'Mit dieser Aufgabe anfangen' }).click();
@@ -339,9 +321,7 @@ for (const mode of ['valid', 'invalid', 'leaking']) {
         .toBe(
           ['UNDERSTAND_TASK', 'ACTIVATE_PRIOR_KNOWLEDGE', 'NEXT_STEP', 'SIMILAR_EXAMPLE'][index],
         );
-      await expect(
-        page.getByRole('list', { name: 'Gespräch mit deinem Begleiter' }).locator('li > div'),
-      ).toHaveCount(index + 1);
+      await expect(companionLines(page)).toHaveCount(index + 1);
       await noModelSolution(page);
     }
     // Check the exact server-side key is absent from streamed HTML/RSC/action responses before the child submits it.

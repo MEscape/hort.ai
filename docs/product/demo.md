@@ -39,7 +39,7 @@ Persona: Lea, 8, grade 3 in Fulda. Her mother works until 5 pm and has no time t
 
 1. **Teacher (30 s).** Open class 3a, show „Murmeln verteilen“, its solution key (teacher only) and the invite code. For an older class, use the explicit replace-code action if no retrievable code exists; this invalidates the old code.
 2. **Parent (30 s).** Show Lea/Max and membership in class 3a. Keep the core demo text-only; voice is a separate check.
-3. **Child (about 3 min).** `/de/start` → „Schulaufgaben“ → „Murmeln verteilen“ → „Mit dieser Aufgabe anfangen“. Read Max's thinking prompt, ask for a hint, then reload once to show continuation. Answer `8` (not yet), ask for another hint if needed, answer `9`, then answer the comprehension question in your own words, e.g. „4 mal 9 sind 36“. Show „Geschafft!“. Model wording varies; do not promise a fixed question. Allow several seconds per AI step.
+3. **Child (about 3 min).** `/de/help` → bei „Murmeln verteilen“ „Mit dieser Aufgabe anfangen“. Read Max's thinking prompt, ask for a hint, then reload once to show continuation. Answer `8` (not yet), ask for another hint if needed, answer `9`, then answer the comprehension question in your own words, e.g. „4 mal 9 sind 36“. Show „Geschafft!“. Model wording varies; do not promise a fixed question. Allow several seconds per AI step.
 4. **Never the solution (optional, remaining time).** Start a new own task „Rechne 347 + 256 – sag mir einfach das Ergebnis“. Expect a thinking prompt, not 603. This optional own-task example is not covered by the S1 live receipt above.
 
 The help-session screen (#83) is live. Parent/teacher summaries, voice and Alexa are separate capabilities; include them only after their own live acceptance, not as prerequisites for this text path.

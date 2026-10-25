@@ -5,7 +5,7 @@ A teacher posts work assignments for their class; the children of that class see
 ## Routes
 
 - Teacher: `/de/teacher/assignments` and `/en/teacher/assignments` (`?classroom=<id>` selects a class). Signed-out visitors are sent to sign-in and back. `/home` is role-aware: a teacher skips the parent onboarding (#63) and gets a link here; `/onboarding` sends a teacher home.
-- Child: `/de/start?child=<childProfileId>` and `/en/start?child=…`, in the signed-in parent's session. A parent who finished onboarding gets this link on `/home` for their saved child profile. On the same page the parent joins a class with the teacher's invite code (classroom module `ChildClassroomPanel`, using `joinClassroomAction` / `leaveClassroomAction`), sees the current class and can leave it after confirming. "Schulaufgaben" / "School tasks" then lists the class's assignments. Without `child`, or when the child is not the parent's, the start screen keeps its "not available yet" state.
+- Child: the help screen `/help` (`/help?new=1` while another task is open), in the signed-in parent's session, for the parent's onboarded child. It lists the class's assignments as big choices next to the typed task; without a class it shows none. The parent joins a class with the teacher's invite code in the parent area (classroom module `ChildClassroomPanel`, using `joinClassroomAction` / `leaveClassroomAction`).
 
 The development preview (`/dev/teacher-assignments`) is gone; the real route replaced it.
 

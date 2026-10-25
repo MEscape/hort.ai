@@ -16,12 +16,12 @@ interface InnerProps {
   readonly params: Promise<{ locale: string }>;
 }
 
-it('sends the old placeholder entry /home/task to the real task entry on /start', async () => {
+it('sends the old placeholder entry /home/task to the help screen', async () => {
   const page = TaskPage({ params: Promise.resolve({ locale: 'de' }) }) as ReactElement<{
     children: ReactElement<InnerProps>;
   }>;
   const inner = page.props.children;
   const render = inner.type as (props: InnerProps) => Promise<never>;
   await expect(render(inner.props)).rejects.toThrow('NEXT_REDIRECT');
-  expect(redirect).toHaveBeenCalledWith({ href: '/start', locale: 'de' });
+  expect(redirect).toHaveBeenCalledWith({ href: '/help', locale: 'de' });
 });

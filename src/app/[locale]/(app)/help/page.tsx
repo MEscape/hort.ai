@@ -103,7 +103,8 @@ async function HelpContent({ searchParams }: Pick<HelpPageProps, 'searchParams'>
   }
   const params = await searchParams;
   const open = await loadOpenHelpSession(child.id);
-  if (open !== null && params['new'] !== '1') {
+  // An island's start link (`?area=`) and "new task" (`?new=1`) ask for a task even while one is open.
+  if (open !== null && params['new'] !== '1' && params['area'] === undefined) {
     const scene = await loadTaskSceneDto(child.id);
     return (
       <HelpConversation

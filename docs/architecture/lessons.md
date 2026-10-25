@@ -25,5 +25,4 @@ The authored lesson in `domain/lessons/` is complete on its own. When a model pe
 - **Persistence and XP** (R-007/R-008): `CheckSceneAnswer` is a query and stores nothing; a reload starts the lesson again. Next: a lesson-progress repository and an idempotent XP grant through the progression module.
 - **Voice**: narration is a caption only; speaking it needs catalog phrases or speech tickets in the voice module. The side panel ("Schreiben") is closed by default and opened by the child; once voice input exists it opens by itself when the microphone is unavailable.
 - **AI personalisation**: no model call yet; see Fallback.
-- **Homework help on the Stage**: `/start` and `/help` still use their own layout.
 - **Permission**: lessons reuse `hint.request`; a `lesson.*` permission belongs in the auth role table when roles differ.
