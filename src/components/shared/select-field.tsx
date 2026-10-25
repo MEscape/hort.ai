@@ -61,9 +61,10 @@ export function SelectField({
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor={id}>{label}</Label>
+      {/* Radix shows the placeholder for '': passing `undefined` would make it uncontrolled until the first choice. */}
       <Select
         name={name}
-        value={value === '' ? undefined : value}
+        value={value}
         onValueChange={onValueChange}
         disabled={disabled}
       >

@@ -1,5 +1,7 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
+
 import { Button } from '@components/ui/button';
 import {
   DropdownMenu,
@@ -11,7 +13,7 @@ import {
 } from '@components/ui/dropdown-menu';
 import { ChevronDown, House, LogOut, Settings } from '@components/ui/icons';
 
-import { Link } from '@i18n';
+import { Link, usePathname } from '@i18n';
 
 import { useTranslations } from '@i18n/client';
 
@@ -34,6 +36,9 @@ interface AccountMenuProps {
 export function AccountMenu({ name, role }: AccountMenuProps) {
   const t = useTranslations('auth');
   const signOut = useSignOut();
+  // The settings page's back arrow returns here; the page re-checks it is a same-site path.
+  const search = useSearchParams().toString();
+  const here = `${usePathname()}${search === '' ? '' : `?${search}`}`;
 
   return (
     <DropdownMenu>
@@ -67,7 +72,7 @@ export function AccountMenu({ name, role }: AccountMenuProps) {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href={authRoutes.settings()}>
+          <Link href={authRoutes.settings(here)}>
             <Settings aria-hidden="true" />
             {t('account.settings')}
           </Link>
