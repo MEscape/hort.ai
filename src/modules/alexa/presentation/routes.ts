@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import type { UnauthorizedAppError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
-import { parseJson } from '@lib/utils';
+import { parseJson, TimeoutError, withTimeout } from '@lib/utils';
 
 import {
   parseConversationId,
@@ -121,7 +121,10 @@ export function createAlexaEndpoint(
   return async (request) => {
     const now = options.now ?? Date.now;
     // Counted from arrival, before verification, which is never skipped to save time.
-    const deadlineAt = now() + (options.requestBudgetMs ?? REQUEST_BUDGET_MS);
+    const budget: RequestBudget = {
+      deadlineAt: now() + (options.requestBudgetMs ?? REQUEST_BUDGET_MS),
+      now,
+    };
     const { skillId } = options;
     if (!skillId) {
       return failure(HTTP.serviceUnavailable, 'alexa_not_configured');
@@ -129,11 +132,21 @@ export function createAlexaEndpoint(
     if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
       return failure(HTTP.unsupportedMediaType, 'unsupported_media_type');
     }
-    const raw = await readBoundedBody(request);
+    const raw = await readBoundedBody(request, budget);
+    if (raw === TIMED_OUT) {
+      return failure(HTTP.serviceUnavailable, 'request_timeout');
+    }
     if (raw === undefined) {
       return failure(HTTP.payloadTooLarge, 'payload_too_large');
     }
-    const verified = await options.verify(raw, Object.fromEntries(request.headers.entries()));
+    // Fail closed: a verification that outlasts the budget is a rejection, never a skipped check.
+    const verified = await withinBudget(
+      options.verify(raw, Object.fromEntries(request.headers.entries())),
+      budget,
+    );
+    if (verified === TIMED_OUT) {
+      return failure(HTTP.serviceUnavailable, 'request_timeout');
+    }
     if (verified.isErr()) {
       return failure(HTTP.badRequest, 'invalid_alexa_request');
     }
@@ -144,7 +157,7 @@ export function createAlexaEndpoint(
     if (!isForSkill(envelope.data, skillId)) {
       return failure(HTTP.forbidden, 'wrong_skill');
     }
-    return respond(envelope.data, options, { deadlineAt, now });
+    return respond(envelope.data, options, budget);
   };
 }
 
@@ -157,6 +170,28 @@ function isForSkill(envelope: Envelope, skillId: string): boolean {
 interface RequestBudget {
   readonly deadlineAt: number;
   readonly now: () => number;
+}
+
+/** Marks work (body read, verification) that did not finish before the request's deadline. */
+const TIMED_OUT = Symbol('request_timed_out');
+
+/** The work's result, or `TIMED_OUT` once the budget is spent; other failures propagate unchanged. */
+async function withinBudget<T>(
+  work: PromiseLike<T>,
+  budget: RequestBudget,
+): Promise<T | typeof TIMED_OUT> {
+  const left = budget.deadlineAt - budget.now();
+  if (left <= 0) {
+    return TIMED_OUT;
+  }
+  try {
+    return await withTimeout(Promise.resolve(work), left);
+  } catch (error) {
+    if (error instanceof TimeoutError) {
+      return TIMED_OUT;
+    }
+    throw error;
+  }
 }
 
 async function respond(
@@ -301,11 +336,25 @@ function failure(status: number, code: string): Response {
   return Response.json({ error: { code } }, { status });
 }
 
-async function readBoundedBody(request: Request): Promise<string | undefined> {
+/** The body, `undefined` when too large, `TIMED_OUT` (stream cancelled) when it arrives too slowly. */
+async function readBoundedBody(
+  request: Request,
+  budget: RequestBudget,
+): Promise<string | undefined | typeof TIMED_OUT> {
   const reader = request.body?.getReader();
   if (!reader) {
     return '';
   }
+  const raw = await withinBudget(collectBody(reader), budget);
+  if (raw === TIMED_OUT) {
+    reader.cancel().catch(() => undefined);
+  }
+  return raw;
+}
+
+async function collectBody(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+): Promise<string | undefined> {
   const chunks: Uint8Array[] = [];
   let size = 0;
   for (let chunk = await reader.read(); !chunk.done; chunk = await reader.read()) {

@@ -141,7 +141,7 @@ function request(type: 'LaunchRequest' | 'IntentRequest', turn: Turn = {}) {
 }
 
 interface AlexaBody {
-  sessionAttributes?: { question?: unknown; last?: unknown };
+  sessionAttributes?: { question?: unknown; last?: unknown; speaker?: unknown };
   response: {
     outputSpeech?: { text: string };
     reprompt?: { outputSpeech: { text: string } };
@@ -505,7 +505,11 @@ describe('Alexa child channel: a hanging database', () => {
 
   it('answers help and repeat without the database, in the voice of the last reply', async () => {
     const lineUrl = vi.fn((_tutorId: string, _text: string) => okAsync(CLIP));
-    const voice: TutorVoice = { audioUrl: () => okAsync(CLIP), lineUrl, greetingUrl: lineUrl };
+    const voice: TutorVoice = {
+      audioUrl: () => okAsync(CLIP),
+      lineUrl,
+      greetingUrl: () => okAsync(CLIP),
+    };
     const { handle, lookups } = endpoint({ hang: true }, voice);
     const last = [{ kind: 'line', text: CHILD_LINES.whatNow }];
 
@@ -658,5 +662,55 @@ describe('Alexa child channel: the whole request stays within its budget', () =>
 
     expect(text).toBe(CHILD_LINES.bye);
     expect(performance.now() - started).toBeLessThan(1_500);
+  });
+
+  it('fails closed without a skill answer when verification outlasts the deadline', async () => {
+    const child = fakeChild();
+    const handle = createAlexaEndpoint({
+      skillId: SKILL_ID,
+      verify: () => hanging<void>(),
+      tutor: connectionTestTutor,
+      introductions,
+      child: { companion: child.companion, defaultTutorId: toTutorId('max') },
+      requestBudgetMs: 300,
+    });
+    const started = performance.now();
+
+    const response = await handle(request('LaunchRequest'));
+
+    expect(performance.now() - started).toBeLessThan(1_000);
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: { code: 'request_timeout' } });
+    expect([...child.calls, ...child.lookups]).toEqual([]);
+  });
+
+  it('fails closed before verifying when the body arrives too slowly', async () => {
+    const verify = vi.fn(() => okAsync(undefined));
+    const handle = createAlexaEndpoint({
+      skillId: SKILL_ID,
+      verify,
+      tutor: connectionTestTutor,
+      child: { companion: fakeChild().companion, defaultTutorId: toTutorId('max') },
+      requestBudgetMs: 300,
+    });
+    const slowBody = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('{"version":'));
+      },
+    });
+    const started = performance.now();
+
+    const response = await handle(
+      new Request('https://hort.example/api/alexa', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: slowBody,
+        duplex: 'half',
+      } as RequestInit),
+    );
+
+    expect(performance.now() - started).toBeLessThan(1_000);
+    expect(response.status).toBe(503);
+    expect(verify).not.toHaveBeenCalled();
   });
 });
