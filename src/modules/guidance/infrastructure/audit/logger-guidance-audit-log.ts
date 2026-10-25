@@ -10,6 +10,7 @@ import type { GuidanceAuditLog, GuidanceEvent } from '../../domain/ports/guidanc
  */
 export const LEVEL_BY_EVENT = {
   'guidance.hint_fallback_used': 'warn',
+  'guidance.feedback_fallback_used': 'warn',
   'guidance.grounding_unavailable': 'warn',
   'guidance.hint_requested': 'info',
 } as const satisfies Record<GuidanceEvent['type'], 'info' | 'warn'>;
