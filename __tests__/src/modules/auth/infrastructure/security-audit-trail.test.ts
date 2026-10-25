@@ -90,6 +90,19 @@ const EVENTS = [
       ownerId: toActorId('parent-2'),
     },
   ],
+  [
+    'authentication.parent_area_opened',
+    { type: 'authentication.parent_area_opened', actorId: ACTOR, tenantId: TENANT },
+  ],
+  [
+    'authentication.parent_area_open_failed',
+    {
+      type: 'authentication.parent_area_open_failed',
+      actorId: ACTOR,
+      tenantId: TENANT,
+      errorCode: 'auth.invalid_credentials',
+    },
+  ],
 ] as const satisfies ReadonlyArray<readonly [SecurityEvent['type'], SecurityEvent]>;
 
 let stdout: ReturnType<typeof vi.spyOn>;
@@ -154,6 +167,8 @@ describe('security events and the audit trail', () => {
       'authentication.account_created': 'info',
       'authentication.password_reset_completed': 'info',
       'authentication.sign_in_failed': 'warn',
+      'authentication.parent_area_opened': 'info',
+      'authentication.parent_area_open_failed': 'warn',
     });
   });
 

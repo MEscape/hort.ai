@@ -48,6 +48,19 @@ export type SecurityEvent =
       readonly type: 'authentication.password_reset_completed';
       readonly actorId: ActorId;
       readonly tenantId: TenantId;
+    }
+  | {
+      /** The signed-in parent re-entered their password and opened the parent area. */
+      readonly type: 'authentication.parent_area_opened';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+    }
+  | {
+      /** A wrong password at the parent gate, e.g. someone else on the shared device guessing. */
+      readonly type: 'authentication.parent_area_open_failed';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      readonly errorCode: string;
     };
 
 /**

@@ -74,6 +74,8 @@ Only the audit module's domain, application and infrastructure layers are used. 
 | `authentication.session_revoked`          | provider `session.delete` hook   | member      |
 | `authentication.sign_in_failed`           | provider after-hook (`/sign-in`) | visitor     |
 | `authentication.password_reset_completed` | provider `onPasswordReset`       | member      |
+| `authentication.parent_area_opened`       | `OpenParentArea`                 | member      |
+| `authentication.parent_area_open_failed`  | `OpenParentArea`                 | member      |
 | `authorization.denied`                    | `AuthorizationService`           | member      |
 | `authorization.admin_override`            | `AuthorizationService`           | member      |
 

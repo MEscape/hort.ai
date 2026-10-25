@@ -34,7 +34,7 @@ export interface BetterAuthAuthenticatorDeps {
  * Anything outside it is collapsed to an infrastructure error, which fails
  * closed. The exhaustive match forces a decision if `AppError` gains a kind.
  */
-function narrowAuthenticatorError(error: AppError): AuthenticatorError {
+export function narrowAuthenticatorError(error: AppError): AuthenticatorError {
   const failClosed = (cause: AppError): AuthenticatorError => providerFailed(cause);
 
   return matchAppError<AuthenticatorError>(error, {
