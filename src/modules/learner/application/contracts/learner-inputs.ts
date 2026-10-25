@@ -13,6 +13,13 @@ export interface SaveInterestsInput {
   readonly interests: readonly string[];
 }
 
+/** A class's school data, copied into the child's profile when the child joins it (#32). */
+export interface AdoptSchoolSettingsInput {
+  readonly profileId: string;
+  readonly federalState: string;
+  readonly grade: number;
+}
+
 export interface ChooseTutorInput {
   readonly profileId: string;
   readonly tutorId: string;

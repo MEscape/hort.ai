@@ -1,0 +1,21 @@
+{
+  "classroom": {
+    "errors": {
+      "notFound": "The class was not found.",
+      "validation": "Please check your input.",
+      "infrastructure": "A service error occurred. Please try again later.",
+      "archived": "The class is archived and can no longer be changed.",
+      "inviteCodeInvalid": "This code is not valid. Please check it or ask the teacher for the current code.",
+      "childAlreadyInClassroom": "Your child is already in a class. Remove them from that class first.",
+      "rateLimited": "Too many attempts. Please try again later.",
+      "unexpected": "An unexpected error occurred."
+    },
+    "validation": {
+      "idInvalid": "The identifier is invalid.",
+      "required": "This field is required.",
+      "tooLong": "This value is too long.",
+      "numberInvalid": "Enter a grade from 1 to 4.",
+      "optionUnknown": "Choose one of the available options."
+    }
+  }
+}
