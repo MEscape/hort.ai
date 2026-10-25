@@ -20,11 +20,19 @@
         "comprehension_question": "Tell me in your own words how you got to your answer."
       }
     },
+    "opening": {
+      "clarify": "Tell me a little more: what are you supposed to do in this task?",
+      "redirect": {
+        "small_talk": "Hello! Nice to see you. Show me your homework and we can think it through together.",
+        "curiosity": "What an interesting question! Ask a grown-up or look it up in a book. Do you have homework I can help you with?"
+      }
+    },
     "errors": {
       "validation": "Something did not fit. Please try again.",
       "childInputInvalid": "Please write your answer again.",
       "sessionNotFound": "This task is no longer open. Please start it again.",
       "noOpenQuestion": "There is no question to answer right now.",
+      "assignmentNotFound": "This school task is not available any more. Pick another one or ask your teacher.",
       "rateLimited": "Take a short break and try again in a moment.",
       "infrastructure": "Something is not working right now. Please try again in a moment.",
       "unexpected": "Something went wrong. Please try again."

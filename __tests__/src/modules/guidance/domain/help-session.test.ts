@@ -8,8 +8,9 @@ import {
 } from '@modules/guidance/domain/models/help-session';
 import type { AnswerCheckStep } from '@modules/guidance/domain/models/help-session';
 import { toStepRequestId } from '@modules/guidance/domain/models/ids';
+import type { AssignmentId } from '@modules/guidance/domain/models/ids';
 
-import { task } from '../fakes';
+import { ASSIGNMENT, OTHER_CLASS_ASSIGNMENT, task } from '../fakes';
 import { storedSession } from '../help-session-fakes';
 
 function check(overrides: Partial<AnswerCheckStep> = {}): AnswerCheckStep {
@@ -62,8 +63,28 @@ describe('help session progress', () => {
   it('continues only the same task in the same subject', () => {
     const session = storedSession();
 
-    expect(isSameTask(session, task('Rechne 23 + 19.'), 'math')).toBe(true);
-    expect(isSameTask(session, task('Rechne 23 + 19.'), 'german')).toBe(false);
-    expect(isSameTask(session, task('Rechne 50 - 8.'), 'math')).toBe(false);
+    const own = (text: string, subject: 'math' | 'german' = 'math') => ({
+      assignmentId: null,
+      task: task(text),
+      subject,
+    });
+
+    expect(isSameTask(session, own('Rechne 23 + 19.'))).toBe(true);
+    expect(isSameTask(session, own('Rechne 23 + 19.', 'german'))).toBe(false);
+    expect(isSameTask(session, own('Rechne 50 - 8.'))).toBe(false);
+  });
+
+  it('continues an assignment by its id, even when the teacher edited its text since (#33)', () => {
+    const session = storedSession({ assignmentId: ASSIGNMENT });
+    const source = (assignmentId: AssignmentId | null, text = 'Rechne 23 + 19.') => ({
+      assignmentId,
+      task: task(text),
+      subject: 'math' as const,
+    });
+
+    expect(isSameTask(session, source(ASSIGNMENT, 'Rechne 23 + 19, mit Rechenweg.'))).toBe(true);
+    expect(isSameTask(session, source(OTHER_CLASS_ASSIGNMENT))).toBe(false);
+    expect(isSameTask(session, source(null))).toBe(false);
+    expect(isSameTask(storedSession(), source(ASSIGNMENT))).toBe(false);
   });
 });

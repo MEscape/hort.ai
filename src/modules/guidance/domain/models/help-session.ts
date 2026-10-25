@@ -4,8 +4,9 @@ import type { ChildTaskText } from './child-task-text';
 import type { GivenHint, HintLadderState } from './help-session-state';
 import type { HintLevel } from './hint-level';
 import type { HintSubject } from './hint-subject';
-import type { ChildProfileId, HelpSessionId } from './ids';
+import type { AssignmentId, ChildProfileId, HelpSessionId } from './ids';
 import type { RecordedAnswerCheck } from '../ports/hint-session-store.port';
+import type { SessionTopic } from '../topic/session-topic';
 
 /** A session is worked on while `active`; it ends `completed` (understood) or `abandoned` (another task was started). */
 export type HelpSessionStatus = 'active' | 'completed' | 'abandoned';
@@ -30,6 +31,11 @@ export interface AnswerCheckStep extends Omit<RecordedAnswerCheck, 'question'> {
 export interface HelpSession {
   readonly id: HelpSessionId;
   readonly childProfileId: ChildProfileId;
+  /**
+   * The teacher's assignment the session is on (#33), `null` for the child's own task. `task` then
+   * holds the assignment's text as it was when the session started; the solution key is not stored.
+   */
+  readonly assignmentId: AssignmentId | null;
   readonly task: ChildTaskText;
   readonly subject: HintSubject;
   readonly status: HelpSessionStatus;
@@ -39,6 +45,8 @@ export interface HelpSession {
   readonly updatedAt: Date;
   readonly hints: readonly GivenHint[];
   readonly answerChecks: readonly AnswerCheckStep[];
+  /** What the topic classification decided when the session started (#92). */
+  readonly topic: SessionTopic;
 }
 
 /** Where the child stands: still working, asked to answer the comprehension question, or done. */
@@ -75,19 +83,30 @@ export function progressOf(session: HelpSession): HelpSessionProgress {
   return openQuestionCheck(session) === null ? 'working' : 'awaiting_comprehension_reply';
 }
 
-/** Starting the same task again while it is open continues it instead of starting over. */
-export function isSameTask(
-  session: HelpSession,
-  task: ChildTaskText,
-  subject: HintSubject,
-): boolean {
-  return session.task === task && session.subject === subject;
+/** What a session is started on: the child's own task, or a teacher's assignment and its text. */
+export interface HelpSessionSource {
+  readonly assignmentId: AssignmentId | null;
+  readonly task: ChildTaskText;
+  readonly subject: HintSubject;
+}
+
+/**
+ * Starting the same task again while it is open continues it instead of starting over. An
+ * assignment is the same by its id (its text may have been edited since); the child's own task by
+ * its text. The subject must match either way.
+ */
+export function isSameTask(session: HelpSession, source: HelpSessionSource): boolean {
+  if (session.assignmentId !== source.assignmentId || session.subject !== source.subject) {
+    return false;
+  }
+  return source.assignmentId !== null || session.task === source.task;
 }
 
 /** What the hint ladder (#30) decides from: the task, the hints given and the answers' results. */
 export function toLadderState(session: HelpSession): HintLadderState {
   return {
     task: session.task,
+    assignmentId: session.assignmentId,
     subject: session.subject,
     hints: session.hints,
     answers: session.answerChecks.map((check) => check.result),

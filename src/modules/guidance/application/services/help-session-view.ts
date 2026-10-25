@@ -24,6 +24,7 @@ export function toHelpSessionView(session: HelpSession): HelpSessionView {
   const open = openQuestionCheck(session);
   return {
     sessionId: session.id,
+    assignmentId: session.assignmentId,
     task: session.task,
     subject: session.subject,
     status: progressOf(session),
@@ -35,6 +36,7 @@ export function toHelpSessionView(session: HelpSession): HelpSessionView {
       hintLevel,
     })),
     openQuestion: open?.question ? toQuestion(open.question.text) : null,
+    opening: session.topic.opening,
     updatedAt: session.updatedAt.toISOString(),
   };
 }

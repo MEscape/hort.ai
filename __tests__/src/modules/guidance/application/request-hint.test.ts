@@ -16,22 +16,26 @@ import { errAsync, okAsync } from '@lib/result';
 import { createBrokenRateLimiter, createTestRateLimiter } from '../../../support/rate-limiting';
 import { parent, recordingAudit as recordingSecurityAudit, signedInAs } from '../../auth/fakes';
 import {
+  ASSIGNMENT,
+  ASSIGNMENT_TEXT,
   OTHER_CHILD,
   OWN_CHILD,
   REQUEST,
   SESSION,
+  fakeAssignments,
   fakeCompetencies,
   fakeSessionStore,
   openSession,
   ownChildren,
   recordingAuditLog,
+  task,
 } from '../fakes';
 
 const TASK = 'Lisa hat 3 Äpfel und bekommt 4 dazu. Wie viele Äpfel hat sie?';
 const textFor = (level: string) => `Denk an ${level}: Was passiert mit der Zahl der Äpfel?`;
 
 /** An AI that words a valid hint for whatever level it is asked, or fails as told; it keeps every request. */
-function ladderProvider(options: { readonly fails?: boolean } = {}) {
+function ladderProvider(options: { readonly fails?: boolean; readonly text?: string } = {}) {
   const requests: HintRequest[] = [];
   const provider: HintProvider = {
     suggest(request) {
@@ -42,7 +46,7 @@ function ladderProvider(options: { readonly fails?: boolean } = {}) {
             version: 1,
             kind: 'hint',
             hintLevel: request.level,
-            text: textFor(request.level),
+            text: options.text ?? textFor(request.level),
           });
     },
   };
@@ -56,10 +60,15 @@ interface BuildOptions {
   readonly curriculumFails?: true;
   readonly sessions?: ReturnType<typeof fakeSessionStore>;
   readonly owned?: Parameters<typeof ownChildren>[0];
+  readonly assignments?: ReturnType<typeof fakeAssignments>;
+  readonly hintText?: string;
 }
 
 function build(options: BuildOptions = {}) {
-  const { provider, requests } = ladderProvider({ fails: options.aiFails === true });
+  const { provider, requests } = ladderProvider({
+    fails: options.aiFails === true,
+    ...(options.hintText === undefined ? {} : { text: options.hintText }),
+  });
   const { audit, events } = recordingAuditLog();
   const { retrieval, queries } = fakeCompetencies({ fails: options.curriculumFails === true });
   const sessions = options.sessions ?? fakeSessionStore();
@@ -69,6 +78,7 @@ function build(options: BuildOptions = {}) {
       audit: recordingSecurityAudit(),
     }),
     childProfiles: ownChildren(options.owned),
+    assignments: (options.assignments ?? fakeAssignments()).access,
     competencies: retrieval,
     rateLimiter: options.rateLimiter ?? createTestRateLimiter(),
     sessions: sessions.store,
@@ -384,5 +394,62 @@ describe('RequestHint rate limit (#11)', () => {
       code: 'guidance.rate_limiter_failed',
     });
     expect(requests).toEqual([]);
+  });
+});
+
+describe("RequestHint on a teacher's assignment (#33)", () => {
+  /** A hint that names the teacher's key outright: harmless for the child's own task, a leak here. */
+  const NAMES_THE_KEY = 'Denk an die Zahl 99: Was passiert mit der Zahl der Äpfel?';
+  const onAssignment = () =>
+    fakeSessionStore([openSession({ assignmentId: ASSIGNMENT, task: task(ASSIGNMENT_TEXT) })]);
+  const withKey = (solutionKey: string | null) =>
+    fakeAssignments({ assignments: [{ id: ASSIGNMENT, text: ASSIGNMENT_TEXT, solutionKey }] });
+
+  it("checks the AI's hint against the teacher's key and never sends the key to the AI", async () => {
+    const assignments = withKey('99');
+    const { requestHint, requests, events } = build({
+      sessions: onAssignment(),
+      assignments,
+      hintText: NAMES_THE_KEY,
+    });
+
+    const result = await requestHint.execute(input());
+
+    expect(result._unsafeUnwrap().hint).toEqual({
+      kind: 'fallback',
+      level: 'understand_task',
+      reason: 'solution_leaked',
+    });
+    expect(assignments.lookups).toEqual([{ childProfileId: OWN_CHILD, id: ASSIGNMENT }]);
+    expect(requests).toHaveLength(1);
+    expect(JSON.stringify(requests)).not.toContain('99');
+    expect(requests[0]?.task).toBe(ASSIGNMENT_TEXT);
+    expect(JSON.stringify(events)).not.toContain('99');
+  });
+
+  it("does not look up a key for the child's own task", async () => {
+    const assignments = withKey('99');
+    const { requestHint } = build({ assignments, hintText: NAMES_THE_KEY });
+
+    const result = await requestHint.execute(input());
+
+    expect(result._unsafeUnwrap().hint.kind).toBe('generated');
+    expect(assignments.lookups).toEqual([]);
+  });
+
+  it('still gives the hint without the key when it cannot be read, and logs the code', async () => {
+    const { requestHint, events } = build({
+      sessions: onAssignment(),
+      assignments: fakeAssignments({ assignments: [] }),
+    });
+
+    const result = await requestHint.execute(input());
+
+    expect(result._unsafeUnwrap().hint.kind).toBe('generated');
+    expect(events).toContainEqual({
+      type: 'guidance.solution_key_unavailable',
+      step: 'hint',
+      code: 'guidance.assignment_not_found',
+    });
   });
 });

@@ -8,7 +8,9 @@ import { fromThrowableAsync } from '@lib/result';
 import {
   ASSIGNMENT_SELECT,
   CHILD_ASSIGNMENT_SELECT,
+  HELP_ASSIGNMENT_SELECT,
   toAssignment,
+  toAssignmentForHelp,
   toAssignmentCreateData,
   toChildAssignmentRecord,
 } from './assignment-record-mapper';
@@ -109,6 +111,20 @@ export class PrismaAssignmentRepository implements AssignmentRepository {
           .all(),
       failures.infraOnly('listForChild'),
     ).map((records) => records.map(toChildAssignmentRecord));
+  }
+
+  /**
+   * @owner-scope child One row of a class, not of a teacher: the use case reaches this class only
+   * through the signed-in parent's own child's membership, which the classroom module checked.
+   */
+  findForHelp(id: AssignmentId, classroomId: ClassroomId, tenantId: TenantId) {
+    return fromThrowableAsync(
+      async () =>
+        db.orm.public.Assignment.select(...HELP_ASSIGNMENT_SELECT)
+          .where({ id, classroomId, tenantId })
+          .first(),
+      failures.infraOnly('findForHelp'),
+    ).map((record) => record && toAssignmentForHelp(record));
   }
 
   deleteById(id: AssignmentId, scope: AssignmentOwnerScope) {
