@@ -1,5 +1,5 @@
-import { err, ok } from '@lib/result';
 import type { ValidationAppError } from '@lib/errors';
+import { err, ok } from '@lib/result';
 import type { AppResult } from '@lib/result';
 
 import { detectDistressSignal } from '../../domain/child-safety/detect-distress-signal';

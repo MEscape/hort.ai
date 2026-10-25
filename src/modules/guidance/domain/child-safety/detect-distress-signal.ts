@@ -45,7 +45,7 @@ const rx = (source: string) => new RegExp(source);
  * a story ("Die Katze ist tot", "Tom schlägt den Ball") and everyday hyperbole ("Mathe bringt mich
  * um", "Ich lach mich tot") do not match. A phrase quoted inside a task does; that is accepted.
  */
-const DISTRESS_PATTERNS: readonly (readonly [DistressCategory, RegExp])[] = [
+const DISTRESS_PATTERNS: ReadonlyArray<readonly [DistressCategory, RegExp]> = [
   // Wanting to die, suicide, self-harm.
   [
     'self_harm',

@@ -2,6 +2,7 @@ import {
   AI_OUTPUT_ERROR_CODES,
   AI_OUTPUT_VALIDATION_CODES,
 } from '../../domain/errors/ai-output-errors';
+import { CHILD_DISTRESS_ERROR_CODES } from '../../domain/errors/child-distress-errors';
 import {
   CHILD_INPUT_ERROR_CODES,
   CHILD_INPUT_VALIDATION_CODES,
@@ -16,7 +17,6 @@ import {
   TOPIC_CLASSIFICATION_ERROR_CODES,
   TOPIC_CLASSIFICATION_VALIDATION_CODES,
 } from '../../domain/errors/topic-classification-errors';
-import { CHILD_DISTRESS_ERROR_CODES } from '../../domain/errors/child-distress-errors';
 
 /**
  * What the presentation boundary needs about guidance input and errors: the stable codes and the
