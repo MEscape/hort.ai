@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Character } from '@components/brand/character';
@@ -101,5 +102,64 @@ describe('Character', () => {
 
     render(<Character imageUrl="" alt="Lili" />);
     expect(screen.queryByRole('img', { name: 'Lili' })).not.toBeInTheDocument();
+  });
+
+  it('paints no background of its own: not around the pictures, not around the paw', () => {
+    const { container } = render(
+      <Character imageUrl={CLOSED} openImageUrl={OPEN} alt="Max" className="size-40" />,
+    );
+    expect(container.innerHTML).not.toContain('bg-');
+    fireEvent.error(screen.getByRole('img', { name: 'Max' }));
+    expect(container.innerHTML).not.toContain('bg-');
+  });
+
+  it('draws the pictures in the server-rendered page, so the browser loads them early', () => {
+    const html = renderToString(<Character imageUrl={CLOSED} openImageUrl={OPEN} alt="Max" />);
+    expect(html).toContain(CLOSED);
+    expect(html).toContain(OPEN);
+  });
+
+  it('shows the paw when the picture had already failed before React could listen', async () => {
+    const decode = vi.fn(() => Promise.reject(new Error('broken')));
+    Object.defineProperty(HTMLImageElement.prototype, 'decode', {
+      value: decode,
+      configurable: true,
+    });
+    vi.spyOn(HTMLImageElement.prototype, 'complete', 'get').mockReturnValue(true);
+    render(<Character imageUrl={CLOSED} alt="Max" />);
+    await vi.waitFor(() => {
+      expect(screen.queryByRole('img', { name: 'Max' })).not.toBeInTheDocument();
+    });
+    Reflect.deleteProperty(HTMLImageElement.prototype, 'decode');
+  });
+
+  it('keeps the mouth shut, and the closed picture shown, until the open picture is loaded', async () => {
+    vi.useRealTimers();
+    stubMotion(false);
+    let finish: () => void = () => undefined;
+    const decode = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    Object.defineProperty(HTMLImageElement.prototype, 'decode', {
+      value: decode,
+      configurable: true,
+    });
+    vi.spyOn(HTMLImageElement.prototype, 'complete', 'get').mockReturnValue(false);
+    render(<Character imageUrl={CLOSED} openImageUrl={OPEN} isSpeaking alt="Max" />);
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    expect(screen.getByRole('img', { name: 'Max' })).not.toHaveClass('opacity-0');
+    expect(openMouth()).toHaveClass('opacity-0');
+    await act(async () => {
+      finish();
+      await Promise.resolve();
+    });
+    await vi.waitFor(() => {
+      expect(openMouth()).toHaveClass('opacity-100');
+    });
+    Reflect.deleteProperty(HTMLImageElement.prototype, 'decode');
+    vi.restoreAllMocks();
   });
 });

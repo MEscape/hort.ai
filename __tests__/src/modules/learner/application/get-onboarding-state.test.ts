@@ -37,8 +37,10 @@ describe('GetOnboardingState', () => {
           learningInsights: false,
         },
         guardianConfirmed: false,
+        voiceConsent: false,
         setupStep: 'controls',
         setupCompletedAt: null,
+        welcomeCompletedAt: null,
       },
     });
   });
@@ -75,6 +77,8 @@ describe('GetOnboardingState', () => {
       'setupCompletedAt',
       'setupStep',
       'tutorId',
+      'voiceConsent',
+      'welcomeCompletedAt',
     ]);
   });
 

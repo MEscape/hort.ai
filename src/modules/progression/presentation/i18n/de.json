@@ -1,0 +1,48 @@
+{
+  "progression": {
+    "mood": {
+      "new": "{name} winkt dir neugierig zu.",
+      "cheerful": "{name} freut sich, dass du da bist!",
+      "calm": "{name} ist entspannt und freut sich auf dich.",
+      "sleepy": "{name} ist müde und freut sich auf dich.",
+      "bored": "{name} gähnt und hätte gern einen Snack."
+    },
+    "meter": {
+      "label": "Dein Level",
+      "level": "Level {level}",
+      "toNext": "{current} von {total} Sternen bis Level {next}",
+      "max": "Höchstes Level erreicht",
+      "valueText": "Level {level}, {progress}",
+      "levelsLabel": "Alle Level",
+      "levelReached": "Level {level}, erreicht",
+      "levelCurrent": "Level {level}, dein Level",
+      "levelAhead": "Level {level}, kommt noch"
+    },
+    "feed": {
+      "title": "Futterzeit!",
+      "hint": "Tippen oder ziehen",
+      "foodLabel": "{name} füttern",
+      "tomorrow": "Bis morgen!",
+      "retry": "Nochmal",
+      "continue": "Weiter",
+      "gainedSr": "Du hast {xp, plural, one {# Stern} other {# Sterne}} bekommen.",
+      "says": {
+        "hungry": "Ich habe Hunger!",
+        "snack": "Snack-Zeit?",
+        "sleepy": "Gähn … Futter?",
+        "bored": "Futterzeit?",
+        "pending": "Mmh …",
+        "granted": "Lecker, danke!",
+        "levelUp": "Level {level}! Juhu!",
+        "full": "Satt und froh!",
+        "error": "Hoppla!"
+      }
+    },
+    "errors": {
+      "notFound": "Das konnten wir nicht finden. Frag bitte eine erwachsene Person.",
+      "validation": "Das hat nicht geklappt. Versuch es nochmal.",
+      "infrastructure": "Das hat nicht geklappt. Versuch es nochmal.",
+      "unexpected": "Das hat nicht geklappt. Versuch es nochmal."
+    }
+  }
+}

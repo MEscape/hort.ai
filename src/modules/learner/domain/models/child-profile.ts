@@ -6,7 +6,7 @@ import { LEARNER_VALIDATION_CODES, createLearnerErrorBag } from '../errors/learn
 
 import { isFederalState, isGrade } from './federal-state';
 import { LEARNER_LIMITS } from './learner-limits';
-import { GUARDIAN_CONSENT_VERSION } from './parent-controls';
+import { GUARDIAN_CONSENT_VERSION, VOICE_NOTICE_VERSION } from './parent-controls';
 
 import type { FederalState, Grade } from './federal-state';
 import type { ActorId, ChildProfileId, TenantId, TutorId } from './ids';
@@ -23,6 +23,12 @@ const UNSAFE_NAME_CHARACTERS = /[\p{Cc}\p{Cf}]/u;
 export interface GuardianConfirmation {
   readonly confirmedAt: Date;
   readonly consentVersion: string;
+}
+
+/** The parent's confirmation of the voice notice, and which version of it they confirmed. */
+export interface VoiceNoticeConfirmation {
+  readonly confirmedAt: Date;
+  readonly version: string;
 }
 
 /**
@@ -42,9 +48,13 @@ export interface ChildProfile {
   readonly tutorId: TutorId | null;
   readonly controls: ParentControls;
   readonly guardian: GuardianConfirmation | null;
+  /** Set while the parent allows speech-to-text; `null` before and after a withdrawal. */
+  readonly voiceNotice: VoiceNoticeConfirmation | null;
   /** The furthest step the parent has reached; only moves forward. */
   readonly setupStep: SetupStep;
   readonly setupCompletedAt: Date | null;
+  /** When the child finished their own welcome after the setup; `null` while it is open. */
+  readonly welcomeCompletedAt: Date | null;
   readonly createdAt: Date;
 }
 
@@ -107,6 +117,15 @@ export function isSetupComplete(profile: ChildProfile): boolean {
   return profile.setupCompletedAt !== null;
 }
 
+/** The profile as it is once the child has finished their welcome. */
+export function withWelcomeCompleted(profile: ChildProfile, completedAt: Date): ChildProfile {
+  return { ...profile, welcomeCompletedAt: completedAt };
+}
+
+export function isWelcomeComplete(profile: ChildProfile): boolean {
+  return profile.welcomeCompletedAt !== null;
+}
+
 /**
  * The guardian confirmation after a save of the controls at `now`: the first confirmation keeps its
  * time while the statement is unchanged, a new statement version replaces it.
@@ -123,4 +142,17 @@ export function confirmGuardian(
 /** Whether the guardian confirmed the statement that is current. */
 export function hasCurrentGuardianConfirmation(profile: ChildProfile): boolean {
   return profile.guardian?.consentVersion === GUARDIAN_CONSENT_VERSION;
+}
+
+/**
+ * Whether a child's recordings may be sent for transcription (#34): the voice control is on, the
+ * parent confirmed the voice notice that is current, and the guardian confirmation is current too.
+ * Anything else, including a notice of an older version, is no consent.
+ */
+export function hasCurrentVoiceConsent(profile: ChildProfile): boolean {
+  return (
+    profile.controls.voiceEnabled &&
+    profile.voiceNotice?.version === VOICE_NOTICE_VERSION &&
+    hasCurrentGuardianConfirmation(profile)
+  );
 }

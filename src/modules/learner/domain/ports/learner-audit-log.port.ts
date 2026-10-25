@@ -49,6 +49,16 @@ export type LearnerEvent =
       readonly consentVersion: string;
     }
   | {
+      readonly type: 'learner.voice_consent_changed';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      readonly childProfileId: ChildProfileId;
+      /** Whether speech-to-text is now allowed (#34). */
+      readonly allowed: boolean;
+      /** The voice notice version confirmed with it; `null` for a withdrawal. */
+      readonly noticeVersion: string | null;
+    }
+  | {
       readonly type: 'learner.onboarding_reset';
       readonly actorId: ActorId;
       readonly tenantId: TenantId;
@@ -57,6 +67,28 @@ export type LearnerEvent =
     }
   | {
       readonly type: 'learner.setup_completed';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      readonly childProfileId: ChildProfileId;
+    }
+  | {
+      readonly type: 'learner.child_interests_saved';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      readonly childProfileId: ChildProfileId;
+      /** How many interests, not which ones. */
+      readonly count: number;
+    }
+  | {
+      readonly type: 'learner.child_tutor_chosen';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      readonly childProfileId: ChildProfileId;
+      /** Catalog data, not child data. */
+      readonly tutorId: TutorId;
+    }
+  | {
+      readonly type: 'learner.child_welcome_completed';
       readonly actorId: ActorId;
       readonly tenantId: TenantId;
       readonly childProfileId: ChildProfileId;

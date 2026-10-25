@@ -5,7 +5,15 @@ import { sessionLookupFailed, unauthenticated } from '@modules/auth/domain/error
 import { toActorId } from '@modules/auth/domain/models/ids';
 import type { CurrentActorProvider } from '@modules/auth/domain/ports/current-actor-provider.port';
 
-import { OTHER_TENANT, TENANT, failingWith, parent, recordingAudit, signedInAs } from '../fakes';
+import {
+  OTHER_TENANT,
+  TENANT,
+  admin,
+  failingWith,
+  parent,
+  recordingAudit,
+  signedInAs,
+} from '../fakes';
 
 function build(currentActor: CurrentActorProvider) {
   const audit = recordingAudit();
@@ -147,6 +155,37 @@ describe('AuthorizationService.requireOnResource', () => {
       'tenantId',
       'type',
     ]);
+  });
+
+  it("lets an admin into another parent's resource and records that it happened", async () => {
+    const { access, audit } = build(signedInAs(admin()));
+
+    const result = await access.requireOnResource('learner.read', {
+      tenantId: TENANT,
+      ownerId: toActorId('parent-2'),
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(audit.events).toEqual([
+      {
+        type: 'authorization.admin_override',
+        actorId: 'admin-1',
+        tenantId: TENANT,
+        permission: 'learner.read',
+        ownerId: 'parent-2',
+      },
+    ]);
+  });
+
+  it('records nothing extra when an admin touches their own resource', async () => {
+    const { access, audit } = build(signedInAs(admin()));
+
+    await access.requireOnResource('learner.read', {
+      tenantId: TENANT,
+      ownerId: toActorId('admin-1'),
+    });
+
+    expect(audit.events).toEqual([]);
   });
 
   it('refuses without a session and does not reveal whether the resource exists', async () => {

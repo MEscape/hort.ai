@@ -67,3 +67,9 @@ export const saveControlsActionSchema = controlsSchema.and(
   z.object({ profileId: profileIdSchema }),
 );
 export const completeSetupActionSchema = z.object({ profileId: profileIdSchema });
+/** The parent's speech-to-text switch on the home; the use case checks the notice version. */
+export const setVoiceConsentActionSchema = z.object({
+  profileId: profileIdSchema,
+  allowed: z.boolean(),
+  noticeVersion: z.string().max(PROFILE_ID_MAX_LENGTH).nullable(),
+});

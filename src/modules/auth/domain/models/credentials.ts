@@ -7,7 +7,7 @@ import { AUTH_VALIDATION_CODES, createAuthErrorBag } from '../errors/auth-errors
 
 import { isRole } from './role';
 
-import type { Role } from './role';
+import type { StoredRole } from './role';
 
 const CODES = AUTH_VALIDATION_CODES;
 
@@ -58,7 +58,7 @@ export interface SignUpDraft {
   readonly name: string;
   readonly email: string;
   readonly password: string;
-  readonly role: Role;
+  readonly role: StoredRole;
 }
 
 export interface PasswordResetRequest {

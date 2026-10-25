@@ -1,7 +1,12 @@
 import type { InfrastructureAppError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
 
-import type { ChildDetails, ChildProfile, GuardianConfirmation } from '../models/child-profile';
+import type {
+  ChildDetails,
+  ChildProfile,
+  GuardianConfirmation,
+  VoiceNoticeConfirmation,
+} from '../models/child-profile';
 import type { FederalState, Grade } from '../models/federal-state';
 import type { ActorId, ChildProfileId, TenantId, TutorId } from '../models/ids';
 import type { Interest } from '../models/interests';
@@ -34,6 +39,16 @@ export interface SchoolSettings {
   readonly federalState: FederalState;
   readonly grade: Grade;
 }
+
+/** The parent's speech-to-text decision: the voice control and the notice confirmed with it. */
+export interface VoiceConsentWrite {
+  readonly voiceEnabled: boolean;
+  /** `null` clears it: a withdrawal leaves no confirmation behind. */
+  readonly voiceNotice: VoiceNoticeConfirmation | null;
+}
+
+/** What the child's welcome may change: only the interests and the companion. */
+export type WelcomePatch = Pick<ProfilePatch, 'interests' | 'tutorId'>;
 
 export interface SavedProfile {
   readonly profile: ChildProfile;
@@ -93,6 +108,16 @@ export interface ChildProfileRepository {
   ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
 
   /**
+   * Stores the voice control and its notice confirmation on one of the owner's profiles, finished
+   * or not (the parent decides after the setup, too). Returns the stored profile, or `null` when it
+   * is gone.
+   */
+  updateVoiceConsent(
+    profile: ChildProfile,
+    consent: VoiceConsentWrite,
+  ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
+
+  /**
    * Deletes every profile of the owner, finished or not, and nothing of anyone else. Returns how
    * many rows went; 0 is success (idempotent). Only the development reset uses it.
    */
@@ -104,6 +129,25 @@ export interface ChildProfileRepository {
    * call ever reports having completed it.
    */
   markSetupCompleted(
+    profile: ChildProfile,
+    completedAt: Date,
+  ): AppResultAsync<boolean, InfrastructureAppError>;
+
+  /**
+   * Stores the interests and/or companion the child changed during their welcome, on a profile
+   * whose setup is done and whose welcome is still open. Touches nothing else (not the step).
+   * Returns the stored profile, or `null` when the welcome was finished meanwhile or the profile is gone.
+   */
+  updateWelcomePending(
+    profile: ChildProfile,
+    patch: WelcomePatch,
+  ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
+
+  /**
+   * Finishes the child's welcome, in one conditional statement. `false` when it was finished
+   * already or the setup is not done, so only one call ever reports having completed it.
+   */
+  markWelcomeCompleted(
     profile: ChildProfile,
     completedAt: Date,
   ): AppResultAsync<boolean, InfrastructureAppError>;

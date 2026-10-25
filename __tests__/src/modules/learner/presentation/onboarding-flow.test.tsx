@@ -83,6 +83,8 @@ const PROFILE: ChildProfileDto = {
   allowedWindow: null,
   learningInsights: false,
   guardianConfirmed: false,
+  welcomeCompletedAt: null,
+  voiceConsent: false,
 };
 const FAILED = { code: 'learner.persistence_failed', message: 'db down' };
 

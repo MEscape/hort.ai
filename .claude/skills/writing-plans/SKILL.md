@@ -12,7 +12,7 @@ A plan is cheap; a wrong afternoon in a hackathon is not. Plan before code whene
 - What does the user, child or parent see when this works? One or two sentences.
 - Acceptance criteria as observable behavior. These become the first tests.
 - What is explicitly **out of scope**.
-- Product guardrails that apply (check `docs/product/` and the issue): for HortAi the companion guides children towards their own answer and never gives the solution, and there is no gamification.
+- Product guardrails that apply (check `docs/product/` and the issue): for HortAi the companion guides children towards their own answer and never gives the solution, and there are no streaks or pressure mechanics (only the small progression of the vision).
 
 ## 2. Decide before building
 

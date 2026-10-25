@@ -3,10 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   alreadyOnboarded,
   childProfileNotFound,
+  welcomeAlreadyCompleted,
 } from '@modules/learner/domain/errors/learner-errors';
+import { chooseChildTutorAction } from '@modules/learner/presentation/actions/choose-child-tutor-action';
 import { chooseTutorAction } from '@modules/learner/presentation/actions/choose-tutor-action';
+import { completeChildWelcomeAction } from '@modules/learner/presentation/actions/complete-child-welcome-action';
 import { completeSetupAction } from '@modules/learner/presentation/actions/complete-setup-action';
 import { createChildProfileAction } from '@modules/learner/presentation/actions/create-child-profile-action';
+import { saveChildInterestsAction } from '@modules/learner/presentation/actions/save-child-interests-action';
 import { saveControlsAction } from '@modules/learner/presentation/actions/save-controls-action';
 import { saveInterestsAction } from '@modules/learner/presentation/actions/save-interests-action';
 
@@ -18,6 +22,9 @@ const commands = vi.hoisted(() => ({
   chooseTutor: { execute: vi.fn() },
   saveControls: { execute: vi.fn() },
   completeSetup: { execute: vi.fn() },
+  saveChildInterests: { execute: vi.fn() },
+  chooseChildTutor: { execute: vi.fn() },
+  completeChildWelcome: { execute: vi.fn() },
 }));
 vi.mock('@modules/learner/composition', () => ({ getLearnerCommands: () => commands }));
 
@@ -37,6 +44,7 @@ const VIEW = {
   guardianConfirmed: true,
   setupStep: 'review',
   setupCompletedAt: null,
+  welcomeCompletedAt: null,
 };
 
 const CONTROLS = {
@@ -71,6 +79,9 @@ describe('learner Server Actions', () => {
       saveControlsAction({ ...CONTROLS, windowUntil: '915' }),
       saveControlsAction({ ...CONTROLS, dailyLimitMinutes: '31' }),
       completeSetupAction({ profileId: '' }),
+      saveChildInterestsAction({ profileId: 'p', interests: ['nature', 'nope'] }),
+      chooseChildTutorAction({ profileId: 'p', tutorId: '' }),
+      completeChildWelcomeAction({ profileId: '' }),
     ]);
     for (const result of results) {
       expect(result.ok).toBe(false);
@@ -151,5 +162,39 @@ describe('learner Server Actions', () => {
     });
     expect(completed).toMatchObject({ ok: false, error: { code: 'learner.not_found' } });
     expect(created).toMatchObject({ ok: false, error: { code: 'learner.already_onboarded' } });
+  });
+
+  it('passes the child’s welcome choices for the signed-in parent’s profile only and returns ISO instants', async () => {
+    const welcomed = { ...VIEW, welcomeCompletedAt: new Date('2026-10-25T08:00:00.000Z') };
+    commands.saveChildInterests.execute.mockReturnValue(okAsync(VIEW));
+    commands.chooseChildTutor.execute.mockReturnValue(okAsync(VIEW));
+    commands.completeChildWelcome.execute.mockReturnValue(okAsync(welcomed));
+
+    await saveChildInterestsAction({ profileId: 'profile-1', interests: ['art'], ownerId: 'x' });
+    await chooseChildTutorAction({ profileId: 'profile-1', tutorId: 'lili', ownerId: 'x' });
+    const completed = await completeChildWelcomeAction({ profileId: 'profile-1', ownerId: 'x' });
+
+    expect(commands.saveChildInterests.execute).toHaveBeenCalledWith({
+      profileId: 'profile-1',
+      interests: ['art'],
+    });
+    expect(commands.chooseChildTutor.execute).toHaveBeenCalledWith({
+      profileId: 'profile-1',
+      tutorId: 'lili',
+    });
+    expect(commands.completeChildWelcome.execute).toHaveBeenCalledWith({ profileId: 'profile-1' });
+    expect(completed).toEqual({
+      ok: true,
+      data: expect.objectContaining({ welcomeCompletedAt: '2026-10-25T08:00:00.000Z' }),
+    });
+  });
+
+  it('reports a welcome refusal by code, with no success data', async () => {
+    commands.chooseChildTutor.execute.mockReturnValue(errAsync(welcomeAlreadyCompleted()));
+    const result = await chooseChildTutorAction({ profileId: 'profile-1', tutorId: 'max' });
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: 'learner.welcome_already_completed' },
+    });
   });
 });

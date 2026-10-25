@@ -64,7 +64,7 @@ describe('voice module: recordings are never persisted', () => {
   it('reaches no database, object store or file system outside the clip store', () => {
     const offending = voiceSources().filter(
       (file) =>
-        !CLIP_STORE_FILES.some((allowed) => file.endsWith(allowed)) &&
+        !CLIP_STORE_FILES.some((allowed) => file.replaceAll('\\', '/').endsWith(allowed)) &&
         /from '(@lib\/(db|storage)[^']*|@prisma\/[^']*|node:fs[^']*|fs)'/.test(
           readFileSync(file, 'utf8'),
         ),

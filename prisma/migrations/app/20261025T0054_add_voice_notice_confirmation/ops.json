@@ -1,0 +1,149 @@
+[
+  {
+    "id": "column.public.ChildProfile.voiceNoticeConfirmedAt",
+    "label": "Add column \"voiceNoticeConfirmedAt\" to \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "voiceNoticeConfirmedAt",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"voiceNoticeConfirmedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "voiceNoticeConfirmedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"voiceNoticeConfirmedAt\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD COLUMN \"voiceNoticeConfirmedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"voiceNoticeConfirmedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "voiceNoticeConfirmedAt"
+        ]
+      },
+      {
+        "description": "verify column \"voiceNoticeConfirmedAt\" has type \"timestamp with time zone\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "voiceNoticeConfirmedAt",
+          "timestamp with time zone"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.ChildProfile.voiceNoticeVersion",
+    "label": "Add column \"voiceNoticeVersion\" to \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "voiceNoticeVersion",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"voiceNoticeVersion\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "voiceNoticeVersion"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"voiceNoticeVersion\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD COLUMN \"voiceNoticeVersion\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"voiceNoticeVersion\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "voiceNoticeVersion"
+        ]
+      },
+      {
+        "description": "verify column \"voiceNoticeVersion\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "voiceNoticeVersion",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.ChildProfile.ChildProfile_voice_notice_rule_8b4fac41",
+    "label": "Add check constraint \"ChildProfile_voice_notice_rule_8b4fac41\" on \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "ChildProfile_voice_notice_rule_8b4fac41",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ChildProfile_voice_notice_rule_8b4fac41\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ChildProfile_voice_notice_rule_8b4fac41",
+          "public",
+          "\"public\".\"ChildProfile\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"ChildProfile_voice_notice_rule_8b4fac41\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD CONSTRAINT \"ChildProfile_voice_notice_rule_8b4fac41\" CHECK ((\"voiceNoticeVersion\" IS NULL) = (\"voiceNoticeConfirmedAt\" IS NULL))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"ChildProfile_voice_notice_rule_8b4fac41\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "ChildProfile_voice_notice_rule_8b4fac41",
+          "public",
+          "\"public\".\"ChildProfile\"",
+          "c"
+        ]
+      }
+    ]
+  }
+]

@@ -19,6 +19,8 @@ import type {
   SavedProfile,
   SchoolSettings,
   UnfinishedProfileInput,
+  WelcomePatch,
+  VoiceConsentWrite,
 } from '@modules/learner/domain/ports/child-profile.repository';
 import type {
   LearnerAuditLog,
@@ -56,9 +58,11 @@ export function profileOf(
     tutorId: null,
     controls: DEFAULT_CONTROLS,
     guardian: null,
+    voiceNotice: null,
     setupStep:
       rest.setupCompletedAt === undefined || rest.setupCompletedAt === null ? 'interests' : 'done',
     setupCompletedAt: null,
+    welcomeCompletedAt: null,
     createdAt: new Date('2026-10-01T00:00:00.000Z'),
     ...rest,
   };
@@ -166,6 +170,27 @@ export class InMemoryChildProfiles implements ChildProfileRepository {
     return okAsync<ChildProfile | null>(updated);
   }
 
+  updateVoiceConsent(profile: ChildProfile, { voiceEnabled, voiceNotice }: VoiceConsentWrite) {
+    const index = this.rows.findIndex(
+      (row) =>
+        row.id === profile.id &&
+        row.ownerId === profile.ownerId &&
+        row.tenantId === profile.tenantId,
+    );
+    const stored = this.rows[index];
+    if (stored === undefined) {
+      return okAsync<ChildProfile | null>(null);
+    }
+    this.writes += 1;
+    const updated: ChildProfile = {
+      ...stored,
+      controls: { ...stored.controls, voiceEnabled },
+      voiceNotice,
+    };
+    this.rows[index] = updated;
+    return okAsync<ChildProfile | null>(updated);
+  }
+
   deleteAllOwned({ tenantId, ownerId }: ProfileOwner) {
     const kept = this.rows.filter((row) => row.ownerId !== ownerId || row.tenantId !== tenantId);
     const deleted = this.rows.length - kept.length;
@@ -183,6 +208,42 @@ export class InMemoryChildProfiles implements ChildProfileRepository {
     this.writes += 1;
     this.rows[index] = { ...stored, setupStep: 'done', setupCompletedAt: completedAt };
     return okAsync(true);
+  }
+
+  updateWelcomePending(profile: ChildProfile, patch: WelcomePatch) {
+    const index = this.pendingWelcomeIndex(profile);
+    const stored = this.rows[index];
+    if (stored === undefined) {
+      return okAsync<ChildProfile | null>(null);
+    }
+    this.writes += 1;
+    // Same rule as the real adapter: only the patched columns change, never the step.
+    const updated: ChildProfile = { ...stored, ...patch };
+    this.rows[index] = updated;
+    return okAsync<ChildProfile | null>(updated);
+  }
+
+  markWelcomeCompleted(profile: ChildProfile, completedAt: Date) {
+    const index = this.pendingWelcomeIndex(profile);
+    const stored = this.rows[index];
+    if (stored === undefined) {
+      return okAsync(false);
+    }
+    this.writes += 1;
+    this.rows[index] = { ...stored, welcomeCompletedAt: completedAt };
+    return okAsync(true);
+  }
+
+  /** The profile whose setup is done and whose welcome is still open, owner-scoped; `-1` otherwise. */
+  private pendingWelcomeIndex(profile: ChildProfile): number {
+    return this.rows.findIndex(
+      (row) =>
+        row.id === profile.id &&
+        row.ownerId === profile.ownerId &&
+        row.tenantId === profile.tenantId &&
+        row.setupCompletedAt !== null &&
+        row.welcomeCompletedAt === null,
+    );
   }
 }
 
@@ -219,4 +280,16 @@ export function build(actor: Actor = PARENT_A, ...initial: ChildProfile[]) {
     clock,
   };
   return { deps, childProfiles, audit, securityAudit };
+}
+
+/** A profile whose setup the parent finished and whose child welcome is still open. */
+export function setupDoneProfile(overrides: Parameters<typeof profileOf>[0] = {}): ChildProfile {
+  return profileOf({
+    id: 'own',
+    setupStep: 'done',
+    setupCompletedAt: new Date('2026-10-02T00:00:00.000Z'),
+    interests: ['nature'],
+    tutorId: MAX,
+    ...overrides,
+  });
 }

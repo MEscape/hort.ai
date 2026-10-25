@@ -30,7 +30,9 @@ export interface DoneStepProps {
 /**
  * Shown only after the backend confirmed the setup. The chosen companion pops in and hops once,
  * says hello in their own words, and what was set up is read back as a few chips. On a phone Hort
- * celebrates too (the side column is hidden there). The one thing left is the way into the home.
+ * celebrates too (the side column is hidden there). The one thing left is the way on to the child's
+ * own welcome (not through the home, which would only redirect there). The companion's open-mouth
+ * picture is loaded here as well, hidden, so the welcome that follows finds both pictures cached.
  */
 export function DoneStep({ stepNumber, shouldTakeFocus, profile, tutor }: DoneStepProps) {
   const t = useTranslations('learner');
@@ -57,7 +59,7 @@ export function DoneStep({ stepNumber, shouldTakeFocus, profile, tutor }: DoneSt
       }}
       primary={
         <Button asChild size="lg" className="sm:min-w-48">
-          <Link href={learnerRoutes.home()}>
+          <Link href={learnerRoutes.welcome()}>
             {t('done.toHome')}
             <ArrowRight aria-hidden="true" />
           </Link>
@@ -76,6 +78,8 @@ export function DoneStep({ stepNumber, shouldTakeFocus, profile, tutor }: DoneSt
             <span className="block origin-bottom animate-hop">
               <Character
                 imageUrl={tutor.imageUrl}
+                openImageUrl={tutor.imageOpenUrl}
+                openAlignment={tutor.openAlignment}
                 alt={t('tutor.imageAlt', { name: tutor.name, animal: tutor.animal })}
                 className="size-32 sm:size-36"
               />
