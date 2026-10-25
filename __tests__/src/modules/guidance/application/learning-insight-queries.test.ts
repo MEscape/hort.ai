@@ -37,7 +37,7 @@ function deps(
 ) {
   const listChildSessions = vi.fn(() => okAsync([RECORD]));
   const listAssignmentSessions = vi.fn(() => okAsync(options.classSessions ?? []));
-  const describe = vi.fn(() => okAsync(new Map([['he-math@2022:M3.1', 'Addieren']])));
+  const describeLabels = vi.fn(() => okAsync(new Map([['he-math@2022:M3.1', 'Addieren']])));
   const ofOwnClass = vi.fn((classroomId: string) =>
     okAsync(classroomId === 'own-class' ? [{ id: 'assignment-1', title: 'Brüche üben' }] : null),
   );
@@ -57,7 +57,7 @@ function deps(
       titlesForChild: () => okAsync(new Map([['assignment-1', 'Brüche üben']])),
       ofOwnClass,
     },
-    competencies: { describe },
+    competencies: { describe: describeLabels },
     records: { listChildSessions, listAssignmentSessions },
   };
   return { dependencies, listChildSessions, listAssignmentSessions, ofOwnClass };
@@ -90,7 +90,7 @@ describe('GetLearningSummary (#35)', () => {
       { tenantId: parent().tenantId, ownerId: parent().id },
       OWN_CHILD,
       new Date('2026-10-11T06:00:00.000Z'),
-      10,
+      expect.objectContaining({ sessions: 10 }),
     );
   });
 

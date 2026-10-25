@@ -2,6 +2,7 @@ import { db, createPersistenceFailures, instantToDate } from '@lib/db';
 import type { InfrastructureAppError } from '@lib/errors';
 import { fromThrowableAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
+import { unique } from '@lib/utils';
 
 import { CURRICULUM_ERROR_CODES } from '../../domain/errors/curriculum-errors';
 
@@ -156,7 +157,7 @@ export class PrismaCompetencyRepository implements CompetencyRepository, Compete
     }
     return fromThrowableAsync(async () => {
       const documents = await db.orm.public.CurriculumDocument.select('id', 'sourceKey', 'version')
-        .where((row) => row.sourceKey.in([...new Set(refs.map(({ sourceKey }) => sourceKey))]))
+        .where((row) => row.sourceKey.in(unique(refs.map(({ sourceKey }) => sourceKey))))
         .limit(DOCUMENTS_MAX)
         .all();
       const wanted = documents.filter((document) =>
@@ -170,7 +171,7 @@ export class PrismaCompetencyRepository implements CompetencyRepository, Compete
       const byId = new Map(wanted.map((document) => [document.id, document]));
       const records = await db.orm.public.Competency.select('documentId', 'code', 'text')
         .where((row) => row.documentId.in([...byId.keys()]))
-        .where((row) => row.code.in([...new Set(refs.map(({ code }) => code))]))
+        .where((row) => row.code.in(unique(refs.map(({ code }) => code))))
         .limit(limit)
         .all();
       return records.flatMap((record) => {

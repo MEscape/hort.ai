@@ -1,5 +1,8 @@
 import type { AssignmentLearningStats } from '../../domain/insights/class-overview';
-import type { LearningSummary } from '../../domain/insights/learning-summary';
+import type { LearningSummary, SessionSummary } from '../../domain/insights/learning-summary';
+
+/** One session line of the parent's summary. */
+export type SessionSummaryView = SessionSummary;
 
 /** The parent's summary (#35): nothing while learning notes are off. */
 export type LearningSummaryView =

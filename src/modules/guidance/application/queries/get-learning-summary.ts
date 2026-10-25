@@ -3,6 +3,7 @@ import type { AuthorizationError } from '@modules/auth';
 import type { InfrastructureAppError, NotFoundAppError, ValidationAppError } from '@lib/errors';
 import { okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
+import { unique } from '@lib/utils';
 
 import {
   SUMMARY_SESSION_LIMIT,
@@ -10,6 +11,7 @@ import {
   summarySince,
 } from '../../domain/insights/learning-summary';
 import { parseChildProfileId } from '../../domain/models/ids';
+import { INSIGHT_READ_BOUNDS } from '../guidance-limits';
 
 import type { GetLearningSummaryInput } from '../contracts/insight-inputs';
 import type { LearningSummaryView } from '../contracts/insight-views';
@@ -39,16 +41,12 @@ export class GetLearningSummary {
           }
           const owner = { tenantId: actor.tenantId, ownerId: actor.id };
           return records
-            .listChildSessions(
-              owner,
-              childProfileId,
-              summarySince(clock.now()),
-              SUMMARY_SESSION_LIMIT,
-            )
+            .listChildSessions(owner, childProfileId, summarySince(clock.now()), {
+              ...INSIGHT_READ_BOUNDS,
+              sessions: SUMMARY_SESSION_LIMIT,
+            })
             .andThen((sessions) => {
-              const codes = [
-                ...new Set(sessions.flatMap(({ competencyCode }) => competencyCode ?? [])),
-              ];
+              const codes = unique(sessions.flatMap(({ competencyCode }) => competencyCode ?? []));
               const hasAssignment = sessions.some(({ assignmentId }) => assignmentId !== null);
               return (
                 hasAssignment

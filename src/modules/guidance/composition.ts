@@ -27,7 +27,7 @@ import { GeminiProvider } from './infrastructure/gemini/gemini-provider';
 import { learnerChildProfileAccess } from './infrastructure/learner/learner-child-profile-access';
 import { learnerInsightsConsent } from './infrastructure/learner/learner-insights-consent';
 import { PrismaHelpSessionRepository } from './infrastructure/prisma/prisma-help-session.repository';
-import { PrismaLearningRecordStore } from './infrastructure/prisma/prisma-learning-record-store';
+import { PrismaLearningRecordRepository } from './infrastructure/prisma/prisma-learning-record.repository';
 import { progressionSessionReward } from './infrastructure/progression/progression-session-reward';
 import { JevSafetyClassifier } from './infrastructure/typesafe/jev-safety-classifier';
 import { JevTopicClassifier } from './infrastructure/typesafe/jev-topic-classifier';
@@ -183,7 +183,7 @@ export const getInsightQueries = once(() => {
     consent: learnerInsightsConsent,
     assignments: assignmentsInsightAccess,
     competencies: curriculumCompetencyLabels,
-    records: new PrismaLearningRecordStore(),
+    records: new PrismaLearningRecordRepository(),
   };
   return {
     getLearningSummary: new GetLearningSummary({

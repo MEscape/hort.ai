@@ -1,12 +1,11 @@
 import type { InfrastructureAppError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
 
-import type { CompetencyTextLookup } from '../../domain/ports/competency.repository';
+import { COMPETENCY_CODE_MAX_LENGTH, COMPETENCY_DESCRIPTIONS_MAX } from '../curriculum-limits';
+
+import type { CompetencyTextDependencies } from '../competency-text-dependencies';
 import type { CompetencyDescriptionView } from '../contracts/curriculum-views';
 
-/** At most this many codes per call; a summary names about ten sessions. */
-const DESCRIBE_MAX = 20;
-const CODE_MAX_LENGTH = 300;
 /** `<sourceKey>@<version>:<code>`, the code a retrieval answers with (`fromCompetency`). */
 const OFFICIAL_CODE = /^([^@:]+)@([^:]+):(.+)$/u;
 
@@ -19,21 +18,21 @@ const OFFICIAL_CODE = /^([^@:]+)@([^:]+):(.+)$/u;
  * @rate-limit none A bounded read of a few public rows, inside a page load that is itself authorized.
  */
 export class DescribeCompetencies {
-  constructor(private readonly deps: { readonly texts: CompetencyTextLookup }) {}
+  constructor(private readonly deps: CompetencyTextDependencies) {}
 
   execute(
     codes: readonly string[],
   ): AppResultAsync<readonly CompetencyDescriptionView[], InfrastructureAppError> {
     const refs = codes
-      .filter((code) => code.length <= CODE_MAX_LENGTH)
-      .slice(0, DESCRIBE_MAX)
+      .filter((code) => code.length <= COMPETENCY_CODE_MAX_LENGTH)
+      .slice(0, COMPETENCY_DESCRIPTIONS_MAX)
       .flatMap((code) => {
         const match = OFFICIAL_CODE.exec(code);
         return match?.[1] === undefined || match[2] === undefined || match[3] === undefined
           ? []
           : [{ sourceKey: match[1], version: match[2], code: match[3] }];
       });
-    return this.deps.texts.describe(refs, DESCRIBE_MAX).map((found) =>
+    return this.deps.texts.describe(refs, COMPETENCY_DESCRIPTIONS_MAX).map((found) =>
       found.map(({ sourceKey, version, code, text }) => ({
         code: `${sourceKey}@${version}:${code}`,
         text,

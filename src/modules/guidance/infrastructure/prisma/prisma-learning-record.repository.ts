@@ -18,10 +18,6 @@ const failures = createPersistenceFailures({
   subject: 'HelpSession',
 });
 
-/** Bounds of the class read (performance.md): far above a class's real sessions on its assignments. */
-const CLASS_SESSION_LIMIT = 2000;
-const HINT_ROW_LIMIT = 20000;
-
 const STATUS_BY_RECORD = new Map<string, HelpSessionStatus>(
   (Object.keys(STATUS_RECORD) as HelpSessionStatus[]).map((status) => [
     STATUS_RECORD[status],
@@ -36,23 +32,26 @@ const LEVEL_BY_RECORD = new Map<string, HintLevel>(
  * The summaries' reads (#35). Only ids, statuses, timestamps and hint rungs are selected: the task
  * text, the child's answers and replies and every AI text stay out of these queries.
  */
-export class PrismaLearningRecordStore implements LearningRecordStore {
+export class PrismaLearningRecordRepository implements LearningRecordStore {
   listChildSessions: LearningRecordStore['listChildSessions'] = (
     owner,
     childProfileId,
     since,
-    limit,
+    bounds,
   ) =>
     fromThrowableAsync(async () => {
-      const sessions = await db.orm.public.HelpSession.where({
-        tenantId: owner.tenantId,
-        ownerId: owner.ownerId,
-        childProfileId,
-      })
+      const sessions = await db.orm.public.HelpSession.select(
+        'id',
+        'assignmentId',
+        'competencyCode',
+        'openTopicLabel',
+        'status',
+        'startedAt',
+      )
+        .where({ tenantId: owner.tenantId, ownerId: owner.ownerId, childProfileId })
         .where((row) => row.startedAt.gte(dateToInstant(since)))
-        .select('id', 'assignmentId', 'competencyCode', 'openTopicLabel', 'status', 'startedAt')
         .orderBy([(row) => row.startedAt.desc(), (row) => row.id.desc()])
-        .limit(limit)
+        .limit(bounds.sessions)
         .all();
       if (sessions.length === 0) {
         return [];
@@ -62,13 +61,13 @@ export class PrismaLearningRecordStore implements LearningRecordStore {
         // @owner-scope derived The session ids come from the read above, pinned to tenant, owner and child.
         db.orm.public.HintEvent.where((row) => row.sessionId.in(ids))
           .select('sessionId', 'level')
-          .limit(HINT_ROW_LIMIT)
+          .limit(bounds.steps)
           .all(),
         // @owner-scope derived The session ids come from the read above, pinned to tenant, owner and child.
         db.orm.public.ComprehensionQuestion.where((row) => row.sessionId.in(ids))
           .where((row) => row.repliedAt.isNotNull())
           .select('sessionId')
-          .limit(HINT_ROW_LIMIT)
+          .limit(bounds.steps)
           .all(),
       ]);
       const hintsBySession = groupBy(hints, ({ sessionId }) => sessionId);
@@ -95,7 +94,10 @@ export class PrismaLearningRecordStore implements LearningRecordStore {
       });
     }, failures.infraOnly('listChildSessions'));
 
-  listAssignmentSessions: LearningRecordStore['listAssignmentSessions'] = (assignmentIds) => {
+  listAssignmentSessions: LearningRecordStore['listAssignmentSessions'] = (
+    assignmentIds,
+    bounds,
+  ) => {
     if (assignmentIds.length === 0) {
       return okAsync([]);
     }
@@ -104,7 +106,7 @@ export class PrismaLearningRecordStore implements LearningRecordStore {
       // @owner-scope derived Across parents on purpose: the assignment ids are the teacher's own class's, read through the assignments module; only class numbers leave the use case.
       const sessions = await db.orm.public.HelpSession.where((row) => row.assignmentId.in(ids))
         .select('id', 'assignmentId', 'childProfileId', 'status')
-        .limit(CLASS_SESSION_LIMIT)
+        .limit(bounds.sessions)
         .all();
       if (sessions.length === 0) {
         return [];
@@ -114,7 +116,7 @@ export class PrismaLearningRecordStore implements LearningRecordStore {
       const hints = await db.orm.public.HintEvent.where((row) => row.sessionId.in(sessionIds))
         .groupBy('sessionId')
         .orderBy((row) => row.sessionId.asc())
-        .limit(CLASS_SESSION_LIMIT)
+        .limit(bounds.sessions)
         .aggregate((aggregate) => ({ count: aggregate.count() }));
       const hintCounts = new Map(hints.map(({ sessionId, count }) => [sessionId, count]));
       return sessions.flatMap((session): ClassSessionRecord[] => {

@@ -32,6 +32,7 @@ export const GUIDANCE_VALIDATION_CODES = {
   sessionIdInvalid: 'guidance.validation.session_id_invalid',
   requestIdInvalid: 'guidance.validation.request_id_invalid',
   assignmentIdInvalid: 'guidance.validation.assignment_id_invalid',
+  classroomIdInvalid: 'guidance.validation.classroom_id_invalid',
 } as const;
 
 export type GuidanceValidationCode =

@@ -1,3 +1,5 @@
+import { MS_PER_DAY, trimToNull, unique } from '@lib/utils';
+
 import { HINT_LEVELS } from '../models/hint-level';
 
 import type { HelpSessionStatus } from '../models/help-session';
@@ -12,11 +14,9 @@ export const MANY_HINTS = 3;
 /** A shown label is cut to this length, so a long curriculum text stays one short line. */
 export const LABEL_MAX_LENGTH = 80;
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
 /** Since when the summary reads sessions, on the application clock (UTC instant). */
 export function summarySince(now: Date): Date {
-  return new Date(now.getTime() - SUMMARY_WINDOW_DAYS * DAY_MS);
+  return new Date(now.getTime() - SUMMARY_WINDOW_DAYS * MS_PER_DAY);
 }
 
 /**
@@ -54,9 +54,9 @@ export interface SessionSummary {
 export interface LearningSummary {
   readonly sessions: readonly SessionSummary[];
   /** Topics with at least `MANY_HINTS` hints or a similar example; `null` is the own task. */
-  readonly neededManyHints: readonly (string | null)[];
+  readonly neededManyHints: ReadonlyArray<string | null>;
   /** Topics finished with the comprehension question answered. */
-  readonly understood: readonly (string | null)[];
+  readonly understood: ReadonlyArray<string | null>;
 }
 
 function shortLabel(text: string): string {
@@ -72,8 +72,8 @@ export function topicLabel(record: SessionLearningRecord, names: TopicNames): st
     record.assignmentId === null ? undefined : names.assignmentTitles.get(record.assignmentId);
   const competency =
     record.competencyCode === null ? undefined : names.competencyTexts.get(record.competencyCode);
-  const label = title ?? competency ?? record.openTopicLabel;
-  return label === null || label.trim() === '' ? null : shortLabel(label);
+  const label = trimToNull(title ?? competency ?? record.openTopicLabel);
+  return label === null ? null : shortLabel(label);
 }
 
 /** The highest rung of the ladder the hints reached, or `null` without a hint. */
@@ -93,8 +93,8 @@ function isUnderstood(session: SessionSummary): boolean {
   return session.status === 'completed' && session.comprehensionAnswered;
 }
 
-function distinctLabels(sessions: readonly SessionSummary[]): (string | null)[] {
-  return [...new Set(sessions.map(({ label }) => label))];
+function distinctLabels(sessions: readonly SessionSummary[]): Array<string | null> {
+  return unique(sessions.map(({ label }) => label));
 }
 
 /**

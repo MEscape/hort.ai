@@ -4,7 +4,7 @@ import type { InfrastructureAppError, NotFoundAppError, ValidationAppError } fro
 import type { AppResultAsync } from '@lib/result';
 
 import type { ClassAssignment } from '../insights/class-overview';
-import type { ChildProfileId } from '../models/ids';
+import type { ChildProfileId, ClassroomId } from '../models/ids';
 
 export type InsightSourceError =
   AuthorizationError | NotFoundAppError | ValidationAppError | InfrastructureAppError;
@@ -26,7 +26,7 @@ export interface InsightAssignments {
    * not theirs (another teacher's, a guess, archived).
    */
   ofOwnClass(
-    classroomId: string,
+    classroomId: ClassroomId,
   ): AppResultAsync<readonly ClassAssignment[] | null, InsightSourceError>;
 }
 

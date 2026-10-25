@@ -29,7 +29,7 @@ export async function LearningSummaryCard({ childProfileId, childName }: Learnin
   }
   const view = result.value;
   const topic = (label: string | null) => label ?? t('insights.parent.ownTask');
-  const topics = (labels: readonly (string | null)[]) => labels.map(topic).join(', ');
+  const topics = (labels: ReadonlyArray<string | null>) => labels.map(topic).join(', ');
 
   return (
     <Card>

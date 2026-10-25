@@ -5,6 +5,8 @@ import { okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
 import { summarizeClass } from '../../domain/insights/class-overview';
+import { parseClassroomId } from '../../domain/models/ids';
+import { INSIGHT_READ_BOUNDS } from '../guidance-limits';
 
 import type { ClassLearningOverviewView } from '../contracts/insight-views';
 import type { InsightDependencies } from '../insight-dependencies';
@@ -29,17 +31,22 @@ export class GetClassLearningOverview {
   ): AppResultAsync<ClassLearningOverviewView | null, GetClassLearningOverviewError> {
     const { authorization, assignments, records } = this.deps;
     return authorization.requireInTenant('assignment.read').andThen(() =>
-      assignments.ofOwnClass(classroomId).andThen((own) => {
-        if (own === null) {
-          return okAsync(null);
-        }
-        if (own.length === 0) {
-          return okAsync({ assignments: [] });
-        }
-        return records
-          .listAssignmentSessions(own.map(({ id }) => id))
-          .map((sessions) => ({ assignments: summarizeClass(own, sessions) }));
-      }),
+      parseClassroomId(classroomId)
+        .asyncAndThen((id) => assignments.ofOwnClass(id))
+        .andThen((own) => {
+          if (own === null) {
+            return okAsync(null);
+          }
+          if (own.length === 0) {
+            return okAsync({ assignments: [] });
+          }
+          return records
+            .listAssignmentSessions(
+              own.map(({ id }) => id),
+              INSIGHT_READ_BOUNDS,
+            )
+            .map((sessions) => ({ assignments: summarizeClass(own, sessions) }));
+        }),
     );
   }
 }
