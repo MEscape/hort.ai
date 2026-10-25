@@ -1,27 +1,22 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import type { CSSProperties } from 'react';
 
 import { WorldScene } from '@components/brand/world-scene';
 import { Button } from '@components/ui/button';
 import { Sun } from '@components/ui/icons';
 
-import { useCalmMotion } from '@hooks/use-calm-motion';
-
 import { useTranslations } from '@i18n/client';
 
 import { cn } from '@lib/utils';
 
-import { CompanionAvatar } from './companion-avatar';
 import { CompanionBubble } from './companion-bubble';
-import { mouthStyleOf, type CompanionVisual } from './companion-visual';
 import { Food } from './food/food';
-import { Hearts } from './hearts';
 import { LevelMeter } from './level-meter';
-import { LevelUpBurst } from './level-up-burst';
-import { StarFlight } from './star-flight';
+import { StageCompanion } from './stage-companion';
 
-import type { CompanionReaction } from './companion-avatar';
+import type { CompanionVisual } from './companion-visual';
 import type { FeedGame } from '../hooks/use-feed-game';
 
 export interface FeedStageProps {
@@ -29,6 +24,15 @@ export interface FeedStageProps {
   readonly companion: CompanionVisual;
   /** Size of the companion's box; the stage grows around it. */
   readonly avatarClassName: string;
+  /**
+   * A guide on the page is using the companion: `speaking` hides this stage's own line so only one
+   * bubble talks; `away` also hides the companion, which is walking about as a copy of itself.
+   * The feeding game itself is untouched.
+   */
+  readonly guided?: 'speaking' | 'away' | undefined;
+  readonly avatarStyle?: CSSProperties | undefined;
+  readonly isSpeaking?: boolean;
+  readonly variant?: 'welcome' | 'home';
 }
 
 type GameProps = Pick<FeedStageProps, 'game' | 'companion'>;
@@ -52,16 +56,6 @@ function saysOf({ reward, place }: FeedGame): Says {
     case 'available':
       return place === 'mouth' ? 'pending' : SAYS_BY_BOREDOM[reward.progress.boredomLevel];
   }
-}
-
-function reactionOf(game: FeedGame, isCalm: boolean): CompanionReaction {
-  if (game.celebration !== null) {
-    return game.celebration;
-  }
-  if (game.reward.status === 'granted') {
-    return isCalm ? 'happy' : 'none';
-  }
-  return game.isMouthOpen ? 'pending' : 'none';
 }
 
 const EATEN_SCALE = 0.2;
@@ -156,6 +150,17 @@ function Tray({ game, companion }: GameProps) {
   );
 }
 
+const HOME_FRAME = 'grid grid-cols-[auto_minmax(0,1fr)] md:flex md:flex-col md:gap-3';
+const WELCOME_FRAME =
+  'isolate flex flex-col overflow-hidden rounded-token-xl border-2 border-border bg-canvas px-3 pt-3 pb-2 shadow-soft';
+
+/** The home screen keeps the stage quiet: its own line shows only while something is happening. */
+function showsOwnLine({ reward, celebration }: FeedGame, isHome: boolean): boolean {
+  return (
+    !isHome || reward.status === 'pending' || reward.status === 'error' || celebration !== null
+  );
+}
+
 /**
  * The feeding game: the companion (hungry, sleepy or bored by the days away), a speech bubble with one
  * short line, and its treat on a plate. A tap, Enter or a drop on the mouth all call the same claim;
@@ -163,13 +168,21 @@ function Tray({ game, companion }: GameProps) {
  * for a level-up). A failed claim sends the food back with a short message and a retry. After
  * today's reward a quiet "tomorrow" sits where the food was: nothing is lost on any other day.
  */
-export function FeedStage({ game, companion, avatarClassName }: FeedStageProps) {
+export function FeedStage({
+  game,
+  companion,
+  avatarClassName,
+  guided,
+  avatarStyle,
+  isSpeaking = false,
+  variant = 'welcome',
+}: FeedStageProps) {
   const t = useTranslations('progression');
-  const isCalm = useCalmMotion();
   const bubbleRef = useRef<HTMLParagraphElement>(null);
   const meterRef = useRef<HTMLDivElement>(null);
   const { reward } = game;
   const isGranted = reward.status === 'granted';
+  const isHome = variant === 'home';
 
   // The food button is gone after the reward: focus moves to the line the companion says.
   useEffect(() => {
@@ -179,44 +192,42 @@ export function FeedStage({ game, companion, avatarClassName }: FeedStageProps) 
   }, [isGranted]);
 
   return (
-    <div className="relative isolate flex flex-col items-center gap-2 overflow-hidden rounded-token-xl border-2 border-border bg-canvas px-3 pt-3 pb-2 shadow-soft">
-      <WorldScene />
-      <div ref={meterRef} className="relative w-full">
+    <div className={cn('relative items-center gap-2', isHome ? HOME_FRAME : WELCOME_FRAME)}>
+      {!isHome && <WorldScene />}
+      <div
+        ref={meterRef}
+        data-guide-meter=""
+        className={cn(
+          'relative w-full transition-opacity duration-300',
+          isHome && 'col-start-2 row-start-1 md:max-w-72',
+          // The guide's own line takes the meter's place while it is said, so nothing is covered.
+          guided === 'speaking' && 'opacity-0',
+        )}
+      >
         <LevelMeter progress={reward.progress} />
       </div>
-      <CompanionBubble
-        focusRef={bubbleRef}
-        srOnly={isGranted ? t('feed.gainedSr', { xp: reward.progress.dailyReward.xp }) : undefined}
-      >
-        {t(`feed.says.${saysOf(game)}`, { level: reward.progress.level })}
-      </CompanionBubble>
-      <div className={cn('relative', avatarClassName)}>
-        <div className="size-full">
-          <CompanionAvatar
-            companion={companion}
-            mood={reward.progress.mood}
-            boredomLevel={reward.progress.boredomLevel}
-            reaction={reactionOf(game, isCalm)}
-            mouthRef={game.attachMouth}
-            isMouthHinted={game.place === 'dragging'}
-            className="size-full"
-          />
-        </div>
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute size-0"
-          style={mouthStyleOf(companion)}
+      {showsOwnLine(game, isHome) && (
+        <CompanionBubble
+          focusRef={bubbleRef}
+          className={cn(guided !== undefined && 'invisible')}
+          srOnly={
+            isGranted ? t('feed.gainedSr', { xp: reward.progress.dailyReward.xp }) : undefined
+          }
         >
-          {isGranted && !isCalm && <Hearts />}
-          {isGranted && (
-            <span className="absolute -top-5 -left-5 size-10">
-              <StarFlight targetRef={meterRef} />
-            </span>
-          )}
-        </span>
-        {isGranted && reward.leveledUp && !isCalm && <LevelUpBurst />}
+          {t(`feed.says.${saysOf(game)}`, { level: reward.progress.level })}
+        </CompanionBubble>
+      )}
+      <StageCompanion
+        game={game}
+        companion={companion}
+        className={cn(avatarClassName, isHome && 'col-start-1 row-span-3 row-start-1')}
+        avatarStyle={avatarStyle}
+        isSpeaking={isSpeaking}
+        meterRef={meterRef}
+      />
+      <div className={cn(isHome && 'col-start-2 row-start-2 min-w-0 md:w-full md:max-w-72')}>
+        <Tray game={game} companion={companion} />
       </div>
-      <Tray game={game} companion={companion} />
     </div>
   );
 }

@@ -9,11 +9,13 @@ export type { VoiceRouteHandlers } from './presentation/http/voice-route-handler
 export {
   SPEECH_LIMITS,
   SYSTEM_PHRASES,
+  UI_LINES,
   VOICE_ERROR_CODES,
   VOICE_VALIDATION_CODES,
 } from './application/contracts/voice-constraints';
 export type {
   SystemPhrase,
+  UiLine,
   VoiceErrorCode,
   VoiceValidationCode,
 } from './application/contracts/voice-constraints';

@@ -344,7 +344,7 @@ describe('onboarding flow', () => {
     expect(screen.getByText('Sports')).toBeVisible();
     expect(screen.getByText('Max')).toBeVisible();
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Change' })[0]!);
+    fireEvent.click(screen.getByRole('button', { name: /^Change\s*:\s*Your child$/ }));
     fireEvent.change(await screen.findByLabelText('What should Hort call your child?'), {
       target: { value: 'Lisa M' },
     });
@@ -368,7 +368,7 @@ describe('onboarding flow', () => {
     const doneCount = () => screen.queryAllByText('Done').length;
     expect(doneCount()).toBe(6);
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Change' })[0]!);
+    fireEvent.click(screen.getByRole('button', { name: /^Change\s*:\s*Your child$/ }));
     // Changing the child: every other finished step stays done; only the review and the end are open.
     expect(doneCount()).toBe(5);
     expect(document.querySelector('[aria-current="step"]')).toHaveTextContent('Your child');

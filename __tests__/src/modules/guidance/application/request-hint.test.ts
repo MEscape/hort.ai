@@ -6,7 +6,10 @@ import type { CurrentActorProvider } from '@modules/auth/domain/ports/current-ac
 import { RequestHint } from '@modules/guidance/application/commands/request-hint';
 import { GUIDANCE_RATE_LIMITS } from '@modules/guidance/application/rate-limits';
 import { HintOrchestrator } from '@modules/guidance/application/services/hint-orchestrator';
-import type { HintRequest } from '@modules/guidance/domain/models/hint-request';
+import type {
+  CurriculumCompetency,
+  HintRequest,
+} from '@modules/guidance/domain/models/hint-request';
 import { parseStepRequestId } from '@modules/guidance/domain/models/ids';
 import type { HintProvider } from '@modules/guidance/domain/ports/hint-provider.port';
 
@@ -18,6 +21,7 @@ import { parent, recordingAudit as recordingSecurityAudit, signedInAs } from '..
 import {
   ASSIGNMENT,
   ASSIGNMENT_TEXT,
+  CANDIDATES,
   OTHER_CHILD,
   OWN_CHILD,
   REQUEST,
@@ -58,6 +62,7 @@ interface BuildOptions {
   readonly rateLimiter?: RateLimiter;
   readonly aiFails?: true;
   readonly curriculumFails?: true;
+  readonly curriculum?: readonly CurriculumCompetency[];
   readonly sessions?: ReturnType<typeof fakeSessionStore>;
   readonly owned?: Parameters<typeof ownChildren>[0];
   readonly assignments?: ReturnType<typeof fakeAssignments>;
@@ -70,7 +75,10 @@ function build(options: BuildOptions = {}) {
     ...(options.hintText === undefined ? {} : { text: options.hintText }),
   });
   const { audit, events } = recordingAuditLog();
-  const { retrieval, queries } = fakeCompetencies({ fails: options.curriculumFails === true });
+  const { retrieval, queries } = fakeCompetencies({
+    fails: options.curriculumFails === true,
+    ...(options.curriculum === undefined ? {} : { found: options.curriculum }),
+  });
   const sessions = options.sessions ?? fakeSessionStore();
   const requestHint = new RequestHint({
     authorization: createAuthorizationService({
@@ -325,6 +333,42 @@ describe('RequestHint', () => {
 
     expect(queries).toEqual([{ federalState: 'BY', grade: 2, subject: 'math', task: TASK }]);
     expect(requests.map((r) => r.competencies)).toEqual([REQUEST.competencies]);
+  });
+
+  it('grounds the hint in the competency the session was classified with, and only that one (#35)', async () => {
+    const { requestHint, requests, events } = build({
+      curriculum: CANDIDATES,
+      sessions: fakeSessionStore([openSession({ competencyCode: 'M2.4' })]),
+    });
+
+    await requestHint.execute(input());
+
+    expect(requests.map((r) => r.competencies)).toEqual([[CANDIDATES[1]]]);
+    expect(events.map((e) => e.type)).not.toContain('guidance.stored_competency_unavailable');
+  });
+
+  it("grounds as before when the stored competency is no longer one of the child's, and logs it", async () => {
+    const { requestHint, requests, events } = build({
+      curriculum: CANDIDATES,
+      sessions: fakeSessionStore([openSession({ competencyCode: 'he-kc-other-state:s9' })]),
+    });
+
+    const result = await requestHint.execute(input());
+
+    expect(result.isOk() && result.value.hint).toMatchObject({ kind: 'generated' });
+    expect(requests.map((r) => r.competencies)).toEqual([CANDIDATES]);
+    expect(events).toContainEqual({
+      type: 'guidance.stored_competency_unavailable',
+      level: 'understand_task',
+    });
+  });
+
+  it('grounds an unclassified session in every candidate, as before (#35)', async () => {
+    const { requestHint, requests } = build({ curriculum: CANDIDATES });
+
+    await requestHint.execute(input());
+
+    expect(requests.map((r) => r.competencies)).toEqual([CANDIDATES]);
   });
 
   it('still gives the hint ungrounded when the curriculum is unreachable, and logs why', async () => {

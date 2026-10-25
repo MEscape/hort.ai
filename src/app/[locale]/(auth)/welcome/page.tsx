@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 
-import { AuthFormSkeleton, WelcomePanel, authRoutes } from '@modules/auth';
+import { AuthFormSkeleton, WelcomePanel, authRoutes, redirectIfSignedIn } from '@modules/auth';
 
 import { requireLocale } from '@i18n';
 
@@ -23,10 +23,16 @@ export async function generateMetadata({
   });
 }
 
+/** A visitor who is already signed in never sees "register or sign in" again. */
+async function FrontDoor() {
+  await redirectIfSignedIn();
+  return <WelcomePanel />;
+}
+
 export default function WelcomePage() {
   return (
     <Suspense fallback={<AuthFormSkeleton />}>
-      <WelcomePanel />
+      <FrontDoor />
     </Suspense>
   );
 }
