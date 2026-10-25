@@ -10,8 +10,8 @@ import { useAppFormatters } from '@i18n/formatters/client';
 
 import type { ClosedReason } from './screen-time-view';
 
-/** The existing task entry; it takes the typed task until sessions can be started (issue #12). */
-const TYPE_TASK_HREF = '/home/task';
+/** The real task entry: "/start" takes the typed task and opens the help session. */
+const TYPE_TASK_HREF = '/start';
 
 interface TaskCardProps {
   readonly companionName: string;
