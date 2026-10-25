@@ -14,6 +14,21 @@ export interface SynthesizeSpeechInput {
   readonly source: SpeechSource;
 }
 
+/**
+ * What hosted speech (a clip behind a URL, for channels without a signed-in actor) should say: a
+ * fixed line of the tutor catalog, or a fixed channel sentence that must match `channel-lines.json`
+ * exactly; any other text is refused. Validated hints need a ticket and therefore an actor, so they
+ * are not speakable here.
+ */
+export type HostedSpeechSource =
+  | { readonly kind: 'phrase'; readonly phrase: SystemPhrase }
+  | { readonly kind: 'channel-line'; readonly text: string };
+
+export interface HostedSpeechInput {
+  readonly speakerId: string;
+  readonly source: HostedSpeechSource;
+}
+
 /** A child's recording, held in memory for the one request, and which child is speaking. */
 export interface TranscribeSpeechInput {
   readonly childProfileId: string;

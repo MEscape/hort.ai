@@ -17,6 +17,17 @@ export const VOICE_RATE_LIMITS = {
     windowSeconds: VOICE_WINDOW_SECONDS,
     onBackendFailure: 'deny',
   },
+  /**
+   * Hosted speech for anonymous channels (Alexa), one budget for all of them: only a synthesis
+   * counts, a clip served from storage is free. 60 in ten minutes is far above a demo and caps a
+   * runaway loop at a few thousand billed characters.
+   */
+  hostedSynthesize: {
+    id: 'voice.hosted-synthesize',
+    limit: 60,
+    windowSeconds: VOICE_WINDOW_SECONDS,
+    onBackendFailure: 'deny',
+  },
   transcribe: {
     id: 'voice.transcribe',
     limit: 30,

@@ -4,7 +4,7 @@
  * handlers; server code that receives a validated hint from the guidance orchestrator issues a
  * speech ticket for it (`getVoiceQueries().issueSpeechTicket`). Nothing here is browser code.
  */
-export { getVoiceQueries, getVoiceRouteHandlers } from './composition';
+export { getHostedSpeech, getVoiceQueries, getVoiceRouteHandlers } from './composition';
 export type { VoiceRouteHandlers } from './presentation/http/voice-route-handlers';
 export {
   SPEECH_LIMITS,
@@ -18,11 +18,14 @@ export type {
   VoiceValidationCode,
 } from './application/contracts/voice-constraints';
 export type {
+  HostedSpeechInput,
+  HostedSpeechSource,
   SpeechSource,
   SynthesizeSpeechInput,
   TranscribeSpeechInput,
 } from './application/contracts/voice-inputs';
 export type {
+  HostedSpeechView,
   SpeechAudioView,
   SpeechTicketView,
   TranscriptView,
