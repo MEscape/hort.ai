@@ -1,0 +1,15 @@
+{
+  "hello": "Hallo! Schön, dass du da bist.",
+  "welcomeBack": "Willkommen zurück! Machen wir weiter?",
+  "photoSoon": "Fotos kommen bald!",
+  "voiceOff": "Ich lese nur, was du tippst.",
+  "teacherNone": "Nichts Neues von deiner Lehrkraft.",
+  "teacherNew": "Neue Aufgaben von deiner Lehrkraft!",
+  "teacherSoon": "Aufgaben von deiner Lehrkraft kommen bald.",
+  "stripTime": "So viel Zeit ist noch übrig.",
+  "stripUnavailable": "Die Zeit kann ich noch nicht zählen.",
+  "closedLimit": "Ich brauche Pause. Bis morgen!",
+  "closedWindow": "Ich schlafe gerade. Bis später!",
+  "low": "Gleich Pause. Mach den Schritt fertig!",
+  "offline": "Kein Internet. Ich warte auf dich."
+}

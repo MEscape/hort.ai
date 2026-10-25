@@ -7,7 +7,7 @@
         "description": "Erstelle ein Elternkonto und starte mit deinem Kind ein sicheres, spielerisches Lernabenteuer."
       },
       "title": "Willkommen im Lernabenteuer!",
-      "description": "Gemeinsam entdecken wir eine Welt voller Wissen, Spaß und spannender Aufgaben. Erstelle zuerst ein Konto für dich.",
+      "description": "Hort.ai hilft deinem Kind bei den Hausaufgaben: mit Denkanstößen statt fertigen Lösungen. Erstelle zuerst dein Elternkonto.",
       "signUp": "Registrieren",
       "haveAccount": "Schon ein Konto?",
       "signIn": "Anmelden"
@@ -41,7 +41,7 @@
       "roleParent": "Elternteil",
       "roleParentHint": "Du legst Profile für deine Kinder an.",
       "roleTeacher": "Lehrkraft",
-      "roleTeacherHint": "Du verwaltest Klassen, Material und Aufgaben. Lehrkräfte werden im MVP nicht geprüft.",
+      "roleTeacherHint": "Du verwaltest Klassen, Material und Aufgaben. Lehrkraftkonten werden derzeit nicht überprüft.",
       "email": "E-Mail-Adresse",
       "password": "Passwort",
       "confirmPassword": "Passwort wiederholen",
@@ -164,6 +164,11 @@
       "notMet": "Noch nicht erledigt.",
       "tip": "Tipp: Vier oder mehr Wörter, die nichts miteinander zu tun haben, ergeben ein starkes Passwort, das du dir gut merken kannst.",
       "match": "Die Passwörter stimmen überein"
+    },
+    "parentAccess": {
+      "intro": "Gib dein Kontopasswort ein, um die Elterneinstellungen zu öffnen. Der Zugang schließt nach fünf Minuten.",
+      "open": "Elterneinstellungen öffnen",
+      "back": "Zurück zum Kind"
     },
     "account": {
       "title": "Kontoeinstellungen",

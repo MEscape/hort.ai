@@ -29,6 +29,8 @@ import type {
 import type { TutorCatalogPort } from '@modules/learner/domain/ports/tutor-catalog.port';
 
 import type { Clock } from '@lib/clock';
+import type { InfrastructureAppError } from '@lib/errors';
+import type { AppResultAsync } from '@lib/result';
 import { okAsync } from '@lib/result';
 
 import { parent, recordingAudit, signedInAs } from '../auth/fakes';
@@ -74,6 +76,16 @@ export function profileOf(
  * changed something, so a test can assert that an idempotent call wrote nothing.
  */
 export class InMemoryChildProfiles implements ChildProfileRepository {
+  updateParentControls(profile: ChildProfile, controls: Omit<ChildProfile['controls'], 'voiceEnabled'>): AppResultAsync<ChildProfile | null, InfrastructureAppError> {
+    const index = this.rows.findIndex((row) => row.id === profile.id && row.ownerId === profile.ownerId && row.tenantId === profile.tenantId && row.setupCompletedAt !== null);
+    const stored = this.rows[index];
+    if (!stored) { return okAsync<ChildProfile | null>(null); }
+    this.writes += 1;
+    const updated = { ...stored, controls: { ...stored.controls, ...controls } };
+    this.rows[index] = updated;
+    return okAsync<ChildProfile | null>(updated);
+  }
+
   readonly rows: ChildProfile[] = [];
   writes = 0;
   private sequence = 0;

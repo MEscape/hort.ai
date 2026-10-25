@@ -15,6 +15,8 @@ export function HortaiLogo({ className }: HortaiLogoProps) {
       alt={APP_IDENTITY.name}
       width={496}
       height={160}
+      // Every page shows the logo at the very top, so it is above the fold (often the LCP element).
+      loading="eager"
       className={cn('h-14 w-auto', className)}
     />
   );
