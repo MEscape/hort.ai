@@ -10,9 +10,8 @@ import { RequestHint } from './application/commands/request-hint';
 import { HintOrchestrator } from './application/services/hint-orchestrator';
 import { loggerGuidanceAuditLog } from './infrastructure/audit/logger-guidance-audit-log';
 import { curriculumCompetencyRetrieval } from './infrastructure/curriculum/curriculum-competency-retrieval';
+import { GeminiProvider } from './infrastructure/gemini/gemini-provider';
 import { learnerChildProfileAccess } from './infrastructure/learner/learner-child-profile-access';
-import { createServiceAccountTokenSource } from './infrastructure/vertex/service-account-token';
-import { VertexGeminiProvider } from './infrastructure/vertex/vertex-gemini-provider';
 
 import type { HintProvider } from './domain/ports/hint-provider.port';
 
@@ -21,23 +20,17 @@ const switchedOffProvider: HintProvider = {
   suggest: () => errAsync({ kind: 'unavailable' }),
 };
 
-/**
- * Gemini on Vertex AI when `VERTEX_AI_ENABLED=true` (the configuration then guarantees a project
- * and a service account key), otherwise the switched-off provider. Built on first use.
- */
+/** Gemini when `GEMINI_API_KEY` is set, otherwise the switched-off provider. Built on first use. */
 const getHintProvider = once((): HintProvider => {
   const env = serverEnv;
-  if (!env.VERTEX_AI_ENABLED || !env.VERTEX_AI_PROJECT_ID || !env.VERTEX_AI_SERVICE_ACCOUNT_KEY) {
+  if (env.GEMINI_API_KEY === undefined) {
     return switchedOffProvider;
   }
-  return new VertexGeminiProvider({
-    projectId: env.VERTEX_AI_PROJECT_ID,
-    location: env.VERTEX_AI_LOCATION,
-    modelId: env.VERTEX_AI_MODEL_ID,
-    timeoutMs: env.VERTEX_AI_TIMEOUT_MS,
-    accessToken: createServiceAccountTokenSource(env.VERTEX_AI_SERVICE_ACCOUNT_KEY, {
-      timeoutMs: env.VERTEX_AI_TIMEOUT_MS,
-    }),
+  return new GeminiProvider({
+    apiKey: env.GEMINI_API_KEY,
+    apiUrl: env.GEMINI_API_URL,
+    modelId: env.GEMINI_MODEL_ID,
+    timeoutMs: env.GEMINI_TIMEOUT_MS,
   });
 });
 

@@ -137,6 +137,13 @@ describe('serverEnvSchema', () => {
     expect(problems({ ...development, ELEVENLABS_API_URL: 'http://localhost:9000' })).toEqual([]);
   });
 
+  it("sends the AI key and the child's task text only over https in production", () => {
+    expect(problems({ ...production, GEMINI_API_URL: 'http://ai.example.org' })).toEqual([
+      'GEMINI_API_URL: GEMINI_API_URL must be an https URL in production.',
+    ]);
+    expect(problems({ ...development, GEMINI_API_URL: 'http://localhost:9001' })).toEqual([]);
+  });
+
   it('does not require https for storage URLs outside production', () => {
     expect(
       problems({

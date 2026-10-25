@@ -5,9 +5,6 @@ import { arrayOf, isString, objectOf, optional } from '@lib/utils';
 import { buildFeedbackPrompt } from '../../domain/prompt/feedback-prompt';
 import { buildHintPrompt } from '../../domain/prompt/hint-prompt';
 
-import { failureOf } from './service-account-token';
-
-import type { AccessTokenSource } from './service-account-token';
 import type { FeedbackRequest } from '../../domain/models/feedback-request';
 import type { HintRequest } from '../../domain/models/hint-request';
 import type { FeedbackProvider } from '../../domain/ports/feedback-provider.port';
@@ -15,8 +12,8 @@ import type { HintProvider, HintProviderFailure } from '../../domain/ports/hint-
 import type { HintPrompt } from '../../domain/prompt/hint-prompt';
 
 /**
- * The strictest blocking Vertex AI offers, for every harm category: the reader is a child. A
- * blocked answer has no text and ends in the predefined prompt like any rejected answer.
+ * The strictest blocking Gemini offers, for every harm category: the reader is a child. A blocked
+ * answer has no text and ends in the predefined prompt like any rejected answer.
  */
 const SAFETY_SETTINGS = [
   'HARM_CATEGORY_HARASSMENT',
@@ -25,27 +22,31 @@ const SAFETY_SETTINGS = [
   'HARM_CATEGORY_DANGEROUS_CONTENT',
 ].map((category) => ({ category, threshold: 'BLOCK_LOW_AND_ABOVE' }));
 
-export interface VertexGeminiProviderOptions {
-  readonly projectId: string;
-  /** `eu` or `us` (multi-region), `global`, or a region such as `europe-west4`. */
-  readonly location: string;
+export interface GeminiProviderOptions {
+  readonly apiKey: string;
+  /** The API origin, `https://generativelanguage.googleapis.com`. */
+  readonly apiUrl: string;
   readonly modelId: string;
   readonly timeoutMs: number;
-  readonly accessToken: AccessTokenSource;
   /** Injected in tests; the global `fetch` otherwise. */
   readonly fetch?: typeof fetch;
 }
 
-const isGenerateContentResponse = objectOf<{
-  candidates:
-    Array<{ content: { parts: Array<{ text: string | undefined }> } | undefined }> | undefined;
-}>({
+interface Part {
+  text: string | undefined;
+}
+
+interface Candidate {
+  content: { parts: Part[] | undefined } | undefined;
+}
+
+const isGenerateContentResponse = objectOf<{ candidates: Candidate[] | undefined }>({
   candidates: optional(
     arrayOf(
-      objectOf<{ content: { parts: Array<{ text: string | undefined }> } | undefined }>({
+      objectOf<Candidate>({
         content: optional(
-          objectOf<{ parts: Array<{ text: string | undefined }> }>({
-            parts: arrayOf(objectOf<{ text: string | undefined }>({ text: optional(isString) })),
+          objectOf<{ parts: Part[] | undefined }>({
+            parts: optional(arrayOf(objectOf<Part>({ text: optional(isString) }))),
           }),
         ),
       }),
@@ -53,14 +54,12 @@ const isGenerateContentResponse = objectOf<{
   ),
 });
 
-/** The API host of a location: the multi-regions have their own hosts, `global` has none in its name. */
-export function vertexOrigin(location: string): string {
-  if (location === 'eu' || location === 'us') {
-    return `https://aiplatform.${location}.rep.googleapis.com`;
-  }
-  return location === 'global'
-    ? 'https://aiplatform.googleapis.com'
-    : `https://${location}-aiplatform.googleapis.com`;
+/** A thrown value reaches the cause by its name only: its message may echo a request. */
+function failureOf(thrown: unknown): HintProviderFailure {
+  const name = thrown instanceof Error ? thrown.name : 'unknown error';
+  return name === 'TimeoutError'
+    ? { kind: 'timeout' }
+    : { kind: 'unavailable', cause: new Error(`Gemini call could not be completed: ${name}`) };
 }
 
 /**
@@ -71,7 +70,8 @@ function answerOf(body: unknown): unknown {
   if (!isGenerateContentResponse(body)) {
     return undefined;
   }
-  const text = (body.candidates?.[0]?.content?.parts ?? []).map((part) => part.text ?? '').join('');
+  const parts = body.candidates?.[0]?.content?.parts ?? [];
+  const text = parts.map((part) => part.text ?? '').join('');
   if (text === '') {
     return undefined;
   }
@@ -83,18 +83,19 @@ function answerOf(body: unknown): unknown {
 }
 
 /**
- * Gemini on Vertex AI (Google Cloud) behind the guidance ports (#10, #14): `generateContent` with
- * the fixed instructions as the system instruction and the child's data as the only user message,
- * JSON output, and the strictest safety settings. Plain `fetch`, no SDK.
+ * Gemini behind the guidance ports (#10, #14): `generateContent` on the Gemini API with the fixed
+ * instructions as the system instruction and the child's data as the only user message, JSON
+ * output, and the strictest safety settings. Plain `fetch`, no SDK; the key travels in a header,
+ * never in the URL, so it cannot end up in a request log.
  *
  * It only transports: every answer is checked against the AI output contract and the child-safety
  * rules by the orchestration, whatever this returns. A missed deadline is `timeout`; any other
- * failure is `unavailable`, with the HTTP status at most, never a token or the child's text.
+ * failure is `unavailable`, with the HTTP status at most, never the key or the child's text.
  */
-export class VertexGeminiProvider implements HintProvider, FeedbackProvider {
+export class GeminiProvider implements HintProvider, FeedbackProvider {
   private readonly send: typeof fetch;
 
-  constructor(private readonly options: VertexGeminiProviderOptions) {
+  constructor(private readonly options: GeminiProviderOptions) {
     this.send = options.fetch ?? fetch;
   }
 
@@ -107,22 +108,19 @@ export class VertexGeminiProvider implements HintProvider, FeedbackProvider {
   }
 
   private generate(prompt: HintPrompt): ResultAsync<unknown, HintProviderFailure> {
-    return this.options
-      .accessToken()
-      .andThen((token) => ResultAsync.fromSafePromise(this.call(prompt, token)))
-      .andThen((outcome) => outcome);
+    return ResultAsync.fromSafePromise(this.call(prompt)).andThen((outcome) => outcome);
   }
 
-  private async call(
-    { instructions, data }: HintPrompt,
-    token: string,
-  ): Promise<Result<unknown, HintProviderFailure>> {
-    const { projectId, location, modelId, timeoutMs } = this.options;
-    const url = `${vertexOrigin(location)}/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelId}:generateContent`;
+  private async call({
+    instructions,
+    data,
+  }: HintPrompt): Promise<Result<unknown, HintProviderFailure>> {
+    const { apiKey, apiUrl, modelId, timeoutMs } = this.options;
+    const url = `${apiUrl.replace(/\/+$/, '')}/v1beta/models/${modelId}:generateContent`;
     try {
       const response = await this.send(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: instructions }] },
           contents: [{ role: 'user', parts: [{ text: data }] }],
@@ -134,12 +132,12 @@ export class VertexGeminiProvider implements HintProvider, FeedbackProvider {
       if (!response.ok) {
         return err({
           kind: 'unavailable',
-          cause: new Error(`Vertex AI answered with status ${response.status}`),
+          cause: new Error(`Gemini answered with status ${response.status}`),
         });
       }
       return ok(answerOf(await response.json()));
     } catch (thrown) {
-      return err(failureOf('Vertex AI call', thrown));
+      return err(failureOf(thrown));
     }
   }
 }
