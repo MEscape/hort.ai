@@ -12,6 +12,7 @@ import {
 } from '@modules/guidance/domain/models/ids';
 import type { HelpSessionRepository } from '@modules/guidance/domain/ports/help-session.repository';
 import type { HelpSessionRef } from '@modules/guidance/domain/ports/hint-session-store.port';
+import { UNCLASSIFIED_TOPIC } from '@modules/guidance/domain/topic/session-topic';
 
 import type { db as Db } from '@lib/db';
 
@@ -73,6 +74,7 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
         task: text('Rechne 23 + 19.'),
         subject: 'math',
         replaces: null,
+        topic: UNCLASSIFIED_TOPIC,
       })
     )._unsafeUnwrap();
     const ref: HelpSessionRef = { ...owner, childProfileId, sessionId: session.id };
@@ -93,6 +95,32 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
       await db.orm.public.ChildProfile.where({ tenantId }).deleteAndCount();
     }
     await disconnect();
+  });
+
+  it('stores the topic classification of a new session (#92)', async () => {
+    const { owner, childProfileId } = await freshChild();
+    const topic = {
+      intent: 'small_talk',
+      opening: { kind: 'redirect', intent: 'small_talk' },
+      competencyCode: null,
+      openTopicLabel: null,
+      classifiedBy: 'jev',
+    } as const;
+
+    const { session } = (
+      await repository.start(owner, {
+        childProfileId,
+        task: text('Hallo Max, wie geht es dir?'),
+        subject: 'math',
+        replaces: null,
+        topic,
+      })
+    )._unsafeUnwrap();
+
+    expect(session.topic).toEqual(topic);
+    expect((await repository.findOpen(owner, childProfileId))._unsafeUnwrap()?.topic).toEqual(
+      topic,
+    );
   });
 
   it('saves every step and reloads exactly the same state', async () => {
@@ -290,6 +318,7 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
         task: text('Rechne 50 - 8.'),
         subject: 'math',
         replaces: ref.sessionId,
+        topic: UNCLASSIFIED_TOPIC,
       })
     )._unsafeUnwrap();
 
@@ -312,6 +341,7 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
         task: text('Rechne 23 + 19.'),
         subject: 'math',
         replaces: null,
+        topic: UNCLASSIFIED_TOPIC,
       });
 
     const [first, second] = await Promise.all([start(), start()]);

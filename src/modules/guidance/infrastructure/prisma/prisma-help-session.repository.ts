@@ -21,6 +21,7 @@ import {
   SESSION_SELECT,
   STATUS_RECORD,
   SUBJECT_RECORD,
+  toTopicRecord,
   toHelpSession,
 } from './help-session-record-mapper';
 
@@ -141,6 +142,7 @@ export class PrismaHelpSessionRepository implements HelpSessionRepository {
             childProfileId: session.childProfileId,
             taskText: session.task,
             subject: SUBJECT_RECORD[session.subject],
+            ...toTopicRecord(session.topic),
             startedAt: now,
             updatedAt: now,
           });

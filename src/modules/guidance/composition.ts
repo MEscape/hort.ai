@@ -8,7 +8,6 @@ import { errAsync } from '@lib/result';
 import { once } from '@lib/utils';
 
 import { CheckAnswer } from './application/commands/check-answer';
-import { ClassifyChildTask } from './application/commands/classify-child-task';
 import { ReplyToComprehensionQuestion } from './application/commands/reply-to-comprehension-question';
 import { RequestHint } from './application/commands/request-hint';
 import { StartHelpSession } from './application/commands/start-help-session';
@@ -101,7 +100,6 @@ const getHelpSessionRepository = once(() => new PrismaHelpSessionRepository(syst
 /** The guidance use cases, over the configured AI provider and safety classifier. */
 export const getGuidanceCommands = once(() => {
   const safety = getSafetyClassifier();
-  const classifier = getTopicClassifier();
   const deps = {
     authorization: getAccessControl(),
     childProfiles: learnerChildProfileAccess,
@@ -115,22 +113,22 @@ export const getGuidanceCommands = once(() => {
       ...(safety === undefined ? {} : { safety }),
     }),
     audit: loggerGuidanceAuditLog,
-    ...(classifier === undefined ? {} : { classifier }),
   };
-  return {
-    requestHint: new RequestHint(deps),
-    checkAnswer: new CheckAnswer(deps),
-    classifyChildTask: new ClassifyChildTask(deps),
-  };
+  return { requestHint: new RequestHint(deps), checkAnswer: new CheckAnswer(deps) };
 });
 
-const getHelpSessionDependencies = once((): HelpSessionDependencies => ({
-  authorization: getAccessControl(),
-  childProfiles: learnerChildProfileAccess,
-  rateLimiter: getRateLimiter(),
-  sessions: getHelpSessionRepository(),
-  audit: loggerGuidanceAuditLog,
-}));
+const getHelpSessionDependencies = once((): HelpSessionDependencies => {
+  const classifier = getTopicClassifier();
+  return {
+    authorization: getAccessControl(),
+    childProfiles: learnerChildProfileAccess,
+    rateLimiter: getRateLimiter(),
+    sessions: getHelpSessionRepository(),
+    audit: loggerGuidanceAuditLog,
+    competencies: curriculumCompetencyRetrieval,
+    ...(classifier === undefined ? {} : { classifier }),
+  };
+});
 
 /** Starting a help session and the comprehension reply (#17, #78). */
 export const getHelpSessionCommands = once(() => ({

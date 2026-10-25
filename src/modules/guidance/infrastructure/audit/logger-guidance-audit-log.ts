@@ -21,7 +21,6 @@ export const LEVEL_BY_EVENT = {
   'guidance.comprehension_replied': 'info',
   'guidance.topic_classification_fallback_used': 'warn',
   'guidance.topic_classified': 'info',
-  'guidance.child_task_classified': 'info',
   'guidance.topic_subject_mismatch': 'info',
 } as const satisfies Record<GuidanceEvent['type'], 'info' | 'warn'>;
 

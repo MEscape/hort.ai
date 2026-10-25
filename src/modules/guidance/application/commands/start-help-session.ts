@@ -6,7 +6,7 @@ import type {
   RateLimitedAppError,
   ValidationAppError,
 } from '@lib/errors';
-import { okAsync } from '@lib/result';
+import { okAsync, ResultAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
 import { parseChildTaskText } from '../../domain/models/child-task-text';
@@ -15,6 +15,7 @@ import { parseHintSubject } from '../../domain/models/hint-subject';
 import { parseChildProfileId } from '../../domain/models/ids';
 import { GUIDANCE_RATE_LIMITS } from '../rate-limits';
 import { spendChildBudget } from '../services/child-budget';
+import { classifySessionTask } from '../services/classify-session-task';
 import { toHelpSessionView } from '../services/help-session-view';
 import { ownChildScope } from '../services/own-child-session';
 
@@ -34,9 +35,11 @@ export type StartHelpSessionError =
  * session: the same task again continues it (so a retried start creates nothing), a different
  * task ends the open one as `abandoned` and starts anew, in one transaction.
  *
- * `hint.request` is the guidance capability of the child's guardian, as for hints themselves. A start
- * costs no provider call, but every new task stores a session, so it spends the child's
- * `sessionStart` budget once the child is known to be the parent's own.
+ * `hint.request` is the guidance capability of the child's guardian, as for hints themselves. Every
+ * new task stores a session and is classified once by intent and curriculum topic (#92), so it
+ * spends the child's `sessionStart` budget once the child is known to be the parent's own. The
+ * classification decides the session's opening (clarify, redirect or none); it never fails the start.
+ * The distress check of #90 belongs before it.
  */
 export class StartHelpSession {
   constructor(private readonly deps: HelpSessionDependencies) {}
@@ -55,7 +58,7 @@ export class StartHelpSession {
           ),
         )
         .asyncAndThen(({ id, task, subject }) =>
-          ownChildScope(this.deps, actor, id).andThen(({ owner, childProfileId }) =>
+          ownChildScope(this.deps, actor, id).andThen(({ owner, childProfileId, child }) =>
             spendChildBudget(rateLimiter, { actor, childProfileId, policy })
               .andThen(() => sessions.findOpen(owner, childProfileId))
               .andThen((open) => {
@@ -66,8 +69,12 @@ export class StartHelpSession {
                   });
                 }
                 const replaces = open?.id ?? null;
-                return sessions
-                  .start(owner, { childProfileId, task, subject, replaces })
+                return ResultAsync.fromSafePromise(
+                  classifySessionTask(this.deps, { child, task, subject, replaces: open }),
+                )
+                  .andThen((topic) =>
+                    sessions.start(owner, { childProfileId, task, subject, replaces, topic }),
+                  )
                   .map(({ session, created }): StartHelpSessionView => {
                     if (created) {
                       audit.record({
@@ -78,6 +85,7 @@ export class StartHelpSession {
                         sessionId: session.id,
                         subject,
                         replaced: replaces,
+                        opening: session.topic.opening?.kind ?? null,
                       });
                     }
                     return {

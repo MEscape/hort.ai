@@ -7,10 +7,14 @@ import { GetOpenHelpSession } from '@modules/guidance/application/queries/get-op
 import { GUIDANCE_RATE_LIMITS } from '@modules/guidance/application/rate-limits';
 import type { AnswerCheckStep } from '@modules/guidance/domain/models/help-session';
 import { toStepRequestId } from '@modules/guidance/domain/models/ids';
+import type { TopicClassifier } from '@modules/guidance/domain/ports/topic-classifier.port';
+import { UNCLASSIFIED_TOPIC } from '@modules/guidance/domain/topic/session-topic';
+
+import { okAsync } from '@lib/result';
 
 import { createBrokenRateLimiter, createTestRateLimiter } from '../../../support/rate-limiting';
 import { parent } from '../../auth/fakes';
-import { OTHER_CHILD, OWN_CHILD, task } from '../fakes';
+import { OTHER_CHILD, OWN_CHILD, REQUEST, task } from '../fakes';
 import { helpSessionDependencies, inMemorySessions, storedSession } from '../help-session-fakes';
 
 const TASK = 'Rechne 23 + 19.';
@@ -56,6 +60,12 @@ describe('StartHelpSession', () => {
       session: { task: TASK, subject: 'math', status: 'working', hints: [], openQuestion: null },
     });
     expect(events).toEqual([
+      // Without a classifier the task opens as homework, as before #92.
+      {
+        type: 'guidance.topic_classification_fallback_used',
+        reason: 'provider_unavailable',
+        codes: [],
+      },
       {
         type: 'guidance.session_started',
         tenantId: parent().tenantId,
@@ -64,6 +74,7 @@ describe('StartHelpSession', () => {
         sessionId: view.session.sessionId,
         subject: 'math',
         replaced: null,
+        opening: null,
       },
     ]);
     expect(JSON.stringify(events)).not.toContain(TASK);
@@ -135,6 +146,98 @@ describe('StartHelpSession', () => {
   });
 });
 
+describe('StartHelpSession topic classification (#92)', () => {
+  const CODE = REQUEST.competencies[0]?.code ?? '';
+
+  /** A classifier that answers with `intent` at `confidence`, and the competency for homework. */
+  function classifier(intent: string, confidence: number) {
+    const tasks: string[] = [];
+    const fake: TopicClassifier = {
+      name: 'jev',
+      classify: (request) => {
+        tasks.push(request.task);
+        return okAsync({
+          version: 1,
+          intent: { value: intent, confidence },
+          subject: null,
+          topic:
+            intent === 'homework'
+              ? { kind: 'competency', competencyCode: CODE, confidence }
+              : { kind: 'none' },
+        });
+      },
+    };
+    return { fake, tasks };
+  }
+
+  function startWith(fake: TopicClassifier, initial = inMemorySessions()) {
+    const { deps } = helpSessionDependencies(
+      initial.repository,
+      parent(),
+      createTestRateLimiter(),
+      fake,
+    );
+    return (taskText: string) =>
+      new StartHelpSession(deps).execute({
+        childProfileId: OWN_CHILD,
+        task: taskText,
+        subject: 'math',
+      });
+  }
+
+  it('stores a sure competency and opens as usual', async () => {
+    const store = inMemorySessions();
+    const view = (await startWith(classifier('homework', 0.9).fake, store)(TASK))._unsafeUnwrap();
+
+    expect(view.session.opening).toBeNull();
+    expect(store.starts[0]?.topic).toEqual({
+      intent: 'homework',
+      opening: null,
+      competencyCode: CODE,
+      openTopicLabel: null,
+      classifiedBy: 'jev',
+    });
+  });
+
+  it('answers small talk with the redirect opening', async () => {
+    const view = (
+      await startWith(classifier('small_talk', 0.9).fake)('Hallo Max, wie geht es dir?')
+    )._unsafeUnwrap();
+
+    expect(view.session.opening).toEqual({ kind: 'redirect', intent: 'small_talk' });
+  });
+
+  it('asks to clarify once; the reply that replaces that session is never asked about again', async () => {
+    const asked = storedSession({
+      task: task('Hilfe'),
+      topic: {
+        ...UNCLASSIFIED_TOPIC,
+        intent: 'homework',
+        opening: { kind: 'clarify' },
+        classifiedBy: 'jev',
+      },
+    });
+    const unsure = classifier('homework', 0.3).fake;
+
+    expect((await startWith(unsure)('Hilfe'))._unsafeUnwrap().session.opening).toEqual({
+      kind: 'clarify',
+    });
+    const reply = await startWith(
+      unsure,
+      inMemorySessions([asked]),
+    )('Hilfe. Ich soll 23 + 19 rechnen.');
+    expect(reply._unsafeUnwrap().session.opening).toBeNull();
+  });
+
+  it('does not classify again when the same task continues', async () => {
+    const { fake, tasks } = classifier('homework', 0.9);
+
+    await startWith(fake, inMemorySessions([storedSession()]))(TASK);
+
+    expect(tasks).toEqual([]);
+  });
+});
+
 describe('GetOpenHelpSession', () => {
   it('answers null when the child has no open session', async () => {
     const { deps } = helpSessionDependencies(inMemorySessions().repository);
@@ -187,6 +290,7 @@ describe('GetOpenHelpSession', () => {
         { result: 'correct', assessedBy: 'ai', hintLevel: 'next_step' },
       ],
       openQuestion: { kind: 'predefined', feedback: 'comprehension_question', reason: null },
+      opening: null,
       updatedAt: '2026-10-25T08:00:00.000Z',
     });
     // The child's answers stay in the store.

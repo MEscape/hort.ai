@@ -17,6 +17,8 @@ import type { HintFallbackReason } from '../../domain/models/hint-fallback-reaso
 import type { HintLevel } from '../../domain/models/hint-level';
 import type { HintSubject } from '../../domain/models/hint-subject';
 import type { AnswerAssessor } from '../../domain/ports/hint-session-store.port';
+import type { SessionOpening, SessionTopic } from '../../domain/topic/session-topic';
+import type { ChildMessageIntent } from '../../domain/topic/topic-classification';
 
 /**
  * The columns the module reads, and nothing else, so no generated database type leaves this layer.
@@ -29,6 +31,11 @@ export const SESSION_SELECT = [
   'subject',
   'status',
   'currentHintLevel',
+  'intent',
+  'opening',
+  'competencyCode',
+  'openTopicLabel',
+  'classifiedBy',
   'startedAt',
   'updatedAt',
 ] as const;
@@ -74,6 +81,22 @@ export const ASSESSED_BY_RECORD = {
   ai: 'AI',
 } as const satisfies Record<AnswerAssessor, string>;
 
+export const INTENT_RECORD = {
+  homework: 'HOMEWORK',
+  curiosity: 'CURIOSITY',
+  small_talk: 'SMALL_TALK',
+} as const satisfies Record<ChildMessageIntent, string>;
+
+const OPENING_RECORD = {
+  clarify: 'CLARIFY',
+  redirect: 'REDIRECT',
+} as const satisfies Record<SessionOpening['kind'], string>;
+
+export const CLASSIFIED_BY_RECORD = {
+  jev: 'JEV',
+  fallback: 'FALLBACK',
+} as const satisfies Record<NonNullable<SessionTopic['classifiedBy']>, string>;
+
 const FALLBACK_REASONS = {
   timeout: true,
   provider_unavailable: true,
@@ -100,6 +123,8 @@ const LEVEL = invert(LEVEL_RECORD);
 const SUBJECT = invert(SUBJECT_RECORD);
 const RESULT = invert(RESULT_RECORD);
 const ASSESSOR = invert(ASSESSED_BY_RECORD);
+const INTENT = invert(INTENT_RECORD);
+const CLASSIFIED_BY = invert(CLASSIFIED_BY_RECORD);
 
 export type LevelValue = ValueOf<typeof LEVEL_RECORD>;
 
@@ -110,6 +135,11 @@ export interface SessionRecord {
   readonly subject: ValueOf<typeof SUBJECT_RECORD>;
   readonly status: ValueOf<typeof STATUS_RECORD>;
   readonly currentHintLevel: LevelValue | null;
+  readonly intent: ValueOf<typeof INTENT_RECORD> | null;
+  readonly opening: ValueOf<typeof OPENING_RECORD> | null;
+  readonly competencyCode: string | null;
+  readonly openTopicLabel: string | null;
+  readonly classifiedBy: ValueOf<typeof CLASSIFIED_BY_RECORD> | null;
   readonly startedAt: InstantRecord;
   readonly updatedAt: InstantRecord;
 }
@@ -195,6 +225,37 @@ function allOrNull<T>(items: ReadonlyArray<T | null>): readonly T[] | null {
  * follows it share the check's request id, which pairs them here. `null` when a row breaks the
  * contract (a value another writer put there): a fault of the store, never half a session.
  */
+/** The stored topic columns of a session (#92). */
+export function toTopicRecord(topic: SessionTopic) {
+  return {
+    intent: topic.intent === null ? null : INTENT_RECORD[topic.intent],
+    opening: topic.opening === null ? null : OPENING_RECORD[topic.opening.kind],
+    competencyCode: topic.competencyCode,
+    openTopicLabel: topic.openTopicLabel,
+    classifiedBy: topic.classifiedBy === null ? null : CLASSIFIED_BY_RECORD[topic.classifiedBy],
+  } as const;
+}
+
+/** `null` when the row breaks the redirect rule (the database refuses it too). */
+function toTopic(session: SessionRecord): SessionTopic | null {
+  const intent = session.intent === null ? null : INTENT[session.intent];
+  const base = {
+    intent,
+    competencyCode: session.competencyCode,
+    openTopicLabel: session.openTopicLabel,
+    classifiedBy: session.classifiedBy === null ? null : CLASSIFIED_BY[session.classifiedBy],
+  };
+  if (session.opening === null) {
+    return { ...base, opening: null };
+  }
+  if (session.opening === 'CLARIFY') {
+    return { ...base, opening: { kind: 'clarify' } };
+  }
+  return intent === 'curiosity' || intent === 'small_talk'
+    ? { ...base, opening: { kind: 'redirect', intent } }
+    : null;
+}
+
 export function toHelpSession({
   session,
   hints,
@@ -205,7 +266,8 @@ export function toHelpSession({
   const task = toChildText(session.taskText);
   const givenHints = allOrNull(hints.map(toGivenHint));
   const answerChecks = allOrNull(answers.map((answer) => toAnswerCheck(answer, questionByKey)));
-  if (task === null || givenHints === null || answerChecks === null) {
+  const topic = toTopic(session);
+  if (task === null || givenHints === null || answerChecks === null || topic === null) {
     return null;
   }
   return {
@@ -219,5 +281,6 @@ export function toHelpSession({
     updatedAt: instantToDate(session.updatedAt),
     hints: givenHints,
     answerChecks,
+    topic,
   };
 }

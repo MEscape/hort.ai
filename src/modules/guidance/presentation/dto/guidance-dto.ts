@@ -63,6 +63,7 @@ export function toHelpSessionDto(view: HelpSessionView): HelpSessionDto {
     hints,
     answerChecks,
     openQuestion,
+    opening,
     updatedAt,
   } = view;
   return {
@@ -78,6 +79,7 @@ export function toHelpSessionDto(view: HelpSessionView): HelpSessionDto {
       hintLevel: level,
     })),
     openQuestion,
+    opening,
     updatedAt,
   };
 }
