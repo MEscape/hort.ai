@@ -19,9 +19,14 @@ export class PrismaMaterialRepository implements MaterialRepository {
     fromThrowableAsync(
       async () =>
         db.orm.public.TeacherMaterial.select(...MATERIAL_SELECT).create({
-          ...row,
+          id: row.id,
           tenantId: row.tenantId,
           ownerId: row.ownerId,
+          classroomId: row.classroomId,
+          title: row.title,
+          objectKey: row.objectKey,
+          sizeBytes: row.sizeBytes,
+          status: row.status,
           contentType: 'TEXT',
         }),
       failures.infraOnly('create'),

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { ChildAssignmentView } from '@modules/assignments/client';
 import assignmentMessages from '@modules/assignments/presentation/i18n/en.json';
@@ -11,6 +11,11 @@ import { APP_IDENTITY } from '@lib/config';
 import { StartPageShell } from '@/app/[locale]/(public)/start/_components/start-page-shell';
 import { StartScreen } from '@/app/[locale]/(public)/start/_components/start-screen';
 import app from '@/i18n/messages/en.json';
+
+vi.mock('@i18n', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  useRouter: () => ({ push: vi.fn() }),
+}));
 
 function renderStart(schoolAssignments: readonly ChildAssignmentView[] | null = null) {
   return render(
