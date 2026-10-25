@@ -25,13 +25,18 @@ const SHORT_TIMEOUT_MS = 50;
 
 const servers: Server[] = [];
 
-/** A local server whose handler decides per request; returns its URL and every socket it accepted. */
+/**
+ * A local server whose handler decides per request; returns its URL and every socket that carried a request.
+ * Node's fetch may open an extra idle connection that never sends anything; it is no download to close.
+ */
 async function serve(handler: RequestListener) {
   const sockets: Socket[] = [];
   const server = createServer(handler);
   servers.push(server);
-  server.on('connection', (socket) => {
-    sockets.push(socket);
+  server.on('request', ({ socket }) => {
+    if (!sockets.includes(socket)) {
+      sockets.push(socket);
+    }
   });
   await new Promise<void>((resolve) => {
     server.listen(0, '127.0.0.1', resolve);

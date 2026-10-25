@@ -67,9 +67,26 @@ const HINT: TutorText = { text: 'Wie viele Murmeln bekommt jedes Kind?', message
 /** A use-case call that never settles. */
 const hanging = <T>(): AppResultAsync<T> => new ResultAsync(new Promise(() => undefined));
 
+/** A use-case call that settles after the turn's deadline, as a slow AI step does. */
+const late = <T>(value: T): AppResultAsync<T> =>
+  new ResultAsync(
+    new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(ok(value));
+      }, 300);
+    }),
+  );
+
 /** The bound child's use cases as fakes; `calls` records which operations a turn used. */
 function fakeChild(state: FakeState = {}) {
   const calls: string[] = [];
+  /** A step's outcome: never, late, or as the test set it. */
+  const step = <T>(given: AppResultAsync<T> | undefined, fallback: T): AppResultAsync<T> => {
+    if (state.hang === true) {
+      return hanging();
+    }
+    return state.slowStep === true ? late(fallback) : (given ?? okAsync(fallback));
+  };
   const requestIds: string[] = [];
   /** Which help-session messages were asked for in the companion voice. */
   const voiced: string[] = [];
@@ -102,19 +119,17 @@ function fakeChild(state: FakeState = {}) {
     startHelp: (task, requestId) => (
       calls.push(`start:${task.kind === 'own' ? task.text : task.position}`),
       requestIds.push(requestId),
-      hang || state.slowStep === true ? hanging() : (state.start ?? okAsync(HINT))
+      step(state.start, HINT)
     ),
     nextHint: (_sessionId, requestId) => (
       calls.push('hint'),
       requestIds.push(requestId),
-      hang || state.slowStep === true ? hanging() : (state.hint ?? okAsync(HINT))
+      step(state.hint, HINT)
     ),
     checkAnswer: (_sessionId, requestId, answer) => (
       calls.push(`check:${answer}`),
       requestIds.push(requestId),
-      hang || state.slowStep === true
-        ? hanging()
-        : (state.check ?? okAsync({ correct: false, says: [HINT] }))
+      step(state.check, { correct: false, says: [HINT] })
     ),
     replyToQuestion: (_sessionId, reply) => (
       calls.push(`reply:${reply}`),
@@ -210,16 +225,36 @@ interface AlexaBody {
     reprompt?: { outputSpeech: { text: string } };
     shouldEndSession: boolean;
     directives?: Array<{
-      document: { mainTemplate: { item: { items: Array<Record<string, string>> } } };
+      document: {
+        mainTemplate: {
+          item: { items: Array<{ type?: string; content?: string; source?: string }> };
+        };
+      };
     }>;
   };
+}
+
+/**
+ * The words of a clip reply: a fixed line's clip names its text (`line=`), a Speech item is Alexa's own
+ * voice; a companion clip (help-session text) holds words only the audio knows and adds none.
+ */
+function spokenIn(body: AlexaBody): string {
+  const items = body.response.directives?.[0]?.document.mainTemplate.item.items ?? [];
+  return items
+    .map((item) =>
+      item.type === 'Speech'
+        ? (item.content ?? '')
+        : decodeURIComponent(new URL(item.source ?? '').searchParams.get('line') ?? ''),
+    )
+    .filter((words) => words.length > 0)
+    .join(' ');
 }
 
 async function said(response: Response) {
   const body = (await response.json()) as AlexaBody;
   return {
     body,
-    text: body.response.outputSpeech?.text ?? '',
+    text: body.response.outputSpeech?.text ?? spokenIn(body),
     open: !body.response.shouldEndSession,
     reprompt: body.response.reprompt?.outputSpeech.text,
   };
@@ -875,7 +910,7 @@ describe('Alexa child channel: the help session as a conversation', () => {
   const inSession = { learning: true, question: null, last: [] };
   const voice: TutorVoice = {
     audioUrl: () => okAsync(CLIP),
-    lineUrl: () => okAsync(CLIP),
+    lineUrl: (_tutorId, text) => okAsync(`${CLIP}&line=${encodeURIComponent(text)}`),
     greetingUrl: () => okAsync(CLIP),
   };
   const say = (
@@ -940,7 +975,10 @@ describe('Alexa child channel: the help session as a conversation', () => {
       help: { ...WORKING, status: 'awaiting_comprehension_reply' },
     });
 
-    expect(correct.text).toBe(`${praise.text} ${question.text}`);
+    expect(correct.body.response.directives?.[0]?.document.mainTemplate.item.items).toEqual([
+      { type: 'Audio', source: TUTOR_CLIP },
+      { type: 'Audio', source: TUTOR_CLIP },
+    ]);
     expect(correct.voiced).toEqual(['latest_feedback', 'question']);
     expect(correct.reprompt).toBe(question.text);
     expect(reply.calls).toEqual(['reply:weil vier mal neun 36 ist']);
@@ -953,6 +991,8 @@ describe('Alexa child channel: the help session as a conversation', () => {
     const first = await said(
       await slow.handle(request('IntentRequest', { intent: 'TippIntent', attributes: inSession })),
     );
+    // The step finishes after its turn gave up; a later "weiter" runs on a settled instance.
+    await keepAlive.mock.calls[0]?.[0];
     const resumed = endpoint({ help: WORKING }, voice);
     const second = await said(
       await resumed.handle(
@@ -968,7 +1008,9 @@ describe('Alexa child channel: the help session as a conversation', () => {
     expect(keepAlive).toHaveBeenCalledOnce();
     expect(first.body.sessionAttributes?.pending?.requestId).toBe(slow.requestIds[0]);
     expect(resumed.requestIds).toEqual(slow.requestIds);
-    expect(second.text).toBe(HINT.text);
+    expect(second.body.response.directives?.[0]?.document.mainTemplate.item.items).toEqual([
+      { type: 'Audio', source: TUTOR_CLIP },
+    ]);
     expect(second.body.sessionAttributes?.pending).toBeUndefined();
   });
 
