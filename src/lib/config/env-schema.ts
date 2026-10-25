@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { aiEnvSchema } from './ai-env-schema';
 import { authEnvSchema } from './auth-env-schema';
 import { booleanFlag, integerSetting, postgresUrl } from './env-primitives';
 import { refineEnv } from './env-rules';
@@ -8,6 +9,7 @@ import { rateLimitEnvRules, rateLimitEnvSchema } from './rate-limit-env-schema';
 import { speechEnvSchema } from './speech-env-schema';
 import { storageEnvSchema } from './storage-env-schema';
 
+import type { AiEnv } from './ai-env-schema';
 import type { AuthEnv } from './auth-env-schema';
 import type { EnvRule } from './env-rules';
 import type { MailEnv } from './mail-env-schema';
@@ -59,7 +61,8 @@ type ServerEnvShape = z.infer<typeof serverEnvBaseSchema> &
   MailEnv &
   RateLimitEnv &
   StorageEnv &
-  SpeechEnv;
+  SpeechEnv &
+  AiEnv;
 
 const isProduction = (env: ServerEnvShape) => env.NODE_ENV === 'production';
 
@@ -116,7 +119,7 @@ const productionRules: ReadonlyArray<EnvRule<ServerEnvShape>> = [
 /**
  * Server-only configuration.
  *
- * Authentication, mail, rate-limit, storage and speech configuration are composed into the
+ * Authentication, mail, rate-limit, storage, speech and AI configuration are composed into the
  * server schema so the application has one validated server configuration
  * object. Rules internal to one domain live in that domain's file and are
  * attached there (authentication, mail) or here (rate limit, which reads
@@ -129,6 +132,7 @@ export const serverEnvSchema = serverEnvBaseSchema
   .and(rateLimitEnvSchema)
   .and(storageEnvSchema)
   .and(speechEnvSchema)
+  .and(aiEnvSchema)
   .superRefine(refineEnv<ServerEnvShape>(rateLimitEnvRules, productionRules));
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
