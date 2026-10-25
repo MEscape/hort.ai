@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { toTenantId } from '@modules/auth';
+import { toActorId, toTenantId } from '@modules/auth';
 import { toChildProfileId, toClassroomId } from '@modules/classroom/domain/models/ids';
 import type { ClassroomRepository } from '@modules/classroom/domain/ports/classroom.repository';
 
@@ -178,5 +178,34 @@ describe.skipIf(!isEnabled)('PrismaClassroomRepository.addMember against Postgre
     expect(await membersOf(membership.classroomId)).toHaveLength(0);
     const room = await db.orm.public.Classroom.where({ id: membership.classroomId }).first();
     expect(room?.status).toBe('ARCHIVED');
+  });
+
+  it('stores the sealed code, reads it only for the owner, and replaces it with the code', async () => {
+    const owner = { tenantId, ownerId: toActorId('teacher-1') };
+    const draft = {
+      name: 'Klasse 4c',
+      federalState: 'he' as const,
+      grade: 4,
+      subject: 'math' as const,
+    };
+    const created = (
+      await repository.create({
+        ...owner,
+        draft,
+        inviteCodeHash: freshHash(),
+        sealedInviteCode: 'v1.a.b.c',
+      })
+    )._unsafeUnwrap();
+
+    expect((await repository.findSealedInviteCode(created.id, owner))._unsafeUnwrap()).toBe(
+      'v1.a.b.c',
+    );
+    const stranger = { tenantId, ownerId: toActorId('teacher-2') };
+    expect(
+      (await repository.findSealedInviteCode(created.id, stranger))._unsafeUnwrap(),
+    ).toBeNull();
+
+    await repository.replaceInviteCode(created.id, owner, { hash: freshHash(), sealed: null });
+    expect((await repository.findSealedInviteCode(created.id, owner))._unsafeUnwrap()).toBeNull();
   });
 });

@@ -22,6 +22,7 @@ import { GetClassroomById } from '@modules/classroom/application/queries/get-cla
 import { ListClassrooms } from '@modules/classroom/application/queries/list-classrooms';
 import { LearnerChildProfileAccess } from '@modules/classroom/infrastructure/learner/learner-child-profile-access';
 import { PrismaClassroomRepository } from '@modules/classroom/infrastructure/prisma/prisma-classroom.repository';
+import { createAesGcmInviteCodeVault } from '@modules/classroom/infrastructure/security/aes-gcm-invite-code-vault';
 import { cryptoInviteCodeIssuer } from '@modules/classroom/infrastructure/security/crypto-invite-code-issuer';
 import { AdoptSchoolSettings } from '@modules/learner/application/commands/adopt-school-settings';
 import { GetChildProfileById } from '@modules/learner/application/queries/get-child-profile-by-id';
@@ -99,6 +100,7 @@ describe.skipIf(!isEnabled)('teacher assignments reach the children of the class
       authorization,
       classrooms: new PrismaClassroomRepository(clock),
       inviteCodes: cryptoInviteCodeIssuer,
+      inviteCodeVault: createAesGcmInviteCodeVault(undefined),
       childProfiles: new LearnerChildProfileAccess({
         getChildProfileById: new GetChildProfileById(learner),
         adoptSchoolSettings: new AdoptSchoolSettings(learner),
@@ -106,6 +108,7 @@ describe.skipIf(!isEnabled)('teacher assignments reach the children of the class
       audit: noAudit,
       rateLimiter,
       clientAddress: UNRESOLVED_CLIENT,
+      clock,
     };
     const assignments = {
       authorization,
