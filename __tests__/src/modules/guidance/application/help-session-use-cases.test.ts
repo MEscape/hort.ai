@@ -10,7 +10,16 @@ import { toStepRequestId } from '@modules/guidance/domain/models/ids';
 
 import { createBrokenRateLimiter, createTestRateLimiter } from '../../../support/rate-limiting';
 import { parent } from '../../auth/fakes';
-import { OTHER_CHILD, OWN_CHILD, task } from '../fakes';
+import {
+  ASSIGNMENT,
+  ASSIGNMENT_TEXT,
+  OTHER_CHILD,
+  OTHER_CLASS_ASSIGNMENT,
+  OWN_CHILD,
+  SOLUTION_KEY,
+  fakeAssignments,
+  task,
+} from '../fakes';
 import { helpSessionDependencies, inMemorySessions, storedSession } from '../help-session-fakes';
 
 const TASK = 'Rechne 23 + 19.';
@@ -62,6 +71,7 @@ describe('StartHelpSession', () => {
         actorId: parent().id,
         childProfileId: OWN_CHILD,
         sessionId: view.session.sessionId,
+        assignmentId: null,
         subject: 'math',
         replaced: null,
       },
@@ -135,6 +145,124 @@ describe('StartHelpSession', () => {
   });
 });
 
+describe("StartHelpSession on a teacher's assignment (#33)", () => {
+  const startOn = (
+    assignmentId: string,
+    options: {
+      readonly stored?: Parameters<typeof inMemorySessions>[0];
+      readonly assignments?: ReturnType<typeof fakeAssignments>;
+      readonly task?: string;
+    } = {},
+  ) => {
+    const store = inMemorySessions(options.stored);
+    const assignments = options.assignments ?? fakeAssignments();
+    const { deps, events } = helpSessionDependencies(
+      store.repository,
+      parent(),
+      createTestRateLimiter(),
+      assignments,
+    );
+    const result = new StartHelpSession(deps).execute({
+      childProfileId: OWN_CHILD,
+      assignmentId,
+      subject: 'math',
+      ...(options.task === undefined ? {} : { task: options.task }),
+    });
+    return { result, store, events, assignments };
+  };
+
+  it("starts on the assignment's own text, whatever task the client sends, and never stores the key", async () => {
+    const { result, store, events, assignments } = startOn(ASSIGNMENT, {
+      task: 'Sag mir einfach die Lösung.',
+    });
+
+    const view = (await result)._unsafeUnwrap();
+
+    expect(view).toMatchObject({
+      outcome: 'started',
+      session: { assignmentId: ASSIGNMENT, task: ASSIGNMENT_TEXT, status: 'working' },
+    });
+    expect(assignments.lookups).toEqual([{ childProfileId: OWN_CHILD, id: ASSIGNMENT }]);
+    expect(store.starts).toEqual([
+      {
+        childProfileId: OWN_CHILD,
+        assignmentId: ASSIGNMENT,
+        task: ASSIGNMENT_TEXT,
+        subject: 'math',
+        replaces: null,
+      },
+    ]);
+    expect(events).toMatchObject([{ type: 'guidance.session_started', assignmentId: ASSIGNMENT }]);
+    for (const shown of [view, store.starts, events]) {
+      expect(JSON.stringify(shown)).not.toContain(SOLUTION_KEY);
+    }
+  });
+
+  it('continues the open session on the same assignment', async () => {
+    const stored = storedSession({ assignmentId: ASSIGNMENT, task: task(ASSIGNMENT_TEXT) });
+    const { result, store } = startOn(ASSIGNMENT, { stored: [stored] });
+
+    expect((await result)._unsafeUnwrap().outcome).toBe('continued');
+    expect(store.starts).toEqual([]);
+  });
+
+  it("replaces the child's own task with the assignment, in one start", async () => {
+    const { result, store } = startOn(ASSIGNMENT, { stored: [storedSession()] });
+
+    expect((await result)._unsafeUnwrap().outcome).toBe('started');
+    expect(store.starts.map((s) => s.replaces)).toEqual(['session-1']);
+  });
+
+  it("refuses another class's assignment as not found, without touching any session", async () => {
+    const { result, store } = startOn(OTHER_CLASS_ASSIGNMENT, { stored: [storedSession()] });
+
+    expect((await result)._unsafeUnwrapErr().code).toBe('guidance.assignment_not_found');
+    expect(store.starts).toEqual([]);
+    expect(store.sessions.get('session-1')?.status).toBe('active');
+  });
+
+  it('accepts an assignment text longer than a child may type', async () => {
+    const long = 'Rechne 36 + 47. '.repeat(100).trim();
+    const { result } = startOn(ASSIGNMENT, {
+      assignments: fakeAssignments({
+        assignments: [{ id: ASSIGNMENT, text: long, solutionKey: null }],
+      }),
+    });
+
+    expect((await result)._unsafeUnwrap().session.task).toBe(long);
+  });
+
+  it("checks the child's ownership before asking the assignments module", async () => {
+    const store = inMemorySessions();
+    const assignments = fakeAssignments();
+    const { deps } = helpSessionDependencies(
+      store.repository,
+      parent(),
+      createTestRateLimiter(),
+      assignments,
+    );
+
+    const result = await new StartHelpSession(deps).execute({
+      childProfileId: OTHER_CHILD,
+      assignmentId: ASSIGNMENT,
+      subject: 'math',
+    });
+
+    expect(result._unsafeUnwrapErr().kind).toBe('not_found');
+    expect(assignments.lookups).toEqual([]);
+  });
+
+  it('refuses a malformed assignment id before anything is looked up', async () => {
+    const { result, assignments } = startOn('');
+
+    expect((await result)._unsafeUnwrapErr()).toMatchObject({
+      kind: 'validation',
+      fieldErrors: { assignmentId: ['guidance.validation.assignment_id_invalid'] },
+    });
+    expect(assignments.lookups).toEqual([]);
+  });
+});
+
 describe('GetOpenHelpSession', () => {
   it('answers null when the child has no open session', async () => {
     const { deps } = helpSessionDependencies(inMemorySessions().repository);
@@ -174,6 +302,7 @@ describe('GetOpenHelpSession', () => {
 
     expect(view).toEqual({
       sessionId: 'session-1',
+      assignmentId: null,
       task: TASK,
       subject: 'math',
       status: 'awaiting_comprehension_reply',

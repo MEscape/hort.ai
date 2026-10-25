@@ -1,8 +1,13 @@
-/** Starting (or continuing) a help session on the child's own task. Every field is checked by the use case. */
+/**
+ * Starting (or continuing) a help session, on the child's own task or on a teacher's assignment of
+ * the child's class (#33). Every field is checked by the use case.
+ */
 export interface StartHelpSessionInput {
   readonly childProfileId: string;
-  /** The task as the child typed or dictated it. */
-  readonly task: string;
+  /** The task as the child typed or dictated it. Not read when `assignmentId` is given. */
+  readonly task?: string | undefined;
+  /** A teacher's assignment as the task: its text comes from the assignments module, never the client. */
+  readonly assignmentId?: string | undefined;
   /** One of `HINT_SUBJECTS`; it picks the curriculum that grounds the session's hints. */
   readonly subject: string;
 }

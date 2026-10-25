@@ -106,6 +106,35 @@ describe.skipIf(!isEnabled)('PrismaAssignmentRepository against Postgres', () =>
     await repository.deleteById(toAssignmentId(created.id), teacherA);
   });
 
+  it('reads one assignment of a class with its key for the help on it, and nothing else (#33)', async () => {
+    const repository = new PrismaAssignmentRepository(clock);
+    const created = (await repository.create({ ...teacherA, classroomId, draft }))._unsafeUnwrap();
+    const otherClass = await db.orm.public.Classroom.create({
+      tenantId,
+      ownerId: teacherB.ownerId,
+      name: 'Klasse 3b',
+      federalState: 'HE',
+      grade: 3,
+      subject: 'MATH',
+      inviteCodeHash: 'd'.repeat(64),
+    });
+
+    expect(
+      (await repository.findForHelp(created.id, classroomId, tenantId))._unsafeUnwrap(),
+    ).toEqual({ id: created.id, text: draft.text, solutionKey: draft.solutionKey });
+    expect(
+      (
+        await repository.findForHelp(created.id, toClassroomId(otherClass.id), tenantId)
+      )._unsafeUnwrap(),
+    ).toBeNull();
+    expect(
+      (
+        await repository.findForHelp(created.id, classroomId, toTenantId('another-tenant'))
+      )._unsafeUnwrap(),
+    ).toBeNull();
+    await repository.deleteById(toAssignmentId(created.id), teacherA);
+  });
+
   it('lets the database refuse content the domain would refuse too', async () => {
     const repository = new PrismaAssignmentRepository(clock);
     const result = await repository.create({

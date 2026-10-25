@@ -8,17 +8,15 @@ import type {
   RecordOutcome,
 } from './hint-session-store.port';
 import type { ChildTaskText } from '../models/child-task-text';
-import type { AnswerCheckStep, HelpSession } from '../models/help-session';
-import type { HintSubject } from '../models/hint-subject';
+import type { AnswerCheckStep, HelpSession, HelpSessionSource } from '../models/help-session';
 import type { ChildProfileId, HelpSessionId } from '../models/ids';
 
 /** Whose children an operation reaches: the signed-in parent's own, in their own tenant. */
 export type HelpSessionOwner = Pick<HelpSessionRef, 'tenantId' | 'ownerId'>;
 
-export interface NewHelpSession {
+/** `assignmentId` is set only after the assignments module confirmed the child's class has it (#33). */
+export interface NewHelpSession extends HelpSessionSource {
   readonly childProfileId: ChildProfileId;
-  readonly task: ChildTaskText;
-  readonly subject: HintSubject;
   /** The open session this one replaces; it ends `abandoned` in the same transaction. */
   readonly replaces: HelpSessionId | null;
 }

@@ -30,7 +30,8 @@ export type ClassifyChildTaskError =
 /**
  * A parent's child starts with a task: Hort.ai sorts it into intent and curriculum topic (#92) and
  * decides whether to help, ask once what the task is, or answer small talk with a friendly redirect.
- * It takes the same input as `StartHelpSession`.
+ * It takes the same input as `StartHelpSession`, and classifies only the child's own text: a teacher's
+ * assignment (#33) is homework by definition, so without a `task` it is refused as empty input.
  *
  * Order: permission, input checks, ownership, the child's hint budget (one classification costs
  * one model call, like a hint), the candidates of the child's own curriculum, then the classifier.
@@ -50,7 +51,7 @@ export class ClassifyChildTask {
     return authorization.requireInTenant('hint.request').andThen((actor) =>
       parseChildProfileId(input.childProfileId)
         .andThen((id) =>
-          parseChildTaskText(input.task).andThen((task) =>
+          parseChildTaskText(input.task ?? '').andThen((task) =>
             parseHintSubject(input.subject).map((subject) => ({ id, task, subject })),
           ),
         )
