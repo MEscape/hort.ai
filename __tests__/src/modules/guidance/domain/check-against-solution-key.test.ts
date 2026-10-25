@@ -15,6 +15,10 @@ describe('checkAgainstSolutionKey', () => {
     ['12 und 15', '12, 15'],
     ['der Hund', 'Hund'],
     ['Der HUND!', 'hund'],
+    ['1000', '1.000'],
+    ['1.000', '1000'],
+    ['12.345,5', '12345,5'],
+    ['1,500', '1.5'],
   ])('accepts %j for the key %j', (answer, key) => {
     expect(checkAgainstSolutionKey(answer, key)).toBe('correct');
   });
@@ -28,6 +32,8 @@ describe('checkAgainstSolutionKey', () => {
     ['15 und 12', '12, 15'],
     ['die Katze', 'Hund'],
     ['', '7'],
+    ['1', '1.000'],
+    ['1,5', '1.500'],
   ])('answers not yet for %j against the key %j', (answer, key) => {
     expect(checkAgainstSolutionKey(answer, key)).toBe('not_yet');
   });

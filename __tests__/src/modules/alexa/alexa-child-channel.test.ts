@@ -469,6 +469,37 @@ describe('Alexa child channel: the first interaction model (FreieEingabeIntent o
   });
 });
 
+describe('Alexa child channel: free input words', () => {
+  it('takes "nö" as a no to the snack question', async () => {
+    const { handle, calls } = endpoint();
+    const reply = await said(
+      await handle(
+        request('IntentRequest', {
+          intent: 'FreieEingabeIntent',
+          utterance: 'nö danke',
+          attributes: { question: 'feed', last: [] },
+        }),
+      ),
+    );
+
+    expect(calls).toEqual([]);
+    expect(reply.text).toBe(`${CHILD_LINES.laterThen} ${CHILD_LINES.whatNow}`);
+  });
+
+  it('does not feed on a word that merely contains "essen"', async () => {
+    const { handle, calls } = endpoint();
+
+    await handle(
+      request('IntentRequest', {
+        intent: 'FreieEingabeIntent',
+        utterance: 'ich habe es vergessen',
+      }),
+    );
+
+    expect(calls).toEqual([]);
+  });
+});
+
 describe('Alexa child channel: only the free input is mapped by keywords', () => {
   it('does not feed on an unknown intent whose slot says "füttern"', async () => {
     for (const name of ['UnbekannterIntent', 'AMAZON.FallbackIntent']) {

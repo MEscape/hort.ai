@@ -88,8 +88,8 @@ const INTENTS: Readonly<Record<string, ChildIntent>> = {
 const FREE_INPUT_RULES: ReadonlyArray<readonly [RegExp, ChildIntent]> = [
   [/\b(tschüss|tschüs|stopp?|beenden|aufhören|ende)\b/, 'stop'],
   [/^(ja|jawohl|jo|gerne?|okay|ok|klar)\b/, 'yes'],
-  [/^(nein|nee|nö|nicht jetzt)\b/, 'no'],
-  [/fütter|futter|snack|hunger|essen/, 'feed'],
+  [/^(nein|nee|nö|nicht jetzt)(?![\p{L}])/u, 'no'],
+  [/fütter|futter|snack|hunger|\bessen\b/, 'feed'],
   [/level|sterne/, 'level'],
   [/was hab(e)? ich auf|welche (haus)?aufgaben|aufgaben von der schule|aufgegeben/, 'tasks'],
   [/hilfe|was kann ich/, 'help'],
