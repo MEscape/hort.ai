@@ -167,6 +167,7 @@
     },
     "account": {
       "title": "Kontoeinstellungen",
+      "back": "Zurück",
       "menuLabel": "Konto von {name}",
       "home": "Startseite",
       "settings": "Kontoeinstellungen",

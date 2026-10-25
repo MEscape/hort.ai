@@ -27,6 +27,6 @@ export const authRoutes = {
   emailVerified: () => '/email-verified',
   /** Where a signed-in person goes home: the role-aware start page. */
   home: () => DEFAULT_RETURN_PATH,
-  /** The signed-in person's own account: name, address, role, password. */
-  settings: () => '/settings',
+  /** The signed-in person's own account; `returnTo` is where its back arrow leads. */
+  settings: (returnTo?: string) => `/settings${buildQueryString({ returnTo })}`,
 } as const;
