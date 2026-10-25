@@ -10,7 +10,7 @@ import { systemClock } from '@lib/clock';
 import { APP_IDENTITY, publicEnv } from '@lib/config';
 import { serverEnv } from '@lib/config/server';
 import type { ServerEnv } from '@lib/config/server';
-import { getMailTransport } from '@lib/mail/server';
+import { getMailTransport, resolveMailLocale } from '@lib/mail/server';
 import { getClientAddressProvider, getRateLimiter } from '@lib/rate-limit';
 import { ResultAsync } from '@lib/result';
 import { toLocalizedPath } from '@lib/seo';
@@ -274,6 +274,7 @@ const getAuthenticationDependencies = once((): AuthenticationDependencies => ({
       afterEmailVerification: authRoutes.emailVerified(),
       passwordReset: authRoutes.resetPassword(),
     },
+    localize: async (pathname) => toLocalizedPath(await resolveMailLocale(), pathname),
   }),
   rateLimiter: getRateLimiter(),
   clientAddress: getClientAddressProvider(() => headers()),

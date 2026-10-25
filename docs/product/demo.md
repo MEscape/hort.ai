@@ -1,6 +1,6 @@
 # Demo sheet (#84)
 
-Production: <https://hort-ai.vercel.app/de>. Prepared on 2026-10-25 through the live UI. Credentials and the class invite code are not in the repo: ask Benji.
+Production: <https://hortai.app/de>. Prepared on 2026-10-25 through the live UI. Credentials and the class invite code are not in the repo: ask Benji.
 
 ## Demo accounts
 
