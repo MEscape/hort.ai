@@ -19,13 +19,13 @@ export const ASSIGNMENT_LIMITS = { title: 120, taskText: 4000, solutionKey: 4000
 const CALENDAR_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 /** Line and paragraph separators of word processors and PDFs: a line break for the child. */
-// eslint-disable-next-line no-control-regex -- matching control characters is the point of this check
+/* eslint-disable no-control-regex -- matching control characters is the point of these checks */
 const SEPARATORS = /[\u000B\u000C\u0085\u2028\u2029]/g;
 
 /** Control, zero-width, soft-hyphen and direction characters that arrive with copied text and are invisible. */
-// eslint-disable-next-line no-control-regex -- removing control characters is the point of this check
 const INVISIBLE =
   /[\u0000-\u0008\u000E-\u001F\u007F-\u009F\u00AD\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/g;
+/* eslint-enable no-control-regex -- end of the character checks */
 
 /**
  * The task text as the child's help accepts it. Text pasted from a document or a PDF often carries
