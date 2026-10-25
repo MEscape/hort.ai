@@ -5,22 +5,41 @@ import { PARENT_EMAIL, PASSWORD } from './seed';
 
 import type { Page } from '@playwright/test';
 
-async function signedIn(page: Page) {
+const OWN_CHILD = { id: 'e2e-child', name: 'Mia' };
+const FOREIGN_CHILD = { id: 'e2e-foreign-child', name: 'NichtDeinKind' };
+
+/** Real Better Auth sign-in through the form; lands on the signed-in child's home. */
+async function signIn(page: Page, email = PARENT_EMAIL, child = OWN_CHILD) {
   await page.goto('/de/sign-in');
-  await page.getByLabel('E-Mail-Adresse', { exact: true }).fill(PARENT_EMAIL);
+  await page.getByLabel('E-Mail-Adresse', { exact: true }).fill(email);
   await page.getByLabel('Passwort', { exact: true }).fill(PASSWORD);
   await page.getByRole('button', { name: 'Anmelden', exact: true }).click();
-  await expect(page.getByRole('link', { name: 'Zur Hausaufgabenhilfe' })).toBeVisible();
+  await expect(page).toHaveURL(/\/de\/home$/);
+  await expect(page.getByRole('heading', { name: `Hallo ${child.name}!` })).toBeAttached();
   const cookies = await page.context().cookies();
   expect(cookies.some((cookie) => cookie.httpOnly && cookie.name.includes('session_token'))).toBe(
     true,
   );
-  await expect(page.getByText('NichtDeinKind')).toHaveCount(0);
-  // The current product has one active child, not a profile-picker screen. The real home selects it.
-  await expect(page.getByRole('link', { name: 'Zur Hausaufgabenhilfe' })).toHaveAttribute(
-    'href',
-    /child=e2e-child/,
-  );
+  const other = child === OWN_CHILD ? FOREIGN_CHILD : OWN_CHILD;
+  await expect(page.getByText(other.name)).toHaveCount(0);
+}
+
+/**
+ * The current product has one active child per parent, not a profile-picker screen: the real help
+ * entry selects the signed-in parent's own child and carries it to the task entry.
+ */
+async function openTaskEntry(page: Page, child = OWN_CHILD) {
+  await page.goto('/de/help');
+  await expect(page.getByRole('heading', { name: 'Gerade ist keine Aufgabe offen' })).toBeVisible();
+  const entry = page.getByRole('link', { name: 'Neue Aufgabe', exact: true });
+  await expect(entry).toHaveAttribute('href', new RegExp(`child=${child.id}(?:&|$)`));
+  await entry.click();
+}
+
+async function signOut(page: Page) {
+  await page.goto('/de/settings');
+  await page.getByRole('button', { name: 'Abmelden', exact: true }).click();
+  await expect(page).not.toHaveURL(/\/de\/settings/);
 }
 
 async function stored() {
@@ -123,8 +142,8 @@ test.beforeEach(async ({ page, request }) => {
 test('parent login → own task → every hint → wrong/right → re-login/resume → understanding', async ({
   page,
 }) => {
-  await signedIn(page);
-  await page.getByRole('link', { name: 'Zur Hausaufgabenhilfe' }).click();
+  await signIn(page);
+  await openTaskEntry(page);
   await page.getByRole('button', { name: 'Meine Aufgabe', exact: true }).click();
   await page
     .getByLabel('Deine Aufgabe', { exact: true })
@@ -150,28 +169,24 @@ test('parent login → own task → every hint → wrong/right → re-login/resu
   await expect(page.getByLabel('Meine Antwort', { exact: true })).toBeVisible();
   expect((await stored())?.id).toBe(before?.id);
   await page.getByRole('link', { name: 'Später weitermachen' }).click();
-  await page.getByRole('button', { name: 'Abmelden', exact: true }).click();
-  await page.goto('/de/sign-in');
-  await page.getByLabel('E-Mail-Adresse', { exact: true }).fill('other@example.org');
-  await page.getByLabel('Passwort', { exact: true }).fill(PASSWORD);
-  await page.getByRole('button', { name: 'Anmelden', exact: true }).click();
-  await expect(page.getByRole('link', { name: 'Zur Hausaufgabenhilfe' })).toHaveAttribute(
-    'href',
-    /child=e2e-foreign-child/,
-  );
-  // Real second-account access to the known foreign-child URL must reveal no session.
-  await page.goto('/de/help?child=e2e-child');
+  await signOut(page);
+  // A second real account: its own child is selected, and nothing of the first child's session shows.
+  await signIn(page, 'other@example.org', FOREIGN_CHILD);
+  await openTaskEntry(page, FOREIGN_CHILD);
   await expect(
     page.getByText('Lisa hat 3 Äpfel und bekommt 4 dazu. Wie viele Äpfel hat sie?', {
       exact: true,
     }),
   ).toHaveCount(0);
+  // Naming the first parent's child in the task-entry URL reveals neither the child nor its class work.
+  await page.goto(`/de/start?child=${OWN_CHILD.id}`);
+  await expect(page.getByText('Unsere Plusaufgabe', { exact: true })).toHaveCount(0);
+  await expect(page.getByText(OWN_CHILD.name)).toHaveCount(0);
   await expect(page.getByLabel('Meine Antwort', { exact: true })).toHaveCount(0);
   expect((await stored())?.id).toBe(before?.id);
   expect((await stored())?.currentHintLevel).toBe('SIMILAR_EXAMPLE');
-  await page.goto('/de');
-  await page.getByRole('button', { name: 'Abmelden', exact: true }).click();
-  await signedIn(page);
+  await signOut(page);
+  await signIn(page);
   await page.getByRole('link', { name: /^Weiter:/ }).click();
   await expect(page.getByLabel('Meine Antwort', { exact: true })).toBeVisible();
   expect((await stored())?.id).toBe(before?.id);
@@ -183,7 +198,7 @@ for (const mode of ['valid', 'invalid', 'leaking']) {
     page,
     request,
   }) => {
-    await signedIn(page);
+    await signIn(page);
     await request.post(`${process.env['E2E_FAKE_URL']}/mode`, { data: mode });
     const wire: Array<Promise<string>> = [];
     page.on('response', (response) => {
@@ -197,7 +212,7 @@ for (const mode of ['valid', 'invalid', 'leaking']) {
         wire.push(response.text().catch(() => ''));
       }
     });
-    await page.getByRole('link', { name: 'Zur Hausaufgabenhilfe' }).click();
+    await openTaskEntry(page);
     await page.getByRole('button', { name: 'Schulaufgaben', exact: true }).click();
     await expect(page.getByText('Unsere Plusaufgabe', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Mit dieser Aufgabe anfangen' }).click();
