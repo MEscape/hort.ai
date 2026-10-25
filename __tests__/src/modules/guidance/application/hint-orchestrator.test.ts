@@ -221,3 +221,20 @@ describe('HintOrchestrator with the safety classifier (#11)', () => {
     expect(texts).toEqual([]);
   });
 });
+
+describe('HintOrchestrator solution-leak guard (#31)', () => {
+  it('falls back when a contract-conforming hint gives away the result, and logs only the code', async () => {
+    const { orchestrator, events } = build({ answer: hint({ text: 'Dann hat Lisa 7 Äpfel.' }) });
+
+    expect(await orchestrator.suggest(REQUEST)).toEqual(INVALID_OUTPUT);
+    expect(events).toEqual([
+      {
+        type: 'guidance.hint_fallback_used',
+        level: 'next_step',
+        reason: 'invalid_output',
+        codes: ['guidance.ai_output.solution_leaked'],
+      },
+    ]);
+    expect(JSON.stringify(events)).not.toContain('Lisa');
+  });
+});

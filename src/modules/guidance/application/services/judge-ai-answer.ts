@@ -1,14 +1,17 @@
 import type { ResultAsync } from '@lib/result';
 import { unique } from '@lib/utils';
 
+import { leaksSolution } from '../../domain/ai-output/solution-leak';
 import { validateAiOutput } from '../../domain/ai-output/validate-ai-output';
 import {
   checkChildSafeText,
   flaggedBySafetyScores,
 } from '../../domain/child-safety/check-child-safe-text';
+import { AI_OUTPUT_VALIDATION_CODES } from '../../domain/errors/ai-output-errors';
 import { SAFETY_CLASSIFIER_UNAVAILABLE } from '../../domain/errors/child-safety-errors';
 
 import type { AiOutput, AiOutputRequest } from '../../domain/ai-output/ai-output';
+import type { SolutionContext } from '../../domain/ai-output/solution-leak';
 import type { HintFallbackReason } from '../../domain/models/hint-fallback-reason';
 import type { HintProviderFailure } from '../../domain/ports/hint-provider.port';
 import type { SafetyClassifier } from '../../domain/ports/safety-classifier.port';
@@ -37,27 +40,40 @@ async function classifierVerdict(output: AiOutput, safety: SafetyClassifier): Pr
   );
 }
 
+/** What the answer is checked against besides the contract. */
+export interface AnswerGuards {
+  /** The task, the teacher's key and the child's answer, for the solution-leak guard (#31). */
+  readonly solution: SolutionContext;
+  /** The second safety check (#11); without one only the word lists apply. */
+  readonly safety?: SafetyClassifier | undefined;
+}
+
+/** The checks on a contract-conforming text that need no provider: the leak guard, then the word lists. */
+function textVerdict(output: AiOutput, solution: SolutionContext): Verdict {
+  if (leaksSolution(output, solution)) {
+    // Only the code is logged: the task, the key and the text stay out of the audit log.
+    return { reason: 'invalid_output', codes: [AI_OUTPUT_VALIDATION_CODES.solutionLeaked] };
+  }
+  const codes = checkChildSafeText(output.text);
+  return codes.length === 0 ? { output } : { reason: 'unsafe_output', codes };
+}
+
 /**
  * Runs one AI call and lets its answer through only if it meets the AI output contract (#6) for
- * exactly what was asked, and then the child-safety rules (#11): the word lists, and the safety
- * classifier when one is configured. It never fails: a timeout, a provider error, a throwing
- * adapter or a rejected answer all become a fallback verdict.
- *
- * TODO(#31): run the solution-leak guard on the validated output before the safety check.
+ * exactly what was asked, does not give away the solution (#31), and meets the child-safety rules
+ * (#11): the word lists, and the safety classifier when one is configured. It never fails: a
+ * timeout, a provider error, a throwing adapter or a rejected answer all become a fallback verdict.
  */
 export async function judgeAiAnswer(
   call: () => ResultAsync<unknown, HintProviderFailure>,
   expected: AiOutputRequest,
-  safety?: SafetyClassifier,
+  { solution, safety }: AnswerGuards,
 ): Promise<Verdict> {
   try {
     const verdict = await call().match(
       (raw): Verdict =>
         validateAiOutput(raw, expected).match(
-          (output): Verdict => {
-            const codes = checkChildSafeText(output.text);
-            return codes.length === 0 ? { output } : { reason: 'unsafe_output', codes };
-          },
+          (output): Verdict => textVerdict(output, solution),
           (rejection): Verdict => ({
             reason: 'invalid_output',
             codes: unique(Object.values(rejection.fieldErrors).flat()),

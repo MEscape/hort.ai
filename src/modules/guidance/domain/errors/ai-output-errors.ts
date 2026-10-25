@@ -29,7 +29,7 @@ export const AI_OUTPUT_VALIDATION_CODES = {
   containsUrl: 'guidance.ai_output.contains_url',
   containsMarkup: 'guidance.ai_output.contains_markup',
   containsCode: 'guidance.ai_output.contains_code',
-  /** Reserved for the solution-leak guard (#31); the shape check here cannot see the task's solution. */
+  /** Set by the solution-leak guard (#31), not by the shape check, which cannot see the task's solution. */
   solutionLeaked: 'guidance.ai_output.solution_leaked',
 } as const;
 

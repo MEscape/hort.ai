@@ -1,7 +1,7 @@
 import type { AssessmentResult } from '../ai-output/ai-output';
 
 /** German number words up to twenty, so "sieben" matches a key of 7. Larger numbers are written as digits. */
-const NUMBER_WORDS: Readonly<Record<string, string>> = {
+export const NUMBER_WORDS: Readonly<Record<string, string>> = {
   null: '0',
   eins: '1',
   ein: '1',

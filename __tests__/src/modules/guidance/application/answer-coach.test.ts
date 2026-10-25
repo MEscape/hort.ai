@@ -198,3 +198,32 @@ describe('AnswerCoach with the safety classifier (#11)', () => {
     expect(texts.sort()).toEqual([PRAISE, QUESTION].sort());
   });
 });
+
+describe('AnswerCoach solution-leak guard (#31)', () => {
+  it('replaces an assessment that reveals the expected answer with the predefined text', async () => {
+    const leak = output('answer_assessment', 'Fast! Richtig wäre 7.', { result: 'not_yet' });
+    const { coach, events } = build({ answer_assessment: leak });
+
+    expect(await coach.check(toCheck('8', null))).toMatchObject({
+      next: 'hint_ladder',
+      message: { kind: 'predefined', reason: 'invalid_output' },
+    });
+    expect(events).toEqual([
+      {
+        type: 'guidance.feedback_fallback_used',
+        kind: 'answer_assessment',
+        level: LEVEL,
+        reason: 'invalid_output',
+        codes: ['guidance.ai_output.solution_leaked'],
+      },
+    ]);
+  });
+
+  it("lets praise repeat the child's own correct answer", async () => {
+    const { coach } = build({ ...WORDING, praise: output('praise', 'Super, 7 stimmt!') });
+
+    expect(await coach.check(toCheck('7'))).toMatchObject({
+      praise: { kind: 'generated', text: 'Super, 7 stimmt!' },
+    });
+  });
+});

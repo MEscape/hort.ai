@@ -105,12 +105,13 @@ export class AnswerCoach {
       : this.fallback(kind, toCheck.level, verdict);
   }
 
-  private ask(kind: FeedbackKind, { task, answer, level, competencies }: AnswerToCheck) {
+  private ask(kind: FeedbackKind, toCheck: AnswerToCheck) {
+    const { task, answer, solutionKey, level, competencies } = toCheck;
     const request: FeedbackRequest = { kind, task, answer, level, competencies };
     return judgeAiAnswer(
       () => this.deps.provider.word(request),
       { kind, hintLevel: level },
-      this.deps.safety,
+      { solution: { task, solutionKey, childAnswer: answer }, safety: this.deps.safety },
     );
   }
 

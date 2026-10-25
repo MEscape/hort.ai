@@ -107,7 +107,7 @@ The text is shown, and may be read aloud, as plain text. It must not contain:
 | `guidance.ai_output.contains_url`               | a link                                                              |
 | `guidance.ai_output.contains_markup`            | HTML or Markdown                                                    |
 | `guidance.ai_output.contains_code`              | code                                                                |
-| `guidance.ai_output.solution_leaked`            | reserved for the solution-leak guard (#31)                          |
+| `guidance.ai_output.solution_leaked`            | the text gives away the solution of the child's task (#31)          |
 
 These codes are stable. Renaming one is a breaking change of the contract and bumps its version.
 
@@ -180,7 +180,7 @@ Request `{ kind: 'comprehension_question', hintLevel: 'understand_task' }`:
 
 ### Leaking the solution
 
-These outputs are valid by shape, so this contract accepts them. The solution-leak guard (#31) must reject them with `guidance.ai_output.solution_leaked`, because only it knows the task and its solution.
+These outputs are valid by shape, so this contract accepts them. The solution-leak guard (#31) rejects them with `guidance.ai_output.solution_leaked`, because only it knows the task and its solution.
 
 | Output text                                                     | Why it leaks                                   |
 | --------------------------------------------------------------- | ---------------------------------------------- |
@@ -190,6 +190,12 @@ These outputs are valid by shape, so this contract accepts them. The solution-le
 | `Schreib: Tom hat 47 Murmeln.`                                  | a complete answer sentence for a text task     |
 
 A hint at `similar_example` uses a different problem (for example 34 + 13) and does not leak, as long as it never computes the child's own task.
+
+### The solution-leak guard (#31)
+
+`leaksSolution` (`domain/ai-output/solution-leak.ts`) runs in `judgeAiAnswer` on every validated output, hints and answer feedback alike, after `validateAiOutput` and before `checkChildSafeText`. It is deterministic and makes no AI call. It collects the numbers a solution would contain: the teacher's solution key when there is one (#33; a key without numbers leaks when its words appear in order), the result of every explicit calculation in the task (`23 + 24 = ?`, `36 : 4`, `36 ÷ 4`, `7 · 8`, `7 x 8`), the next terms of an arithmetic sequence (`4, 8, 12, 16, __`), and for a word problem without an operator every result of the four basic operations on two of its numbers (divisions only when they come out even). Numbers that already stand in the task are never candidates. Money (`2 € 50 ct`, `7,50 €`), clock times (`15:45`) and the number words up to twenty count as numbers. A text that contains any candidate is discarded: the final result, a worked solution and a complete answer sentence all contain it. Praise, a comprehension question or a `correct` assessment may repeat the child's own answer; a `not_yet` or `partly_correct` assessment may not state the solution. A hit falls back like any other contract rejection (`invalid_output` with the code `solution_leaked`, predefined text of the requested kind and level), and only the code is logged.
+
+The heuristic prefers a false alarm, which only costs a predefined prompt, to a leak. Its known limits: number words above twenty, multi-step word problems whose result is not a one-step combination of two task numbers, and non-numeric answers without a key are not detected; the prompt still forbids them. The test set is `__tests__/src/modules/guidance/domain/solution-leak.test.ts`: the four examples above, the valid examples, and the sample tasks S1 to S5 of [`mvp-scope.md`](../product/mvp-scope.md).
 
 ## Changing the contract
 
