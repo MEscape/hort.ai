@@ -74,6 +74,27 @@ describe('teacher assignment workflow', () => {
     expect(world.rows.size).toBe(0);
   });
 
+  it('refuses a past due date on create and when the date is changed', async () => {
+    const world = createWorld();
+    const past = await world.as(TEACHER_A).create.execute({
+      ...DRAFT,
+      classroomId: 'class-a',
+      dueDate: '2026-10-24',
+    });
+    expect(past.isErr() && past.error.kind === 'validation' && past.error.fieldErrors).toEqual({
+      dueDate: ['assignments.validation.date_past'],
+    });
+    expect(world.rows.size).toBe(0);
+
+    const created = (
+      await world.as(TEACHER_A).create.execute({ ...DRAFT, classroomId: 'class-a' })
+    )._unsafeUnwrap();
+    const moved = await world
+      .as(TEACHER_A)
+      .update.execute({ ...DRAFT, id: created.id, dueDate: '2026-10-01' });
+    expect(moved.isErr()).toBe(true);
+  });
+
   it('only posts to an own, active class', async () => {
     const world = createWorld();
     const foreign = await world.as(TEACHER_A).create.execute({ ...DRAFT, classroomId: 'class-b' });

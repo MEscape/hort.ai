@@ -16,8 +16,25 @@ const navigate = vi.hoisted(() => vi.fn());
 vi.mock('@i18n', async (original) => ({
   ...(await original<Record<string, unknown>>()),
   useRouter: () => ({ push: navigate }),
-  Link: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => (
-    <a href={href} {...rest}>
+  Link: ({
+    href,
+    children,
+    onClick,
+    ...rest
+  }: {
+    href: string;
+    children: React.ReactNode;
+    onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+  }) => (
+    <a
+      href={href}
+      {...rest}
+      onClick={(event) => {
+        // The test DOM cannot navigate; the card's own tap handler still runs.
+        event.preventDefault();
+        onClick?.(event);
+      }}
+    >
       {children}
     </a>
   ),
@@ -98,7 +115,7 @@ describe('HomeScreen', () => {
   it('keeps the original companion throughout a guide interaction without mounting a copy', () => {
     renderHome();
     const original = screen.getByText('stage companion');
-    fireEvent.click(screen.getByRole('button', { name: /From my teacher/ }));
+    fireEvent.click(screen.getByRole('link', { name: /From my teacher/ }));
     speak(800);
     expect(screen.queryByText('copy')).not.toBeInTheDocument();
     expect(screen.getByText('stage companion')).toBe(original);
@@ -110,7 +127,7 @@ describe('HomeScreen', () => {
   it('cancels the arrival greeting when the child already chose an interaction', () => {
     window.sessionStorage.clear();
     renderHome();
-    fireEvent.click(screen.getByRole('button', { name: /From my teacher/ }));
+    fireEvent.click(screen.getByRole('link', { name: /From my teacher/ }));
     speak(1500);
     expect(screen.queryByText('Hello! I am glad you are here.')).not.toBeInTheDocument();
     expect(screen.getAllByText('Teacher tasks are coming soon.').length).toBeGreaterThan(0);
@@ -120,9 +137,18 @@ describe('HomeScreen', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Hi Mia!' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Your day' })).toBeVisible();
     expect(screen.getByRole('heading', { name: 'I have a task' })).toBeVisible();
-    expect(screen.getByRole('button', { name: /From my teacher/ })).toBeVisible();
+    expect(screen.getByRole('link', { name: /From my teacher/ })).toBeVisible();
     expect(screen.getByRole('link', { name: /Mia's world/i })).toHaveAttribute('href', '/world');
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  });
+
+  it('opens the real help entry on /start from the task card and the teacher card', () => {
+    renderHome({ teacherNewCount: 5 });
+    expect(screen.getByRole('link', { name: 'Enter my task' })).toHaveAttribute('href', '/start');
+    expect(screen.getByRole('link', { name: /From my teacher.*5 new/ })).toHaveAttribute(
+      'href',
+      '/start',
+    );
   });
 
   it('hides the continue card when nothing is unfinished and shows it, without a solution, when something is', () => {
@@ -147,7 +173,7 @@ describe('HomeScreen', () => {
   it('has no bubble while the companion is silent, and one line when a card that stays is tapped', () => {
     renderHome();
     expect(bubble()).toHaveLength(0);
-    fireEvent.click(screen.getByRole('button', { name: /From my teacher/ }));
+    fireEvent.click(screen.getByRole('link', { name: /From my teacher/ }));
     expect(bubble()).toHaveLength(0);
     speak(800);
     expect(bubble()).toHaveLength(1);
@@ -156,10 +182,10 @@ describe('HomeScreen', () => {
 
   it('says that nothing is new when the teacher has nothing, and writes the count when there is', () => {
     renderHome({ teacherNewCount: 0 });
-    expect(screen.getByRole('button', { name: /Nothing new right now\./ })).toBeVisible();
+    expect(screen.getByRole('link', { name: /Nothing new right now\./ })).toBeVisible();
     document.body.innerHTML = '';
     renderHome({ teacherNewCount: 2 });
-    fireEvent.click(screen.getByRole('button', { name: /2 new/ }));
+    fireEvent.click(screen.getByRole('link', { name: /2 new/ }));
     speak(800);
     expect(screen.getAllByText('New tasks from your teacher!').length).toBeGreaterThan(0);
   });
@@ -229,11 +255,11 @@ describe('HomeScreen', () => {
   it('does not move in calm mode: a ring marks the card and the bubble still speaks', () => {
     stubMotion(true);
     renderHome();
-    fireEvent.click(screen.getByRole('button', { name: /From my teacher/ }));
+    fireEvent.click(screen.getByRole('link', { name: /From my teacher/ }));
     speak(100);
     expect(bubble()).toHaveLength(1);
     expect(document.querySelector('[data-guide-copy]')).toBeNull();
-    expect(screen.getByRole('button', { name: /From my teacher/ })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /From my teacher/ })).toHaveAttribute(
       'data-guided',
       'true',
     );
@@ -350,7 +376,7 @@ describe('HomeScreen voice', () => {
 
   it('says what it shows when a card is tapped', async () => {
     renderHome({ speech: { speakerId: 'lili', isAllowed: true } });
-    fireEvent.click(screen.getByRole('button', { name: /From my teacher/ }));
+    fireEvent.click(screen.getByRole('link', { name: /From my teacher/ }));
     await act(async () => {
       await Promise.resolve();
     });
@@ -360,7 +386,7 @@ describe('HomeScreen voice', () => {
   it('stays quiet, with no request, when sound is not allowed', async () => {
     window.sessionStorage.clear();
     renderHome({ speech: { speakerId: 'lili', isAllowed: false } });
-    fireEvent.click(screen.getByRole('button', { name: /From my teacher/ }));
+    fireEvent.click(screen.getByRole('link', { name: /From my teacher/ }));
     speak(1500);
     await act(async () => {
       await Promise.resolve();

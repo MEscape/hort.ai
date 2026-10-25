@@ -23,10 +23,13 @@ export interface VoiceDependencies {
 }
 
 /**
- * What hosted speech is built from: no authorization (it has no actor), no tickets and no consent
- * (no child's words or recordings ever reach it), only fixed lines and the clip store.
+ * What hosted speech is built from: fixed lines and the clip store; no consent (no child's words or
+ * recordings ever reach it). `authorization` and `tickets` redeem a read-aloud ticket, whose issue
+ * already checked the guardian's voice consent; without them a ticket is refused.
  */
 export interface HostedSpeechDependencies {
+  readonly authorization?: AuthorizationService;
+  readonly tickets?: SpokenTextTickets;
   readonly rateLimiter: RateLimiter;
   readonly speech: SpeechProvider | null;
   readonly voices: SpeakerVoices;

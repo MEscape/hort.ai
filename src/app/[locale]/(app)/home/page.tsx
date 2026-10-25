@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 
-import { assignmentRoutes } from '@modules/assignments';
+import { assignmentRoutes, assignmentsQueries } from '@modules/assignments';
 import { AccountHeader, AuthShell, requireSignedIn, TEACHER_ROLE } from '@modules/auth';
 import { classroomQueries } from '@modules/classroom';
 import { loadOpenHelpSession } from '@modules/guidance';
@@ -35,6 +35,22 @@ const PREVIEW_AREA_IDS = [FALLBACK_AREA_ID, 'zahlenwald', 'maerchenwald'] as con
 const TASK_PREVIEW_LIMIT = 48;
 
 type OpenHelpSession = NonNullable<Awaited<ReturnType<typeof loadOpenHelpSession>>>;
+
+/**
+ * How many assignments the child's class has, as the teacher card writes it. The query authorizes
+ * the signed-in parent and the child's class membership itself; a refusal keeps the card's "not here
+ * yet" (`null`), an infrastructure failure reaches the error boundary like on "/start".
+ */
+async function teacherNewCountOf(childProfileId: string): Promise<number | null> {
+  const result = await assignmentsQueries.listChildAssignments.execute(childProfileId);
+  if (result.isOk()) {
+    return result.value.length;
+  }
+  if (result.error.kind === 'infrastructure') {
+    throw new Error(result.error.code, { cause: result.error });
+  }
+  return null;
+}
 
 export async function generateMetadata({
   params,
@@ -101,10 +117,10 @@ async function ChildHome() {
         serverNow: now.toISOString(),
         // Nothing measures learning time yet, so a daily limit shows "time not available".
         usedMinutes: null,
-        // The time strip's live session (#17) and teacher assignment counts (#33) are not wired yet.
+        // The time strip's live session (#17) is not wired yet.
         session: null,
         unfinished: await unfinishedOf(await loadOpenHelpSession(child.id)),
-        teacherNewCount: null,
+        teacherNewCount: await teacherNewCountOf(child.id),
         world: await previewIslands(),
         // The voices speak German and only while the parent's voice control is on; otherwise the
         // lines stay text.

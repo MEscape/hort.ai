@@ -109,9 +109,19 @@ function isCalendarDate(value: string): boolean {
   return date.toISOString().startsWith(value);
 }
 
+/**
+ * Context for the due-date rule: `today` is the school's current calendar day. `currentDueDate` is
+ * the saved date of an assignment being edited, so changing its title does not fail on an old date.
+ */
+export interface AssignmentDraftContext {
+  readonly today: string;
+  readonly currentDueDate?: string | null;
+}
+
 /** The only way teacher input becomes an assignment. Reports every invalid field. */
 export function createAssignmentDraft(
   input: AssignmentDraftInput,
+  context: AssignmentDraftContext,
 ): AppResult<AssignmentDraft, ValidationAppError> {
   const bag = createAssignmentErrorBag();
   const title = input.title.trim();
@@ -125,7 +135,14 @@ export function createAssignmentDraft(
   if (bag.expect(text.length > 0, 'taskText', CODES.taskRequired)) {
     bag.expect(text.length <= ASSIGNMENT_LIMITS.taskText, 'taskText', CODES.taskTooLong);
   }
-  bag.expect(dueDate === null || isCalendarDate(dueDate), 'dueDate', CODES.dateInvalid);
+  if (bag.expect(dueDate === null || isCalendarDate(dueDate), 'dueDate', CODES.dateInvalid)) {
+    // `YYYY-MM-DD` sorts like the dates it spells. A kept, already saved date stays allowed.
+    bag.expect(
+      dueDate === null || dueDate >= context.today || dueDate === context.currentDueDate,
+      'dueDate',
+      CODES.datePast,
+    );
+  }
   bag.expect(
     solutionKey === null || solutionKey.length <= ASSIGNMENT_LIMITS.solutionKey,
     'solutionKey',

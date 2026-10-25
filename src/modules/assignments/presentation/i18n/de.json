@@ -86,6 +86,7 @@
       "taskRequired": "Bitte gib einen Aufgabentext ein.",
       "taskTooLong": "Der Aufgabentext darf höchstens 4.000 Zeichen enthalten.",
       "dateInvalid": "Bitte wähle ein gültiges Datum.",
+      "datePast": "Das Datum darf nicht in der Vergangenheit liegen.",
       "solutionTooLong": "Der Lösungsschlüssel darf höchstens 4.000 Zeichen enthalten."
     },
     "switch": {

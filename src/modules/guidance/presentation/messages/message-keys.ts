@@ -43,6 +43,7 @@ export const MESSAGE_KEY_BY_CODE = {
   [VALIDATION.sessionIdInvalid]: VALIDATION_KEY,
   [VALIDATION.requestIdInvalid]: VALIDATION_KEY,
   [VALIDATION.assignmentIdInvalid]: VALIDATION_KEY,
+  [VALIDATION.classroomIdInvalid]: VALIDATION_KEY,
   [CHILD_INPUT.invalid]: CHILD_INPUT_KEY,
   [CHILD_FIELD.empty]: CHILD_INPUT_KEY,
   [CHILD_FIELD.tooLong]: CHILD_INPUT_KEY,

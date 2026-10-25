@@ -82,3 +82,18 @@ export const parseAssignmentId = createIdParser({
   mapError: () =>
     guidanceFieldInvalid('assignmentId', GUIDANCE_VALIDATION_CODES.assignmentIdInvalid),
 });
+
+/** A teacher's class, for the class overview (#35); the assignments module decides whose it is. */
+export type ClassroomId = Brand<string, 'ClassroomId'>;
+
+const CLASSROOM_ID_MAX_LENGTH = 128;
+
+export function toClassroomId(raw: string): ClassroomId {
+  return raw as ClassroomId; // Brand constructor: the cast is only permitted here.
+}
+
+export const parseClassroomId = createIdParser({
+  isValid: (raw: string) => raw.length > 0 && raw.length <= CLASSROOM_ID_MAX_LENGTH,
+  brand: toClassroomId,
+  mapError: () => guidanceFieldInvalid('classroomId', GUIDANCE_VALIDATION_CODES.classroomIdInvalid),
+});

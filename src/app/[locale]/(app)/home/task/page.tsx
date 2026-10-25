@@ -1,38 +1,26 @@
 import { Suspense } from 'react';
 
-import { AuthFormSkeleton, requireSignedIn } from '@modules/auth';
-import { requireOnboarded } from '@modules/learner';
+import { redirect, requireLocale } from '@i18n';
 
-import { requireLocale } from '@i18n';
-
-import { getTranslations } from '@i18n/server';
-
+import { APP_IDENTITY } from '@lib/config';
 import { buildPrivateMetadata } from '@lib/seo';
 
-import { TaskScreen } from './_components/task-screen';
+export const metadata = buildPrivateMetadata(APP_IDENTITY.name);
 
-export async function generateMetadata({
-  params,
-}: {
+interface TaskPageProps {
   readonly params: Promise<{ locale: string }>;
-}) {
-  const t = await getTranslations({
-    locale: requireLocale((await params).locale),
-    namespace: 'app',
-  });
-  return buildPrivateMetadata(t('start.metaTitle'));
 }
 
-async function Task() {
-  await requireSignedIn('/home/task');
-  const child = await requireOnboarded();
-  return <TaskScreen childProfileId={child.id} />;
+/** The old placeholder entry: old links land on the real task entry at "/start". */
+async function ToStart({ params }: TaskPageProps): Promise<never> {
+  const locale = requireLocale((await params).locale);
+  return redirect({ href: '/start', locale });
 }
 
-export default function TaskPage() {
+export default function TaskPage(props: TaskPageProps) {
   return (
-    <Suspense fallback={<AuthFormSkeleton />}>
-      <Task />
+    <Suspense>
+      <ToStart {...props} />
     </Suspense>
   );
 }

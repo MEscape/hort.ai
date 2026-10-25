@@ -19,6 +19,7 @@ import { ListMaterials } from './application/queries/list-materials';
 import { loggerMaterialAuditLog } from './infrastructure/audit/logger-material-audit-log';
 import { OwnedMaterialClassrooms } from './infrastructure/classroom/owned-material-classrooms';
 import { curriculumMaterialIngest } from './infrastructure/curriculum/curriculum-material-ingest';
+import { officeMaterialConverter } from './infrastructure/office/office-material-converter';
 import { PrismaMaterialRepository } from './infrastructure/prisma/prisma-material.repository';
 import { SignedMaterialObjectWriter } from './infrastructure/storage/signed-material-object-writer';
 import { SignedMaterialTextReader } from './infrastructure/storage/signed-material-text-reader';
@@ -45,6 +46,7 @@ const dependencies: MaterialDependencies = {
   textReader: new SignedMaterialTextReader(store),
   writer: new SignedMaterialObjectWriter(store),
   ingest: curriculumMaterialIngest,
+  converter: officeMaterialConverter,
   newId: randomUUID,
   rateLimiter: getRateLimiter(),
   audit: loggerMaterialAuditLog,
