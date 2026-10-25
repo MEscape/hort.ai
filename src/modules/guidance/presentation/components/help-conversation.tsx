@@ -16,8 +16,8 @@ import { messageKeyForCode } from '../messages/message-keys';
 import { guidanceRoutes } from '../routes';
 
 import { ConversationLines } from './conversation-lines';
-import { LearningPauseNote } from './learning-pause-note';
 import { HelpDraftForm } from './help-draft-form';
+import { LearningPauseNote } from './learning-pause-note';
 
 import type { HelpSessionDto } from '../dto/guidance-dto';
 import type { HelpConversationState } from '../hooks/use-help-conversation';
