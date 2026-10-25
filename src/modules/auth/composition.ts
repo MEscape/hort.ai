@@ -1,7 +1,7 @@
 import 'server-only';
 import { cache } from 'react';
 
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { connection } from 'next/server';
 
 import { withAuditTrail } from '@modules/audit';
@@ -12,13 +12,15 @@ import { serverEnv } from '@lib/config/server';
 import type { ServerEnv } from '@lib/config/server';
 import { getMailTransport, resolveMailLocale } from '@lib/mail/server';
 import { getClientAddressProvider, getRateLimiter } from '@lib/rate-limit';
-import { ResultAsync } from '@lib/result';
+import { ResultAsync, errAsync, okAsync } from '@lib/result';
 import { toLocalizedPath } from '@lib/seo';
 import { invariant, isDefined, once } from '@lib/utils';
 
 import { createAuthorizationService } from './application/authorization-service';
 import { AdmitLinkRequest } from './application/commands/admit-link-request';
 import { ChangePassword } from './application/commands/change-password';
+import { CloseParentArea } from './application/commands/close-parent-area';
+import { OpenParentArea } from './application/commands/open-parent-area';
 import { RequestPasswordReset } from './application/commands/request-password-reset';
 import { ResetPassword } from './application/commands/reset-password';
 import { SignIn } from './application/commands/sign-in';
@@ -27,6 +29,8 @@ import { SignUp } from './application/commands/sign-up';
 import { UpdateDisplayName } from './application/commands/update-display-name';
 import { GetAccount } from './application/queries/get-account';
 import { GetCurrentActor } from './application/queries/get-current-actor';
+import { RequireParentAccess } from './application/queries/require-parent-access';
+import { reauthenticationRequired } from './domain/errors/auth-errors';
 import { createTenantId } from './domain/models/tenant';
 import {
   LEVEL_BY_EVENT,
@@ -38,6 +42,7 @@ import { BetterAuthAccountManager } from './infrastructure/better-auth/better-au
 import { authenticationApiFrom } from './infrastructure/better-auth/better-auth-authentication-api';
 import { BetterAuthAuthenticator } from './infrastructure/better-auth/better-auth-authenticator';
 import { BetterAuthCurrentActorProvider } from './infrastructure/better-auth/better-auth-current-actor-provider';
+import { BetterAuthParentAccess } from './infrastructure/better-auth/better-auth-parent-access';
 import { sessionSourceFrom } from './infrastructure/better-auth/better-auth-session-source';
 import { createAuth } from './infrastructure/better-auth/create-auth';
 import { createAuthRouteHandlers } from './infrastructure/better-auth/create-auth-route-handlers';
@@ -55,6 +60,7 @@ import type { AuthorizationService } from './application/authorization-service';
 import type { TenantId } from './domain/models/ids';
 import type { AuthMailer } from './domain/ports/auth-mailer.port';
 import type { CurrentActorProvider } from './domain/ports/current-actor-provider.port';
+import type { ParentAccessPort } from './domain/ports/parent-access.port';
 import type { AuthSettings, BetterAuthInstance } from './infrastructure/better-auth/create-auth';
 
 /**
@@ -242,6 +248,52 @@ export const getAuthQueries = once(
       getAccount: new GetAccount(getAccountDependencies()),
     }) as const,
 );
+
+const PARENT_ACCESS_COOKIE = 'hortai.parent-access';
+const getParentAccess = once((): ParentAccessPort => {
+  // Authentication-disabled development never invents a password or grants parent access.
+  if (!serverEnv.AUTH_ENABLED) {
+    return {
+      open: () => errAsync(reauthenticationRequired()),
+      require: () => errAsync(reauthenticationRequired()),
+      close: () => okAsync(undefined),
+    };
+  }
+  return new BetterAuthParentAccess({
+    api: getAuth().api,
+    getHeaders: () => headers(),
+    clock: systemClock,
+    secret: requireAuthCredentials(serverEnv).secret,
+    cookie: {
+      read: async () => (await cookies()).get(PARENT_ACCESS_COOKIE)?.value,
+      write: async (value, maxAge) => {
+        (await cookies()).set(PARENT_ACCESS_COOKIE, value, {
+          httpOnly: true,
+          secure: serverEnv.NODE_ENV === 'production',
+          sameSite: 'strict',
+          path: '/',
+          maxAge,
+        });
+      },
+    },
+  });
+});
+
+/** Separate parent permission: checked by the parent route and injected into adult-only mutations. */
+export const getParentAreaServices = once(() => {
+  const dependencies = {
+    authorization: getAccessControl(),
+    parentAccess: getParentAccess(),
+    audit: auditLog,
+    rateLimiter: getRateLimiter(),
+    clientAddress: getClientAddressProvider(() => headers()),
+  };
+  return {
+    open: new OpenParentArea(dependencies),
+    require: new RequireParentAccess(dependencies),
+    close: new CloseParentArea(dependencies),
+  };
+});
 
 /**
  * Sign-in, sign-up, sign-out and password reset. Only meaningful while

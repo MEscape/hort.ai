@@ -125,7 +125,8 @@ const clockTime = new Intl.DateTimeFormat('en-GB', {
   hourCycle: 'h23',
 });
 
-function minutesSinceMidnight(instant: Date): number {
+/** The minute of the day at `instant` on the clock of `LEARNER_TIME_ZONE`. */
+export function minutesSinceMidnight(instant: Date): number {
   const part = (type: string) =>
     Number(clockTime.formatToParts(instant).find((entry) => entry.type === type)?.value);
   // eslint-disable-next-line no-magic-numbers -- minutes per hour

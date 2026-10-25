@@ -1,0 +1,2089 @@
+{
+  "version": 1,
+  "islands": [
+    {
+      "areaId": "buchstabenberg",
+      "biome": "snow",
+      "landmark": { "name": "Buchstabengipfel", "glyph": "mountain" },
+      "locations": [
+        {
+          "id": "lautquelle",
+          "name": "Lautquelle",
+          "about": "Für Aufgaben, bei denen du genau hinhörst: Welcher Laut steckt im Wort?",
+          "topics": ["sounds"],
+          "glyph": "pond",
+          "x": 0.27,
+          "y": 0.46
+        },
+        {
+          "id": "buchstabenhoehle",
+          "name": "Buchstabenhöhle",
+          "about": "Für Aufgaben zu Buchstaben: erkennen, benennen und schreiben.",
+          "topics": ["letters"],
+          "glyph": "rock",
+          "x": 0.73,
+          "y": 0.43
+        },
+        {
+          "id": "lesepfad",
+          "name": "Lesepfad",
+          "about": "Für Aufgaben zum Lesenlernen: Silben und erste Wörter.",
+          "topics": ["learning to read"],
+          "glyph": "signpost",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A tall, friendly mountain island for children learning their first letters. A rounded snow-capped peak rises at the back centre; its slopes are stepped into soft terraces of chunky carved stone blocks with rounded, abstract shapes (no readable letters). Left: a small spring with gentle ripple rings. Right: a cosy cave mouth lit by a warm lantern. Front centre: a winding pebble path with stepping stones. Meadow greens on the lower slopes, pale snow and soft lilac shadows above."
+        }
+      ]
+    },
+    {
+      "areaId": "maerchenwald",
+      "biome": "forest",
+      "landmark": { "name": "Buchbaum", "glyph": "tree" },
+      "locations": [
+        {
+          "id": "leselichtung",
+          "name": "Leselichtung",
+          "about": "Für Aufgaben, bei denen du einen Text liest.",
+          "topics": ["reading"],
+          "glyph": "flowers",
+          "x": 0.26,
+          "y": 0.45
+        },
+        {
+          "id": "fragenbruecke",
+          "name": "Fragenbrücke",
+          "about": "Für Fragen zu einem Text: Was steht drin, und was bedeutet es?",
+          "topics": ["text comprehension"],
+          "glyph": "bridge",
+          "x": 0.74,
+          "y": 0.44
+        },
+        {
+          "id": "geschichtenhuette",
+          "name": "Geschichtenhütte",
+          "about": "Für Aufgaben rund um Märchen und Geschichten.",
+          "topics": ["stories"],
+          "glyph": "house",
+          "x": 0.48,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A storybook forest island. At the back centre stands one enormous ancient tree whose canopy curves like the pages of an open book, with a small round wooden door in its trunk. Left: a sunny clearing with mushrooms and a reading stump. Right: a curved wooden footbridge over a little stream. Front centre: a crooked fairy-tale cottage with a thatched roof. Deep greens, mossy teal and warm amber light between the trees; magical but never dark or spooky."
+        }
+      ]
+    },
+    {
+      "areaId": "federsee",
+      "biome": "lake",
+      "landmark": { "name": "Großer Federkiel", "glyph": "tower" },
+      "locations": [
+        {
+          "id": "schreibsteg",
+          "name": "Schreibsteg",
+          "about": "Für Aufgaben, bei denen du einen eigenen Text schreibst.",
+          "topics": ["writing texts"],
+          "glyph": "bridge",
+          "x": 0.27,
+          "y": 0.47
+        },
+        {
+          "id": "geschichtenboot",
+          "name": "Geschichtenboot",
+          "about": "Für Geschichten, die du dir ausdenkst und aufschreibst.",
+          "topics": ["stories"],
+          "glyph": "boat",
+          "x": 0.72,
+          "y": 0.47
+        },
+        {
+          "id": "briefhaeuschen",
+          "name": "Briefhäuschen",
+          "about": "Für Aufgaben, bei denen du einen Brief schreibst.",
+          "topics": ["letters"],
+          "glyph": "house",
+          "x": 0.52,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A calm lake island whose centre is a round, clear blue lake ringed by reeds. At the back centre, on a tiny islet in the lake, stands a giant elegant feather-quill sculpture, white and pale blue, upright like a monument. Left: a wooden jetty reaching into the water. Right: a small boat with a paper-white sail moored at the shore. Front centre: a tiny cottage with a round blue mailbox. Soft blues, reed greens and cream; serene and inviting."
+        }
+      ]
+    },
+    {
+      "areaId": "rechtschreib-werkstatt",
+      "biome": "workshop",
+      "landmark": { "name": "Wörterwerkstatt", "glyph": "house" },
+      "locations": [
+        {
+          "id": "regelwerkbank",
+          "name": "Regel-Werkbank",
+          "about": "Für Aufgaben zu Rechtschreibregeln.",
+          "topics": ["spelling"],
+          "glyph": "stage",
+          "x": 0.25,
+          "y": 0.44
+        },
+        {
+          "id": "diktatzelt",
+          "name": "Diktatzelt",
+          "about": "Wenn du für ein Diktat übst oder eines verbessern sollst.",
+          "topics": ["dictation"],
+          "glyph": "tent",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "lernwoerterkiste",
+          "name": "Lernwörterkiste",
+          "about": "Für deine Lernwörter aus der Schule.",
+          "topics": ["practice words"],
+          "glyph": "cube",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A cheerful craftsman's workshop island. At the back centre a timber-framed workshop with a big round window, a crooked chimney and wooden crates of colourful rounded blocks (no readable letters). Left: a sturdy workbench with tools and a small vice. Right: a striped canvas tent sheltering a little writing desk. Front centre: a wooden treasure chest overflowing with smooth blank tiles. Warm ochres, honey wood, terracotta roof, soft green ground."
+        }
+      ]
+    },
+    {
+      "areaId": "wortbaumhaus",
+      "biome": "garden",
+      "landmark": { "name": "Wortbaumhaus", "glyph": "tree" },
+      "locations": [
+        {
+          "id": "nomen-nest",
+          "name": "Nomen-Nest",
+          "about": "Für Aufgaben zu Nomen: Namen für Dinge, Tiere und Menschen.",
+          "topics": ["nouns"],
+          "glyph": "house",
+          "x": 0.24,
+          "y": 0.43
+        },
+        {
+          "id": "adjektivbeet",
+          "name": "Adjektivbeet",
+          "about": "Für Aufgaben zu Adjektiven, den Wiewörtern.",
+          "topics": ["adjectives"],
+          "glyph": "flowers",
+          "x": 0.76,
+          "y": 0.41
+        },
+        {
+          "id": "verbenschaukel",
+          "name": "Verbenschaukel",
+          "about": "Für Aufgaben zu Verben, den Tuwörtern.",
+          "topics": ["verbs"],
+          "glyph": "stage",
+          "x": 0.38,
+          "y": 0.57
+        },
+        {
+          "id": "satzleiter",
+          "name": "Satzleiter",
+          "about": "Für Aufgaben zu Sätzen und Grammatik.",
+          "topics": ["grammar"],
+          "glyph": "signpost",
+          "x": 0.64,
+          "y": 0.57
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A lush garden island crowned at the back centre by a huge friendly tree with a multi-level treehouse: round platforms, rope ladders, little roofs and a swing. Left: a cosy nest-like hut of woven branches. Right: a garden bed of big round flowers in three colours. Front left: a wooden swing hanging from a low branch. Front right: a tall ladder with rungs of different colours leaning against a stump. Fresh greens, warm wood, coral and butter-yellow accents."
+        }
+      ]
+    },
+    {
+      "areaId": "reimtal",
+      "biome": "meadow",
+      "landmark": { "name": "Reimbogen", "glyph": "bridge" },
+      "locations": [
+        {
+          "id": "gedichtbank",
+          "name": "Gedichtbank",
+          "about": "Für Aufgaben zu Gedichten: lesen, verstehen, auswendig lernen.",
+          "topics": ["poems"],
+          "glyph": "tree",
+          "x": 0.26,
+          "y": 0.45
+        },
+        {
+          "id": "liederkreis",
+          "name": "Liederkreis",
+          "about": "Für Aufgaben zu Liedern und ihren Texten.",
+          "topics": ["songs"],
+          "glyph": "stage",
+          "x": 0.74,
+          "y": 0.44
+        },
+        {
+          "id": "reimbach",
+          "name": "Reimbach",
+          "about": "Für Aufgaben, bei denen du Reimwörter findest.",
+          "topics": ["rhymes"],
+          "glyph": "pond",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A gentle valley island cradled between two rounded hills that mirror each other like a rhyme. A wide pastel arch bridge spans the valley at the back centre. Left: a small hilltop bench under a single blossoming tree. Right: a ring of low standing stones forming a little open-air stage for singing. Front centre: a babbling brook with stepping stones in a repeating pattern. Pastel greens, peach and soft lilac."
+        }
+      ]
+    },
+    {
+      "areaId": "sprechbuehne",
+      "biome": "village",
+      "landmark": { "name": "Große Bühne", "glyph": "stage" },
+      "locations": [
+        {
+          "id": "erzaehlfeuer",
+          "name": "Erzählfeuer",
+          "about": "Für Aufgaben, bei denen du etwas nacherzählst.",
+          "topics": ["retelling"],
+          "glyph": "rock",
+          "x": 0.25,
+          "y": 0.46
+        },
+        {
+          "id": "vortragsturm",
+          "name": "Vortragsturm",
+          "about": "Für Referate und Vorträge vor der Klasse.",
+          "topics": ["presentations"],
+          "glyph": "tower",
+          "x": 0.75,
+          "y": 0.43
+        },
+        {
+          "id": "sprechstufen",
+          "name": "Sprechstufen",
+          "about": "Für Aufgaben zum deutlichen und freien Sprechen.",
+          "topics": ["speaking"],
+          "glyph": "cube",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A small theatre-village island. At the back centre a round open-air stage with a scalloped red curtain arch and warm footlights, framed by little plain banners. Left: a cosy circle of log seats around an unlit fire ring. Right: a slim tower with a big brass speaking trumpet. Front centre: a curving stone amphitheatre of three soft steps. Warm terracotta, cream stone, deep red curtain, meadow green."
+        }
+      ]
+    },
+    {
+      "areaId": "zahlenwald",
+      "biome": "forest",
+      "landmark": { "name": "Zählturm", "glyph": "tower" },
+      "locations": [
+        {
+          "id": "zaehlbruecke",
+          "name": "Zählbrücke",
+          "about": "Für Aufgaben zum Zählen und Abzählen.",
+          "topics": ["counting"],
+          "glyph": "bridge",
+          "x": 0.24,
+          "y": 0.43
+        },
+        {
+          "id": "plus-mulde",
+          "name": "Plus-Mulde",
+          "about": "Für Plusaufgaben, im Kopf oder schriftlich.",
+          "topics": ["adding"],
+          "glyph": "rock",
+          "x": 0.76,
+          "y": 0.41
+        },
+        {
+          "id": "zahlenpfad",
+          "name": "Zahlenpfad",
+          "about": "Für Aufgaben im Zahlenraum: Zahlen ordnen und vergleichen.",
+          "topics": ["number range"],
+          "glyph": "signpost",
+          "x": 0.38,
+          "y": 0.57
+        },
+        {
+          "id": "minus-lichtung",
+          "name": "Minus-Lichtung",
+          "about": "Für Minusaufgaben, im Kopf oder schriftlich.",
+          "topics": ["subtracting"],
+          "glyph": "flowers",
+          "x": 0.64,
+          "y": 0.57
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A forest island where everything comes in countable groups. At the back centre a tall wooden lookout tower with stacked round platforms, like beads on an abacus. Trees grow in neat little clusters of one, two, three and more. Left: a log bridge with evenly spaced planks. Right: a mossy hollow with smooth pebbles laid out in small groups. Front left: a path of stepping stones that grow from small to large. Front right: a sunny clearing where a few pebbles have rolled away. No numerals anywhere. Rich greens, teal moss, warm wood."
+        }
+      ]
+    },
+    {
+      "areaId": "malmuehle",
+      "biome": "meadow",
+      "landmark": { "name": "Malmühle", "glyph": "windmill" },
+      "locations": [
+        {
+          "id": "einmaleins-feld",
+          "name": "Einmaleins-Feld",
+          "about": "Für Malaufgaben.",
+          "topics": ["multiplication"],
+          "glyph": "flowers",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "teilkarren",
+          "name": "Teilkarren",
+          "about": "Für Geteiltaufgaben: gerecht aufteilen.",
+          "topics": ["dividing"],
+          "glyph": "cube",
+          "x": 0.74,
+          "y": 0.44
+        },
+        {
+          "id": "kornspeicher",
+          "name": "Kornspeicher",
+          "about": "Wenn du Einmaleins-Reihen lernst.",
+          "topics": ["times tables"],
+          "glyph": "house",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A rolling farmland island with a big friendly windmill at the back centre; its four sails are patterned with neat rows of dots. Fields are laid out in tidy rectangular grids of crops, like rows and columns. Left: a crop field in a perfect grid. Right: a wooden cart dividing apples into equal baskets. Front centre: a little granary with sacks stacked in equal piles beside a millstream. Golden wheat, sage green, warm brick and cream sails."
+        }
+      ]
+    },
+    {
+      "areaId": "formenberge",
+      "biome": "canyon",
+      "landmark": { "name": "Pyramidenspitze", "glyph": "mountain" },
+      "locations": [
+        {
+          "id": "spiegelteich",
+          "name": "Spiegelteich",
+          "about": "Für Aufgaben zu Symmetrie und Spiegelachsen.",
+          "topics": ["symmetry"],
+          "glyph": "pond",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "wuerfeltreppe",
+          "name": "Würfeltreppe",
+          "about": "Für Aufgaben zu Körpern wie Würfel, Quader und Kugel.",
+          "topics": ["solids"],
+          "glyph": "cube",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "formengarten",
+          "name": "Formengarten",
+          "about": "Für Aufgaben zu Formen wie Kreis, Dreieck und Viereck.",
+          "topics": ["shapes", "geometry"],
+          "glyph": "flowers",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A mountain island made of geometric shapes: smooth ochre and sandstone mesas shaped like cubes, cylinders and cones, with a large pyramid peak at the back centre. Left: a mirror-still pond reflecting a perfectly symmetric arch. Right: a staircase of stacked cubes. Front centre: a garden of round, triangular and square topiary hedges. Clean geometric forms with softened edges; warm sand, terracotta, dusty teal shadows."
+        }
+      ]
+    },
+    {
+      "areaId": "messwerkstatt",
+      "biome": "workshop",
+      "landmark": { "name": "Waagenturm", "glyph": "tower" },
+      "locations": [
+        {
+          "id": "laengentisch",
+          "name": "Längentisch",
+          "about": "Für Aufgaben mit Metern und Zentimetern.",
+          "topics": ["length"],
+          "glyph": "stage",
+          "x": 0.24,
+          "y": 0.43
+        },
+        {
+          "id": "krugregal",
+          "name": "Krugregal",
+          "about": "Für Aufgaben mit Litern und Millilitern.",
+          "topics": ["volume"],
+          "glyph": "pond",
+          "x": 0.76,
+          "y": 0.41
+        },
+        {
+          "id": "gewichtsplatz",
+          "name": "Gewichtsplatz",
+          "about": "Für Aufgaben mit Kilogramm und Gramm.",
+          "topics": ["weight"],
+          "glyph": "cube",
+          "x": 0.38,
+          "y": 0.57
+        },
+        {
+          "id": "umrechnungsschild",
+          "name": "Umrechnungsschild",
+          "about": "Für Aufgaben, bei denen du Einheiten umrechnest.",
+          "topics": ["units"],
+          "glyph": "signpost",
+          "x": 0.64,
+          "y": 0.57
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A tinkerer's island all about measuring. At the back centre a brass tower topped by a giant balance scale with two round pans. Left: a long wooden table with rulers, a tape measure and blocks of different lengths. Right: a shelf of glass jugs filled to different levels with blue water. Front left: a sack-weighing platform with a spring scale. Front right: a signpost with blank arrows of different lengths. Honey wood, brass, glass blue, soft green ground; tidy and precise."
+        }
+      ]
+    },
+    {
+      "areaId": "zeithaus",
+      "biome": "village",
+      "landmark": { "name": "Uhrenturm", "glyph": "tower" },
+      "locations": [
+        {
+          "id": "sonnenuhrgarten",
+          "name": "Sonnenuhrgarten",
+          "about": "Für Aufgaben zur Uhr: Uhrzeiten lesen und einstellen.",
+          "topics": ["clock"],
+          "glyph": "flowers",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "kalenderhaus",
+          "name": "Kalenderhaus",
+          "about": "Für Aufgaben zu Tagen, Wochen und Monaten.",
+          "topics": ["calendar"],
+          "glyph": "house",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "sanduhrweg",
+          "name": "Sanduhrweg",
+          "about": "Für Aufgaben zu Zeitspannen: Wie lange dauert etwas?",
+          "topics": ["durations"],
+          "glyph": "signpost",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A cosy village island built around a tall, slim clock tower at the back centre with a round clock face without numerals (simple dot markers and two hands). Left: a sundial garden in a ring of stones. Right: a little house whose windows show the four seasons as tiny painted scenes, like a calendar. Front centre: a stone path lined with hourglass-shaped lanterns. Warm cream walls, slate-blue roofs, brass details, meadow green."
+        }
+      ]
+    },
+    {
+      "areaId": "geldmarkt",
+      "biome": "village",
+      "landmark": { "name": "Marktplatz", "glyph": "tent" },
+      "locations": [
+        {
+          "id": "muenzbrunnen",
+          "name": "Münzbrunnen",
+          "about": "Für Aufgaben mit Euro und Cent.",
+          "topics": ["euros and cents"],
+          "glyph": "pond",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "spielzeugladen",
+          "name": "Spielzeugladen",
+          "about": "Für Einkaufsaufgaben: Was kostet es, was bleibt übrig?",
+          "topics": ["shopping problems"],
+          "glyph": "house",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "wechselgeldkarren",
+          "name": "Wechselgeldkarren",
+          "about": "Für Aufgaben zum Bezahlen und zum Wechselgeld.",
+          "topics": ["euros and cents", "shopping problems"],
+          "glyph": "cube",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A lively little market island. At the back centre a big striped market canopy with plain bunting over stalls of fruit, bread and toys. Left: a round fountain with shiny plain discs in its basin. Right: a tiny toy shop with a bay window. Front centre: a wooden cart with a balance and baskets. Coins appear only as plain golden and silver discs without any symbols. Cheerful coral, butter yellow, teal awnings, cobblestones."
+        }
+      ]
+    },
+    {
+      "areaId": "obstgarten",
+      "biome": "garden",
+      "landmark": { "name": "Großer Apfelbaum", "glyph": "tree" },
+      "locations": [
+        {
+          "id": "koerbchenstand",
+          "name": "Körbchenstand",
+          "about": "Für Aufgaben, bei denen gerecht geteilt wird.",
+          "topics": ["sharing"],
+          "glyph": "cube",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "kuchenhuette",
+          "name": "Kuchenhütte",
+          "about": "Für Aufgaben mit Brüchen wie einem Halben oder einem Viertel.",
+          "topics": ["fractions"],
+          "glyph": "house",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "sachaufgabenpfad",
+          "name": "Sachaufgabenpfad",
+          "about": "Für Sachaufgaben: Rechengeschichten verstehen und lösen.",
+          "topics": ["word problems"],
+          "glyph": "signpost",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "An orchard island of round fruit trees in tidy rows. At the back centre one big apple tree with a picnic table beneath it. Left: a basket stand where fruit is shared into equal portions. Right: a small wooden hut with a pie cut into equal slices cooling on its windowsill. Front centre: a winding path past a wheelbarrow of pears. Juicy reds, apple green, pear yellow, warm wood; plentiful and cheerful."
+        }
+      ]
+    },
+    {
+      "areaId": "mustertal",
+      "biome": "garden",
+      "landmark": { "name": "Spiralhecke", "glyph": "tree" },
+      "locations": [
+        {
+          "id": "folgenzaun",
+          "name": "Folgenzaun",
+          "about": "Für Aufgaben, bei denen du eine Folge fortsetzt.",
+          "topics": ["sequences"],
+          "glyph": "signpost",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "knobelhof",
+          "name": "Knobelhof",
+          "about": "Für Knobelaufgaben und Logikrätsel.",
+          "topics": ["logic puzzles"],
+          "glyph": "cube",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "musterbeete",
+          "name": "Musterbeete",
+          "about": "Für Aufgaben zu Mustern: erkennen und fortsetzen.",
+          "topics": ["patterns"],
+          "glyph": "flowers",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A valley island whose fields form a patchwork quilt of repeating patterns: stripes, checks and dots of crops. At the back centre a big hedge maze shaped like a spiral. Left: a row of fence posts painted in a repeating colour sequence. Right: a tiled courtyard with a sliding-stone puzzle. Front centre: flower beds planted in alternating colours. Fresh greens, mustard, soft blue and coral; very orderly but organic."
+        }
+      ]
+    },
+    {
+      "areaId": "diagrammdorf",
+      "biome": "village",
+      "landmark": { "name": "Säulenhäuser", "glyph": "house" },
+      "locations": [
+        {
+          "id": "tabellengarten",
+          "name": "Tabellengarten",
+          "about": "Für Aufgaben mit Tabellen.",
+          "topics": ["tables"],
+          "glyph": "flowers",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "zufallszelt",
+          "name": "Zufallszelt",
+          "about": "Für Aufgaben zum Zufall: sicher, möglich oder unmöglich?",
+          "topics": ["chance"],
+          "glyph": "tent",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "diagrammplatz",
+          "name": "Diagrammplatz",
+          "about": "Für Aufgaben mit Diagrammen: ablesen und zeichnen.",
+          "topics": ["charts"],
+          "glyph": "cube",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A tidy village island where a row of tall narrow houses of different heights stands at the back centre like a bar chart, each with a differently coloured roof. Left: a vegetable garden laid out as a neat grid, like a table. Right: a small fairground tent with a big spinning wheel of coloured segments. Front centre: a round flower bed divided into coloured slices. Clear, friendly colours on cream and sage."
+        }
+      ]
+    },
+    {
+      "areaId": "tierwiese",
+      "biome": "meadow",
+      "landmark": { "name": "Roter Bauernhof", "glyph": "house" },
+      "locations": [
+        {
+          "id": "weide",
+          "name": "Weide",
+          "about": "Für Aufgaben zu Tieren auf dem Bauernhof.",
+          "topics": ["farm animals"],
+          "glyph": "flowers",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "haustierecke",
+          "name": "Haustierecke",
+          "about": "Für Aufgaben zu Haustieren und wie man sie pflegt.",
+          "topics": ["pets"],
+          "glyph": "house",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "ententeich",
+          "name": "Ententeich",
+          "about": "Für Aufgaben zu Tieren und wie sie leben.",
+          "topics": ["animals"],
+          "glyph": "pond",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A sunny meadow island with a cheerful red barn and a round silo at the back centre. Left: a small fenced paddock with a pony, sheep and a goat. Right: a cosy garden corner with a rabbit hutch and a dog house. Front centre: a duck pond with reeds. Animals are cute, simple and friendly, without clothes. Grass greens, barn red, warm straw, sky-blue water."
+        }
+      ]
+    },
+    {
+      "areaId": "waldwichtel-wald",
+      "biome": "forest",
+      "landmark": { "name": "Wichtelbaum", "glyph": "pine" },
+      "locations": [
+        {
+          "id": "fuchsbau",
+          "name": "Fuchsbau",
+          "about": "Für Aufgaben zu Lebensräumen von Tieren.",
+          "topics": ["habitats"],
+          "glyph": "rock",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "waldstockwerke",
+          "name": "Waldstockwerke",
+          "about": "Für Aufgaben zum Wald und seinen Stockwerken.",
+          "topics": ["forest"],
+          "glyph": "pine",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "nahrungspfad",
+          "name": "Nahrungspfad",
+          "about": "Für Aufgaben zu Nahrungsketten: Wer frisst wen?",
+          "topics": ["food chains"],
+          "glyph": "signpost",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A deep, layered woodland island. At the back centre a giant old fir with tiny gnome doors, round windows and ladders in its roots and trunk. The island shows the forest layers: moss and mushrooms, ferns and shrubs, tall trees. Left: a burrow entrance under roots with a fox peeking out. Right: a tall stand of trees in clear layers. Front centre: a forest-floor path with leaves, acorns, a hedgehog and a snail. Deep greens, earthy browns, mushroom reds; cosy, not dark."
+        }
+      ]
+    },
+    {
+      "areaId": "blumenwiese",
+      "biome": "meadow",
+      "landmark": { "name": "Riesensonnenblume", "glyph": "flowers" },
+      "locations": [
+        {
+          "id": "gewaechshaus",
+          "name": "Gewächshaus",
+          "about": "Für Aufgaben dazu, wie Pflanzen wachsen.",
+          "topics": ["growing"],
+          "glyph": "house",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "samenbeet",
+          "name": "Samenbeet",
+          "about": "Für Aufgaben zu Samen und wie sie keimen.",
+          "topics": ["seeds"],
+          "glyph": "flowers",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "pflanzenpfad",
+          "name": "Pflanzenpfad",
+          "about": "Für Aufgaben zu Pflanzen und ihren Teilen.",
+          "topics": ["plants"],
+          "glyph": "signpost",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A blooming meadow island bursting with wildflowers. At the back centre a single giant sunflower taller than the trees, with a little ladder up its stem. Left: a small glass greenhouse with seedlings in pots. Right: a garden bed showing a plant's life from seed to sprout to flower. Front centre: a path past a beehive and a watering can. Soft greens, sunflower yellow, poppy red, cornflower blue."
+        }
+      ]
+    },
+    {
+      "areaId": "jahreszeitenhain",
+      "biome": "autumn",
+      "landmark": { "name": "Vier-Zeiten-Baum", "glyph": "tree" },
+      "locations": [
+        {
+          "id": "monatskreis",
+          "name": "Monatskreis",
+          "about": "Für Aufgaben zu den Monaten und dem Jahreskreis.",
+          "topics": ["months"],
+          "glyph": "rock",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "erntewagen",
+          "name": "Erntewagen",
+          "about": "Für Aufgaben dazu, wie sich die Natur im Jahr verändert.",
+          "topics": ["nature through the year"],
+          "glyph": "cube",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "winterecke",
+          "name": "Winterecke",
+          "about": "Für Aufgaben zu den vier Jahreszeiten.",
+          "topics": ["seasons"],
+          "glyph": "pine",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A round grove island divided into four gentle quarters, one per season: spring blossoms, summer green, autumn orange and a soft snowy winter corner. At the back centre a great tree whose crown shows all four seasons. Left: a ring of twelve stepping stones circling a small pond. Right: a harvest cart with pumpkins and apples. Front centre: a snowy corner with a little sled under a fir. Seasonal colours blended softly."
+        }
+      ]
+    },
+    {
+      "areaId": "wetterhuegel",
+      "biome": "meadow",
+      "landmark": { "name": "Wetterwarte", "glyph": "dome" },
+      "locations": [
+        {
+          "id": "drachenwiese",
+          "name": "Drachenwiese",
+          "about": "Für Aufgaben zum Wind.",
+          "topics": ["wind"],
+          "glyph": "flowers",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "regenmesser",
+          "name": "Regenmesser",
+          "about": "Für Aufgaben zu Regen.",
+          "topics": ["rain"],
+          "glyph": "pond",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "wolkenausguck",
+          "name": "Wolkenausguck",
+          "about": "Für Aufgaben zu Wolken und zum Wetter.",
+          "topics": ["clouds", "weather"],
+          "glyph": "tower",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A breezy hill island with a little weather station at the back centre: a white dome with a spinning cup anemometer and a wind vane. Two fluffy clouds float just above the island and one gentle cloud drizzles onto a corner. Left: a field of tall grass bending in the wind with a kite. Right: a rain gauge beside a shiny puddle. Front centre: a small lookout tower with a windsock. Fresh greens, sky blues, white clouds, sunny yellow."
+        }
+      ]
+    },
+    {
+      "areaId": "wasserteich",
+      "biome": "lake",
+      "landmark": { "name": "Wasserfall", "glyph": "mountain" },
+      "locations": [
+        {
+          "id": "wasserrad",
+          "name": "Wasserrad",
+          "about": "Für Aufgaben rund ums Wasser.",
+          "topics": ["water"],
+          "glyph": "windmill",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "schwimmsteg",
+          "name": "Schwimmsteg",
+          "about": "Für Aufgaben zu Schwimmen und Sinken.",
+          "topics": ["floating and sinking"],
+          "glyph": "boat",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "regentonne",
+          "name": "Regentonne",
+          "about": "Für Aufgaben zum Kreislauf des Wassers.",
+          "topics": ["water cycle"],
+          "glyph": "cube",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A pond island with a small waterfall tumbling from a mossy rock at the back centre, a soft cloud above it closing the water cycle. The middle is a clear pond with lily pads. Left: a wooden water wheel turning in a stream. Right: a jetty where a toy boat floats and a pebble rests visibly on the bottom. Front centre: a wooden rain barrel catching drops. Clear blues, lily greens, mossy stone."
+        }
+      ]
+    },
+    {
+      "areaId": "steinhoehle",
+      "biome": "cave",
+      "landmark": { "name": "Kristallhöhle", "glyph": "rock" },
+      "locations": [
+        {
+          "id": "magnettisch",
+          "name": "Magnettisch",
+          "about": "Für Aufgaben zu Magneten.",
+          "topics": ["magnets"],
+          "glyph": "cube",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "stoffsammlung",
+          "name": "Stoffsammlung",
+          "about": "Für Aufgaben zu Stoffen und Materialien.",
+          "topics": ["materials"],
+          "glyph": "rock",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "forscherecke",
+          "name": "Forscherecke",
+          "about": "Für Aufgaben zu einfachen Versuchen.",
+          "topics": ["simple experiments"],
+          "glyph": "tent",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A rocky island with a large, friendly cave opening at the back centre, glowing softly with lilac and blue crystals inside. Left: a tinkerer's table where a horseshoe magnet attracts little iron balls. Right: a neat pile of different materials: wood, stone, metal and glass. Front centre: a small lantern-lit experiment tent with jars and a magnifying glass. Cool greys, soft lilac crystals, warm lantern light; mysterious but safe."
+        }
+      ]
+    },
+    {
+      "areaId": "echoschlucht",
+      "biome": "canyon",
+      "landmark": { "name": "Echofelsen", "glyph": "mountain" },
+      "locations": [
+        {
+          "id": "rufhorn",
+          "name": "Rufhorn",
+          "about": "Für Aufgaben zu Schall und zum Hören.",
+          "topics": ["sound", "hearing"],
+          "glyph": "rock",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "schattenzelt",
+          "name": "Schattenzelt",
+          "about": "Für Aufgaben zu Licht und Schatten.",
+          "topics": ["light and shadow"],
+          "glyph": "tent",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "windspiel",
+          "name": "Windspiel",
+          "about": "Für Aufgaben zur Luft.",
+          "topics": ["air"],
+          "glyph": "signpost",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A canyon island split by a gentle gorge, with two tall rounded rock walls at the back centre where the sun shines through a gap and casts long soft shadows. Left: a horn-shaped rock to call into, with faint echo rings. Right: a little shadow-theatre tent with a lamp. Front centre: a post with wind chimes and a pinwheel turning in the breeze. Warm sandstone, peach light, cool violet shadows."
+        }
+      ]
+    },
+    {
+      "areaId": "feuerwache",
+      "biome": "village",
+      "landmark": { "name": "Feuerwache", "glyph": "house" },
+      "locations": [
+        {
+          "id": "feuerstelle",
+          "name": "Feuerstelle",
+          "about": "Für Aufgaben dazu, was Feuer zum Brennen braucht.",
+          "topics": ["fire"],
+          "glyph": "rock",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "notrufturm",
+          "name": "Notrufturm",
+          "about": "Für Aufgaben zum Notruf und was man dabei sagt.",
+          "topics": ["emergency call"],
+          "glyph": "tower",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "uebungshof",
+          "name": "Übungshof",
+          "about": "Für Aufgaben zum Brandschutz und zum richtigen Verhalten.",
+          "topics": ["fire safety"],
+          "glyph": "signpost",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A safe and friendly island with a small red fire station at the back centre: big round-arched doors, a little bell tower and a shiny red fire engine peeking out. Left: a stone campfire ring with a small, contained fire and a bucket of sand and a bucket of water beside it. Right: a slim lookout tower with a red roof. Front centre: a tidy training yard with a coiled hose and cones. Warm reds, cream stone, brass, soft greens; reassuring, never dangerous."
+        }
+      ]
+    },
+    {
+      "areaId": "strom-werkstatt",
+      "biome": "workshop",
+      "landmark": { "name": "Windrad", "glyph": "windmill" },
+      "locations": [
+        {
+          "id": "stromkreistisch",
+          "name": "Stromkreistisch",
+          "about": "Für Aufgaben zum Stromkreis.",
+          "topics": ["electricity"],
+          "glyph": "cube",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "hebelplatz",
+          "name": "Hebelplatz",
+          "about": "Für Aufgaben zu Hebel, Rolle und Zahnrad.",
+          "topics": ["simple machines"],
+          "glyph": "tower",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "erfinderhuette",
+          "name": "Erfinderhütte",
+          "about": "Für Aufgaben zu Technik im Alltag.",
+          "topics": ["technology"],
+          "glyph": "house",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "An inventor's island with a tall white wind turbine at the back centre and copper cables running to a workshop. Left: a workbench with a battery, wires and a glowing light bulb. Right: simple machines: a lever seesaw, a pulley crane and big gears. Front centre: a little inventor's hut with a cart on a ramp. Clean whites, copper, soft yellow glow, slate blue, green grass."
+        }
+      ]
+    },
+    {
+      "areaId": "roboterbucht",
+      "biome": "beach",
+      "landmark": { "name": "Roboterleuchtturm", "glyph": "tower" },
+      "locations": [
+        {
+          "id": "kachelfeld",
+          "name": "Kachelfeld",
+          "about": "Für Aufgaben, bei denen du Schritt für Schritt Befehle gibst.",
+          "topics": ["coding", "step-by-step instructions"],
+          "glyph": "cube",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "roboterwerft",
+          "name": "Roboterwerft",
+          "about": "Für Aufgaben zu Robotern und wie sie arbeiten.",
+          "topics": ["robots"],
+          "glyph": "house",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "pfeilpfad",
+          "name": "Pfeilpfad",
+          "about": "Für Aufgaben zu Abläufen, die ein Computer Schritt für Schritt befolgt.",
+          "topics": ["algorithms"],
+          "glyph": "signpost",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A sandy bay island with a friendly robot-shaped lighthouse at the back centre, its round head lamp glowing softly. Left: a grid of coloured floor tiles where a small rounded floor robot follows a path. Right: a tiny boathouse workshop with gears and building blocks. Front centre: a beach path of arrow-shaped stepping stones (arrows only, no text). Sand beige, sea teal, soft orange and white robot parts."
+        }
+      ]
+    },
+    {
+      "areaId": "himmelsturm",
+      "biome": "night",
+      "landmark": { "name": "Sternwarte", "glyph": "dome" },
+      "locations": [
+        {
+          "id": "sonnengarten",
+          "name": "Sonnengarten",
+          "about": "Für Aufgaben zur Sonne.",
+          "topics": ["sun"],
+          "glyph": "flowers",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "mondteich",
+          "name": "Mondteich",
+          "about": "Für Aufgaben zum Mond und seinen Phasen.",
+          "topics": ["moon"],
+          "glyph": "pond",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "raketenplatz",
+          "name": "Raketenplatz",
+          "about": "Für Aufgaben zu Planeten und dem Weltall.",
+          "topics": ["planets", "space"],
+          "glyph": "tower",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A twilight island in soft indigo tones, with a slim observatory tower and a domed telescope at the back centre. Small glowing planets of different colours float just above the island like lanterns. Left: a sun-shaped garden of yellow flowers around a sundial. Right: a crescent-moon shaped pond reflecting tiny stars. Front centre: a rocket-shaped climbing frame. Indigo, violet and soft gold glow; calm and wondrous, never dark or scary."
+        }
+      ]
+    },
+    {
+      "areaId": "koerperhaus",
+      "biome": "meadow",
+      "landmark": { "name": "Körperhaus", "glyph": "house" },
+      "locations": [
+        {
+          "id": "sinnesgarten",
+          "name": "Sinnesgarten",
+          "about": "Für Aufgaben zu den fünf Sinnen.",
+          "topics": ["senses"],
+          "glyph": "flowers",
+          "x": 0.24,
+          "y": 0.43
+        },
+        {
+          "id": "haengemattenhain",
+          "name": "Hängemattenhain",
+          "about": "Für Aufgaben zu Schlaf und Erholung.",
+          "topics": ["sleep"],
+          "glyph": "tree",
+          "x": 0.76,
+          "y": 0.41
+        },
+        {
+          "id": "zahnputzbrunnen",
+          "name": "Zahnputzbrunnen",
+          "about": "Für Aufgaben zu Zähnen und Zahnpflege.",
+          "topics": ["teeth"],
+          "glyph": "pond",
+          "x": 0.38,
+          "y": 0.57
+        },
+        {
+          "id": "koerperpfad",
+          "name": "Körperpfad",
+          "about": "Für Aufgaben zum Körper und wie er funktioniert.",
+          "topics": ["body"],
+          "glyph": "signpost",
+          "x": 0.64,
+          "y": 0.57
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A gentle, healthy island with a round, friendly cottage at the back centre with a heart-shaped window and a garden gate. Left: a garden of the five senses with a bell, fragrant flowers and a listening tube. Right: a hammock between two trees under a crescent-moon lantern. Front left: a little fountain with a big toothbrush and a cup. Front right: a winding path with a skipping rope and a ball. Soft peach, mint, sky blue, warm cream."
+        }
+      ]
+    },
+    {
+      "areaId": "kuechengarten",
+      "biome": "garden",
+      "landmark": { "name": "Gartenküche", "glyph": "house" },
+      "locations": [
+        {
+          "id": "huehnerstall",
+          "name": "Hühnerstall",
+          "about": "Für Aufgaben dazu, woher unser Essen kommt.",
+          "topics": ["where food comes from"],
+          "glyph": "tent",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "regenbogenstand",
+          "name": "Regenbogenstand",
+          "about": "Für Aufgaben zu gesundem Essen.",
+          "topics": ["healthy eating"],
+          "glyph": "flowers",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "backhaeuschen",
+          "name": "Backhäuschen",
+          "about": "Für Aufgaben dazu, wie aus Korn Brot wird.",
+          "topics": ["where food comes from"],
+          "glyph": "dome",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A kitchen-garden island with neat raised vegetable beds and a cosy outdoor kitchen cottage at the back centre with a chimney and a big wooden table. Left: a little henhouse with eggs in a basket. Right: a fruit and vegetable stand arranged in rainbow colours. Front centre: a strip of wheat and a small domed bread oven. Rich soil browns, vegetable greens, tomato red, carrot orange."
+        }
+      ]
+    },
+    {
+      "areaId": "kartenland",
+      "biome": "beach",
+      "landmark": { "name": "Kompassturm", "glyph": "tower" },
+      "locations": [
+        {
+          "id": "wegweiserhuegel",
+          "name": "Wegweiserhügel",
+          "about": "Für Aufgaben zu Himmelsrichtungen und Wegen.",
+          "topics": ["directions"],
+          "glyph": "signpost",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "landschaftsmodell",
+          "name": "Landschaftsmodell",
+          "about": "Für Aufgaben zu Deutschland und seinen Ländern.",
+          "topics": ["Germany"],
+          "glyph": "mountain",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "kartentisch",
+          "name": "Kartentisch",
+          "about": "Für Aufgaben mit Karten, auch von Europa.",
+          "topics": ["maps", "Europe"],
+          "glyph": "stage",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "An island whose own outline looks like a hand-drawn map: a winding coastline with little bays, a river and dotted footpaths. At the back centre a lighthouse-like tower topped by a big compass rose with four plain pointed arms (no letters). Left: a hill with signposts of blank arrows pointing four ways. Right: a miniature relief of rolling hills and a river like a model landscape. Front centre: a map table under a parasol. Parchment beige, sea teal, soft green, red accents."
+        }
+      ]
+    },
+    {
+      "areaId": "heimatstadt",
+      "biome": "village",
+      "landmark": { "name": "Rathaus", "glyph": "house" },
+      "locations": [
+        {
+          "id": "ladenzeile",
+          "name": "Ladenzeile",
+          "about": "Für Aufgaben zu Geschäften in deinem Ort.",
+          "topics": ["shops"],
+          "glyph": "tent",
+          "x": 0.24,
+          "y": 0.43
+        },
+        {
+          "id": "baustelle",
+          "name": "Baustelle",
+          "about": "Für Aufgaben zu Gebäuden und wie sie gebaut werden.",
+          "topics": ["buildings"],
+          "glyph": "tower",
+          "x": 0.76,
+          "y": 0.41
+        },
+        {
+          "id": "berufeplatz",
+          "name": "Berufeplatz",
+          "about": "Für Aufgaben zu Berufen.",
+          "topics": ["jobs"],
+          "glyph": "house",
+          "x": 0.38,
+          "y": 0.57
+        },
+        {
+          "id": "nachbarschaftspark",
+          "name": "Nachbarschaftspark",
+          "about": "Für Aufgaben zu deinem Wohnort und deiner Nachbarschaft.",
+          "topics": ["neighbourhood"],
+          "glyph": "tree",
+          "x": 0.64,
+          "y": 0.57
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A small hometown island: a cluster of houses around a little town hall with a bell tower at the back centre, connected by cobbled lanes. Left: a row of shops with striped awnings. Right: a building site with a small crane and scaffolding. Front left: a little square with a bakery, a school bus and a doctor's practice. Front right: a park with a bench under a tree. Warm brick, cream render, slate roofs, fresh green trees."
+        }
+      ]
+    },
+    {
+      "areaId": "verkehrsstrasse",
+      "biome": "village",
+      "landmark": { "name": "Ampelkreuzung", "glyph": "signpost" },
+      "locations": [
+        {
+          "id": "fahrradparcours",
+          "name": "Fahrradparcours",
+          "about": "Für Aufgaben zur Fahrradprüfung.",
+          "topics": ["bike test"],
+          "glyph": "bridge",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "bushaltestelle",
+          "name": "Bushaltestelle",
+          "about": "Für Aufgaben zum sicheren Schulweg.",
+          "topics": ["traffic rules"],
+          "glyph": "house",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "zebrastreifen",
+          "name": "Zebrastreifen",
+          "about": "Für Aufgaben zu Verkehrsregeln.",
+          "topics": ["traffic rules"],
+          "glyph": "stage",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A tidy traffic-training island with a small road loop, a roundabout with a tree in the middle and friendly traffic lights at a crossroads at the back centre. Left: a bike training course with cones and a small ramp. Right: a little bus-stop shelter. Front centre: a zebra crossing with road signs shown only as plain shapes and colours (no text). Asphalt grey, white stripes, signal red, amber and green, lush verges."
+        }
+      ]
+    },
+    {
+      "areaId": "zeitreise-tal",
+      "biome": "canyon",
+      "landmark": { "name": "Ritterburg", "glyph": "tower" },
+      "locations": [
+        {
+          "id": "steinzeithoehle",
+          "name": "Steinzeithöhle",
+          "about": "Für Aufgaben zur Steinzeit.",
+          "topics": ["Stone Age"],
+          "glyph": "rock",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "ritterhof",
+          "name": "Ritterhof",
+          "about": "Für Aufgaben zu Rittern und Burgen.",
+          "topics": ["knights"],
+          "glyph": "house",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "zeitpfad",
+          "name": "Zeitpfad",
+          "about": "Für Aufgaben zu früher und heute.",
+          "topics": ["history", "then and now"],
+          "glyph": "signpost",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A time-travel valley island that changes era from left to right. At the back centre a small friendly castle with round towers and plain banners. Left: a Stone Age cave with a fire ring and simple cave paintings of animals. Right: a medieval cottage with a thatched roof. Front centre: a winding path of old flagstones that ends at a modern little house. Warm sandstone, ochre, moss green, castle grey."
+        }
+      ]
+    },
+    {
+      "areaId": "umweltpark",
+      "biome": "garden",
+      "landmark": { "name": "Sonnendach-Pavillon", "glyph": "dome" },
+      "locations": [
+        {
+          "id": "muelltrennplatz",
+          "name": "Mülltrennplatz",
+          "about": "Für Aufgaben zu Müll, Trennen und Wiederverwerten.",
+          "topics": ["waste"],
+          "glyph": "cube",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "energieecke",
+          "name": "Energieecke",
+          "about": "Für Aufgaben zum Energiesparen.",
+          "topics": ["saving energy"],
+          "glyph": "windmill",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "insektenhotel",
+          "name": "Insektenhotel",
+          "about": "Für Aufgaben zum Schutz der Umwelt.",
+          "topics": ["environment"],
+          "glyph": "house",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A green eco-park island with a round pavilion at the back centre whose roof is covered in solar panels and plants. Left: three colourful recycling bins beside a compost heap with a sprout. Right: a small wind turbine and a bicycle-powered lamp. Front centre: an insect hotel beside a clean stream and a strip of wildflowers. Bright leaf green, sky blue, sunny yellow, recycling-bin colours."
+        }
+      ]
+    },
+    {
+      "areaId": "medienhuette",
+      "biome": "snow",
+      "landmark": { "name": "Medienhütte", "glyph": "house" },
+      "locations": [
+        {
+          "id": "kinozelt",
+          "name": "Kinozelt",
+          "about": "Für Aufgaben zu Fernsehen und Spielen.",
+          "topics": ["TV and games"],
+          "glyph": "tent",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "surfsteg",
+          "name": "Surfsteg",
+          "about": "Für Aufgaben zum Internet.",
+          "topics": ["internet"],
+          "glyph": "bridge",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "sicherheitsbank",
+          "name": "Sicherheitsbank",
+          "about": "Für Aufgaben zum sicheren Umgang mit Medien.",
+          "topics": ["safe media use"],
+          "glyph": "rock",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A cosy island with a log cabin at the back centre under a light dusting of snow, a small satellite dish and an antenna on its roof and warm light in the windows. Left: a little cinema tent with a screen showing only a soft glowing rectangle. Right: a pier with a lifebuoy over calm, soft blue water. Front centre: a bench beside a sturdy padlock-shaped stone. Warm wood, snow white, soft screen blue, evergreen."
+        }
+      ]
+    },
+    {
+      "areaId": "kinderrathaus",
+      "biome": "village",
+      "landmark": { "name": "Kinderrathaus", "glyph": "house" },
+      "locations": [
+        {
+          "id": "ratstisch",
+          "name": "Ratstisch",
+          "about": "Für Aufgaben zum Klassenrat.",
+          "topics": ["class council"],
+          "glyph": "stage",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "wahlhaeuschen",
+          "name": "Wahlhäuschen",
+          "about": "Für Aufgaben zu Wahlen und Demokratie.",
+          "topics": ["voting", "democracy"],
+          "glyph": "tent",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "kinderrechtepfad",
+          "name": "Kinderrechtepfad",
+          "about": "Für Aufgaben zu den Kinderrechten.",
+          "topics": ["children's rights"],
+          "glyph": "signpost",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A cheerful island with a small colourful town hall at the back centre built for children: rounded windows, a little balcony and a stepped roof, with a tree in front. Left: a round meeting table under a big parasol with chairs for everyone. Right: a little voting booth with a box and coloured tokens. Front centre: a garden path of handprint-shaped stepping stones in many colours. No flags or party symbols. Sunny yellow, coral, teal and cream; welcoming and fair."
+        }
+      ]
+    },
+    {
+      "areaId": "hafen",
+      "biome": "beach",
+      "landmark": { "name": "Leuchtturm", "glyph": "tower" },
+      "locations": [
+        {
+          "id": "bojenhuette",
+          "name": "Bojenhütte",
+          "about": "Für Englischaufgaben zu Farben.",
+          "topics": ["colors"],
+          "glyph": "house",
+          "x": 0.24,
+          "y": 0.43
+        },
+        {
+          "id": "segelboot",
+          "name": "Segelboot",
+          "about": "Für Englischaufgaben mit neuen Wörtern.",
+          "topics": ["English words"],
+          "glyph": "boat",
+          "x": 0.76,
+          "y": 0.41
+        },
+        {
+          "id": "muschelstrand",
+          "name": "Muschelstrand",
+          "about": "Für Englischaufgaben zu Zahlen.",
+          "topics": ["numbers"],
+          "glyph": "flowers",
+          "x": 0.38,
+          "y": 0.57
+        },
+        {
+          "id": "kai",
+          "name": "Kai",
+          "about": "Für Englischaufgaben mit einfachen Sätzen.",
+          "topics": ["simple sentences"],
+          "glyph": "bridge",
+          "x": 0.64,
+          "y": 0.57
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A sunny harbour island with a red-and-white striped lighthouse at the back centre. Left: a fishing hut hung with buoys in many bright colours. Right: a sailing boat with plain bright flags. Front left: a sandy beach with a bucket and shells laid out in a row. Front right: a small stone quay with colourful rowing boats. Sea teal, sand, white, red-and-white stripes, primary-colour boats; a seaside town feeling without any writing."
+        }
+      ]
+    },
+    {
+      "areaId": "weltreise-hafen",
+      "biome": "beach",
+      "landmark": { "name": "Weltreiseschiff", "glyph": "boat" },
+      "locations": [
+        {
+          "id": "ballonwiese",
+          "name": "Ballonwiese",
+          "about": "Für Aufgaben über andere Länder und wie Kinder dort leben.",
+          "topics": ["other countries"],
+          "glyph": "tent",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "globushalle",
+          "name": "Globushalle",
+          "about": "Für Aufgaben, bei denen du die Welt erkundest.",
+          "topics": ["other countries", "other languages"],
+          "glyph": "dome",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "sprachensteg",
+          "name": "Sprachensteg",
+          "about": "Für Aufgaben zu anderen Sprachen.",
+          "topics": ["other languages"],
+          "glyph": "bridge",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A travel-port island with a big friendly ocean liner docked at the back centre, three round funnels and portholes. Left: a hot-air balloon launch field with one colourful balloon. Right: a waiting hall with a large globe on its domed roof. Front centre: a pier with stacked suitcases and a signpost of blank arrows pointing far away. No flags of real countries. Ocean blue, white ship, warm sand, many-coloured luggage; adventurous and welcoming."
+        }
+      ]
+    },
+    {
+      "areaId": "musikwiese",
+      "biome": "meadow",
+      "landmark": { "name": "Musikpavillon", "glyph": "dome" },
+      "locations": [
+        {
+          "id": "xylofonweg",
+          "name": "Xylofonweg",
+          "about": "Für Aufgaben zu Instrumenten und Noten.",
+          "topics": ["instruments", "notes"],
+          "glyph": "bridge",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "trommelkreis",
+          "name": "Trommelkreis",
+          "about": "Für Aufgaben zum Rhythmus.",
+          "topics": ["rhythm"],
+          "glyph": "rock",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "glockenreihe",
+          "name": "Glockenreihe",
+          "about": "Für Aufgaben zur Musik.",
+          "topics": ["music"],
+          "glyph": "signpost",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A musical meadow island with an open white bandstand pavilion at the back centre. Left: a xylophone path of coloured stepping planks. Right: a drum circle of tree stumps. Front centre: a row of bells strung between two posts beside a flower bed in a wave shape. Music notes may appear only as a few simple floating shapes, never as notation or text. Meadow green, white, raspberry, sky blue, gold."
+        }
+      ]
+    },
+    {
+      "areaId": "farbtal",
+      "biome": "candy",
+      "landmark": { "name": "Farbenwasserfall", "glyph": "mountain" },
+      "locations": [
+        {
+          "id": "staffeleihuegel",
+          "name": "Staffeleihügel",
+          "about": "Für Aufgaben zum Zeichnen.",
+          "topics": ["drawing"],
+          "glyph": "stage",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "palettenhuette",
+          "name": "Palettenhütte",
+          "about": "Für Aufgaben zum Malen.",
+          "topics": ["painting"],
+          "glyph": "house",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "farbbecken",
+          "name": "Farbbecken",
+          "about": "Für Aufgaben zu Farben und wie man sie mischt.",
+          "topics": ["colors"],
+          "glyph": "pond",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A painterly valley island with a waterfall at the back centre that flows in soft rainbow bands into a pool. The hills are dabbed with pastel paint strokes. Left: an easel on a hilltop with a blank canvas and paint pots. Right: a hut with a palette-shaped roof. Front centre: a round pool where colours swirl and mix, ringed by paintbrush-shaped flowers. Joyful pastel rainbow tones on a creamy base; never neon."
+        }
+      ]
+    },
+    {
+      "areaId": "bastelwerkstatt",
+      "biome": "workshop",
+      "landmark": { "name": "Bastelscheune", "glyph": "house" },
+      "locations": [
+        {
+          "id": "webstuhl",
+          "name": "Webstuhl",
+          "about": "Für Aufgaben mit Stoff, Wolle und Nadel.",
+          "topics": ["textiles"],
+          "glyph": "stage",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "pappburg",
+          "name": "Pappburg",
+          "about": "Für Aufgaben, bei denen du etwas baust.",
+          "topics": ["making things"],
+          "glyph": "tower",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "faltkorb",
+          "name": "Faltkorb",
+          "about": "Für Bastelaufgaben mit Papier und Schere.",
+          "topics": ["crafts"],
+          "glyph": "cube",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A crafty island with a cosy barn workshop at the back centre, bunting of plain paper triangles and a big pair of scissors as a weathervane. Left: a weaving loom with colourful yarn. Right: a cardboard castle under construction with glue pots. Front centre: a basket of origami birds and buttons. Warm wood, wool colours, kraft-paper browns, coral and teal accents."
+        }
+      ]
+    },
+    {
+      "areaId": "sportwiese",
+      "biome": "meadow",
+      "landmark": { "name": "Sportplatz", "glyph": "stage" },
+      "locations": [
+        {
+          "id": "schwimmbecken",
+          "name": "Schwimmbecken",
+          "about": "Für Aufgaben zum Schwimmen.",
+          "topics": ["swimming"],
+          "glyph": "pond",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "klettergeruest",
+          "name": "Klettergerüst",
+          "about": "Für Aufgaben zu Bewegung und Fitness.",
+          "topics": ["movement"],
+          "glyph": "tower",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "regeltafel",
+          "name": "Regeltafel",
+          "about": "Für Aufgaben zu Sportarten und ihren Regeln.",
+          "topics": ["sports", "rules"],
+          "glyph": "signpost",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A sporty island with a small oval running track around a football pitch with two goals at the back centre. Left: a round swimming pool with a small slide. Right: a climbing frame and a balancing beam. Front centre: a board with simple sport pictograms (no text) and a basket of balls. Turf green, track terracotta, pool blue, white lines; energetic but uncluttered."
+        }
+      ]
+    },
+    {
+      "areaId": "freundschaftsdorf",
+      "biome": "village",
+      "landmark": { "name": "Dorflinde", "glyph": "tree" },
+      "locations": [
+        {
+          "id": "freundschaftsbruecke",
+          "name": "Freundschaftsbrücke",
+          "about": "Für Aufgaben zu Freundschaft.",
+          "topics": ["friends"],
+          "glyph": "bridge",
+          "x": 0.24,
+          "y": 0.43
+        },
+        {
+          "id": "ruhegarten",
+          "name": "Ruhegarten",
+          "about": "Für Aufgaben zu Gefühlen.",
+          "topics": ["feelings"],
+          "glyph": "flowers",
+          "x": 0.76,
+          "y": 0.41
+        },
+        {
+          "id": "treffpunkt-steine",
+          "name": "Treffpunkt-Steine",
+          "about": "Für Aufgaben zu Streit und Versöhnung.",
+          "topics": ["conflicts"],
+          "glyph": "pond",
+          "x": 0.38,
+          "y": 0.57
+        },
+        {
+          "id": "dorfwegweiser",
+          "name": "Dorfwegweiser",
+          "about": "Für Aufgaben zu Regeln im Zusammenleben.",
+          "topics": ["rules"],
+          "glyph": "signpost",
+          "x": 0.64,
+          "y": 0.57
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A calm, welcoming village island around a big linden tree with a round bench at the back centre. Left: two little houses connected by a rope bridge. Right: a quiet garden corner with a bench for two and cushions. Front left: a pond with stepping stones that lead from two sides to a meeting stone in the middle. Front right: a friendly signpost with blank arrows. Soft, neutral, warm colours (sage, cream, soft peach); peaceful and inclusive, no symbols, no faces showing strong emotions."
+        }
+      ]
+    },
+    {
+      "areaId": "festetal",
+      "biome": "autumn",
+      "landmark": { "name": "Festzelt", "glyph": "tent" },
+      "locations": [
+        {
+          "id": "festtafel",
+          "name": "Festtafel",
+          "about": "Für Aufgaben zu Festen und Feiern.",
+          "topics": ["festivals"],
+          "glyph": "stage",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "laternenweg",
+          "name": "Laternenweg",
+          "about": "Für Aufgaben zu Bräuchen.",
+          "topics": ["customs"],
+          "glyph": "signpost",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "gespraechskreis",
+          "name": "Gesprächskreis",
+          "about": "Für Aufgaben zu Werten, Religion und Ethik.",
+          "topics": ["religion and ethics", "values"],
+          "glyph": "rock",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A gentle valley island for celebrations, with a large open festival tent at the back centre strung with paper lanterns and fairy lights. Left: a long shared table with plates and a cake. Right: a path lined with lanterns. Front centre: a ring of chairs around a flat storytelling stone. Neutral and inclusive: no religious symbols, flags or specific holidays. Warm amber light, cream, soft plum and gold."
+        }
+      ]
+    },
+    {
+      "areaId": "merkberg",
+      "biome": "snow",
+      "landmark": { "name": "Gedächtnisgipfel", "glyph": "mountain" },
+      "locations": [
+        {
+          "id": "stiller-teich",
+          "name": "Stiller Teich",
+          "about": "Für Aufgaben zu Konzentration und Ruhe.",
+          "topics": ["concentration"],
+          "glyph": "pond",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "planungshuegel",
+          "name": "Planungshügel",
+          "about": "Für Aufgaben zum Planen deiner Hausaufgaben.",
+          "topics": ["planning homework"],
+          "glyph": "signpost",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "merkkisten",
+          "name": "Merkkisten",
+          "about": "Für Merktricks und gute Ideen zum Lernen.",
+          "topics": ["study tricks"],
+          "glyph": "cube",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A calm mountain island with a winding staircase path up to a peak at the back centre, where a small hut has a big round window. Left: a quiet pavilion beside a still pond. Right: a hill with a planning board of plain coloured cards. Front centre: a bench with a stack of neat plain boxes like a tidy desk. Cool blue snow, pine green, warm wood, soft yellow light."
+        }
+      ]
+    },
+    {
+      "areaId": "ueberraschungsinsel",
+      "biome": "candy",
+      "landmark": { "name": "Überraschungskiste", "glyph": "cube" },
+      "locations": [
+        {
+          "id": "ballonplatz",
+          "name": "Ballonplatz",
+          "about": "Für Aufgaben, die zu vielen Inseln passen könnten.",
+          "topics": ["anything not confidently matched"],
+          "glyph": "tent",
+          "x": 0.26,
+          "y": 0.46
+        },
+        {
+          "id": "muschelhaus",
+          "name": "Muschelhaus",
+          "about": "Für Aufgaben, bei denen wir gemeinsam schauen, worum es geht.",
+          "topics": ["anything not confidently matched"],
+          "glyph": "house",
+          "x": 0.74,
+          "y": 0.43
+        },
+        {
+          "id": "geheimtuer",
+          "name": "Geheimtür",
+          "about": "Für alles, was auf keine andere Insel passt.",
+          "topics": ["anything not confidently matched"],
+          "glyph": "rock",
+          "x": 0.5,
+          "y": 0.58
+        }
+      ],
+      "assets": [
+        {
+          "id": "island",
+          "category": "island",
+          "status": "planned",
+          "version": "1",
+          "brief": "A whimsical surprise island, the most playful of the world. At the back centre a big hill shaped like a wrapped gift box with a bow on top. Left: a hot-air balloon tethered to a post. Right: a spiral seashell house. Front centre: a little round door in a mossy rock with sparkles around it. Lilac, peach, mint and gold; joyful and curious."
+        }
+      ]
+    }
+  ]
+}
