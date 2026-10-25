@@ -1,8 +1,8 @@
 import type { AppError } from '@lib/errors';
 import type { AppResult } from '@lib/result';
 
-import { CHILD_LINES } from './child-lines';
 import { alexa, askWhatNow, line, open } from './child-dialog';
+import { CHILD_LINES } from './child-lines';
 
 import type { ChildReply, LearnIntent, PendingStep, SpokenPart } from './child-dialog';
 import type {
@@ -80,6 +80,7 @@ export async function learningDialog(
 }
 
 /** The step a turn asks for, or the reply when it needs none. */
+// eslint-disable-next-line complexity, sonarjs/cognitive-complexity -- one flat decision table over the session state, read top to bottom
 function planOrReply(request: LearnRequest, session: OpenHelp | null): PendingStep | ChildReply {
   const { intent, utterance, expectTask } = request;
   const words = utterance.toLowerCase();
