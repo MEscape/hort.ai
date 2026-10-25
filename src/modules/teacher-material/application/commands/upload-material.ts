@@ -28,20 +28,23 @@ export class UploadMaterial {
     input: BeginMaterialInput,
     bytes: Uint8Array,
   ): AppResultAsync<{ readonly materialId: string }, MaterialError> {
-    return this.begin.execute({ ...input, sizeBytes: bytes.byteLength }).andThen(({ materialId }) =>
-      loadAuthorizedMaterial(this.deps, materialId, 'material.create').andThen((row) =>
-        this.deps.writer
-          .write(
-            { visibility: 'private', key: materialUploadKey(row.objectKey) },
-            bytes,
-            row.contentType,
-          )
-          .orElse((error) =>
-            this.deps.materials.retire(row, 'FAILED').andThen(() => errAsync(error)),
-          )
-          .andThen(() => this.complete.execute(materialId))
-          .map(() => ({ materialId })),
-      ),
-    );
+    return this.deps.authorization
+      .requireInTenant('material.create')
+      .andThen(() => this.begin.execute({ ...input, sizeBytes: bytes.byteLength }))
+      .andThen(({ materialId }) =>
+        loadAuthorizedMaterial(this.deps, materialId, 'material.create').andThen((row) =>
+          this.deps.writer
+            .write(
+              { visibility: 'private', key: materialUploadKey(row.objectKey) },
+              bytes,
+              row.contentType,
+            )
+            .orElse((error) =>
+              this.deps.materials.retire(row, 'FAILED').andThen(() => errAsync(error)),
+            )
+            .andThen(() => this.complete.execute(materialId))
+            .map(() => ({ materialId })),
+        ),
+      );
   }
 }
