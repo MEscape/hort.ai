@@ -1,13 +1,13 @@
 import { configure, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { VOICE_NOTICE_VERSION } from '@modules/learner/application/contracts/learner-constraints';
 import { chooseTutorAction } from '@modules/learner/presentation/actions/choose-tutor-action';
 import { completeSetupAction } from '@modules/learner/presentation/actions/complete-setup-action';
 import { createChildProfileAction } from '@modules/learner/presentation/actions/create-child-profile-action';
 import { saveControlsAction } from '@modules/learner/presentation/actions/save-controls-action';
 import { saveInterestsAction } from '@modules/learner/presentation/actions/save-interests-action';
 import { OnboardingFlow } from '@modules/learner/presentation/components/onboarding-flow';
-import { VOICE_NOTICE_VERSION } from '@modules/learner/application/contracts/learner-constraints';
 import type { ChildProfileDto } from '@modules/learner/presentation/dto/learner-dto';
 import en from '@modules/learner/presentation/i18n/en.json';
 
