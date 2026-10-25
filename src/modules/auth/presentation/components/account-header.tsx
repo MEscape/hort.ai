@@ -22,7 +22,7 @@ export async function AccountHeader() {
   const account = result?.isOk() === true ? result.value : null;
 
   return (
-    <header className="flex items-center justify-between gap-4">
+    <header className="flex w-full items-center justify-between gap-4">
       <Link href={authRoutes.home()} aria-label={t('account.home')} className="rounded-token-sm">
         <HortaiLogo className="h-10 sm:h-12" />
       </Link>

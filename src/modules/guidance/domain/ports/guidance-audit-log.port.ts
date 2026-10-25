@@ -39,6 +39,11 @@ export type GuidanceEvent =
       readonly code: string;
     }
   | {
+      /** The session's stored competency is no longer among the child's candidates (#35). */
+      readonly type: 'guidance.stored_competency_unavailable';
+      readonly level: HintLevel;
+    }
+  | {
       readonly type: 'guidance.hint_requested';
       readonly tenantId: TenantId;
       readonly actorId: ActorId;

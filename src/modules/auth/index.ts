@@ -69,6 +69,7 @@ export { default as deAuth } from './presentation/i18n/de.json';
 export { requireSignedIn } from './presentation/guards/require-signed-in';
 export {
   parseSignInPageParams,
+  parseSettingsPageParams,
   parseResetPasswordPageParams,
   parseEmailVerifiedPageParams,
 } from './presentation/schemas/page-params-schema';

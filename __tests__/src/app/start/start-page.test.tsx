@@ -10,7 +10,7 @@ const dependencies = vi.hoisted(() => ({
 }));
 
 vi.mock('@modules/learner', () => ({ requireOnboarded: dependencies.ownChild }));
-vi.mock('@modules/auth', () => ({ requireSignedIn: vi.fn() }));
+vi.mock('@modules/auth', () => ({ AccountHeader: () => null, requireSignedIn: vi.fn() }));
 vi.mock('@modules/assignments', () => ({
   assignmentsQueries: { listChildAssignments: { execute: dependencies.assignments } },
   parseChildTasksPageParams: (params: { child?: string }) => ({ childProfileId: params.child }),
@@ -64,6 +64,6 @@ it('provides guidance translations for the distress help in direct homework entr
     params: Promise.resolve({ locale: 'en' }),
     searchParams: Promise.resolve({}),
   });
-  const tree = page as ReactElement<{ children: ReactElement<{ namespaces: string[] }> }>;
-  expect(tree.props.children.props.namespaces).toContain('guidance');
+  const tree = page as ReactElement<{ namespaces: string[] }>;
+  expect(tree.props.namespaces).toContain('guidance');
 });

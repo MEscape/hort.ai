@@ -9,12 +9,13 @@ import type { GuidanceAuditLog, GuidanceEvent } from '../../domain/ports/guidanc
  * could not store is `warn`: the child got it, but the learning record has a gap. A hint without
  * curriculum grounding still helps the child, but its cause
  * must be visible, so that is `warn` too, as is a step on an assignment that went ahead without the
- * teacher's key.
+ * teacher's key, or a step whose stored competency no longer grounds the child.
  */
 export const LEVEL_BY_EVENT = {
   'guidance.hint_fallback_used': 'warn',
   'guidance.feedback_fallback_used': 'warn',
   'guidance.grounding_unavailable': 'warn',
+  'guidance.stored_competency_unavailable': 'warn',
   'guidance.hint_requested': 'info',
   'guidance.answer_checked': 'info',
   'guidance.step_not_recorded': 'warn',

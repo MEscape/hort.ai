@@ -5,10 +5,12 @@ import {
   isSessionUnderstood,
   openQuestionCheck,
   progressOf,
+  toLadderState,
 } from '@modules/guidance/domain/models/help-session';
 import type { AnswerCheckStep } from '@modules/guidance/domain/models/help-session';
 import { toStepRequestId } from '@modules/guidance/domain/models/ids';
 import type { AssignmentId } from '@modules/guidance/domain/models/ids';
+import { UNCLASSIFIED_TOPIC } from '@modules/guidance/domain/topic/session-topic';
 
 import { ASSIGNMENT, OTHER_CLASS_ASSIGNMENT, task } from '../fakes';
 import { storedSession } from '../help-session-fakes';
@@ -86,5 +88,19 @@ describe('help session progress', () => {
     expect(isSameTask(session, source(OTHER_CLASS_ASSIGNMENT))).toBe(false);
     expect(isSameTask(session, source(null))).toBe(false);
     expect(isSameTask(storedSession(), source(ASSIGNMENT))).toBe(false);
+  });
+});
+
+describe('hint ladder state of a session', () => {
+  it('carries the competency the session was classified with, never an open topic label (#35)', () => {
+    const classified = storedSession({
+      topic: { ...UNCLASSIFIED_TOPIC, intent: 'homework', competencyCode: 'M2.4' },
+    });
+    const open = storedSession({
+      topic: { ...UNCLASSIFIED_TOPIC, intent: 'homework', openTopicLabel: 'brueche' },
+    });
+
+    expect(toLadderState(classified).competencyCode).toBe('M2.4');
+    expect(toLadderState(open).competencyCode).toBeNull();
   });
 });

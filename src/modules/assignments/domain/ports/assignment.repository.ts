@@ -52,7 +52,8 @@ export interface AssignmentRepository {
     scope: AssignmentOwnerScope,
   ): AppResultAsync<void, InfrastructureAppError>;
   /**
-   * A class's assignments as its children see them, newest first. Not pinned to the teacher: the
+   * A class's assignments as its children see them, oldest first, so a series reads in the order
+   * the teacher posted it (S1 before S5, #97). Not pinned to the teacher: the
    * caller has already established that the signed-in parent's child is a member of this class.
    * The solution key is never read.
    */
