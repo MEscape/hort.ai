@@ -6,11 +6,9 @@ import {
   AccountHeader,
   AuthFormSkeleton,
   AuthShell,
-  isAuthEnabled,
   requireSignedIn,
   TEACHER_ROLE,
 } from '@modules/auth';
-import { SignOutButton } from '@modules/auth/client';
 import { ChildClassroomPanel, classroomQueries } from '@modules/classroom';
 import { loadOpenHelpSession } from '@modules/guidance';
 import {
@@ -102,7 +100,6 @@ async function TeacherHome() {
       <Button asChild>
         <Link href={assignmentRoutes.teacher()}>{t('home.teacherAssignments')}</Link>
       </Button>
-      {isAuthEnabled && <SignOutButton />}
     </HomeCard>
   );
 }
@@ -127,7 +124,6 @@ async function ParentHome() {
           name={child.displayName}
           allowed={child.voiceConsent}
         />
-        {isAuthEnabled && <SignOutButton />}
         {isDevResetAvailable() && <ResetOnboardingButton />}
       </HomeCard>
     </div>
