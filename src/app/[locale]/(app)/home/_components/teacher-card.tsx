@@ -3,9 +3,14 @@
 import { Button } from '@components/ui/button';
 import { School } from '@components/ui/icons';
 
+import { Link } from '@i18n';
+
 import { useTranslations } from '@i18n/client';
 
 import { HOME_CARD_CLASSES, HomeCardBody } from './home-card-body';
+
+/** The class's assignments live on "/start" ("From school"), where the child gets help on one. */
+const SCHOOL_TASKS_HREF = '/start';
 
 interface TeacherCardProps {
   /** New assignments, or `null` while they cannot be loaded yet. */
@@ -15,8 +20,8 @@ interface TeacherCardProps {
 }
 
 /**
- * Tasks from the teacher. The number is always written ("2 neu"), never only a colour. An empty or
- * not-yet-available card stays on the page: tapping it lets the companion say so.
+ * Tasks from the teacher. The number is always written ("2 neu"), never only a colour. The card
+ * opens the school tasks on "/start"; tapping it also lets the companion say what is there.
  */
 export function TeacherCard({ newCount, isGuided, onTap }: TeacherCardProps) {
   const t = useTranslations('app');
@@ -26,14 +31,15 @@ export function TeacherCard({ newCount, isGuided, onTap }: TeacherCardProps) {
     : t(newCount === null ? 'home.teacher.soon' : 'home.teacher.none');
   return (
     <Button
+      asChild
       data-guide-target="teacher"
-      type="button"
       variant="outline"
       data-guided={isGuided}
-      onClick={onTap}
       className={HOME_CARD_CLASSES}
     >
-      <HomeCardBody icon={School} title={t('home.teacher.title')} detail={detail} />
+      <Link href={SCHOOL_TASKS_HREF} onClick={onTap}>
+        <HomeCardBody icon={School} title={t('home.teacher.title')} detail={detail} />
+      </Link>
     </Button>
   );
 }
