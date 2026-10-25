@@ -36,6 +36,27 @@
       "rateLimited": "Mach kurz eine Pause und versuch es gleich noch einmal.",
       "infrastructure": "Gerade klappt etwas nicht. Bitte versuch es gleich noch einmal.",
       "unexpected": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal."
+    },
+    "conversation": {
+      "label": "Gespräch mit deinem Begleiter",
+      "you": "Du",
+      "taskTitle": "Deine Aufgabe",
+      "thinking": "{name} denkt nach …",
+      "hint": "Ich möchte einen Tipp",
+      "hintsUsed": "Tipps genutzt: {count}",
+      "answerLabel": "Meine Antwort",
+      "checkAnswer": "Antwort prüfen",
+      "replyLabel": "Erzähl es mir in deinen Worten",
+      "sendReply": "Antworten",
+      "empty": "Schreib zuerst etwas auf.",
+      "retry": "Nochmal versuchen",
+      "later": "Später weitermachen",
+      "doneTitle": "Geschafft!",
+      "doneBody": "Du hast die Aufgabe selbst herausgefunden und erklärt. {name} freut sich mit dir!",
+      "home": "Zur Startseite",
+      "emptyTitle": "Gerade ist keine Aufgabe offen",
+      "emptyBody": "Starte eine neue Aufgabe, dann helfe ich dir beim Nachdenken.",
+      "newTask": "Neue Aufgabe"
     }
   }
 }

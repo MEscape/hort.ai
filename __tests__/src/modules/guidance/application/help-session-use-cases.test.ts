@@ -457,11 +457,19 @@ describe('ReplyToComprehensionQuestion', () => {
   const reply = (sessions = [storedSession({ answerChecks: [check()] })]) => {
     const store = inMemorySessions(sessions);
     const { deps, events } = helpSessionDependencies(store.repository);
+    const rewards: string[] = [];
+    const reward = {
+      award: (_child: unknown, sessionId: string) => {
+        rewards.push(sessionId);
+        return Promise.resolve();
+      },
+    };
     return {
       store,
       events,
+      rewards,
       run: (overrides: Partial<Parameters<ReplyToComprehensionQuestion['execute']>[0]> = {}) =>
-        new ReplyToComprehensionQuestion(deps).execute({
+        new ReplyToComprehensionQuestion({ ...deps, reward }).execute({
           childProfileId: OWN_CHILD,
           sessionId: 'session-1',
           reply: 'Erst die Zehner, dann die Einer.',
@@ -471,10 +479,11 @@ describe('ReplyToComprehensionQuestion', () => {
   };
 
   it('marks the task understood only after a correct answer and the reply, and ends the session', async () => {
-    const { run, store, events } = reply();
+    const { run, store, events, rewards } = reply();
 
     const view = (await run())._unsafeUnwrap();
 
+    expect(rewards).toEqual(['session-1']);
     expect(view).toEqual({ sessionId: 'session-1', status: 'understood' });
     expect(store.replies).toEqual([{ completes: true, text: 'Erst die Zehner, dann die Einer.' }]);
     expect(store.sessions.get('session-1')?.status).toBe('completed');
@@ -494,13 +503,15 @@ describe('ReplyToComprehensionQuestion', () => {
   });
 
   it('refuses a question that was already answered, so the reply is stored once', async () => {
-    const { run, store } = reply();
+    const { run, store, rewards } = reply();
 
     await run();
     const again = await run();
 
+    // XP for the session is granted once (#83).
+    expect(rewards).toEqual(['session-1']);
     // The session is completed, so it is no longer open to replies.
-    expect(again._unsafeUnwrapErr().kind).toBe('not_found');
+    expect(again._unsafeUnwrap()).toEqual({ sessionId: 'session-1', status: 'understood' });
     expect(store.replies).toHaveLength(1);
   });
 

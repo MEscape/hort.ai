@@ -27,11 +27,7 @@ import {
 
 import type { LevelValue } from './help-session-record-mapper';
 import type { HelpSession } from '../../domain/models/help-session';
-import type { ChildProfileId, HelpSessionId } from '../../domain/models/ids';
-import type {
-  HelpSessionOwner,
-  HelpSessionRepository,
-} from '../../domain/ports/help-session.repository';
+import type { HelpSessionRepository } from '../../domain/ports/help-session.repository';
 import type {
   HelpSessionRef,
   HintSessionStoreError as HelpSessionLoadError,
@@ -151,7 +147,11 @@ export class PrismaHelpSessionRepository implements HelpSessionRepository {
       failures.orConflict('start', alreadyStored),
     )
       .andThen(({ id }) =>
-        this.read(owner, session.childProfileId, toHelpSessionId(id)).map((created) => ({
+        this.read({
+          ...owner,
+          childProfileId: session.childProfileId,
+          sessionId: toHelpSessionId(id),
+        }).map((created) => ({
           session: created,
           created: true,
         })),
@@ -186,14 +186,15 @@ export class PrismaHelpSessionRepository implements HelpSessionRepository {
     ).andThen((row) =>
       row === null
         ? okAsync(null)
-        : this.read(owner, childProfileId, toHelpSessionId(row.id)).orElse((error) =>
-            // Ended between the two reads: there is no open session any more.
-            error.kind === 'not_found' ? okAsync(null) : errAsync(error),
+        : this.read({ ...owner, childProfileId, sessionId: toHelpSessionId(row.id) }).orElse(
+            (error) =>
+              // Ended between the two reads: there is no open session any more.
+              error.kind === 'not_found' ? okAsync(null) : errAsync(error),
           ),
     );
 
-  loadSession: HelpSessionRepository['loadSession'] = (ref) =>
-    this.read(ref, ref.childProfileId, ref.sessionId);
+  loadSession: HelpSessionRepository['loadSession'] = (ref, includeCompleted = false) =>
+    this.read(ref, includeCompleted);
 
   load: HelpSessionRepository['load'] = (ref) => this.loadSession(ref).map(toLadderState);
 
@@ -279,15 +280,25 @@ export class PrismaHelpSessionRepository implements HelpSessionRepository {
 
   /** The whole active session, its latest steps oldest first; an ended or foreign one is not found. */
   private read(
-    owner: HelpSessionOwner,
-    childProfileId: ChildProfileId,
-    sessionId: HelpSessionId,
+    ref: HelpSessionRef,
+    includeCompleted = false,
   ): AppResultAsync<HelpSession, HelpSessionLoadError> {
+    const { tenantId, ownerId, childProfileId, sessionId } = ref;
     return fromThrowableAsync(async () => {
-      const session = await activeSession(db, { ...owner, childProfileId, sessionId })
+      // @owner-scope actor Exact tenant, parent, child and session on completion recovery too.
+      const session = await db.orm.public.HelpSession.where({
+        id: sessionId,
+        tenantId,
+        ownerId,
+        childProfileId,
+      })
         .select(...SESSION_SELECT)
         .first();
-      if (session === null) {
+      if (
+        session === null ||
+        (session.status !== STATUS_RECORD.active &&
+          !(includeCompleted && session.status === STATUS_RECORD.completed))
+      ) {
         return null;
       }
       const scope = { sessionId };
