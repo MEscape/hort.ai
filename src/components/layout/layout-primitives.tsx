@@ -17,9 +17,15 @@ export function PageShell({ className, ...props }: ComponentPropsWithoutRef<'div
  * The top of a screen: the logo, not a navigation bar (the child's screens have no menus). A
  * `<header>` outside any section is the page's banner landmark.
  */
-export function PageHeader({ className, ...props }: ComponentPropsWithoutRef<'header'>) {
+export interface PageHeaderProps extends ComponentPropsWithoutRef<'header'> {
+  /** False when the content brings its own `<header>` (the account header), so the page keeps one banner. */
+  readonly isLandmark?: boolean;
+}
+
+export function PageHeader({ isLandmark = true, className, ...props }: PageHeaderProps) {
+  const Bar = isLandmark ? 'header' : 'div';
   return (
-    <header
+    <Bar
       className={cn(
         'relative z-10 flex justify-center px-4 pt-6 sm:justify-start sm:px-10 sm:pt-8',
         className,

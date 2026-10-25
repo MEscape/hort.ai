@@ -4,7 +4,9 @@ import { notFound } from 'next/navigation';
 
 import {
   AccountSettings,
+  ParentAccessForm,
   authRoutes,
+  getParentAreaServices,
   isAuthEnabled,
   parseSettingsPageParams,
   requireSignedIn,
@@ -19,6 +21,7 @@ import { Link, requireLocale } from '@i18n';
 
 import { getTranslations } from '@i18n/server';
 
+import { escalate } from '@lib/errors/escalate';
 import { buildPrivateMetadata } from '@lib/seo';
 
 interface SettingsPageProps {
@@ -33,7 +36,9 @@ export async function generateMetadata({ params }: SettingsPageProps) {
 }
 
 /**
- * Account settings exist only with real accounts; the guard redirects a visitor to sign-in. The
+ * Account settings exist only with real accounts; the guard redirects a visitor to sign-in. They
+ * are an adult area like the parent pages: the child shares the family session, so the account
+ * (e-mail, password) is shown only with the short-lived parent password proof, else its form. The
  * account menu is not shown here: the page is the account, a back arrow leads where it came from.
  */
 async function SettingsContent({ searchParams }: Pick<SettingsPageProps, 'searchParams'>) {
@@ -43,6 +48,10 @@ async function SettingsContent({ searchParams }: Pick<SettingsPageProps, 'search
   const { backHref } = parseSettingsPageParams(await searchParams);
   await requireSignedIn(authRoutes.settings(backHref));
   const t = await getTranslations('auth');
+  const access = await getParentAreaServices().require.execute();
+  if (access.isErr() && access.error.kind === 'infrastructure') {
+    escalate(access.error);
+  }
   return (
     <>
       <Button asChild variant="ghost" className="-ml-2 gap-2 px-2">
@@ -51,7 +60,14 @@ async function SettingsContent({ searchParams }: Pick<SettingsPageProps, 'search
           {t('account.back')}
         </Link>
       </Button>
-      <AccountSettings />
+      {access.isOk() ? (
+        <AccountSettings />
+      ) : (
+        <section className="space-y-4 rounded-token-xl border border-border bg-surface p-6 shadow-soft">
+          <h1 className="font-heading text-3xl">{t('account.title')}</h1>
+          <ParentAccessForm />
+        </section>
+      )}
     </>
   );
 }

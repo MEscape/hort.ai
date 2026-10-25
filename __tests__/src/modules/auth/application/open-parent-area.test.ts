@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createAuthorizationService } from '@modules/auth/application/authorization-service';
 import { OpenParentArea } from '@modules/auth/application/commands/open-parent-area';
 import { invalidCredentials } from '@modules/auth/domain/errors/auth-errors';
+import { TEACHER_ROLE } from '@modules/auth/domain/models/role';
 import type { ParentAccessPort } from '@modules/auth/domain/ports/parent-access.port';
 
 import { errAsync, okAsync } from '@lib/result';
@@ -12,7 +13,7 @@ import { TENANT, clientAt, parent, recordingAudit, signedInAs } from '../fakes';
 
 const CORRECT = 'correct horse';
 
-function build() {
+function build(actor = parent()) {
   const audit = recordingAudit();
   const parentAccess: ParentAccessPort = {
     open: (password) =>
@@ -21,7 +22,7 @@ function build() {
     close: () => okAsync(undefined),
   };
   const open = new OpenParentArea({
-    authorization: createAuthorizationService({ currentActor: signedInAs(parent()), audit }),
+    authorization: createAuthorizationService({ currentActor: signedInAs(actor), audit }),
     parentAccess,
     audit,
     rateLimiter: createTestRateLimiter(),
@@ -61,5 +62,13 @@ describe('OpenParentArea', () => {
 
     expect((await open.execute('')).isErr()).toBe(true);
     expect(audit.events).toEqual([]);
+  });
+
+  it('lets a teacher re-enter their password too: the proof is an account check, not child access', async () => {
+    const teacher = parent({ roles: [TEACHER_ROLE] });
+    const { open, audit } = build(teacher);
+
+    expect((await open.execute(CORRECT)).isOk()).toBe(true);
+    expect(audit.events.map((event) => event.type)).toEqual(['authentication.parent_area_opened']);
   });
 });

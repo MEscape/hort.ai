@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 
-import { requireSignedIn, TEACHER_ROLE } from '@modules/auth';
+import { AccountHeader, requireSignedIn, TEACHER_ROLE } from '@modules/auth';
 import {
   OnboardingFlow,
   OnboardingShell,
@@ -8,6 +8,7 @@ import {
   requireOnboarding,
 } from '@modules/learner';
 
+import { HortaiLogo } from '@components/brand/hortai-logo';
 import { I18nProvider } from '@components/providers/i18n-provider';
 import { Skeleton } from '@components/ui/skeleton';
 
@@ -50,8 +51,15 @@ export default async function OnboardingPage({
 }) {
   const locale = requireLocale((await params).locale);
   return (
-    <I18nProvider locale={locale} namespaces={['learner']}>
-      <OnboardingShell>
+    <I18nProvider locale={locale} namespaces={['learner', 'auth']}>
+      <OnboardingShell
+        header={
+          // The account menu holds sign-out: a parent who used the wrong account is never stuck in the setup.
+          <Suspense fallback={<HortaiLogo className="h-10 sm:h-12" />}>
+            <AccountHeader />
+          </Suspense>
+        }
+      >
         <Suspense fallback={<Skeleton className="h-96 w-full rounded-token-xl" />}>
           <ParentOnboarding />
         </Suspense>

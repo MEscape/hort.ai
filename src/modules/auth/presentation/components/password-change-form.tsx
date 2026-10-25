@@ -23,6 +23,7 @@ export function PasswordChangeForm() {
 
   return (
     <form
+      method="post"
       onSubmit={state.onSubmit}
       noValidate
       aria-busy={state.isPending}

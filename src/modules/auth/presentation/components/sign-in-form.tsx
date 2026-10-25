@@ -41,7 +41,13 @@ export function SignInForm({ returnTo }: SignInFormProps) {
         </>
       }
     >
-      <form onSubmit={onSubmit} noValidate aria-busy={isPending} className="flex flex-col gap-5">
+      <form
+        method="post"
+        onSubmit={onSubmit}
+        noValidate
+        aria-busy={isPending}
+        className="flex flex-col gap-5"
+      >
         <fieldset disabled={isPending} className="flex min-w-0 flex-col gap-5">
           {returnTo !== undefined && (
             <Alert variant="info" role="status">

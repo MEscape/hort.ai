@@ -10,7 +10,7 @@ export class CloseParentArea {
   constructor(private readonly deps: ParentAreaDependencies) {}
   execute(): AppResultAsync<void, AuthorizationError> {
     return this.deps.authorization
-      .requireInTenant('learner.read')
+      .requireInTenant('account.read')
       .andThen(() => this.deps.parentAccess.close());
   }
 }

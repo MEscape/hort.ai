@@ -1,7 +1,7 @@
 import 'server-only';
 import { headers } from 'next/headers';
 
-import { getAccessControl } from '@modules/auth';
+import { getAccessControl, getParentAreaServices } from '@modules/auth';
 import { getLearnerCommands, getLearnerQueries } from '@modules/learner';
 
 import { systemClock } from '@lib/clock';
@@ -19,6 +19,7 @@ import { GetClassroomById } from './application/queries/get-classroom-by-id';
 import { GetClassroomDetails } from './application/queries/get-classroom-details';
 import { ListClassroomMembers } from './application/queries/list-classroom-members';
 import { ListClassrooms } from './application/queries/list-classrooms';
+import { requiringParentProof } from './application/services/parent-proof';
 import { loggerClassroomAuditLog } from './infrastructure/audit/logger-classroom-audit-log';
 import { LearnerChildProfileAccess } from './infrastructure/learner/learner-child-profile-access';
 import { PrismaClassroomRepository } from './infrastructure/prisma/prisma-classroom.repository';
@@ -50,13 +51,21 @@ const dependencies: ClassroomDependencies = {
   clock: systemClock,
 };
 
+/** Adult-only actions on a child also need the short-lived parent-area password proof. */
+const parentDependencies: ClassroomDependencies = {
+  ...dependencies,
+  authorization: requiringParentProof(dependencies.authorization, () =>
+    getParentAreaServices().require.execute(),
+  ),
+};
+
 export const classroomCommands = {
   createClassroom: new CreateClassroom(dependencies),
   renameClassroom: new RenameClassroom(dependencies),
   archiveClassroom: new ArchiveClassroom(dependencies),
   regenerateInviteCode: new RegenerateInviteCode(dependencies),
-  joinClassroom: new JoinClassroom(dependencies),
-  leaveClassroom: new LeaveClassroom(dependencies),
+  joinClassroom: new JoinClassroom(parentDependencies),
+  leaveClassroom: new LeaveClassroom(parentDependencies),
 } as const;
 
 export const classroomQueries = {

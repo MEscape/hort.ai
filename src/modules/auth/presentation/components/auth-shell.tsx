@@ -23,7 +23,10 @@ export function AuthShell({ children, header }: AuthShellProps) {
   return (
     <PageShell>
       <WorldScene />
-      <PageHeader className={header === undefined ? undefined : 'sm:justify-stretch'}>
+      <PageHeader
+        isLandmark={header === undefined}
+        className={header === undefined ? undefined : 'sm:justify-stretch'}
+      >
         <Suspense fallback={<HortaiLogo />}>
           {header ?? (
             <Link href={authRoutes.welcome()} className="rounded-token-sm">

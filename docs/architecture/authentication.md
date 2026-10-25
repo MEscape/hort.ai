@@ -87,7 +87,7 @@ Only the audit module's domain, application and infrastructure layers are used. 
 - **Mechanism**: in-process, fire and forget. No outbox, broker or transaction. The authentication tables live in a separate database from the trail, so a shared transaction is not available anyway.
 - **Failure policy**: best effort. A write that fails is logged once by the store and never reaches the caller; the log line is written first, so operations still see the event. A write in flight when the process stops is lost (`shortcut:` in `AuditTrailRecorder`). If the trail must become complete (an auditor requirement), write entries in the same transaction as the change; that needs a decision on the database layout first.
 - **Duplicates**: each event is a fact about one occurrence (a session, a denial). Retried operations that really repeat are separate facts, so entries are not deduplicated.
-- **Retention**: `PruneAuditTrail` deletes entries older than `AUDIT_RETENTION_DAYS` (default 365). `startAuditRetention` schedules it daily but nothing calls it yet: there is no `instrumentation.ts`. Wire it when the server starts, or entries are kept indefinitely.
+- **Retention**: `PruneAuditTrail` deletes entries older than `AUDIT_RETENTION_DAYS` (default 365). `startAuditRetention` schedules it daily; `src/instrumentation.ts` starts it once when the Node.js server starts, after validating the server environment.
 
 ## Login interface and frontend contracts
 

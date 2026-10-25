@@ -59,6 +59,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       }
     >
       <form
+        method="post"
         onSubmit={state.onSubmit}
         noValidate
         aria-busy={isPending}

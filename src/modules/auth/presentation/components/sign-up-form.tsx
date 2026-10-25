@@ -83,6 +83,7 @@ export function SignUpForm() {
       }
     >
       <form
+        method="post"
         onSubmit={state.onSubmit}
         noValidate
         aria-busy={isPending}

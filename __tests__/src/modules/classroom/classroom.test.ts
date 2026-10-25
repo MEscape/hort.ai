@@ -15,6 +15,7 @@ import { GetChildClassroom } from '@modules/classroom/application/queries/get-ch
 import { GetClassroomDetails } from '@modules/classroom/application/queries/get-classroom-details';
 import { ListClassroomMembers } from '@modules/classroom/application/queries/list-classroom-members';
 import { ListClassrooms } from '@modules/classroom/application/queries/list-classrooms';
+import { requiringParentProof } from '@modules/classroom/application/services/parent-proof';
 import { CLASSROOM_ERROR_CODES } from '@modules/classroom/domain/errors/classroom-errors';
 import type { Classroom } from '@modules/classroom/domain/models/classroom';
 import { toClassMembershipId, toClassroomId } from '@modules/classroom/domain/models/ids';
@@ -24,7 +25,7 @@ import type { ClassroomRepository } from '@modules/classroom/domain/ports/classr
 import { createAesGcmInviteCodeVault } from '@modules/classroom/infrastructure/security/aes-gcm-invite-code-vault';
 import { cryptoInviteCodeIssuer } from '@modules/classroom/infrastructure/security/crypto-invite-code-issuer';
 
-import { forbiddenError, infrastructureError, notFoundError } from '@lib/errors';
+import { forbiddenError, infrastructureError, notFoundError, unauthorizedError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 
 import { createBrokenRateLimiter, createTestRateLimiter } from '../../support/rate-limiting';
@@ -469,6 +470,49 @@ describe('joining with an invite code', () => {
     const result = await w.join.execute({ childProfileId: 'child-1', inviteCode: code });
 
     expect(result._unsafeUnwrapErr().kind).toBe('forbidden');
+  });
+});
+
+describe('adult-only actions need the parent proof', () => {
+  const noProof = () =>
+    errAsync(unauthorizedError('auth.reauthentication_required', 'Confirm your password.'));
+
+  it('refuses to join or leave a class without the proof and writes nothing', async () => {
+    const w = world();
+    const { code } = await classWithCode(w);
+    w.as(MARA);
+    await w.join.execute({ childProfileId: 'child-1', inviteCode: code });
+    const events = w.events.length;
+    const gated = w.deps({ authorization: requiringParentProof(w.deps().authorization, noProof) });
+
+    const joined = await new JoinClassroom(gated).execute({
+      childProfileId: 'child-2',
+      inviteCode: code,
+    });
+    const left = await new LeaveClassroom(gated).execute({ childProfileId: 'child-1' });
+
+    expect(joined._unsafeUnwrapErr().code).toBe('auth.reauthentication_required');
+    expect(left._unsafeUnwrapErr().code).toBe('auth.reauthentication_required');
+    expect(w.members.map((member) => member.childProfileId)).toEqual(['child-1']);
+    expect(w.events).toHaveLength(events);
+  });
+
+  it('joins and leaves once the proof is there', async () => {
+    const w = world();
+    const { code } = await classWithCode(w);
+    w.as(MARA);
+    const proof = () => okAsync(undefined);
+    const gated = w.deps({ authorization: requiringParentProof(w.deps().authorization, proof) });
+
+    const joined = await new JoinClassroom(gated).execute({
+      childProfileId: 'child-1',
+      inviteCode: code,
+    });
+    const left = await new LeaveClassroom(gated).execute({ childProfileId: 'child-1' });
+
+    expect(joined.isOk()).toBe(true);
+    expect(left.isOk()).toBe(true);
+    expect(w.members).toEqual([]);
   });
 });
 

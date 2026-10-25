@@ -13,7 +13,7 @@ export function ParentAccessForm() {
   const t = useTranslations('auth');
   const form = useParentAccessForm();
   return (
-    <form onSubmit={form.onSubmit} className="flex flex-col gap-4">
+    <form method="post" onSubmit={form.onSubmit} className="flex flex-col gap-4">
       <p>{t('parentAccess.intro')}</p>
       <PasswordField
         id="parent-password"

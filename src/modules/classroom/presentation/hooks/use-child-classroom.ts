@@ -5,6 +5,8 @@ import { useState, useTransition } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
+import { AUTH_ERROR_CODES } from '@modules/auth/client';
+
 import { useRouter } from '@i18n';
 
 import { useTranslations } from '@i18n/client';
@@ -49,6 +51,11 @@ export function useChildClassroom(childProfileId: string) {
         router.refresh();
         return;
       }
+      if (result.error.code === AUTH_ERROR_CODES.reauthenticationRequired) {
+        // The short parent proof ran out: the refreshed page shows the password gate, not an error.
+        router.refresh();
+        return;
+      }
       setFormErrorCode(
         applyActionError(result.error, form.setError, {
           [CLASSROOM_ERROR_CODES.inviteCodeInvalid]: 'inviteCode',
@@ -61,7 +68,8 @@ export function useChildClassroom(childProfileId: string) {
     setFormErrorCode(null);
     startTransition(async () => {
       const result = await leaveClassroomAction({ childProfileId });
-      if (result.ok) {
+      if (result.ok || result.error.code === AUTH_ERROR_CODES.reauthenticationRequired) {
+        // Done, or the parent proof ran out and the refreshed page shows the password gate.
         setIsConfirmingLeave(false);
         router.refresh();
         return;

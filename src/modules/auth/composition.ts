@@ -296,6 +296,23 @@ export const getParentAreaServices = once(() => {
 });
 
 /**
+ * Adds the short-lived parent-area proof to an authorization, for adult-only actions on the shared
+ * family session: the permission check first, then the proof. Learner and classroom writes and the
+ * account's own changes use it, so the child cannot reach them by calling an action directly.
+ */
+export function withParentProof(authorization: AuthorizationService): AuthorizationService {
+  const proof = () => getParentAreaServices().require.execute();
+  return {
+    requireInTenant: (permission) =>
+      authorization.requireInTenant(permission).andThen((actor) => proof().map(() => actor)),
+    requireOnResource: (permission, scope) =>
+      authorization
+        .requireOnResource(permission, scope)
+        .andThen((actor) => proof().map(() => actor)),
+  };
+}
+
+/**
  * Sign-in, sign-up, sign-out and password reset. Only meaningful while
  * AUTH_ENABLED=true; the pages that host them answer 404 otherwise, and
  * calling this with auth disabled is a programmer error that throws.
@@ -324,7 +341,10 @@ export const getAuthCommands = once(() => {
     requestPasswordReset: new RequestPasswordReset(dependencies),
     resetPassword: new ResetPassword(dependencies),
     admitLinkRequest: new AdmitLinkRequest(dependencies),
-    updateDisplayName: new UpdateDisplayName(getAccountDependencies()),
+    updateDisplayName: new UpdateDisplayName({
+      ...getAccountDependencies(),
+      authorization: withParentProof(getAccountDependencies().authorization),
+    }),
     changePassword: new ChangePassword(getAccountDependencies()),
   } as const;
 });

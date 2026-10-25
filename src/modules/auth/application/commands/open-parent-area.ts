@@ -21,7 +21,7 @@ type OpenParentAreaError = AuthorizationError | AuthenticatorError | RateLimitEr
 export class OpenParentArea {
   constructor(private readonly deps: ParentAreaDependencies) {}
   execute(password: string): AppResultAsync<void, OpenParentAreaError> {
-    return this.deps.authorization.requireInTenant('learner.read').andThen((actor) => {
+    return this.deps.authorization.requireInTenant('account.read').andThen((actor) => {
       if (!password || password.length > CREDENTIAL_LIMITS.passwordMax) {
         return errAsync(
           authValidationFailed({ password: [AUTH_VALIDATION_CODES.passwordRequired] }),
