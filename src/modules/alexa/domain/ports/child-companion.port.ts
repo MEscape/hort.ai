@@ -36,10 +36,14 @@ export interface ChildTasks {
   readonly titles: readonly string[];
 }
 
+/** Opaque references handed out by the guidance module and only given back to it. */
+export type StoredRef = string;
+export type RetryRef = string;
+
 /** Where the child's open help session stands (an understood one counts as none). */
 export interface OpenHelp {
   /** Opaque id of the stored session; only handed back to this port. */
-  readonly sessionId: string;
+  readonly sessionId: StoredRef;
   readonly status: 'working' | 'awaiting_comprehension_reply';
   /** The task as stored (the child's own words or the teacher's text, never a solution key). */
   readonly task: string;
@@ -76,11 +80,11 @@ export interface AnswerChecked {
 export interface ChildLearning {
   openHelp(): AppResultAsync<OpenHelp | null>;
   /** Starts (or continues) the session and says its opening or first hint. */
-  startHelp(task: NewTask, requestId: string): AppResultAsync<TutorText>;
-  nextHint(sessionId: string, requestId: string): AppResultAsync<TutorText>;
-  checkAnswer(sessionId: string, requestId: string, answer: string): AppResultAsync<AnswerChecked>;
+  startHelp(task: NewTask, requestId: RetryRef): AppResultAsync<TutorText>;
+  nextHint(sessionId: StoredRef, requestId: RetryRef): AppResultAsync<TutorText>;
+  checkAnswer(sessionId: StoredRef, requestId: RetryRef, answer: string): AppResultAsync<AnswerChecked>;
   replyToQuestion(
-    sessionId: string,
+    sessionId: StoredRef,
     reply: string,
   ): AppResultAsync<{ readonly understood: boolean }>;
   /** A short-lived clip URL of `message` in the child's companion voice (a bearer link: never log it). */

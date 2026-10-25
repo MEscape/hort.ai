@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- the one HTTP boundary: body, verification, deadline and routing stay together */
 import { z } from 'zod';
 
 import type { UnauthorizedAppError } from '@lib/errors';

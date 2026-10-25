@@ -6,9 +6,9 @@ import { parseTutorId } from '../../domain/models/ids';
 
 import { guidanceChildLearning } from './guidance-child-learning';
 
+import type { ChannelRunner } from './guidance-child-learning';
 import type { TutorId } from '../../domain/models/ids';
 import type { ChildCompanion, ChildHome } from '../../domain/ports/child-companion.port';
-import type { ChannelRunner } from './guidance-child-learning';
 
 /** How audit events name this channel when it acts for the guardian. */
 const ALEXA_CHANNEL = 'alexa';
