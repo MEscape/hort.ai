@@ -178,6 +178,21 @@ async function openBinariesToPostgresUser(packageDirectory: string) {
   }
 }
 
+/** Owner and mode of every directory down to the PostgreSQL binaries: a failed spawn names no cause. */
+async function describeBinaryAccess(packageDirectory: string) {
+  const lines: string[] = [];
+  const binaries = join(packageDirectory, 'native', 'bin');
+  for (let path = binaries; path !== dirname(path); path = dirname(path)) {
+    const { mode, uid } = await stat(path);
+    lines.push(`${(mode % 0o10000).toString(8)} uid=${String(uid)} ${path}`);
+  }
+  for (const binary of ['initdb', 'postgres', 'pg_ctl']) {
+    const { mode, uid } = await stat(join(binaries, binary));
+    lines.push(`${(mode % 0o10000).toString(8)} uid=${String(uid)} ${binary}`);
+  }
+  return lines.join('\n');
+}
+
 async function main(sentinel: string) {
   const files = await readdir(process.cwd());
   if (files.some((file) => /^\.env(?:$|\.)/.test(file) && !file.endsWith('.example'))) {
