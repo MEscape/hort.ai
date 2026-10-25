@@ -1,6 +1,7 @@
 import { configure, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { VOICE_NOTICE_VERSION } from '@modules/learner/application/contracts/learner-constraints';
 import { chooseTutorAction } from '@modules/learner/presentation/actions/choose-tutor-action';
 import { completeSetupAction } from '@modules/learner/presentation/actions/complete-setup-action';
 import { createChildProfileAction } from '@modules/learner/presentation/actions/create-child-profile-action';
@@ -288,18 +289,45 @@ describe('onboarding flow', () => {
     expect(saveControlsAction).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('switch', { name: 'Talking to Max' }));
+    expect(screen.getByRole('switch', { name: 'Talking to Max' })).toHaveAccessibleDescription(
+      new RegExp(VOICE_NOTICE_VERSION),
+    );
     fireEvent.click(screen.getByRole('checkbox', { name: /I am the parent or legal guardian/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
     expect(await screen.findByRole('heading', { name: 'Is everything right?' })).toBeVisible();
     expect(saveControlsAction).toHaveBeenCalledWith(
       expect.objectContaining({
         voiceEnabled: true,
+        voiceNoticeVersion: VOICE_NOTICE_VERSION,
         dailyLimitMinutes: 'none',
         windowEnabled: false,
         learningInsights: false,
         guardianConfirmed: true,
         profileId: 'p1',
       }),
+    );
+  });
+
+  it('starts voice off when the raw control is on but the notice consent is no longer current', async () => {
+    vi.mocked(saveControlsAction).mockResolvedValue({
+      ok: true,
+      data: { ...PROFILE, guardianConfirmed: true },
+    });
+    renderFlow({
+      step: 'controls',
+      profile: {
+        ...PROFILE,
+        tutorId: 'max',
+        voiceEnabled: true,
+        voiceConsent: false,
+        guardianConfirmed: true,
+      },
+    });
+    expect(screen.getByRole('switch', { name: 'Talking to Max' })).not.toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    expect(await screen.findByRole('heading', { name: 'Is everything right?' })).toBeVisible();
+    expect(saveControlsAction).toHaveBeenCalledWith(
+      expect.objectContaining({ voiceEnabled: false, voiceNoticeVersion: null }),
     );
   });
 

@@ -10,7 +10,7 @@ const dependencies = vi.hoisted(() => ({
 }));
 
 vi.mock('@modules/learner', () => ({ requireOnboarded: dependencies.ownChild }));
-vi.mock('@modules/auth', () => ({ AccountHeader: () => null, requireSignedIn: vi.fn() }));
+vi.mock('@modules/auth', () => ({ requireSignedIn: vi.fn() }));
 vi.mock('@modules/assignments', () => ({
   assignmentsQueries: { listChildAssignments: { execute: dependencies.assignments } },
   parseChildTasksPageParams: (params: { child?: string }) => ({ childProfileId: params.child }),

@@ -4,10 +4,10 @@
     "welcome": {
       "metadata": {
         "title": "Welcome to the learning adventure",
-        "description": "Create a parent account and start a safe, playful learning adventure with your child."
+        "description": "Set up your account as a parent or teacher and support children with their homework."
       },
       "title": "Welcome to the learning adventure!",
-      "description": "Hort.ai helps your child with their homework, with thinking prompts instead of ready-made answers. First, create your parent account.",
+      "description": "Hort.ai helps your child with their homework, with thinking prompts instead of ready-made answers. First, set up your account as a parent or teacher.",
       "signUp": "Register",
       "haveAccount": "Already have an account?",
       "signIn": "Sign in"
@@ -15,10 +15,10 @@
     "signIn": {
       "metadata": {
         "title": "Sign in",
-        "description": "Sign in to your parent account to see how your child is doing."
+        "description": "Sign in with your parent or teacher account."
       },
       "title": "Good to see you again!",
-      "description": "Your family’s next learning adventure starts here.",
+      "description": "Sign in as a parent or teacher.",
       "email": "Email address",
       "password": "Password",
       "submit": "Sign in",
@@ -26,7 +26,7 @@
       "forgotPassword": "Forgot your password?",
       "continueNotice": "Sign in and we will take you right back to the page you opened.",
       "noAccount": "New here?",
-      "createAccount": "Set up a parent account"
+      "createAccount": "Set up an account"
     },
     "signUp": {
       "metadata": {
@@ -173,6 +173,7 @@
     "account": {
       "title": "Account settings",
       "back": "Back",
+      "languageTitle": "Language",
       "menuLabel": "Account of {name}",
       "home": "Home",
       "settings": "Account settings",
