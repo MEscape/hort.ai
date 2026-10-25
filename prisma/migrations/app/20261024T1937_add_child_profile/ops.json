@@ -1,0 +1,131 @@
+[
+  {
+    "id": "table.ChildProfile",
+    "label": "Create table \"ChildProfile\"",
+    "summary": "Creates table \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"ChildProfile\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ChildProfile\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"ChildProfile\"",
+        "sql": "CREATE TABLE \"public\".\"ChildProfile\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"displayName\" text NOT NULL,\n  \"federalState\" text NOT NULL,\n  \"grade\" int4 NOT NULL,\n  \"id\" text NOT NULL,\n  \"ownerId\" text NOT NULL,\n  \"setupCompletedAt\" timestamptz,\n  \"tenantId\" text NOT NULL,\n  \"voiceConsent\" bool DEFAULT false NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"ChildProfile_display_name_rule_0a455fd0\" CHECK (char_length(\"displayName\") BETWEEN 1 AND 24),\n  CONSTRAINT \"ChildProfile_federalState_check_f3b2f10d\" CHECK (\"federalState\" IN ('BW', 'BY', 'BE', 'BB', 'HB', 'HH', 'HE', 'MV', 'NI', 'NW', 'RP', 'SL', 'SN', 'ST', 'SH', 'TH')),\n  CONSTRAINT \"ChildProfile_grade_rule_ab1ddaff\" CHECK (\"grade\" BETWEEN 1 AND 4)\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"ChildProfile\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"ChildProfile\"",
+          "r",
+          "p"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ChildProfile.ChildProfile_one_unfinished_per_owner_15ad2a20",
+    "label": "Create index \"ChildProfile_one_unfinished_per_owner_15ad2a20\" on \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ChildProfile_one_unfinished_per_owner_15ad2a20",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ChildProfile_one_unfinished_per_owner_15ad2a20\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ChildProfile_one_unfinished_per_owner_15ad2a20\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ChildProfile_one_unfinished_per_owner_15ad2a20\"",
+        "sql": "CREATE UNIQUE INDEX \"ChildProfile_one_unfinished_per_owner_15ad2a20\" ON \"public\".\"ChildProfile\" (\"tenantId\", \"ownerId\") WHERE ((\"setupCompletedAt\" IS NULL))",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ChildProfile_one_unfinished_per_owner_15ad2a20\" exists on \"ChildProfile\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND \"i\".\"indisunique\" AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NOT NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"ChildProfile_one_unfinished_per_owner_15ad2a20\"",
+          "i",
+          "I",
+          "\"public\".\"ChildProfile\"",
+          "btree",
+          "[\"tenantId\",\"ownerId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ChildProfile.ChildProfile_tenantId_ownerId_createdAt_idx_6658b794",
+    "label": "Create index \"ChildProfile_tenantId_ownerId_createdAt_idx_6658b794\" on \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ChildProfile_tenantId_ownerId_createdAt_idx_6658b794",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ChildProfile_tenantId_ownerId_createdAt_idx_6658b794\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ChildProfile_tenantId_ownerId_createdAt_idx_6658b794\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ChildProfile_tenantId_ownerId_createdAt_idx_6658b794\"",
+        "sql": "CREATE INDEX \"ChildProfile_tenantId_ownerId_createdAt_idx_6658b794\" ON \"public\".\"ChildProfile\" (\"tenantId\", \"ownerId\", \"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ChildProfile_tenantId_ownerId_createdAt_idx_6658b794\" exists on \"ChildProfile\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"ChildProfile_tenantId_ownerId_createdAt_idx_6658b794\"",
+          "i",
+          "I",
+          "\"public\".\"ChildProfile\"",
+          "btree",
+          "[\"tenantId\",\"ownerId\",\"createdAt\"]"
+        ]
+      }
+    ]
+  }
+]

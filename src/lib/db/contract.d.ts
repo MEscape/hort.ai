@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'1863863b67edd6749659a9ad9a1e312cbede78ca8be88952e2c146a38fc427ef'>;
+  StorageHashBase<'26a3e1f976072c0c51fe266023aef5775ed0e6eb2cf0d6984d93340fae52b454'>;
 export type ExecutionHash =
-  ExecutionHashBase<'9e682105523b52360966eee6249e3deb8d3091aa7a80822c9f413fd350056ec3'>;
+  ExecutionHashBase<'bbfd3f3c6290a588dbea3762ed79d337a06372ade74e324930af463afa43946f'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -248,6 +248,72 @@ type FieldTypeOverrides = {
         };
         readonly severity: { readonly output: 'INFO' | 'WARN'; readonly input: 'INFO' | 'WARN' };
       };
+      readonly ChildProfile: {
+        readonly federalState: {
+          readonly output:
+            | 'BW'
+            | 'BY'
+            | 'BE'
+            | 'BB'
+            | 'HB'
+            | 'HH'
+            | 'HE'
+            | 'MV'
+            | 'NI'
+            | 'NW'
+            | 'RP'
+            | 'SL'
+            | 'SN'
+            | 'ST'
+            | 'SH'
+            | 'TH';
+          readonly input:
+            | 'BW'
+            | 'BY'
+            | 'BE'
+            | 'BB'
+            | 'HB'
+            | 'HH'
+            | 'HE'
+            | 'MV'
+            | 'NI'
+            | 'NW'
+            | 'RP'
+            | 'SL'
+            | 'SN'
+            | 'ST'
+            | 'SH'
+            | 'TH';
+        };
+        readonly interests: {
+          readonly output:
+            | 'nature'
+            | 'animals'
+            | 'science'
+            | 'art'
+            | 'music'
+            | 'sports'
+            | 'technology'
+            | 'stories'
+            | 'puzzles'
+            | 'history';
+          readonly input:
+            | 'nature'
+            | 'animals'
+            | 'science'
+            | 'art'
+            | 'music'
+            | 'sports'
+            | 'technology'
+            | 'stories'
+            | 'puzzles'
+            | 'history';
+        };
+        readonly setupStep: {
+          readonly output: 'child' | 'interests' | 'tutor' | 'controls' | 'review' | 'done';
+          readonly input: 'child' | 'interests' | 'tutor' | 'controls' | 'review' | 'done';
+        };
+      };
     };
   };
 };
@@ -273,6 +339,72 @@ type ColumnTypeOverrides = {
         readonly input: 'MEMBER' | 'VISITOR' | 'SYSTEM';
       };
       readonly severity: { readonly output: 'INFO' | 'WARN'; readonly input: 'INFO' | 'WARN' };
+    };
+    readonly ChildProfile: {
+      readonly federalState: {
+        readonly output:
+          | 'BW'
+          | 'BY'
+          | 'BE'
+          | 'BB'
+          | 'HB'
+          | 'HH'
+          | 'HE'
+          | 'MV'
+          | 'NI'
+          | 'NW'
+          | 'RP'
+          | 'SL'
+          | 'SN'
+          | 'ST'
+          | 'SH'
+          | 'TH';
+        readonly input:
+          | 'BW'
+          | 'BY'
+          | 'BE'
+          | 'BB'
+          | 'HB'
+          | 'HH'
+          | 'HE'
+          | 'MV'
+          | 'NI'
+          | 'NW'
+          | 'RP'
+          | 'SL'
+          | 'SN'
+          | 'ST'
+          | 'SH'
+          | 'TH';
+      };
+      readonly interests: {
+        readonly output:
+          | 'nature'
+          | 'animals'
+          | 'science'
+          | 'art'
+          | 'music'
+          | 'sports'
+          | 'technology'
+          | 'stories'
+          | 'puzzles'
+          | 'history';
+        readonly input:
+          | 'nature'
+          | 'animals'
+          | 'science'
+          | 'art'
+          | 'music'
+          | 'sports'
+          | 'technology'
+          | 'stories'
+          | 'puzzles'
+          | 'history';
+      };
+      readonly setupStep: {
+        readonly output: 'child' | 'interests' | 'tutor' | 'controls' | 'review' | 'done';
+        readonly input: 'child' | 'interests' | 'tutor' | 'controls' | 'review' | 'done';
+      };
     };
   };
 };
@@ -304,11 +436,25 @@ export namespace Models {
     type: FieldOutputTypes['public']['AuditEntry']['type'];
     readonly [RelationKeys]?: never;
   };
-  export type public_VoiceConsent = {
-    grantedAt: FieldOutputTypes['public']['VoiceConsent']['grantedAt'];
-    parentId: FieldOutputTypes['public']['VoiceConsent']['parentId'];
-    revokedAt: FieldOutputTypes['public']['VoiceConsent']['revokedAt'];
-    tenantId: FieldOutputTypes['public']['VoiceConsent']['tenantId'];
+  export type public_ChildProfile = {
+    allowedFromMinute: FieldOutputTypes['public']['ChildProfile']['allowedFromMinute'];
+    allowedUntilMinute: FieldOutputTypes['public']['ChildProfile']['allowedUntilMinute'];
+    createdAt: FieldOutputTypes['public']['ChildProfile']['createdAt'];
+    dailyLimitMinutes: FieldOutputTypes['public']['ChildProfile']['dailyLimitMinutes'];
+    displayName: FieldOutputTypes['public']['ChildProfile']['displayName'];
+    federalState: FieldOutputTypes['public']['ChildProfile']['federalState'];
+    grade: FieldOutputTypes['public']['ChildProfile']['grade'];
+    guardianConfirmedAt: FieldOutputTypes['public']['ChildProfile']['guardianConfirmedAt'];
+    guardianConsentVersion: FieldOutputTypes['public']['ChildProfile']['guardianConsentVersion'];
+    id: FieldOutputTypes['public']['ChildProfile']['id'];
+    interests: FieldOutputTypes['public']['ChildProfile']['interests'];
+    learningInsights: FieldOutputTypes['public']['ChildProfile']['learningInsights'];
+    ownerId: FieldOutputTypes['public']['ChildProfile']['ownerId'];
+    setupCompletedAt: FieldOutputTypes['public']['ChildProfile']['setupCompletedAt'];
+    setupStep: FieldOutputTypes['public']['ChildProfile']['setupStep'];
+    tenantId: FieldOutputTypes['public']['ChildProfile']['tenantId'];
+    tutorId: FieldOutputTypes['public']['ChildProfile']['tutorId'];
+    voiceConsent: FieldOutputTypes['public']['ChildProfile']['voiceConsent'];
     readonly [RelationKeys]?: never;
   };
 }
@@ -316,7 +462,7 @@ export namespace Models {
 export declare const models: {
   public: {
     AuditEntry: Models.public_AuditEntry;
-    VoiceConsent: Models.public_VoiceConsent;
+    ChildProfile: Models.public_ChildProfile;
   };
 };
 
@@ -426,24 +572,109 @@ type ContractBase = Omit<
               ];
               foreignKeys: readonly [];
             };
-            readonly VoiceConsent: {
+            readonly ChildProfile: {
               columns: {
-                readonly grantedAt: {
+                readonly allowedFromMinute: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly allowedUntilMinute: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly createdAt: {
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-temporal@1';
                   readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
                   readonly many: false;
                 };
-                readonly parentId: {
+                readonly dailyLimitMinutes: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly displayName: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
-                readonly revokedAt: {
+                readonly federalState: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly grade: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly guardianConfirmedAt: {
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-temporal@1';
                   readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly guardianConsentVersion: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly interests: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', readonly []>;
+                  };
+                  readonly many: { readonly elementNullable: false };
+                };
+                readonly learningInsights: {
+                  readonly dataType: 'pg/bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
+                  };
+                  readonly many: false;
+                };
+                readonly ownerId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly setupCompletedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly setupStep: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'child'>;
+                  };
                   readonly many: false;
                 };
                 readonly tenantId: {
@@ -452,10 +683,40 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
+                readonly tutorId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly voiceConsent: {
+                  readonly dataType: 'pg/bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
+                  };
+                  readonly many: false;
+                };
               };
-              primaryKey: { readonly columns: readonly ['tenantId', 'parentId'] };
+              primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'ChildProfile_one_unfinished_per_owner_15ad2a20';
+                  readonly prefix: 'ChildProfile_one_unfinished_per_owner';
+                  readonly columns: readonly ['tenantId', 'ownerId'];
+                  readonly where: '("setupCompletedAt" IS NULL)';
+                  readonly unique: true;
+                },
+                {
+                  readonly name: 'ChildProfile_tenantId_ownerId_createdAt_idx_6658b794';
+                  readonly prefix: 'ChildProfile_tenantId_ownerId_createdAt_idx';
+                  readonly columns: readonly ['tenantId', 'ownerId', 'createdAt'];
+                  readonly unique: false;
+                },
+              ];
               foreignKeys: readonly [];
             };
           };
@@ -467,6 +728,53 @@ type ContractBase = Omit<
             readonly AuditSeverity: {
               readonly kind: 'valueSet';
               readonly values: readonly ['INFO', 'WARN'];
+            };
+            readonly FederalState: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'BW',
+                'BY',
+                'BE',
+                'BB',
+                'HB',
+                'HH',
+                'HE',
+                'MV',
+                'NI',
+                'NW',
+                'RP',
+                'SL',
+                'SN',
+                'ST',
+                'SH',
+                'TH',
+              ];
+            };
+            readonly Interest: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'nature',
+                'animals',
+                'science',
+                'art',
+                'music',
+                'sports',
+                'technology',
+                'stories',
+                'puzzles',
+                'history',
+              ];
+            };
+            readonly SetupStep: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'child',
+                'interests',
+                'tutor',
+                'controls',
+                'review',
+                'done',
+              ];
             };
           };
         };
@@ -483,9 +791,9 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'AuditEntry';
     };
-    readonly VoiceConsent: {
+    readonly ChildProfile: {
       readonly namespace: 'public' & NamespaceId;
-      readonly model: 'VoiceConsent';
+      readonly model: 'ChildProfile';
     };
   };
   readonly domain: {
@@ -551,40 +859,114 @@ type ContractBase = Omit<
               };
             };
           };
-          readonly VoiceConsent: {
+          readonly ChildProfile: {
             readonly fields: {
-              readonly grantedAt: {
+              readonly allowedFromMinute: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly allowedUntilMinute: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
                 readonly nullable: false;
                 readonly type: {
                   readonly kind: 'scalar';
                   readonly codecId: 'pg/timestamptz-temporal@1';
                 };
               };
-              readonly parentId: {
+              readonly dailyLimitMinutes: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly displayName: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
-              readonly revokedAt: {
+              readonly federalState: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly grade: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly guardianConfirmedAt: {
                 readonly nullable: true;
                 readonly type: {
                   readonly kind: 'scalar';
                   readonly codecId: 'pg/timestamptz-temporal@1';
                 };
               };
+              readonly guardianConsentVersion: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly interests: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+                readonly many: { readonly elementNullable: false };
+              };
+              readonly learningInsights: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+              readonly ownerId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly setupCompletedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly setupStep: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly tenantId: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly tutorId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly voiceConsent: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
             };
             readonly relations: Record<string, never>;
             readonly storage: {
-              readonly table: 'VoiceConsent';
+              readonly table: 'ChildProfile';
               readonly namespaceId: 'public';
               readonly fields: {
-                readonly grantedAt: { readonly column: 'grantedAt' };
-                readonly parentId: { readonly column: 'parentId' };
-                readonly revokedAt: { readonly column: 'revokedAt' };
+                readonly allowedFromMinute: { readonly column: 'allowedFromMinute' };
+                readonly allowedUntilMinute: { readonly column: 'allowedUntilMinute' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly dailyLimitMinutes: { readonly column: 'dailyLimitMinutes' };
+                readonly displayName: { readonly column: 'displayName' };
+                readonly federalState: { readonly column: 'federalState' };
+                readonly grade: { readonly column: 'grade' };
+                readonly guardianConfirmedAt: { readonly column: 'guardianConfirmedAt' };
+                readonly guardianConsentVersion: { readonly column: 'guardianConsentVersion' };
+                readonly id: { readonly column: 'id' };
+                readonly interests: { readonly column: 'interests' };
+                readonly learningInsights: { readonly column: 'learningInsights' };
+                readonly ownerId: { readonly column: 'ownerId' };
+                readonly setupCompletedAt: { readonly column: 'setupCompletedAt' };
+                readonly setupStep: { readonly column: 'setupStep' };
                 readonly tenantId: { readonly column: 'tenantId' };
+                readonly tutorId: { readonly column: 'tutorId' };
+                readonly voiceConsent: { readonly column: 'voiceConsent' };
               };
             };
           };
@@ -605,6 +987,53 @@ type ContractBase = Omit<
               { readonly name: 'WARN'; readonly value: 'WARN' },
             ];
           };
+          readonly FederalState: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'BW'; readonly value: 'BW' },
+              { readonly name: 'BY'; readonly value: 'BY' },
+              { readonly name: 'BE'; readonly value: 'BE' },
+              { readonly name: 'BB'; readonly value: 'BB' },
+              { readonly name: 'HB'; readonly value: 'HB' },
+              { readonly name: 'HH'; readonly value: 'HH' },
+              { readonly name: 'HE'; readonly value: 'HE' },
+              { readonly name: 'MV'; readonly value: 'MV' },
+              { readonly name: 'NI'; readonly value: 'NI' },
+              { readonly name: 'NW'; readonly value: 'NW' },
+              { readonly name: 'RP'; readonly value: 'RP' },
+              { readonly name: 'SL'; readonly value: 'SL' },
+              { readonly name: 'SN'; readonly value: 'SN' },
+              { readonly name: 'ST'; readonly value: 'ST' },
+              { readonly name: 'SH'; readonly value: 'SH' },
+              { readonly name: 'TH'; readonly value: 'TH' },
+            ];
+          };
+          readonly Interest: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'nature'; readonly value: 'nature' },
+              { readonly name: 'animals'; readonly value: 'animals' },
+              { readonly name: 'science'; readonly value: 'science' },
+              { readonly name: 'art'; readonly value: 'art' },
+              { readonly name: 'music'; readonly value: 'music' },
+              { readonly name: 'sports'; readonly value: 'sports' },
+              { readonly name: 'technology'; readonly value: 'technology' },
+              { readonly name: 'stories'; readonly value: 'stories' },
+              { readonly name: 'puzzles'; readonly value: 'puzzles' },
+              { readonly name: 'history'; readonly value: 'history' },
+            ];
+          };
+          readonly SetupStep: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'child'; readonly value: 'child' },
+              { readonly name: 'interests'; readonly value: 'interests' },
+              { readonly name: 'tutor'; readonly value: 'tutor' },
+              { readonly name: 'controls'; readonly value: 'controls' },
+              { readonly name: 'review'; readonly value: 'review' },
+              { readonly name: 'done'; readonly value: 'done' },
+            ];
+          };
         };
         readonly enumMemberTypes?: {
           readonly AuditActorKind: readonly [
@@ -615,6 +1044,44 @@ type ContractBase = Omit<
           readonly AuditSeverity: readonly [
             { readonly name: 'INFO'; readonly value: 'INFO' },
             { readonly name: 'WARN'; readonly value: 'WARN' },
+          ];
+          readonly FederalState: readonly [
+            { readonly name: 'BW'; readonly value: 'BW' },
+            { readonly name: 'BY'; readonly value: 'BY' },
+            { readonly name: 'BE'; readonly value: 'BE' },
+            { readonly name: 'BB'; readonly value: 'BB' },
+            { readonly name: 'HB'; readonly value: 'HB' },
+            { readonly name: 'HH'; readonly value: 'HH' },
+            { readonly name: 'HE'; readonly value: 'HE' },
+            { readonly name: 'MV'; readonly value: 'MV' },
+            { readonly name: 'NI'; readonly value: 'NI' },
+            { readonly name: 'NW'; readonly value: 'NW' },
+            { readonly name: 'RP'; readonly value: 'RP' },
+            { readonly name: 'SL'; readonly value: 'SL' },
+            { readonly name: 'SN'; readonly value: 'SN' },
+            { readonly name: 'ST'; readonly value: 'ST' },
+            { readonly name: 'SH'; readonly value: 'SH' },
+            { readonly name: 'TH'; readonly value: 'TH' },
+          ];
+          readonly Interest: readonly [
+            { readonly name: 'nature'; readonly value: 'nature' },
+            { readonly name: 'animals'; readonly value: 'animals' },
+            { readonly name: 'science'; readonly value: 'science' },
+            { readonly name: 'art'; readonly value: 'art' },
+            { readonly name: 'music'; readonly value: 'music' },
+            { readonly name: 'sports'; readonly value: 'sports' },
+            { readonly name: 'technology'; readonly value: 'technology' },
+            { readonly name: 'stories'; readonly value: 'stories' },
+            { readonly name: 'puzzles'; readonly value: 'puzzles' },
+            { readonly name: 'history'; readonly value: 'history' },
+          ];
+          readonly SetupStep: readonly [
+            { readonly name: 'child'; readonly value: 'child' },
+            { readonly name: 'interests'; readonly value: 'interests' },
+            { readonly name: 'tutor'; readonly value: 'tutor' },
+            { readonly name: 'controls'; readonly value: 'controls' },
+            { readonly name: 'review'; readonly value: 'review' },
+            { readonly name: 'done'; readonly value: 'done' },
           ];
         };
       };
@@ -656,6 +1123,14 @@ type ContractBase = Omit<
           readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'AuditEntry';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'ChildProfile';
             readonly field: 'id';
             readonly namespace: 'public';
           };

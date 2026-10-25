@@ -4,7 +4,10 @@ import type {
   TutorConversation,
   TutorTurn,
 } from '@modules/alexa/application/contracts/tutor-conversation-model';
-import { verifyAlexaRequest } from '@modules/alexa/infrastructure/ask-sdk/ask-request-verifier';
+import {
+  createAskRequestVerifier,
+  verifyAlexaRequest,
+} from '@modules/alexa/infrastructure/ask-sdk/ask-request-verifier';
 import {
   CONNECTION_TEST_SENTENCE,
   connectionTestTutor,
@@ -271,18 +274,111 @@ describe('verifyAlexaRequest (official ASK SDK verifiers)', () => {
     expect(result.isErr()).toBe(true);
   });
 
-  it('rejects a stale timestamp before any certificate download', async () => {
-    const stale = new Date(Date.now() - 10 * 60_000).toISOString();
-
-    const result = await verifyAlexaRequest(envelope('LaunchRequest', { timestamp: stale }), {});
-
-    expect(result._unsafeUnwrapErr().code).toBe('alexa.request_rejected');
-  });
-
   it('rejects a body that is not JSON', async () => {
     const result = await verifyAlexaRequest('{not json', {});
 
     expect(result.isErr()).toBe(true);
+  });
+});
+
+describe('createAskRequestVerifier guards in front of the ASK SDK', () => {
+  const NOW = Date.parse('2026-10-24T18:00:00.000Z');
+  const CERT_URL = 'https://s3.amazonaws.com/echo.api/echo-api-cert-EUAmazon-prod-30584302.pem';
+
+  function setup(signatureOutcome: () => Promise<void> = () => Promise.resolve()) {
+    const clock = { now: NOW };
+    const signature = { verify: vi.fn(signatureOutcome) };
+    const timestamp = { verify: vi.fn(() => Promise.resolve()) };
+    const verify = createAskRequestVerifier({ signature, timestamp, now: () => clock.now });
+    return { clock, signature, timestamp, verify };
+  }
+  const signedAt = (offsetMs: number) =>
+    envelope('LaunchRequest', { timestamp: new Date(NOW + offsetMs).toISOString() });
+  const headers = (url = CERT_URL) => ({ signaturecertchainurl: url, 'signature-256': 'c2ln' });
+
+  it.each([
+    ['exactly 150 s old', -150_000, true],
+    ['exactly 150 s ahead', 150_000, true],
+    ['151 s old', -151_000, false],
+    ['151 s ahead', 151_000, false],
+    ['ten minutes old', -600_000, false],
+  ])('treats a timestamp %s as in window: %s', async (_label, offset, accepted) => {
+    const { signature, timestamp, verify } = setup();
+
+    const result = await verify(signedAt(offset), headers());
+
+    expect(result.isOk()).toBe(accepted);
+    expect(timestamp.verify).toHaveBeenCalledTimes(accepted ? 1 : 0);
+    expect(signature.verify).toHaveBeenCalledTimes(accepted ? 1 : 0);
+  });
+
+  it.each([
+    ['a query string', `${CERT_URL}?nonce=1`],
+    ['a fragment', `${CERT_URL}#x`],
+    ['an explicit port', CERT_URL.replace('.com/', '.com:443/')],
+    ['upper-case host', CERT_URL.replace('s3.', 'S3.')],
+    ['dot segments', CERT_URL.replace('/echo.api/', '/echo.api/../echo.api/')],
+    ['an encoded character', CERT_URL.replace('prod', 'pr%6Fd')],
+    ['another file name', 'https://s3.amazonaws.com/echo.api/anything.pem'],
+    ['another host', CERT_URL.replace('s3.amazonaws.com', 'evil.example.com')],
+  ])('rejects a certificate URL with %s without reaching the SDK', async (_label, url) => {
+    const { signature, verify } = setup();
+
+    const result = await verify(signedAt(0), headers(url));
+
+    expect(result.isErr()).toBe(true);
+    expect(signature.verify).not.toHaveBeenCalled();
+  });
+
+  it('limits downloads of unknown certificate URLs to five per ten minutes', async () => {
+    const { clock, signature, verify } = setup(() => Promise.reject(new Error('bad signature')));
+    const attempt = (n: number) =>
+      verify(signedAt(0), headers(`https://s3.amazonaws.com/echo.api/echo-api-cert-${n}.pem`));
+
+    for (let n = 1; n <= 7; n += 1) {
+      await attempt(n);
+    }
+    expect(signature.verify).toHaveBeenCalledTimes(5);
+
+    clock.now += 10 * 60_000;
+    await verify(
+      envelope('LaunchRequest', { timestamp: new Date(clock.now).toISOString() }),
+      headers('https://s3.amazonaws.com/echo.api/echo-api-cert-8.pem'),
+    );
+    expect(signature.verify).toHaveBeenCalledTimes(6);
+  });
+
+  it('downloads an unknown certificate URL only one at a time', async () => {
+    let release: () => void = () => undefined;
+    const { signature, verify } = setup(() => new Promise<void>((resolve) => (release = resolve)));
+
+    const first = verify(signedAt(0), headers());
+    const second = await verify(signedAt(0), headers());
+    release();
+
+    expect(second.isErr()).toBe(true);
+    expect((await first).isOk()).toBe(true);
+    expect(signature.verify).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    'https://s3.amazonaws.com/echo.api/echo-api-cert-EUAmazon-prod-30584302.pem',
+    'https://s3.amazonaws.com/echo.api/echo-api-cert-12.pem',
+    'https://s3.amazonaws.com/echo.api/echo-api-cert.pem',
+  ])('accepts the Amazon certificate URL %s', async (url) => {
+    const { signature, verify } = setup();
+
+    expect((await verify(signedAt(0), headers(url))).isOk()).toBe(true);
+    expect(signature.verify).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a verified certificate URL free of the download budget', async () => {
+    const { signature, verify } = setup();
+
+    for (let n = 0; n < 10; n += 1) {
+      expect((await verify(signedAt(0), headers())).isOk()).toBe(true);
+    }
+    expect(signature.verify).toHaveBeenCalledTimes(10);
   });
 });
 

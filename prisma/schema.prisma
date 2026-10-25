@@ -1,5 +1,4 @@
 // use prisma-8
-
 enum AuditSeverity {
   INFO
   WARN
@@ -30,14 +29,80 @@ model AuditEntry {
   @@index([occurredAt])
 }
 
-/// The voice module's record of a parent's explicit, revocable consent that their child's recordings
-/// may be transcribed. One row per parent and tenant: revoking stamps `revokedAt`, granting again
-/// starts a new `grantedAt` and clears it. Holds ids and timestamps only.
-model VoiceConsent {
-  tenantId  String
-  parentId  String
-  grantedAt DateTime
-  revokedAt DateTime?
+enum FederalState {
+  BW
+  BY
+  BE
+  BB
+  HB
+  HH
+  HE
+  MV
+  NI
+  NW
+  RP
+  SL
+  SN
+  ST
+  SH
+  TH
+}
 
-  @@id([tenantId, parentId])
+enum SetupStep {
+  child
+  interests
+  tutor
+  controls
+  review
+  done
+}
+
+enum Interest {
+  nature
+  animals
+  science
+  art
+  music
+  sports
+  technology
+  stories
+  puzzles
+  history
+}
+
+/// A child's profile in the learner module: the minimum the product keeps about a child
+/// (display name, federal state, grade), the closed-list choices the parent made during setup
+/// (interests, companion, parent controls, guardian confirmation) and how far the setup got.
+/// `ownerId` is the guardian's actor id. The partial unique index lets a parent hold at most one
+/// unfinished profile, so a repeated or concurrent submit can never leave duplicates.
+/// `voiceConsent` is the parent's "voice allowed" control (the name predates the controls step).
+/// `setupStep` is the furthest step reached and only ever moves forward.
+model ChildProfile {
+  id                     String       @id @onCreate(uuid())
+  tenantId               String
+  ownerId                String
+  displayName            String
+  federalState           FederalState
+  grade                  Int
+  voiceConsent           Boolean      @default(false)
+  setupStep              SetupStep    @default(child)
+  interests              Interest[]   @default([])
+  tutorId                String?
+  dailyLimitMinutes      Int?
+  allowedFromMinute      Int?
+  allowedUntilMinute     Int?
+  learningInsights       Boolean      @default(false)
+  guardianConfirmedAt    DateTime?
+  guardianConsentVersion String?
+  setupCompletedAt       DateTime?
+  createdAt              DateTime     @default(now())
+
+  @@index([tenantId, ownerId, createdAt])
+  @@index([tenantId, ownerId], where: sql`("setupCompletedAt" IS NULL)`, unique: true, name: "ChildProfile_one_unfinished_per_owner")
+  @@check(expression: sql`"grade" BETWEEN 1 AND 4`, name: "ChildProfile_grade_rule")
+  @@check(expression: sql`char_length("displayName") BETWEEN 1 AND 24`, name: "ChildProfile_display_name_rule")
+  @@check(expression: sql`cardinality("interests") <= 4`, name: "ChildProfile_interests_count_rule")
+  @@check(expression: sql`"dailyLimitMinutes" IS NULL OR "dailyLimitMinutes" IN (15, 30, 45, 60, 90)`, name: "ChildProfile_daily_limit_rule")
+  @@check(expression: sql`("allowedFromMinute" IS NULL AND "allowedUntilMinute" IS NULL) OR ("allowedFromMinute" IS NOT NULL AND "allowedUntilMinute" IS NOT NULL AND "allowedFromMinute" >= 0 AND "allowedUntilMinute" <= 1440 AND "allowedFromMinute" % 15 = 0 AND "allowedUntilMinute" % 15 = 0 AND "allowedUntilMinute" - "allowedFromMinute" >= 30)`, name: "ChildProfile_allowed_window_rule")
+  @@check(expression: sql`("setupStep" = 'done') = ("setupCompletedAt" IS NOT NULL)`, name: "ChildProfile_done_rule")
 }

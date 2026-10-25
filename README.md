@@ -72,10 +72,11 @@ Run the narrowest tests while iterating and `npm run check` before opening a pul
 
 There is no GitHub Actions workflow. Vercel builds every push and pull request with `npm run build:vercel` (set in `vercel.json`), which fails the deployment at the first failing step:
 
-1. types, lint, format, i18n catalogs, dead code
-2. unit tests with coverage, architecture and script tests
-3. Prisma contract, migration check, `next build`
-4. app and auth migrations, then `db:verify`
+1. production dependency audit (`npm run audit:prod`: high/critical advisories fail, except dated, reviewed exceptions in `scripts/audit-production.ts`)
+2. types, lint, format, i18n catalogs, dead code
+3. unit tests with coverage, architecture and script tests
+4. Prisma contract, migration check, `next build`
+5. app and auth migrations, then `db:verify`
 
 The migrations run against the `DATABASE_URL` / `AUTH_DATABASE_URL` of the Vercel environment being built, so Production and Preview must point at their own databases, with a role allowed to migrate. Integration tests need the Docker containers and are not part of the Vercel build: run `npm run check` locally before merging.
 

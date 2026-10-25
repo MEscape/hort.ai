@@ -8,6 +8,7 @@ The [product vision](../product/vision.md) defines the agreed behavior. The [con
 | --------------------------------- | ------------------------------------------------ |
 | Rate limiting                     | [`rate-limiting.md`](rate-limiting.md)           |
 | Authentication and access control | [`authentication.md`](authentication.md)         |
+| Child profiles and onboarding     | [`learner.md`](learner.md)                       |
 | Brand identity and assets         | [`branding.md`](branding.md)                     |
 | AI output contract                | [`ai-output-contract.md`](ai-output-contract.md) |
 

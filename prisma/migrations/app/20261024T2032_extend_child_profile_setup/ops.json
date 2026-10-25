@@ -1,0 +1,858 @@
+[
+  {
+    "id": "column.public.ChildProfile.allowedFromMinute",
+    "label": "Add column \"allowedFromMinute\" to \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "allowedFromMinute",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"allowedFromMinute\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "allowedFromMinute"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"allowedFromMinute\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD COLUMN \"allowedFromMinute\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"allowedFromMinute\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "allowedFromMinute"
+        ]
+      },
+      {
+        "description": "verify column \"allowedFromMinute\" has type \"integer\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "allowedFromMinute",
+          "integer"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.ChildProfile.allowedUntilMinute",
+    "label": "Add column \"allowedUntilMinute\" to \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "allowedUntilMinute",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"allowedUntilMinute\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "allowedUntilMinute"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"allowedUntilMinute\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD COLUMN \"allowedUntilMinute\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"allowedUntilMinute\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "allowedUntilMinute"
+        ]
+      },
+      {
+        "description": "verify column \"allowedUntilMinute\" has type \"integer\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "allowedUntilMinute",
+          "integer"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.ChildProfile.dailyLimitMinutes",
+    "label": "Add column \"dailyLimitMinutes\" to \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "dailyLimitMinutes",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"dailyLimitMinutes\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "dailyLimitMinutes"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"dailyLimitMinutes\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD COLUMN \"dailyLimitMinutes\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"dailyLimitMinutes\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "dailyLimitMinutes"
+        ]
+      },
+      {
+        "description": "verify column \"dailyLimitMinutes\" has type \"integer\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "dailyLimitMinutes",
+          "integer"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.ChildProfile.guardianConfirmedAt",
+    "label": "Add column \"guardianConfirmedAt\" to \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "guardianConfirmedAt",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"guardianConfirmedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "guardianConfirmedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"guardianConfirmedAt\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD COLUMN \"guardianConfirmedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"guardianConfirmedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "guardianConfirmedAt"
+        ]
+      },
+      {
+        "description": "verify column \"guardianConfirmedAt\" has type \"timestamp with time zone\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "guardianConfirmedAt",
+          "timestamp with time zone"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.ChildProfile.guardianConsentVersion",
+    "label": "Add column \"guardianConsentVersion\" to \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "guardianConsentVersion",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"guardianConsentVersion\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "guardianConsentVersion"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"guardianConsentVersion\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD COLUMN \"guardianConsentVersion\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"guardianConsentVersion\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "guardianConsentVersion"
+        ]
+      },
+      {
+        "description": "verify column \"guardianConsentVersion\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "guardianConsentVersion",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.ChildProfile.interests",
+    "label": "Add column \"interests\" to \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "interests",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"interests\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "interests"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"interests\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD COLUMN \"interests\" text[] DEFAULT '{}' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"interests\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "interests"
+        ]
+      },
+      {
+        "description": "verify column \"interests\" has type \"text[]\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "interests",
+          "text[]"
+        ]
+      },
+      {
+        "description": "verify column \"interests\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "interests",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.ChildProfile.learningInsights",
+    "label": "Add column \"learningInsights\" to \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "learningInsights",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"learningInsights\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "learningInsights"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"learningInsights\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD COLUMN \"learningInsights\" bool DEFAULT false NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"learningInsights\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "learningInsights"
+        ]
+      },
+      {
+        "description": "verify column \"learningInsights\" has type \"boolean\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "learningInsights",
+          "boolean"
+        ]
+      },
+      {
+        "description": "verify column \"learningInsights\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "learningInsights",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.ChildProfile.setupStep",
+    "label": "Add column \"setupStep\" to \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "setupStep",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"setupStep\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "setupStep"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"setupStep\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD COLUMN \"setupStep\" text DEFAULT 'child' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"setupStep\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "setupStep"
+        ]
+      },
+      {
+        "description": "verify column \"setupStep\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "setupStep",
+          "text"
+        ]
+      },
+      {
+        "description": "verify column \"setupStep\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "setupStep",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.ChildProfile.tutorId",
+    "label": "Add column \"tutorId\" to \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "tutorId",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"tutorId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "tutorId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"tutorId\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD COLUMN \"tutorId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"tutorId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "tutorId"
+        ]
+      },
+      {
+        "description": "verify column \"tutorId\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "ChildProfile",
+          "tutorId",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "data_migration.backfill-child-profile-setup-step",
+    "label": "Data transform: backfill-child-profile-setup-step",
+    "operationClass": "data",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "setupStep",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "Check backfill-child-profile-setup-step has work to do",
+        "sql": "SELECT EXISTS (SELECT \"id\" AS \"id\" FROM \"public\".\"ChildProfile\" WHERE \"setupStep\" = $1 LIMIT 1) AS ok",
+        "params": [
+          "child"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "Run backfill-child-profile-setup-step",
+        "sql": "UPDATE \"public\".\"ChildProfile\" SET \"setupStep\" = $1 WHERE (\"setupStep\" = $2 AND \"setupCompletedAt\" IS NOT NULL)",
+        "params": [
+          "done",
+          "child"
+        ]
+      },
+      {
+        "description": "Run backfill-child-profile-setup-step",
+        "sql": "UPDATE \"public\".\"ChildProfile\" SET \"setupStep\" = $1 WHERE \"setupStep\" = $2",
+        "params": [
+          "interests",
+          "child"
+        ]
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "Verify backfill-child-profile-setup-step resolved all violations",
+        "sql": "SELECT NOT EXISTS (SELECT \"id\" AS \"id\" FROM \"public\".\"ChildProfile\" WHERE \"setupStep\" = $1 LIMIT 1) AS ok",
+        "params": [
+          "child"
+        ],
+        "meta": {
+          "requiredColumn": {
+            "table": "ChildProfile",
+            "column": "setupStep",
+            "reason": "backfillMissedRows"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.ChildProfile.ChildProfile_done_rule_888ed74c",
+    "label": "Add check constraint \"ChildProfile_done_rule_888ed74c\" on \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "ChildProfile_done_rule_888ed74c",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ChildProfile_done_rule_888ed74c\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ChildProfile_done_rule_888ed74c",
+          "public",
+          "\"public\".\"ChildProfile\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"ChildProfile_done_rule_888ed74c\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD CONSTRAINT \"ChildProfile_done_rule_888ed74c\" CHECK ((\"setupStep\" = 'done') = (\"setupCompletedAt\" IS NOT NULL))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"ChildProfile_done_rule_888ed74c\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "ChildProfile_done_rule_888ed74c",
+          "public",
+          "\"public\".\"ChildProfile\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.ChildProfile.ChildProfile_allowed_window_rule_75d4fbb3",
+    "label": "Add check constraint \"ChildProfile_allowed_window_rule_75d4fbb3\" on \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "ChildProfile_allowed_window_rule_75d4fbb3",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ChildProfile_allowed_window_rule_75d4fbb3\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ChildProfile_allowed_window_rule_75d4fbb3",
+          "public",
+          "\"public\".\"ChildProfile\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"ChildProfile_allowed_window_rule_75d4fbb3\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD CONSTRAINT \"ChildProfile_allowed_window_rule_75d4fbb3\" CHECK ((\"allowedFromMinute\" IS NULL AND \"allowedUntilMinute\" IS NULL) OR (\"allowedFromMinute\" IS NOT NULL AND \"allowedUntilMinute\" IS NOT NULL AND \"allowedFromMinute\" >= 0 AND \"allowedUntilMinute\" <= 1440 AND \"allowedFromMinute\" % 15 = 0 AND \"allowedUntilMinute\" % 15 = 0 AND \"allowedUntilMinute\" - \"allowedFromMinute\" >= 30))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"ChildProfile_allowed_window_rule_75d4fbb3\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "ChildProfile_allowed_window_rule_75d4fbb3",
+          "public",
+          "\"public\".\"ChildProfile\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.ChildProfile.ChildProfile_daily_limit_rule_103a53e8",
+    "label": "Add check constraint \"ChildProfile_daily_limit_rule_103a53e8\" on \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "ChildProfile_daily_limit_rule_103a53e8",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ChildProfile_daily_limit_rule_103a53e8\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ChildProfile_daily_limit_rule_103a53e8",
+          "public",
+          "\"public\".\"ChildProfile\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"ChildProfile_daily_limit_rule_103a53e8\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD CONSTRAINT \"ChildProfile_daily_limit_rule_103a53e8\" CHECK (\"dailyLimitMinutes\" IS NULL OR \"dailyLimitMinutes\" IN (15, 30, 45, 60, 90))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"ChildProfile_daily_limit_rule_103a53e8\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "ChildProfile_daily_limit_rule_103a53e8",
+          "public",
+          "\"public\".\"ChildProfile\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.ChildProfile.ChildProfile_interests_check_18d24d59",
+    "label": "Add check constraint \"ChildProfile_interests_check_18d24d59\" on \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "ChildProfile_interests_check_18d24d59",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ChildProfile_interests_check_18d24d59\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ChildProfile_interests_check_18d24d59",
+          "public",
+          "\"public\".\"ChildProfile\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"ChildProfile_interests_check_18d24d59\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD CONSTRAINT \"ChildProfile_interests_check_18d24d59\" CHECK (array_remove(\"interests\", NULL) <@ '{\"nature\",\"animals\",\"science\",\"art\",\"music\",\"sports\",\"technology\",\"stories\",\"puzzles\",\"history\"}')"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"ChildProfile_interests_check_18d24d59\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "ChildProfile_interests_check_18d24d59",
+          "public",
+          "\"public\".\"ChildProfile\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.ChildProfile.ChildProfile_interests_count_rule_0c69299a",
+    "label": "Add check constraint \"ChildProfile_interests_count_rule_0c69299a\" on \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "ChildProfile_interests_count_rule_0c69299a",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ChildProfile_interests_count_rule_0c69299a\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ChildProfile_interests_count_rule_0c69299a",
+          "public",
+          "\"public\".\"ChildProfile\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"ChildProfile_interests_count_rule_0c69299a\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD CONSTRAINT \"ChildProfile_interests_count_rule_0c69299a\" CHECK (cardinality(\"interests\") <= 4)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"ChildProfile_interests_count_rule_0c69299a\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "ChildProfile_interests_count_rule_0c69299a",
+          "public",
+          "\"public\".\"ChildProfile\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.ChildProfile.ChildProfile_interests_elem_not_null_4b23e016",
+    "label": "Add check constraint \"ChildProfile_interests_elem_not_null_4b23e016\" on \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "ChildProfile_interests_elem_not_null_4b23e016",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ChildProfile_interests_elem_not_null_4b23e016\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ChildProfile_interests_elem_not_null_4b23e016",
+          "public",
+          "\"public\".\"ChildProfile\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"ChildProfile_interests_elem_not_null_4b23e016\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD CONSTRAINT \"ChildProfile_interests_elem_not_null_4b23e016\" CHECK (array_position(\"interests\", NULL) IS NULL)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"ChildProfile_interests_elem_not_null_4b23e016\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "ChildProfile_interests_elem_not_null_4b23e016",
+          "public",
+          "\"public\".\"ChildProfile\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.ChildProfile.ChildProfile_setupStep_check_c4a680fd",
+    "label": "Add check constraint \"ChildProfile_setupStep_check_c4a680fd\" on \"ChildProfile\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "ChildProfile_setupStep_check_c4a680fd",
+        "table": "ChildProfile"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ChildProfile_setupStep_check_c4a680fd\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ChildProfile_setupStep_check_c4a680fd",
+          "public",
+          "\"public\".\"ChildProfile\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"ChildProfile_setupStep_check_c4a680fd\"",
+        "sql": "ALTER TABLE \"public\".\"ChildProfile\" ADD CONSTRAINT \"ChildProfile_setupStep_check_c4a680fd\" CHECK (\"setupStep\" IN ('child', 'interests', 'tutor', 'controls', 'review', 'done'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"ChildProfile_setupStep_check_c4a680fd\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "ChildProfile_setupStep_check_c4a680fd",
+          "public",
+          "\"public\".\"ChildProfile\"",
+          "c"
+        ]
+      }
+    ]
+  }
+]

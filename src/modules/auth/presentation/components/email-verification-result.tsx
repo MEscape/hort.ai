@@ -1,3 +1,4 @@
+import { HortPanel } from '@components/shared/hort-panel';
 import { Button } from '@components/ui/button';
 
 import { Link } from '@i18n';
@@ -5,8 +6,6 @@ import { Link } from '@i18n';
 import { useTranslations } from '@i18n/client';
 
 import { authRoutes } from '../routes';
-
-import { AuthPanel } from './auth-panel';
 
 export interface EmailVerificationResultProps {
   /** True when the provider redirected back with an `error` parameter. */
@@ -21,7 +20,7 @@ export function EmailVerificationResult({ hasFailed }: EmailVerificationResultPr
   const t = useTranslations('auth');
 
   return (
-    <AuthPanel
+    <HortPanel
       mood={hasFailed ? 'oops' : 'happy'}
       title={hasFailed ? t('emailVerification.failureTitle') : t('emailVerification.successTitle')}
       description={hasFailed ? t('emailVerification.failure') : t('emailVerification.success')}
@@ -29,6 +28,6 @@ export function EmailVerificationResult({ hasFailed }: EmailVerificationResultPr
       <Button asChild size="lg">
         <Link href={authRoutes.signIn()}>{t('emailVerification.signIn')}</Link>
       </Button>
-    </AuthPanel>
+    </HortPanel>
   );
 }
