@@ -1,6 +1,6 @@
 'use server';
 
-import { toActionResult } from '@lib/result';
+import { ResultAsync, toActionResult } from '@lib/result';
 import type { ActionResult } from '@lib/result';
 
 import { MATERIAL_QUERY_LIMITS } from '../../application/contracts/teacher-material-constraints';
@@ -23,15 +23,16 @@ export async function uploadMaterialAction(
   formData: FormData,
 ): Promise<ActionResult<{ readonly materialId: string }>> {
   const file = formData.get('file');
-  const parsed = parseTeacherMaterialInput(materialFormUploadSchema, {
+  const result = await parseTeacherMaterialInput(materialFormUploadSchema, {
     classroomId: formData.get('classroomId'),
     title: file instanceof File ? titleOf(file) : '',
     contentType: file instanceof File ? contentTypeOf(file) : '',
     sizeBytes: file instanceof File ? file.size : 0,
-  });
-  if (parsed.isErr() || !(file instanceof File)) {
-    return toActionResult(parsed);
-  }
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  return toActionResult(await materialCommands.uploadMaterial.execute(parsed.value, bytes));
+  }).asyncAndThen((value) =>
+    // Without a file the title is empty and the schema has refused already.
+    ResultAsync.fromSafePromise(
+      file instanceof File ? file.arrayBuffer() : Promise.resolve(new ArrayBuffer(0)),
+    ).andThen((buffer) => materialCommands.uploadMaterial.execute(value, new Uint8Array(buffer))),
+  );
+  return toActionResult(result);
 }
