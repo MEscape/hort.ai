@@ -1,30 +1,69 @@
-import type { ActorId, TenantId } from '@modules/auth';
-
-import type { ChildProfileId } from '../models/ids';
+import type { ActorId, ChildProfileId, TenantId, TutorId } from '../models/ids';
 
 /**
- * Business facts worth keeping. Free of content: field names and ids only,
- * never the values themselves. Adding a variant forces the sink's level
- * table to be updated.
+ * Business facts worth keeping. Free of content: ids, codes and flags only, never a name or any
+ * other detail of the child. Every variant names its tenant, which places it in the audit trail.
+ * Adding a variant forces the sink's level table and the trail policy to be updated.
  */
 export type LearnerEvent =
   | {
-      readonly type: 'child_profile.created';
+      readonly type: 'learner.profile_created';
       readonly actorId: ActorId;
       readonly tenantId: TenantId;
       readonly childProfileId: ChildProfileId;
     }
   | {
-      readonly type: 'child_profile.updated';
+      readonly type: 'learner.interests_saved';
       readonly actorId: ActorId;
       readonly tenantId: TenantId;
       readonly childProfileId: ChildProfileId;
-      readonly changedFields: ReadonlyArray<
-        'displayName' | 'federalState' | 'grade' | 'companion' | 'voiceConsent'
-      >;
+      /** How many interests, not which ones. */
+      readonly count: number;
     }
   | {
-      readonly type: 'child_profile.deleted';
+      readonly type: 'learner.tutor_chosen';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      readonly childProfileId: ChildProfileId;
+      /** Catalog data, not child data. */
+      readonly tutorId: TutorId;
+    }
+  | {
+      readonly type: 'learner.controls_changed';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      readonly childProfileId: ChildProfileId;
+      /** The new value when the voice setting changed, else `null`. */
+      readonly voiceEnabled: boolean | null;
+      /** The new value when the insights setting changed, else `null`. */
+      readonly learningInsights: boolean | null;
+      readonly dailyLimitChanged: boolean;
+      readonly allowedWindowChanged: boolean;
+    }
+  | {
+      readonly type: 'learner.guardian_consent_recorded';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      readonly childProfileId: ChildProfileId;
+      /** Which statement was confirmed. */
+      readonly consentVersion: string;
+    }
+  | {
+      readonly type: 'learner.onboarding_reset';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      /** How many profiles were deleted; no names, no ids. */
+      readonly deletedCount: number;
+    }
+  | {
+      /** The child joined a class and took over its federal state and grade (#32). */
+      readonly type: 'learner.classroom_settings_adopted';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      readonly childProfileId: ChildProfileId;
+    }
+  | {
+      readonly type: 'learner.setup_completed';
       readonly actorId: ActorId;
       readonly tenantId: TenantId;
       readonly childProfileId: ChildProfileId;

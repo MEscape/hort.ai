@@ -22,7 +22,25 @@ enum AuditActorKind {
   SYSTEM
 }
 
-/// The 16 German federal states, by the suffix of their ISO 3166-2:DE code.
+/// Append-only security trail of the audit module: one row per event a module's policy keeps.
+/// Rows hold ids, counts and codes only, never credentials or personal data.
+model AuditEntry {
+  id         String         @id @onCreate(uuid())
+  tenantId   String
+  source     String
+  type       String
+  severity   AuditSeverity
+  actorKind  AuditActorKind
+  actorId    String?
+  details    Json
+  occurredAt DateTime       @default(now())
+
+  @@index([tenantId, occurredAt])
+  @@index([tenantId, source, type, occurredAt])
+  @@index([tenantId, actorId, occurredAt])
+  @@index([occurredAt])
+}
+
 enum FederalState {
   BW
   BY
@@ -42,19 +60,34 @@ enum FederalState {
   TH
 }
 
+enum SetupStep {
+  child
+  interests
+  tutor
+  controls
+  review
+  done
+}
+
+enum Interest {
+  nature
+  animals
+  science
+  art
+  music
+  sports
+  technology
+  stories
+  puzzles
+  history
+}
+
 /// Primary-school subjects. The MVP slice is mathematics (#5).
 enum Subject {
   MATH
   GERMAN
   GENERAL_STUDIES
   ENGLISH
-}
-
-/// The companion a child chose (#39): the tutor catalogue's ids.
-enum Companion {
-  MAX
-  LILI
-  FINA
 }
 
 enum ClassroomStatus {
@@ -96,45 +129,44 @@ enum AssessmentResult {
   NOT_YET
 }
 
-/// Append-only security trail of the audit module: one row per event a module's policy keeps.
-/// Rows hold ids, counts and codes only, never credentials or personal data.
-model AuditEntry {
-  id         String         @id @onCreate(uuid())
-  tenantId   String
-  source     String
-  type       String
-  severity   AuditSeverity
-  actorKind  AuditActorKind
-  actorId    String?
-  details    Json
-  occurredAt DateTime       @default(now())
-
-  @@index([tenantId, occurredAt])
-  @@index([tenantId, source, type, occurredAt])
-  @@index([tenantId, actorId, occurredAt])
-  @@index([occurredAt])
-}
-
-/// A child of a parent (learner module). Not an account: it has no credentials and no permissions.
+/// A child's profile in the learner module: the minimum the product keeps about a child
+/// (display name, federal state, grade), the closed-list choices the parent made during setup
+/// (interests, companion, parent controls, guardian confirmation) and how far the setup got.
+/// `ownerId` is the guardian's actor id. The partial unique index lets a parent hold at most one
+/// unfinished profile, so a repeated or concurrent submit can never leave duplicates.
+/// `voiceConsent` is the parent's "voice allowed" control (the name predates the controls step).
+/// `setupStep` is the furthest step reached and only ever moves forward.
 model ChildProfile {
-  id           String       @id @onCreate(uuid())
-  tenantId     String
-  ownerId      String
-  displayName  String
-  federalState FederalState
-  grade        Int
-  companion    Companion?
-  /// Whether the parent allows voice input (#34). Off until the parent turns it on.
-  voiceConsent Boolean      @default(false)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @default(now())
+  id                     String       @id @onCreate(uuid())
+  tenantId               String
+  ownerId                String
+  displayName            String
+  federalState           FederalState
+  grade                  Int
+  voiceConsent           Boolean      @default(false)
+  setupStep              SetupStep    @default(child)
+  interests              Interest[]   @default([])
+  tutorId                String?
+  dailyLimitMinutes      Int?
+  allowedFromMinute      Int?
+  allowedUntilMinute     Int?
+  learningInsights       Boolean      @default(false)
+  guardianConfirmedAt    DateTime?
+  guardianConsentVersion String?
+  setupCompletedAt       DateTime?
+  createdAt              DateTime     @default(now())
 
   membership   ClassMembership?
   helpSessions HelpSession[]
 
   @@index([tenantId, ownerId, createdAt])
-  @@check(expression: sql`char_length("displayName") BETWEEN 1 AND 40`, name: "ChildProfile_display_name_rule")
+  @@index([tenantId, ownerId], where: sql`("setupCompletedAt" IS NULL)`, unique: true, name: "ChildProfile_one_unfinished_per_owner")
   @@check(expression: sql`"grade" BETWEEN 1 AND 4`, name: "ChildProfile_grade_rule")
+  @@check(expression: sql`char_length("displayName") BETWEEN 1 AND 24`, name: "ChildProfile_display_name_rule")
+  @@check(expression: sql`cardinality("interests") <= 4`, name: "ChildProfile_interests_count_rule")
+  @@check(expression: sql`"dailyLimitMinutes" IS NULL OR "dailyLimitMinutes" IN (15, 30, 45, 60, 90)`, name: "ChildProfile_daily_limit_rule")
+  @@check(expression: sql`("allowedFromMinute" IS NULL AND "allowedUntilMinute" IS NULL) OR ("allowedFromMinute" IS NOT NULL AND "allowedUntilMinute" IS NOT NULL AND "allowedFromMinute" >= 0 AND "allowedUntilMinute" <= 1440 AND "allowedFromMinute" % 15 = 0 AND "allowedUntilMinute" % 15 = 0 AND "allowedUntilMinute" - "allowedFromMinute" >= 30)`, name: "ChildProfile_allowed_window_rule")
+  @@check(expression: sql`("setupStep" = 'done') = ("setupCompletedAt" IS NOT NULL)`, name: "ChildProfile_done_rule")
 }
 
 /// A teacher's class (classroom module). Only the SHA-256 hash of the invite code is stored;

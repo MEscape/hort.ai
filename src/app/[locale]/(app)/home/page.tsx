@@ -9,6 +9,7 @@ import {
   TEACHER_ROLE,
 } from '@modules/auth';
 import { SignOutButton } from '@modules/auth/client';
+import { ResetOnboardingButton, isDevResetAvailable, requireOnboarded } from '@modules/learner';
 
 import { Hort } from '@components/brand/hort';
 import { I18nProvider } from '@components/providers/i18n-provider';
@@ -20,6 +21,7 @@ import { Link, requireLocale } from '@i18n';
 import { getTranslations } from '@i18n/server';
 
 import { buildPrivateMetadata } from '@lib/seo';
+import { buildQueryString } from '@lib/utils';
 
 export async function generateMetadata({
   params,
@@ -31,11 +33,17 @@ export async function generateMetadata({
   return buildPrivateMetadata(t('home.title'));
 }
 
-async function ParentHome() {
+/**
+ * Where the signed-in account goes next. A teacher has no child setup (parent onboarding needs
+ * `learner.read`, which a teacher does not hold), so only parents are sent through it. Navigation
+ * only: every use case behind these links authorizes the account itself.
+ */
+async function Home() {
   const actor = await requireSignedIn('/home');
   const t = await getTranslations('app');
-  // Navigation only: the assignment use cases authorize the teacher themselves.
   const isTeacher = actor.roles.includes(TEACHER_ROLE);
+  const childProfileId = isTeacher ? null : ((await requireOnboarded()).profile?.id ?? null);
+
   return (
     <Card>
       <CardHeader>
@@ -51,7 +59,15 @@ async function ParentHome() {
             <Link href={assignmentRoutes.teacher()}>{t('home.teacherAssignments')}</Link>
           </Button>
         )}
+        {childProfileId !== null && (
+          <Button asChild>
+            <Link href={`/start${buildQueryString({ child: childProfileId })}`}>
+              {t('home.startHomework')}
+            </Link>
+          </Button>
+        )}
         {isAuthEnabled && <SignOutButton />}
+        {!isTeacher && isDevResetAvailable() && <ResetOnboardingButton />}
       </CardContent>
     </Card>
   );
@@ -64,10 +80,10 @@ export default async function HomePage({
 }) {
   const locale = requireLocale((await params).locale);
   return (
-    <I18nProvider locale={locale} namespaces={['auth']}>
+    <I18nProvider locale={locale} namespaces={['auth', 'learner']}>
       <AuthShell>
         <Suspense fallback={<AuthFormSkeleton />}>
-          <ParentHome />
+          <Home />
         </Suspense>
       </AuthShell>
     </I18nProvider>

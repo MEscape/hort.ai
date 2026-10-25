@@ -2,7 +2,7 @@ import 'server-only';
 import { headers } from 'next/headers';
 
 import { getAccessControl } from '@modules/auth';
-import { learnerCommands, learnerQueries } from '@modules/learner';
+import { getLearnerCommands, getLearnerQueries } from '@modules/learner';
 
 import { systemClock } from '@lib/clock';
 import { getClientAddressProvider, getRateLimiter } from '@lib/rate-limit';
@@ -34,8 +34,8 @@ const dependencies: ClassroomDependencies = {
   classrooms: new PrismaClassroomRepository(systemClock),
   inviteCodes: cryptoInviteCodeIssuer,
   childProfiles: new LearnerChildProfileAccess({
-    getChildProfileById: learnerQueries.getChildProfileById,
-    updateChildProfile: learnerCommands.updateChildProfile,
+    getChildProfileById: getLearnerQueries().getChildProfileById,
+    adoptClassroomSettings: getLearnerCommands().adoptClassroomSettings,
   }),
   audit: loggerClassroomAuditLog,
   rateLimiter: getRateLimiter(),

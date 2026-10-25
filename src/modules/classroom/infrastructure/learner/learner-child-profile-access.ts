@@ -12,11 +12,11 @@ export interface LearnerUseCases {
   readonly getChildProfileById: {
     execute(id: string): AppResultAsync<ChildProfileView, ChildProfileAccessError>;
   };
-  readonly updateChildProfile: {
+  readonly adoptClassroomSettings: {
     execute(input: {
-      readonly id: string;
-      readonly federalState?: string;
-      readonly grade?: number;
+      readonly profileId: string;
+      readonly federalState: string;
+      readonly grade: number;
     }): AppResultAsync<ChildProfileView, ChildProfileAccessError>;
   };
 }
@@ -36,8 +36,13 @@ export class LearnerChildProfileAccess implements ChildProfileAccess {
     childProfileId: string,
     settings: { readonly federalState: string; readonly grade: number },
   ): AppResultAsync<void, ChildProfileAccessError> {
-    return this.learner.updateChildProfile
-      .execute({ id: childProfileId, federalState: settings.federalState, grade: settings.grade })
+    // The learner module names federal states by their official upper-case code (`HE`).
+    return this.learner.adoptClassroomSettings
+      .execute({
+        profileId: childProfileId,
+        federalState: settings.federalState.toUpperCase(),
+        grade: settings.grade,
+      })
       .map(() => undefined);
   }
 }

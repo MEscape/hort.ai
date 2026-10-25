@@ -1,28 +1,35 @@
-import type {
-  ChildProfileChangesInput,
-  ChildProfileCompanion,
-  ChildProfileDraftInput,
-  ChildProfileFederalState,
-} from '../../domain/models/child-profile';
+import type { FederalState, Grade } from '../../domain/models/federal-state';
+import type { Interest } from '../../domain/models/interests';
+import type { ParentControls } from '../../domain/models/parent-controls';
+import type { SetupStep } from '../../domain/models/setup-step';
 
-/** A child profile for its owner. The tenant is an internal detail and is not exposed. */
+export type { SetupStep };
+
+/** The parent's controls as the parent sees them. */
+export type ParentControlsView = ParentControls;
+
+/**
+ * A child profile for its parent: the minimum the product keeps, plus what the parent chose. The
+ * tenant and the owner are internal and are not exposed.
+ */
 export interface ChildProfileView {
   readonly id: string;
   readonly displayName: string;
-  readonly federalState: ChildProfileFederalState;
-  readonly grade: number;
-  readonly companion: ChildProfileCompanion | null;
-  readonly voiceConsent: boolean;
-  readonly createdAt: Date;
-  readonly updatedAt: Date;
+  readonly federalState: FederalState;
+  readonly grade: Grade;
+  readonly interests: readonly Interest[];
+  /** The chosen companion's catalog id, or `null` while none is chosen. */
+  readonly tutorId: string | null;
+  readonly controls: ParentControlsView;
+  /** Whether the guardian confirmed the statement that is current. */
+  readonly guardianConfirmed: boolean;
+  /** The furthest step the parent has reached. */
+  readonly setupStep: SetupStep;
+  /** UTC instant the parent finished the setup; `null` while it is open. */
+  readonly setupCompletedAt: Date | null;
 }
 
-export type CreateChildProfileInput = ChildProfileDraftInput;
-
-export interface UpdateChildProfileInput extends ChildProfileChangesInput {
-  readonly id: string;
-}
-
-export interface DeleteChildProfileInput {
-  readonly id: string;
+export interface OnboardingStateView {
+  readonly step: SetupStep;
+  readonly profile: ChildProfileView | null;
 }

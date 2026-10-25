@@ -1,17 +1,293 @@
 {
   "learner": {
+    "metadata": {
+      "title": "Dein Kind einrichten",
+      "description": "Ein paar kurze Schritte: das Profil deines Kindes, ein Begleiter und die Einstellungen, die du möchtest."
+    },
+    "stepper": {
+      "label": "Schritte der Einrichtung",
+      "step": "Schritt {current} von {total}",
+      "done": "Erledigt",
+      "items": {
+        "welcome": {
+          "title": "Willkommen",
+          "hint": "Das machen wir"
+        },
+        "child": {
+          "title": "Dein Kind",
+          "hint": "Name und Klasse"
+        },
+        "interests": {
+          "title": "Interessen",
+          "hint": "Was gefällt ihm"
+        },
+        "tutor": {
+          "title": "Begleiter",
+          "hint": "Wer hilft"
+        },
+        "alexa": {
+          "title": "Alexa",
+          "hint": "Optional"
+        },
+        "controls": {
+          "title": "Sicherheit",
+          "hint": "Deine Regeln"
+        },
+        "review": {
+          "title": "Prüfen",
+          "hint": "Ein letzter Blick"
+        },
+        "done": {
+          "title": "Fertig",
+          "hint": "Es kann losgehen"
+        }
+      }
+    },
+    "guide": {
+      "welcome": "Hallo! Ich bin Hort. Ich zeige dir alles.",
+      "child": "Wem helfen wir? Ein Vorname reicht.",
+      "interests": "Was liebt dein Kind? Ich suche passende Beispiele.",
+      "tutor": "Jeder Begleiter hilft auf seine Art. Lass dir Zeit.",
+      "alexa": "Alexa ist freiwillig. Überspringen ist völlig okay.",
+      "controls": "Du entscheidest. Alles hier darf privat bleiben.",
+      "review": "Fast geschafft. Stimmt alles?",
+      "done": "Geschafft! Jetzt kommt die erste Hausaufgabe."
+    },
+    "actions": {
+      "back": "Zurück",
+      "continue": "Weiter",
+      "skip": "Erst mal überspringen",
+      "saving": "Wird gespeichert …",
+      "edit": "Ändern"
+    },
+    "welcome": {
+      "title": "Richten wir alles zusammen ein",
+      "description": "Das dauert etwa drei Minuten. Alles wird unterwegs gespeichert, du kannst also jederzeit aufhören und später weitermachen.",
+      "listLabel": "Das machen wir",
+      "items": {
+        "child": {
+          "title": "Dein Kind anlegen",
+          "description": "Ein Vorname, das Bundesland und die Klasse, damit Hort zum Lehrplan passt."
+        },
+        "companion": {
+          "title": "Einen Begleiter wählen",
+          "description": "Interessen aussuchen und den Freund, der bei den Hausaufgaben hilft."
+        },
+        "controls": {
+          "title": "Deine Sicherheitsregeln festlegen",
+          "description": "Sprache, Lernzeiten und was Hort sich merken darf. Du behältst die Kontrolle."
+        }
+      },
+      "promise": "Hort verrät nie die Lösung. Dein Kind denkt selbst mit.",
+      "start": "Los geht’s"
+    },
+    "child": {
+      "title": "Erzähl uns von deinem Kind",
+      "description": "Hort nutzt das, um zum Lehrplan der Klasse deines Kindes zu passen.",
+      "displayName": "Wie soll Hort dein Kind nennen?",
+      "displayNameHint": "Ein Vorname oder Spitzname reicht. Bitte keinen Nachnamen.",
+      "federalState": "Bundesland",
+      "federalStatePlaceholder": "Bundesland wählen",
+      "federalStateHint": "Der Lehrplan ist in jedem Bundesland anders.",
+      "grade": "Klasse",
+      "gradeOption": "Klasse {grade}",
+      "privacy": "Nur du siehst dieses Profil. Dein Kind braucht kein eigenes Konto.",
+      "submit": "Weiter"
+    },
+    "interests": {
+      "title": "Was gefällt {name}?",
+      "description": "Wähle bis zu {max}. Hort sucht damit Beispiele, die dein Kind mag. Du kannst das auch überspringen.",
+      "groupLabel": "Interessen von {name}",
+      "counter": "{count} von {max} gewählt",
+      "limitReached": "Das ist die Höchstzahl. Nimm eines weg, um ein anderes zu wählen.",
+      "items": {
+        "nature": "Natur",
+        "animals": "Tiere",
+        "science": "Wissenschaft",
+        "art": "Kunst",
+        "music": "Musik",
+        "sports": "Sport",
+        "technology": "Technik",
+        "stories": "Bücher",
+        "puzzles": "Rätsel",
+        "history": "Geschichte"
+      },
+      "submit": "Weiter"
+    },
+    "tutor": {
+      "title": "Wer soll {name} helfen?",
+      "description": "Jeder Begleiter hat eine eigene Stimme und erklärt auf seine Art. Du kannst das später ändern.",
+      "groupLabel": "Begleiter für {name}",
+      "recommended": "Passt zu {topics}",
+      "likes": "Mag gern",
+      "voice": "Stimme",
+      "greetingLabel": "So sagt er Hallo",
+      "languageNote": "Die Begleiter sprechen Deutsch mit deinem Kind.",
+      "imageAlt": "{name}, {animal}",
+      "submit": "Weiter",
+      "play": "{name} stellt sich vor",
+      "stop": "Stopp",
+      "speaking": "{name} spricht …",
+      "audioUnavailable": "Die Vorstellung ist gerade nicht verfügbar. Du kannst den Begleiter trotzdem wählen.",
+      "pick": "Tippe auf einen Begleiter, um ihn kennenzulernen."
+    },
+    "alexa": {
+      "title": "Alexa verbinden (optional)",
+      "description": "Später kann dein Kind Hort per Sprachbefehl über Alexa starten. Du kannst die Verbindung jederzeit trennen.",
+      "status": {
+        "unavailable": "Noch nicht verfügbar",
+        "not_linked": "Nicht verbunden",
+        "linked": "Verbunden"
+      },
+      "unavailableNote": "Die Alexa-Verbindung wird noch gebaut. Hier wird nichts gespeichert, und die Einrichtung klappt auch ohne.",
+      "linkedNote": "Alexa ist mit diesem Konto verbunden.",
+      "connect": "Mit Alexa verbinden",
+      "disconnect": "Alexa trennen",
+      "later": "Später verbinden",
+      "continue": "Weiter",
+      "command": "„Alexa, öffne Hort.“",
+      "how": {
+        "title": "So wird es funktionieren",
+        "steps": {
+          "link": "Du verbindest dein Alexa-Konto einmal mit Hort.",
+          "say": "Dein Kind sagt den Satz oben, um zu starten.",
+          "help": "Hort hilft deinem Kind beim Nachdenken über die Aufgabe und verrät nie die Lösung."
+        }
+      }
+    },
+    "controls": {
+      "title": "Sicherheit und Einstellungen",
+      "description": "Du bestimmst, was {name} darf. Die sicherste Wahl ist schon ausgewählt.",
+      "voice": {
+        "title": "Mit {tutor} sprechen",
+        "description": "{name} darf mit {tutor} sprechen und die Antwort hören. Tippen geht immer. Alexa lässt sich noch nicht verbinden.",
+        "on": "Sprache ist an",
+        "off": "Sprache ist aus"
+      },
+      "time": {
+        "title": "Lernzeit",
+        "description": "Halte die Hausaufgabenhilfe auf Zeiten, die zu eurer Familie passen.",
+        "limit": "Tageslimit",
+        "limitNone": "Kein Limit",
+        "limitOption": "{minutes} Minuten",
+        "windowTitle": "Nur zu bestimmten Zeiten",
+        "windowDescription": "Hort ist nur in diesem Zeitfenster da.",
+        "windowOn": "Zeitfenster ist an",
+        "windowOff": "Zu jeder Tageszeit",
+        "from": "Von",
+        "until": "Bis",
+        "note": "Die Zeiten gelten ab der ersten Hausaufgabenhilfe. Das Tageslimit wird jetzt gespeichert und angewendet, sobald Hort die Lernzeit messen kann.",
+        "limitHint": "Wie lange Hort pro Tag hilft."
+      },
+      "insights": {
+        "title": "Notizen für deine Zusammenfassung",
+        "description": "Hort darf festhalten, bei welchen Aufgabenarten {name} Hilfe brauchte, für deine spätere Zusammenfassung. Gespräche werden nicht gespeichert. Die Zusammenfassung ist noch in Arbeit.",
+        "on": "Notizen sind an",
+        "off": "Notizen sind aus"
+      },
+      "always": {
+        "title": "Das gilt immer",
+        "items": {
+          "solution": "Hort verrät nie die Lösung einer Aufgabe. Dein Kind denkt selbst mit.",
+          "checks": "Texte für dein Kind laufen zuerst durch Sicherheitsprüfungen.",
+          "private": "Nur du siehst dieses Profil. Dein Kind hat kein Konto."
+        }
+      },
+      "guardian": {
+        "label": "Ich bin Elternteil oder Erziehungsberechtigte/r von {name} und erlaube Hort, die Angaben aus dieser Einrichtung zu speichern.",
+        "hint": "Nötig zum Weitermachen. Datenschutzhinweis, Version {version}."
+      },
+      "submit": "Weiter",
+      "groups": {
+        "voice": "Sprache",
+        "time": "Lernzeit",
+        "notes": "Zusammenfassung für dich",
+        "guardian": "Deine Bestätigung"
+      }
+    },
+    "review": {
+      "title": "Stimmt alles?",
+      "description": "Wirf einen letzten Blick darauf. Jetzt kannst du noch alles ändern.",
+      "sections": {
+        "child": "Dein Kind",
+        "interests": "Interessen",
+        "tutor": "Begleiter",
+        "controls": "Sicherheit und Einstellungen"
+      },
+      "rows": {
+        "name": "Name",
+        "state": "Bundesland",
+        "grade": "Klasse",
+        "voice": "Sprache",
+        "limit": "Tageslimit",
+        "window": "Zeitfenster",
+        "insights": "Notizen für deine Zusammenfassung",
+        "guardian": "Erziehungsberechtigung bestätigt"
+      },
+      "values": {
+        "on": "An",
+        "off": "Aus",
+        "none": "Keines",
+        "anyTime": "Jederzeit",
+        "window": "{from} bis {until}",
+        "yes": "Ja"
+      },
+      "noInterests": "Keine Interessen gewählt",
+      "submit": "Einrichtung abschließen"
+    },
+    "done": {
+      "title": "{name} ist startklar!",
+      "description": "Wenn Hausaufgaben anstehen, denkt {tutor} gemeinsam mit {name} mit.",
+      "recapLabel": "Das hast du eingerichtet",
+      "recapGrade": "Klasse {grade}",
+      "voiceOn": "Sprache ist an.",
+      "voiceOff": "Sprache ist aus.",
+      "toHome": "Zu meiner Startseite"
+    },
+    "reset": {
+      "label": "Einrichtung zurücksetzen (nur Entwicklung)",
+      "pending": "Wird zurückgesetzt …",
+      "hint": "Nur für die Entwicklung: löscht deine Kinderprofile, damit du die Einrichtung noch einmal durchlaufen kannst."
+    },
+    "states": {
+      "BW": "Baden-Württemberg",
+      "BY": "Bayern",
+      "BE": "Berlin",
+      "BB": "Brandenburg",
+      "HB": "Bremen",
+      "HH": "Hamburg",
+      "HE": "Hessen",
+      "MV": "Mecklenburg-Vorpommern",
+      "NI": "Niedersachsen",
+      "NW": "Nordrhein-Westfalen",
+      "RP": "Rheinland-Pfalz",
+      "SL": "Saarland",
+      "SN": "Sachsen",
+      "ST": "Sachsen-Anhalt",
+      "SH": "Schleswig-Holstein",
+      "TH": "Thüringen"
+    },
     "errors": {
-      "notFound": "Der Eintrag wurde nicht gefunden.",
-      "validation": "Bitte überprüfen Sie Ihre Eingaben.",
-      "infrastructure": "Ein Dienstfehler ist aufgetreten. Bitte versuchen Sie es später erneut.",
-      "unexpected": "Ein unerwarteter Fehler ist aufgetreten."
+      "notFound": "Wir haben dieses Profil nicht gefunden. Geh bitte einen Schritt zurück und versuche es noch einmal.",
+      "alreadyOnboarded": "Dein Kind ist schon eingerichtet. Wir bringen dich zu deiner Startseite.",
+      "setupIncomplete": "Ein Schritt fehlt noch. Geh bitte noch einmal durch die Schritte.",
+      "devResetUnavailable": "Das gibt es nur während der Entwicklung.",
+      "validation": "Bitte prüfe deine Angaben.",
+      "infrastructure": "Das konnten wir gerade nicht speichern. Es wurde nichts geändert. Bitte versuche es gleich noch einmal.",
+      "unexpected": "Wir konnten nicht bestätigen, dass das gespeichert wurde. Bitte versuche es noch einmal."
     },
     "validation": {
-      "idInvalid": "Die Kennung ist ungültig.",
-      "required": "Dieses Feld ist erforderlich.",
-      "tooLong": "Dieser Wert ist zu lang.",
-      "numberInvalid": "Geben Sie eine gültige Zahl ein.",
-      "optionUnknown": "Wählen Sie eine der verfügbaren Optionen."
+      "displayNameRequired": "Bitte gib einen Namen für dein Kind ein.",
+      "displayNameTooLong": "Der Name darf höchstens {displayNameMax} Zeichen haben.",
+      "displayNameInvalid": "Bitte nutze nur Buchstaben, Zahlen oder einfache Satzzeichen.",
+      "federalStateInvalid": "Bitte wähle ein Bundesland.",
+      "gradeInvalid": "Bitte wähle eine Klasse.",
+      "tutorInvalid": "Bitte wähle einen Begleiter.",
+      "interestsInvalid": "Eines der Interessen gibt es nicht.",
+      "interestsTooMany": "Bitte wähle höchstens {maxInterests} Interessen.",
+      "dailyLimitInvalid": "Bitte wähle eines der angebotenen Limits.",
+      "windowInvalid": "Das Zeitfenster muss mindestens 30 Minuten dauern.",
+      "guardianConfirmationRequired": "Bitte bestätige, dass du Elternteil oder Erziehungsberechtigte/r bist."
     }
   }
 }

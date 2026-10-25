@@ -4,8 +4,8 @@ A teacher posts work assignments for their class; the children of that class see
 
 ## Routes
 
-- Teacher: `/de/teacher/assignments` and `/en/teacher/assignments` (`?classroom=<id>` selects a class). Signed-out visitors are sent to sign-in and back. The signed-in home page links teachers here.
-- Child: `/de/start?child=<childProfileId>` and `/en/start?child=…`, in the signed-in parent's session. "Schulaufgaben" / "School tasks" then lists the class's assignments. Without `child`, or when the child is not the parent's, the start screen keeps its "not available yet" state.
+- Teacher: `/de/teacher/assignments` and `/en/teacher/assignments` (`?classroom=<id>` selects a class). Signed-out visitors are sent to sign-in and back. `/home` is role-aware: a teacher skips the parent onboarding (#63) and gets a link here; `/onboarding` sends a teacher home.
+- Child: `/de/start?child=<childProfileId>` and `/en/start?child=…`, in the signed-in parent's session. A parent who finished onboarding gets this link on `/home` for their saved child profile. "Schulaufgaben" / "School tasks" then lists the class's assignments. Without `child`, or when the child is not the parent's, the start screen keeps its "not available yet" state.
 
 The development preview (`/dev/teacher-assignments`) is gone; the real route replaced it.
 
@@ -35,5 +35,5 @@ Limits (domain, repeated by the database checks): title 120, task text 4,000, so
 
 ## Not done here
 
-- Choosing a child: there is no child-profile screen yet (learner UI), so the start screen takes the child from `?child=`.
+- Several children per parent: onboarding (#63) creates one profile, and `/home` links to it. A picker comes with multi-child support.
 - Help on a school task: selecting one shows it and says help is coming; starting an AI help session needs the session use case (#12, #17).

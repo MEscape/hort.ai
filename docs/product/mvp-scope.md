@@ -26,7 +26,7 @@ Competency granularity for the MVP: one competency per Bildungsstandard bullet (
 
 ## Roles in the MVP
 
-- **Parent** signs up, creates a child profile (display name, federal state, grade; voice consent off by default) and links it to a class with an invite code.
+- **Parent** signs up, creates a child profile (display name, federal state, grade, interests, companion, parent controls; every control starts at its most private value) after confirming guardianship and links it to a class with an invite code.
 - **Teacher** signs up by choosing the teacher role at registration (no verification in the MVP, documented risk). Creates a class (federal state, grade, subject), gets an invite code, may upload material (#29) and post assignments (#33).
 - **Child** has no account. It works in the parent's session on its own task or an open assignment of its class. A child belongs to at most one active class; the class's federal state and grade are copied to the profile when it joins.
 

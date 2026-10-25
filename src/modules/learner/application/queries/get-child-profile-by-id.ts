@@ -7,7 +7,10 @@ import type { ChildProfileView } from '../contracts/learner-views';
 import type { LearnerDependencies } from '../learner-dependencies';
 import type { LoadChildProfileError } from '../load-authorized-child-profile';
 
-/** Reads one child profile of the actor's own tenant. */
+/**
+ * One of the signed-in parent's own child profiles. Another parent's id answers exactly like an
+ * unknown one. The classroom module uses it to check a child belongs to the parent (#32).
+ */
 export class GetChildProfileById {
   constructor(private readonly deps: LearnerDependencies) {}
 
