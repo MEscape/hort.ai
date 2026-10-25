@@ -62,12 +62,7 @@ export function SelectField({
     <div className="flex flex-col gap-2">
       <Label htmlFor={id}>{label}</Label>
       {/* Radix shows the placeholder for '': passing `undefined` would make it uncontrolled until the first choice. */}
-      <Select
-        name={name}
-        value={value}
-        onValueChange={onValueChange}
-        disabled={disabled}
-      >
+      <Select name={name} value={value} onValueChange={onValueChange} disabled={disabled}>
         <SelectTrigger
           id={id}
           onBlur={onBlur}

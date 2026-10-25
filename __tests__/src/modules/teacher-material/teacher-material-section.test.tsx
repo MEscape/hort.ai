@@ -65,7 +65,9 @@ describe('teacher material section', () => {
     const data = actions.upload.mock.calls[0]?.[0] as FormData;
     expect(data.get('classroomId')).toBe('class-1');
     expect((data.get('file') as File).name).toBe('Zahlen.txt');
-    expect(screen.getByRole('status')).toHaveTextContent('“Zahlen” is uploaded.');
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent('“Zahlen” is uploaded.');
+    });
   });
 
   it('explains a file the server could not read in friendly words', async () => {

@@ -139,6 +139,24 @@ export function confirmGuardian(
     : { confirmedAt: now, consentVersion: GUARDIAN_CONSENT_VERSION };
 }
 
+/**
+ * The voice notice confirmation that goes with the voice control: none while voice is off, the
+ * stored one while it is for the current notice, else a new one from `now`. The caller has checked
+ * that the parent was shown the current notice.
+ */
+export function confirmVoiceNotice(
+  previous: VoiceNoticeConfirmation | null,
+  voiceEnabled: boolean,
+  now: Date,
+): VoiceNoticeConfirmation | null {
+  if (!voiceEnabled) {
+    return null;
+  }
+  return previous?.version === VOICE_NOTICE_VERSION
+    ? previous
+    : { confirmedAt: now, version: VOICE_NOTICE_VERSION };
+}
+
 /** Whether the guardian confirmed the statement that is current. */
 export function hasCurrentGuardianConfirmation(profile: ChildProfile): boolean {
   return profile.guardian?.consentVersion === GUARDIAN_CONSENT_VERSION;
