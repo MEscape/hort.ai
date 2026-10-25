@@ -12,6 +12,7 @@ import { buildPrivateMetadata } from '@lib/seo';
 
 import { orFail } from '@/app/_lib/or-fail';
 
+import { describeTopics } from '../../_components/describe-topics';
 import { ParentFrame } from '../../_components/parent-frame';
 import { ParentLoading } from '../../_components/parent-loading';
 
@@ -33,7 +34,13 @@ async function ParentTask({
   readonly taskId: string;
 }) {
   const task = await orFail(getParentLearnerServices().getTask.execute({ profileId, taskId }));
-  return <ParentTaskDetail task={task} />;
+  const topics = await describeTopics([task.competencyCode]);
+  return (
+    <ParentTaskDetail
+      task={task}
+      topic={task.competencyCode === null ? null : (topics[task.competencyCode] ?? null)}
+    />
+  );
 }
 
 /** `params` is read inside Suspense, so the dynamic segment never blocks the prerendered shell. */

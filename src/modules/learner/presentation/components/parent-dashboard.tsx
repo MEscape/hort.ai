@@ -72,7 +72,7 @@ export function ParentDashboard({
               </Link>
             ))}
           </nav>
-          <p className="mt-4 hidden px-3 text-xs leading-relaxed text-copy-muted lg:block">
+          <p className="mt-3 px-3 text-xs leading-relaxed text-copy-muted lg:mt-4">
             {t('restricted')}
           </p>
         </aside>

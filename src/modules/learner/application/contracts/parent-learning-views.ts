@@ -4,10 +4,18 @@ import type {
   ParentAssignment,
   ParentHintLevel,
   ParentLearningRecords,
+  ParentSubject,
   ParentTask,
+  ParentTaskWithAssignment,
+  ParentTopic,
+  ParentTopics,
 } from '../../domain/models/parent-learning';
 
-export { PARENT_ANSWER_RESULTS, PARENT_HINT_LEVELS } from '../../domain/models/parent-learning';
+export {
+  PARENT_ANSWER_RESULTS,
+  PARENT_HINT_LEVELS,
+  PARENT_SUBJECTS,
+} from '../../domain/models/parent-learning';
 export type ParentRange = 'today' | 'week' | 'month';
 export type ParentSection =
   'overview' | 'learning' | 'assignments' | 'time' | 'settings' | 'privacy';
@@ -17,7 +25,11 @@ export type {
   ParentAssignment,
   ParentHintLevel,
   ParentLearningRecords,
+  ParentSubject,
   ParentTask,
+  ParentTaskWithAssignment,
+  ParentTopic,
+  ParentTopics,
 };
 
 export interface ParentPeriod {
@@ -54,10 +66,7 @@ export interface ParentLearningMetrics {
     readonly COMPLETED: number;
     readonly ABANDONED: number;
   }>;
-  readonly subjects: ReadonlyArray<{
-    readonly subject: ParentAssignment['subject'] | 'unknown';
-    readonly count: number;
-  }>;
+  readonly subjects: ReadonlyArray<{ readonly subject: ParentSubject; readonly count: number }>;
   readonly hintDistribution: ReadonlyArray<{ readonly hints: number; readonly tasks: number }>;
   /** Per rung of the hint ladder, the tasks that used it; empty when no hint count is known. */
   readonly helpLevels: ReadonlyArray<{ readonly level: ParentHintLevel; readonly tasks: number }>;

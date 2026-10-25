@@ -491,7 +491,9 @@
   }
 
   p,
-  li {
+  li,
+  dd {
+    overflow-wrap: anywhere;
     text-wrap: pretty;
   }
 

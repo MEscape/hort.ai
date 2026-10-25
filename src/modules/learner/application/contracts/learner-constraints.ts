@@ -19,7 +19,11 @@ export {
   minutesSinceMidnight,
 } from '../../domain/models/parent-controls';
 export type { AllowedWindow, DailyLimitMinutes } from '../../domain/models/parent-controls';
-export { LOW_TIME_MINUTES, computeScreenTime } from '../../domain/models/screen-time';
+export {
+  LOW_TIME_MINUTES,
+  computeScreenTime,
+  learningDayStart,
+} from '../../domain/models/screen-time';
 export type {
   ScreenTime,
   ScreenTimeStatus,

@@ -1,8 +1,7 @@
 import 'server-only';
 
 import { withAuditTrail } from '@modules/audit';
-import { getAccessControl, getParentAreaServices } from '@modules/auth';
-import type { AuthorizationService } from '@modules/auth';
+import { getAccessControl, withParentProof } from '@modules/auth';
 
 import { systemClock } from '@lib/clock';
 import { serverEnv } from '@lib/config/server';
@@ -65,17 +64,10 @@ const getDependencies = once((): LearnerDependencies => ({
 
 export const getLearnerCommands = once(() => {
   const dependencies = getDependencies();
-  const parentAuthorization: AuthorizationService = {
-    requireInTenant: (permission) =>
-      dependencies.authorization.requireInTenant(permission).andThen((actor) =>
-        getParentAreaServices()
-          .require.execute()
-          .map(() => actor),
-      ),
-    requireOnResource: (permission, scope) =>
-      dependencies.authorization.requireOnResource(permission, scope),
+  const parentDependencies = {
+    ...dependencies,
+    authorization: withParentProof(dependencies.authorization),
   };
-  const parentDependencies = { ...dependencies, authorization: parentAuthorization };
   return {
     createChildProfile: new CreateChildProfile(dependencies),
     saveInterests: new SaveInterests(dependencies),
@@ -102,23 +94,9 @@ export const getLearnerQueries = once(() => {
 /** Every adult read and write rechecks the short-lived password proof before accessing child data. */
 export const getParentLearnerServices = once(() => {
   const dependencies = getDependencies();
-  const authorization: AuthorizationService = {
-    requireInTenant: (permission) =>
-      dependencies.authorization.requireInTenant(permission).andThen((actor) =>
-        getParentAreaServices()
-          .require.execute()
-          .map(() => actor),
-      ),
-    requireOnResource: (permission, scope) =>
-      dependencies.authorization.requireOnResource(permission, scope).andThen((actor) =>
-        getParentAreaServices()
-          .require.execute()
-          .map(() => actor),
-      ),
-  };
   const parentDependencies = {
     ...dependencies,
-    authorization,
+    authorization: withParentProof(dependencies.authorization),
     learning: new PrismaParentLearningRepository(),
   };
   return {

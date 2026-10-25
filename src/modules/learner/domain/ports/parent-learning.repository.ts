@@ -2,7 +2,7 @@ import type { InfrastructureAppError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
 
 import type { ActorId, ChildProfileId, ParentTaskId, TenantId } from '../models/ids';
-import type { ParentLearningRecords, ParentTask } from '../models/parent-learning';
+import type { ParentLearningRecords, ParentTaskWithAssignment } from '../models/parent-learning';
 
 export interface ParentLearningScope {
   readonly tenantId: TenantId;
@@ -24,5 +24,5 @@ export interface ParentLearningRepository {
   findTask(
     scope: ParentLearningScope,
     id: ParentTaskId,
-  ): AppResultAsync<ParentTask | null, InfrastructureAppError>;
+  ): AppResultAsync<ParentTaskWithAssignment | null, InfrastructureAppError>;
 }

@@ -10,14 +10,12 @@ const record = (overrides: Partial<TaskRecord> = {}): TaskRecord => ({
   id: 'session-1',
   assignmentId: null,
   status: 'COMPLETED',
+  subject: 'MATH',
+  competencyCode: 'kmk-mathe@2022:z.1',
   startedAt: at('2026-10-25T10:00:00Z'),
   updatedAt: at('2026-10-25T10:20:00Z'),
   endedAt: at('2026-10-25T10:20:00Z'),
-  hintEvents: [
-    { level: 'NEXT_STEP', competencyCode: 'MA-1' },
-    { level: 'UNDERSTAND_TASK', competencyCode: null },
-    { level: 'NEXT_STEP', competencyCode: 'MA-1' },
-  ],
+  hintEvents: [{ level: 'NEXT_STEP' }, { level: 'UNDERSTAND_TASK' }, { level: 'NEXT_STEP' }],
   childAnswers: [{ id: 'a' }, { id: 'b' }],
   answerAssessments: [{ result: 'NOT_YET' }, { result: 'CORRECT' }],
   comprehensionQuestions: [{ repliedAt: at('2026-10-25T10:19:00Z') }, { repliedAt: null }],
@@ -29,7 +27,6 @@ describe('parent task projection', () => {
     expect(toParentTask(record(), true, LIMIT)).toMatchObject({
       hintCount: 3,
       hintLevels: ['UNDERSTAND_TASK', 'NEXT_STEP'],
-      competencyCodes: ['MA-1'],
       answers: { given: 2, results: { CORRECT: 1, PARTLY_CORRECT: 0, NOT_YET: 1 } },
       questionsAsked: 2,
       questionsAnswered: 1,
@@ -40,7 +37,6 @@ describe('parent task projection', () => {
     expect(toParentTask(record(), false, LIMIT)).toMatchObject({
       hintCount: null,
       hintLevels: [],
-      competencyCodes: [],
       answers: null,
       questionsAsked: null,
       questionsAnswered: null,
@@ -65,5 +61,9 @@ describe('parent task projection', () => {
   it('never carries text from the conversation', () => {
     const task = toParentTask(record(), true, LIMIT);
     expect(JSON.stringify(task)).not.toMatch(/taskText|replyText|"text"/);
+  });
+  it('passes the curriculum code on for the app route to describe', () => {
+    expect(toParentTask(record(), false, LIMIT).competencyCode).toBe('kmk-mathe@2022:z.1');
+    expect(toParentTask(record({ competencyCode: null }), true, LIMIT).competencyCode).toBeNull();
   });
 });

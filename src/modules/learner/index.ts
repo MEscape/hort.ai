@@ -18,7 +18,11 @@ export { ParentPrivacy } from './presentation/components/parent-privacy';
 export { ParentPanel } from './presentation/components/parent-panel';
 export { ParentTaskDetail } from './presentation/components/parent-task-detail';
 export { ParentControlsForm } from './presentation/components/parent-controls-form';
-export type { ParentSection, ParentRange } from './application/contracts/parent-learning-views';
+export type {
+  ParentSection,
+  ParentRange,
+  ParentTopics,
+} from './application/contracts/parent-learning-views';
 export { parentPageSchema } from './presentation/schemas/parent-page-schema';
 
 export type { AdoptSchoolSettingsError } from './application/commands/adopt-school-settings';
@@ -93,3 +97,5 @@ export { learnerRoutes } from './presentation/routes';
 export { default as enLearner } from './presentation/i18n/en.json';
 export { default as deLearner } from './presentation/i18n/de.json';
 export { formatMinute } from './presentation/components/time-options';
+/** Where the guidance module counts the daily limit from (the server-side screen-time check). */
+export { learningDayStart } from './application/contracts/learner-constraints';

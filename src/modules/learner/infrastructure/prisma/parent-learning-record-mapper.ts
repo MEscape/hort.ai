@@ -1,6 +1,5 @@
 import { instantToDate } from '@lib/db';
 import type { InstantRecord } from '@lib/db';
-import { unique } from '@lib/utils';
 
 import { toParentTaskId } from '../../domain/models/ids';
 import { PARENT_ANSWER_RESULTS, PARENT_HINT_LEVELS } from '../../domain/models/parent-learning';
@@ -8,6 +7,7 @@ import { PARENT_ANSWER_RESULTS, PARENT_HINT_LEVELS } from '../../domain/models/p
 import type {
   ParentAnswerEvidence,
   ParentAnswerResult,
+  ParentSubject,
   ParentTask,
 } from '../../domain/models/parent-learning';
 
@@ -15,6 +15,8 @@ export const PARENT_TASK_SELECT = [
   'id',
   'assignmentId',
   'status',
+  'subject',
+  'competencyCode',
   'startedAt',
   'updatedAt',
   'endedAt',
@@ -24,13 +26,12 @@ export interface TaskRecord {
   readonly id: string;
   readonly assignmentId: string | null;
   readonly status: ParentTask['status'];
+  readonly subject: ParentSubject;
+  readonly competencyCode: string | null;
   readonly startedAt: InstantRecord;
   readonly updatedAt: InstantRecord;
   readonly endedAt: InstantRecord | null;
-  readonly hintEvents: ReadonlyArray<{
-    readonly level: string;
-    readonly competencyCode: string | null;
-  }>;
+  readonly hintEvents: ReadonlyArray<{ readonly level: string }>;
   readonly childAnswers: ReadonlyArray<{ readonly id: string }>;
   // An assessment still being judged has no result yet (null).
   readonly answerAssessments: ReadonlyArray<{ readonly result: string | null }>;
@@ -51,20 +52,15 @@ function answerEvidence(record: TaskRecord): ParentAnswerEvidence {
   return { given: record.childAnswers.length, results };
 }
 
-/** Hint count, rungs and curriculum codes are known together or not at all. */
+/** Hint count and rungs are known together or not at all. */
 function hintEvidence(record: TaskRecord, known: boolean) {
   if (!known) {
-    return { hintCount: null, hintLevels: [], competencyCodes: [] };
+    return { hintCount: null, hintLevels: [] };
   }
   const usedLevels = new Set(record.hintEvents.map((hint) => hint.level));
   return {
     hintCount: record.hintEvents.length,
     hintLevels: PARENT_HINT_LEVELS.filter((level) => usedLevels.has(level)),
-    competencyCodes: unique(
-      record.hintEvents.flatMap((hint) =>
-        hint.competencyCode === null ? [] : [hint.competencyCode],
-      ),
-    ),
   };
 }
 
@@ -79,7 +75,10 @@ function questionEvidence(record: TaskRecord, known: boolean) {
     : { questionsAsked: null, questionsAnswered: null };
 }
 
-/** Truncated evidence is unavailable rather than an undercount. Text never enters this projection. */
+/**
+ * Truncated evidence is unavailable rather than an undercount. Text never enters this projection;
+ * the curriculum code is passed on for the app route to describe through the curriculum module.
+ */
 export function toParentTask(
   record: TaskRecord,
   insights: boolean,
@@ -98,6 +97,8 @@ export function toParentTask(
     startedAt: iso(record.startedAt),
     updatedAt: iso(record.updatedAt),
     endedAt: record.endedAt === null ? null : iso(record.endedAt),
+    subject: record.subject,
+    competencyCode: record.competencyCode,
     ...hintEvidence(record, hintsKnown),
     answers: answersKnown ? answerEvidence(record) : null,
     ...questionEvidence(record, questionsKnown),

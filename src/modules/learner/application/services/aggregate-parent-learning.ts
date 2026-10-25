@@ -12,7 +12,7 @@ export function aggregateParentLearning(
   records: ParentLearningRecords,
   period: ParentPeriod,
 ): ParentLearningMetrics {
-  const { tasks, assignments } = records;
+  const { tasks } = records;
   const hintKnown = tasks.filter((task) => task.hintCount !== null);
   const knownHints = hintKnown.map((task) => task.hintCount ?? 0);
   const answerKnown = tasks.flatMap((task) => (task.answers === null ? [] : [task.answers]));
@@ -24,9 +24,7 @@ export function aggregateParentLearning(
     if (day) {
       day[task.status] += 1;
     }
-    const subject =
-      assignments.find((assignment) => assignment.id === task.assignmentId)?.subject ?? 'unknown';
-    subjects.set(subject, (subjects.get(subject) ?? 0) + 1);
+    subjects.set(task.subject, (subjects.get(task.subject) ?? 0) + 1);
   }
   for (const count of knownHints) {
     hints.set(count, (hints.get(count) ?? 0) + 1);

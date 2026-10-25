@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 
+import { ChildClassroomPanel, classroomQueries } from '@modules/classroom';
+import { getHelpSessionQueries } from '@modules/guidance';
 import {
   ParentAssignments,
   ParentControlsForm,
@@ -17,9 +19,11 @@ import type { ChildProfileDto, ParentRange, ParentSection } from '@modules/learn
 import { getTranslations } from '@i18n/server';
 
 import { systemClock } from '@lib/clock';
+import { logger } from '@lib/logger';
 
 import { orFail } from '@/app/_lib/or-fail';
 
+import { describeTopics } from './describe-topics';
 import { ParentCompanion } from './parent-companion';
 
 /** Route composition only: settings stay usable independently of the learning projection. */
@@ -55,13 +59,18 @@ export async function ParentContent({
     );
   }
   if (section === 'time') {
+    // The count the daily limit is enforced against. A failed read shows "not available", never zero.
+    const minutes = await getHelpSessionQueries().getTodayHelpMinutes.execute({
+      childProfileId: child.id,
+    });
+    if (minutes.isErr()) {
+      logger.warn('parent.help_minutes_unavailable', { code: minutes.error.code });
+    }
+    const usedMinutes = minutes.isOk() ? minutes.value : null;
     return (
       <ParentTime
         profile={child}
-        windowOpen={
-          computeScreenTime({ controls: child, now: systemClock.now(), usedMinutes: null })
-            .status !== 'closed_outside_window'
-        }
+        screenTime={computeScreenTime({ controls: child, now: systemClock.now(), usedMinutes })}
       />
     );
   }
@@ -69,10 +78,26 @@ export async function ParentContent({
     getParentLearnerServices().getLearning.execute({ profileId: child.id, range }),
   );
   if (section === 'assignments') {
-    return <ParentAssignments records={learning.records} today={learning.period.today} />;
+    const classroom = await orFail(classroomQueries.getChildClassroom.execute(child.id));
+    return (
+      <div className="space-y-6">
+        <div className="rounded-token-xl border border-border bg-surface p-5 shadow-soft sm:p-6">
+          <ChildClassroomPanel
+            childProfileId={child.id}
+            childName={child.displayName}
+            classroom={classroom && { name: classroom.name, grade: classroom.grade }}
+          />
+          <p className="mt-4 max-w-prose text-sm leading-relaxed text-copy-muted">
+            {t('classDescription')}
+          </p>
+        </div>
+        <ParentAssignments records={learning.records} today={learning.period.today} />
+      </div>
+    );
   }
   if (section === 'learning') {
-    return <ParentLearning {...learning} />;
+    const topics = await describeTopics(learning.records.tasks.map((task) => task.competencyCode));
+    return <ParentLearning {...learning} topics={topics} />;
   }
   return (
     <ParentOverview
@@ -81,7 +106,7 @@ export async function ParentContent({
         <Suspense
           fallback={
             <ParentPanel title={t('companionTitle')}>
-              <p>{t('loading')}</p>
+              <p role="status">{t('loading')}</p>
             </ParentPanel>
           }
         >

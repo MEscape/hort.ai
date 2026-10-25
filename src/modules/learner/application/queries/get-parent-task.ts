@@ -6,7 +6,7 @@ import { parseParentTaskId } from '../../domain/models/ids';
 import { parentLearningScope } from '../child-profile-scope';
 import { loadAuthorizedChildProfile } from '../load-authorized-child-profile';
 
-import type { ParentTask } from '../contracts/parent-learning-views';
+import type { ParentTaskWithAssignment } from '../contracts/parent-learning-views';
 import type { ParentLearnerDependencies } from '../learner-dependencies';
 import type { LoadChildProfileError } from '../load-authorized-child-profile';
 
@@ -19,7 +19,7 @@ export class GetParentTask {
   execute(input: {
     readonly profileId: string;
     readonly taskId: string;
-  }): AppResultAsync<ParentTask, GetParentTaskError> {
+  }): AppResultAsync<ParentTaskWithAssignment, GetParentTaskError> {
     return loadAuthorizedChildProfile(this.deps, input.profileId, 'learner.read').andThen(
       ({ childProfile }) =>
         parseParentTaskId(input.taskId).asyncAndThen((taskId) =>

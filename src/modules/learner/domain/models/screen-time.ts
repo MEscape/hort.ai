@@ -2,6 +2,7 @@ import { MS_PER_MINUTE, isDefined } from '@lib/utils';
 
 import { LEARNER_LIMITS } from './learner-limits';
 import { minutesSinceMidnight } from './parent-controls';
+import { parentPeriod } from './parent-period';
 
 import type { AllowedWindow } from './parent-controls';
 
@@ -97,4 +98,9 @@ export function computeScreenTime(input: ScreenTimeInput): ScreenTime {
   const isLow = minutesLeft !== null && minutesLeft <= LOW_TIME_MINUTES;
 
   return { status: isLow ? 'low' : 'open', usage, minutesLeft, reopensAt: null };
+}
+
+/** Midnight of the child's calendar day at `now` in `LEARNER_TIME_ZONE`: the daily limit counts from here. */
+export function learningDayStart(now: Date): Date {
+  return new Date(parentPeriod('today', now).from);
 }

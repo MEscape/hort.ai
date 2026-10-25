@@ -1,10 +1,11 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { computeScreenTime } from '@modules/learner/application/contracts/learner-constraints';
 import type {
   ParentLearningMetrics,
   ParentLearningRecords,
-  ParentTask,
+  ParentTaskWithAssignment,
 } from '@modules/learner/application/contracts/parent-learning-views';
 import { toParentTaskId } from '@modules/learner/domain/models/ids';
 import { updateParentControlsAction } from '@modules/learner/presentation/actions/update-parent-controls-action';
@@ -12,6 +13,8 @@ import { ParentControlsForm } from '@modules/learner/presentation/components/par
 import { ParentHelp } from '@modules/learner/presentation/components/parent-help';
 import { ParentTaskDetail } from '@modules/learner/presentation/components/parent-task-detail';
 import { ParentTaskList } from '@modules/learner/presentation/components/parent-task-list';
+import { ParentTime } from '@modules/learner/presentation/components/parent-time';
+import { exploredTopics } from '@modules/learner/presentation/components/parent-topics';
 import type { ChildProfileDto } from '@modules/learner/presentation/dto/learner-dto';
 import deCatalog from '@modules/learner/presentation/i18n/de.json';
 import enCatalog from '@modules/learner/presentation/i18n/en.json';
@@ -132,7 +135,7 @@ describe('parent dashboard presentation', () => {
   });
 });
 
-const hintedTask: ParentTask = {
+const hintedTask: ParentTaskWithAssignment = {
   id: toParentTaskId('session-1'),
   assignmentId: null,
   status: 'COMPLETED',
@@ -144,7 +147,9 @@ const hintedTask: ParentTask = {
   answers: { given: 2, results: { CORRECT: 1, PARTLY_CORRECT: 0, NOT_YET: 1 } },
   questionsAsked: 1,
   questionsAnswered: 1,
-  competencyCodes: [],
+  subject: 'MATH',
+  competencyCode: null,
+  assignment: null,
 };
 const metrics = {
   insightTasks: 2,
@@ -164,7 +169,7 @@ describe('parent help evidence', () => {
         timeZone="Europe/Berlin"
         isDevelopment={false}
       >
-        <ParentTaskDetail task={hintedTask} />
+        <ParentTaskDetail task={hintedTask} topic={null} />
       </I18nClientProvider>,
     );
     const ladder = screen.getByRole('list', { name: messages.dashboard.helpLadder });
@@ -176,6 +181,28 @@ describe('parent help evidence', () => {
     );
     expect(screen.getByText(messages.dashboard.answerResults.NOT_YET)).toBeInTheDocument();
     expect(screen.queryByText(/weak|schwach|grade [A-F1-6]|Note [1-6]/i)).not.toBeInTheDocument();
+  });
+  it('names an assignment task by its title and subject, never by its task text', () => {
+    render(
+      <I18nClientProvider
+        locale="en"
+        messages={{ learner: en }}
+        timeZone="Europe/Berlin"
+        isDevelopment={false}
+      >
+        <ParentTaskDetail
+          task={{ ...hintedTask, assignment: { title: 'Viertel und Hälften', subject: 'MATH' } }}
+          topic={null}
+        />
+      </I18nClientProvider>,
+    );
+    expect(screen.getByRole('heading', { name: 'Viertel und Hälften' })).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        en.dashboard.taskFromAssignment.replace('{subject}', en.dashboard.subjects.MATH),
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/brought in/)).not.toBeInTheDocument();
   });
   it('shows no hint evidence and links to settings while notes are off', () => {
     render(
@@ -208,5 +235,79 @@ describe('parent help evidence', () => {
     );
     expect(screen.getByRole('figure')).toHaveTextContent(en.dashboard.helpLevels.NEXT_STEP);
     expect(document.querySelector('[style*="width"]')).toHaveStyle({ width: '50%' });
+  });
+});
+
+describe('topics explored', () => {
+  const at = (
+    id: string,
+    subject: ParentTaskWithAssignment['subject'],
+    competencyCode: string | null,
+  ) => ({
+    ...hintedTask,
+    id: toParentTaskId(id),
+    subject,
+    competencyCode,
+  });
+  const topics = {
+    'kc@1:a': { section: 'Brüche', statement: 'erkennen Anteile' },
+    'kc@1:b': { section: null, statement: 'nutzen das Einmaleins' },
+  };
+  it('counts tasks per topic and subject, names a topic without section by its statement', () => {
+    const result = exploredTopics(
+      [
+        at('1', 'MATH', 'kc@1:a'),
+        at('2', 'MATH', 'kc@1:a'),
+        at('3', 'MATH', 'kc@1:b'),
+        at('4', 'GERMAN', 'kc@1:a'),
+      ],
+      topics,
+    );
+    expect(result.explored).toEqual([
+      { subject: 'MATH', label: 'Brüche', tasks: 2 },
+      { subject: 'GERMAN', label: 'Brüche', tasks: 1 },
+      { subject: 'MATH', label: 'nutzen das Einmaleins', tasks: 1 },
+    ]);
+    expect(result.unclassified).toBe(0);
+  });
+  it('counts unclassified and undescribed tasks apart instead of guessing a topic', () => {
+    const result = exploredTopics([at('1', 'MATH', null), at('2', 'MATH', 'material:x:y')], topics);
+    expect(result).toEqual({ explored: [], unclassified: 2 });
+  });
+});
+
+describe('parent time and limits', () => {
+  const noon = new Date('2026-10-25T11:00:00Z');
+  const time = (usedMinutes: number | null) =>
+    render(
+      <I18nClientProvider
+        locale="en"
+        messages={{ learner: en }}
+        timeZone="Europe/Berlin"
+        isDevelopment={false}
+      >
+        <ParentTime
+          profile={profile}
+          screenTime={computeScreenTime({ controls: profile, now: noon, usedMinutes })}
+        />
+      </I18nClientProvider>,
+    );
+  it('shows measured minutes against the limit and the calm open state', () => {
+    time(12);
+    expect(screen.getByText('12 minutes')).toBeInTheDocument();
+    expect(screen.getByText('18 minutes left of 30 today')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(en.dashboard.timeStatus.open);
+  });
+  it('says the limit is reached without pressure wording', () => {
+    time(30);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      en.dashboard.timeStatus.closed_limit_reached,
+    );
+    expect(screen.queryByText(/hurry|quick|!/i)).not.toBeInTheDocument();
+  });
+  it('shows "not available" instead of zero when the measurement could not be read', () => {
+    time(null);
+    expect(screen.getByText(en.dashboard.timeUnavailable)).toBeInTheDocument();
+    expect(screen.queryByText('0 minutes')).not.toBeInTheDocument();
   });
 });

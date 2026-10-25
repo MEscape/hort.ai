@@ -43,15 +43,20 @@ export function ParentAssignments({
         </p>
       ) : (
         <div className="space-y-6">
-          {GROUPS.map((group) => (
-            <section key={group}>
-              <h3 className="border-b border-border pb-2 font-semibold">
-                {group === 'completed' ? t('status.COMPLETED') : t('assignmentsTitle')}
-              </h3>
-              <ul className="divide-y divide-border">
-                {records.assignments
-                  .filter((assignment) => assignment.completed === (group === 'completed'))
-                  .map((assignment) => (
+          {GROUPS.map((group) => ({
+            group,
+            items: records.assignments.filter(
+              (assignment) => assignment.completed === (group === 'completed'),
+            ),
+          }))
+            .filter(({ items }) => items.length > 0)
+            .map(({ group, items }) => (
+              <section key={group}>
+                <h3 className="border-b border-border pb-2 font-semibold">
+                  {group === 'completed' ? t('status.COMPLETED') : t('assignmentsOpen')}
+                </h3>
+                <ul className="divide-y divide-border">
+                  {items.map((assignment) => (
                     <li key={assignment.id} className="py-4">
                       <p className="break-words font-semibold">{assignment.title}</p>
                       <p className="mt-1 text-sm text-copy-muted">
@@ -72,9 +77,9 @@ export function ParentAssignments({
                       </p>
                     </li>
                   ))}
-              </ul>
-            </section>
-          ))}
+                </ul>
+              </section>
+            ))}
         </div>
       )}
       <p className="mt-5 border-t border-border pt-4 text-sm text-copy-muted">

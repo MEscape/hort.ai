@@ -5,11 +5,22 @@ import { ParentHelp } from './parent-help';
 import { ParentOutcomes } from './parent-outcomes';
 import { ParentPanel } from './parent-panel';
 import { ParentTaskList } from './parent-task-list';
+import { ParentTopics } from './parent-topics';
 
-import type { ParentLearningView } from '../../application/contracts/parent-learning-views';
+import type {
+  ParentLearningView,
+  ParentTopics as ParentTopicsById,
+} from '../../application/contracts/parent-learning-views';
 
 /** The learning view is analytical without converting task exposure or replies into ability scores. */
-export function ParentLearning({ records, metrics, period, insightsEnabled }: ParentLearningView) {
+/** `topics` is what the curriculum module said about the tasks' codes; the app route looks it up. */
+export function ParentLearning({
+  records,
+  metrics,
+  period,
+  insightsEnabled,
+  topics,
+}: ParentLearningView & { readonly topics: ParentTopicsById }) {
   const t = useTranslations('learner.dashboard');
   const format = useAppFormatters();
   const scope = t('period', { from: format.date(period.from), until: format.date(period.until) });
@@ -53,44 +64,47 @@ export function ParentLearning({ records, metrics, period, insightsEnabled }: Pa
           </ParentPanel>
         </div>
       )}
+      <ParentPanel title={t('tasksTitle')} description={t('tasksDescription')}>
+        <ParentTaskList records={records} topics={topics} />
+      </ParentPanel>
       {metrics.total > 0 && (
         <div className="grid items-start gap-6 xl:grid-cols-2">
-          <div className="min-w-0 rounded-token-xl border border-border bg-surface p-5 shadow-soft sm:p-6">
-            <ParentBars
-              title={t('subjectsTitle')}
-              description={t('subjectsDescription')}
-              scope={scope}
-              rows={metrics.subjects.map((row) => ({
-                label: t(`subjects.${row.subject}`),
-                value: row.count,
-              }))}
-            />
-          </div>
-          {insightsEnabled && metrics.insightTasks > 0 && (
+          <div className="min-w-0 space-y-6">
             <div className="min-w-0 rounded-token-xl border border-border bg-surface p-5 shadow-soft sm:p-6">
               <ParentBars
-                title={t('hintTitle')}
-                description={t('hintDescription')}
+                title={t('subjectsTitle')}
+                description={t('subjectsDescription')}
                 scope={scope}
-                rows={metrics.hintDistribution.map((row) => ({
-                  label: t('hints', { count: row.hints }),
-                  value: row.tasks,
+                rows={metrics.subjects.map((row) => ({
+                  label: t(`subjects.${row.subject}`),
+                  value: row.count,
                 }))}
               />
-              <p className="mt-5 text-sm text-copy-muted">
-                {t('hintScope', {
-                  hints: metrics.hintTotal,
-                  tasks: metrics.insightTasks,
-                  supported: metrics.hintedTasks,
-                })}
-              </p>
             </div>
-          )}
+            {insightsEnabled && metrics.insightTasks > 0 && (
+              <div className="min-w-0 rounded-token-xl border border-border bg-surface p-5 shadow-soft sm:p-6">
+                <ParentBars
+                  title={t('hintTitle')}
+                  description={t('hintDescription')}
+                  scope={scope}
+                  rows={metrics.hintDistribution.map((row) => ({
+                    label: t('hints', { count: row.hints }),
+                    value: row.tasks,
+                  }))}
+                />
+                <p className="mt-5 text-sm text-copy-muted">
+                  {t('hintScope', {
+                    hints: metrics.hintTotal,
+                    tasks: metrics.insightTasks,
+                    supported: metrics.hintedTasks,
+                  })}
+                </p>
+              </div>
+            )}
+          </div>
+          <ParentTopics tasks={records.tasks} topics={topics} scope={scope} />
         </div>
       )}
-      <ParentPanel title={t('tasksTitle')} description={t('tasksDescription')}>
-        <ParentTaskList records={records} />
-      </ParentPanel>
       <div className="grid gap-6 xl:grid-cols-2">
         <ParentPanel title={t('practiceTitle')}>
           <p className="text-sm leading-relaxed text-copy-muted">{t('practiceUnavailable')}</p>

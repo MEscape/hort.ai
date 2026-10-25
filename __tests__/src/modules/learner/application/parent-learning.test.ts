@@ -28,7 +28,8 @@ const task = (overrides: Partial<ParentTask> = {}): ParentTask => ({
   answers: noAnswers,
   questionsAsked: 0,
   questionsAnswered: 0,
-  competencyCodes: [],
+  subject: 'MATH',
+  competencyCode: null,
   ...overrides,
 });
 const records = (tasks: readonly ParentTask[]): ParentLearningRecords => ({
@@ -52,9 +53,14 @@ describe('parent learning metrics', () => {
     expect(result).toMatchObject({ total: 3, completed: 1, active: 1, abandoned: 1 });
     expect(result.outcomes).toEqual([{ day: '2026-10-25', ACTIVE: 1, COMPLETED: 1, ABANDONED: 1 }]);
   });
-  it('keeps unknown subject metadata unclassified', () => {
-    expect(aggregateParentLearning(records([task()]), period).subjects).toEqual([
-      { subject: 'unknown', count: 1 },
+  it('counts subjects from the session itself, also for tasks the child brought in', () => {
+    const result = aggregateParentLearning(
+      records([task(), task({ id: id('2'), subject: 'GERMAN' }), task({ id: id('3') })]),
+      period,
+    );
+    expect(result.subjects).toEqual([
+      { subject: 'MATH', count: 2 },
+      { subject: 'GERMAN', count: 1 },
     ]);
   });
   it('keeps unavailable hints out of denominators and includes measured zero', () => {

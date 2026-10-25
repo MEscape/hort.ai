@@ -43,7 +43,7 @@ export class PrismaParentLearningRepository implements ParentLearningRepository 
             .limit(fetchLimit)
             .include('hintEvents', (hints) =>
               hints
-                .select('level', 'competencyCode')
+                .select('level')
                 .orderBy((row) => row.occurredAt.asc())
                 .limit(evidence),
             )
@@ -94,10 +94,9 @@ export class PrismaParentLearningRepository implements ParentLearningRepository 
       const classroom = child?.membership?.classroom;
       const assignments = classroom?.assignments ?? [];
       const insights = scope.includeInsights && child?.learningInsights === true;
+      const shown = tasks.slice(0, recordLimit);
       return {
-        tasks: tasks
-          .slice(0, recordLimit)
-          .map((record) => toParentTask(record, insights, scope.evidenceLimit)),
+        tasks: shown.map((record) => toParentTask(record, insights, scope.evidenceLimit)),
         assignments: assignments.slice(0, recordLimit).flatMap((assignment) =>
           classroom
             ? [
@@ -132,9 +131,17 @@ export class PrismaParentLearningRepository implements ParentLearningRepository 
             .where({ id, tenantId, ownerId, childProfileId })
             .select(...PARENT_TASK_SELECT)
             .limit(1)
+            .include('assignment', (assignment) =>
+              assignment
+                .where({ tenantId })
+                .select('title')
+                .include('classroom', (classroom) =>
+                  classroom.where({ tenantId }).select('subject'),
+                ),
+            )
             .include('hintEvents', (hints) =>
               hints
-                .select('level', 'competencyCode')
+                .select('level')
                 .orderBy((row) => row.occurredAt.asc())
                 .limit(evidence),
             )
@@ -162,9 +169,17 @@ export class PrismaParentLearningRepository implements ParentLearningRepository 
         return null;
       }
       const task = child.helpSessions[0];
-      return task
-        ? toParentTask(task, scope.includeInsights && child.learningInsights, scope.evidenceLimit)
-        : null;
+      if (!task) {
+        return null;
+      }
+      const { assignment } = task;
+      const insights = scope.includeInsights && child.learningInsights;
+      return {
+        ...toParentTask(task, insights, scope.evidenceLimit),
+        assignment: assignment?.classroom
+          ? { title: assignment.title, subject: assignment.classroom.subject }
+          : null,
+      };
     }, failures.infraOnly('findTask'));
   }
 }

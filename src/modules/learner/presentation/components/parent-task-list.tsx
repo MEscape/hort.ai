@@ -7,6 +7,7 @@ import { learnerRoutes } from '../routes';
 import type {
   ParentLearningRecords,
   ParentTask,
+  ParentTopics,
 } from '../../application/contracts/parent-learning-views';
 
 const STATUSES = ['COMPLETED', 'ACTIVE', 'ABANDONED'] as const;
@@ -14,6 +15,10 @@ const STATUSES = ['COMPLETED', 'ACTIVE', 'ABANDONED'] as const;
 /** The assignment a task belongs to; a task the child brought in has none, so no title or subject. */
 const assignmentOf = (records: ParentLearningRecords, task: ParentTask) =>
   records.assignments.find((assignment) => assignment.id === task.assignmentId);
+
+/** The curriculum section of the task's topic, when the curriculum module described one. */
+const topicLabel = (task: ParentTask, topics: ParentTopics) =>
+  task.competencyCode === null ? null : (topics[task.competencyCode]?.section ?? null);
 
 /** The assignment's title, or the start time when the task text is the child's own and stays private. */
 export function useTaskTitle() {
@@ -25,7 +30,13 @@ export function useTaskTitle() {
 }
 
 /** Status headings stay separate: an active session is never counted as paused or finished. */
-export function ParentTaskList({ records }: { readonly records: ParentLearningRecords }) {
+export function ParentTaskList({
+  records,
+  topics = {},
+}: {
+  readonly records: ParentLearningRecords;
+  readonly topics?: ParentTopics;
+}) {
   const t = useTranslations('learner.dashboard');
   const format = useAppFormatters();
   const titleOf = useTaskTitle();
@@ -63,7 +74,8 @@ export function ParentTaskList({ records }: { readonly records: ParentLearningRe
                       {titleOf(records, task)}
                     </span>
                     <span className="text-sm text-copy-muted">
-                      {t(`subjects.${assignmentOf(records, task)?.subject ?? 'unknown'}`)}
+                      {t(`subjects.${task.subject}`)}
+                      {topicLabel(task, topics) && ` · ${topicLabel(task, topics)}`}
                       {task.hintCount !== null &&
                         ` · ${t('workedWithHints', { count: task.hintCount })}`}
                     </span>

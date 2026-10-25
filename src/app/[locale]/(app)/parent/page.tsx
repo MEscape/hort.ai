@@ -45,7 +45,10 @@ export default async function ParentPage({
   readonly searchParams: SearchParams;
 }) {
   return (
-    <I18nProvider locale={requireLocale((await params).locale)} namespaces={['auth', 'learner']}>
+    <I18nProvider
+      locale={requireLocale((await params).locale)}
+      namespaces={['auth', 'learner', 'classroom']}
+    >
       <Suspense fallback={<ParentLoading />}>
         <ParentArea searchParams={searchParams} />
       </Suspense>
