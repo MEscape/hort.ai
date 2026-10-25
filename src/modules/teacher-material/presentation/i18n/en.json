@@ -25,10 +25,18 @@
       "uploadedOn": "Uploaded on {date}",
       "delete": "Delete",
       "deleteLabel": "Delete “{title}”",
+      "confirmDelete": {
+        "title": "Delete “{title}”?",
+        "body": "hort.ai will no longer use this material for hints. This cannot be undone.",
+        "keep": "Keep material",
+        "confirm": "Delete material"
+      },
+      "unavailable": "The material cannot be shown right now. Please try again later.",
       "status": {
         "UPLOADED": "Processing",
         "PROCESSED": "Ready",
-        "FAILED": "Failed"
+        "FAILED": "Failed",
+        "DELETED": "Deleted"
       },
       "failedReason": "The file could not be read. Check that it is a UTF-8 text file and upload it again.",
       "errors": {

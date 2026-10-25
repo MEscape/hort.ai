@@ -25,10 +25,18 @@
       "uploadedOn": "Hochgeladen am {date}",
       "delete": "Löschen",
       "deleteLabel": "„{title}“ löschen",
+      "confirmDelete": {
+        "title": "„{title}“ löschen?",
+        "body": "hort.ai nutzt das Material danach nicht mehr für Hinweise. Das kann nicht rückgängig gemacht werden.",
+        "keep": "Material behalten",
+        "confirm": "Material löschen"
+      },
+      "unavailable": "Das Material kann gerade nicht angezeigt werden. Bitte versuche es später noch einmal.",
       "status": {
         "UPLOADED": "Wird verarbeitet",
         "PROCESSED": "Bereit",
-        "FAILED": "Fehlgeschlagen"
+        "FAILED": "Fehlgeschlagen",
+        "DELETED": "Gelöscht"
       },
       "failedReason": "Die Datei konnte nicht gelesen werden. Prüfe, ob es eine Textdatei in UTF-8 ist, und lade sie neu hoch.",
       "errors": {

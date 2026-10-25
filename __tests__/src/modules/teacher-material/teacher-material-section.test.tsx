@@ -65,7 +65,10 @@ describe('teacher material section', () => {
     const data = actions.upload.mock.calls[0]?.[0] as FormData;
     expect(data.get('classroomId')).toBe('class-1');
     expect((data.get('file') as File).name).toBe('Zahlen.txt');
-    expect(screen.getByRole('status')).toHaveTextContent('“Zahlen” is uploaded.');
+    // The notice commits with the transition, after the refresh call above.
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent('“Zahlen” is uploaded.');
+    });
   });
 
   it('explains a file the server could not read in friendly words', async () => {
@@ -117,9 +120,24 @@ describe('teacher material section', () => {
     expect(screen.getByText('No material in this class yet.')).toBeVisible();
   });
 
+  it('asks before deleting and keeps the material when the teacher changes their mind', () => {
+    renderSection([material({})]);
+    const trigger = screen.getByRole('button', { name: 'Delete “Zahlen bis 1000”' });
+    trigger.focus();
+    fireEvent.click(trigger);
+    expect(screen.getByText('Delete “Zahlen bis 1000”?')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Keep material' })).toHaveFocus();
+    expect(actions.remove).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Keep material' }));
+    expect(screen.queryByText('Delete “Zahlen bis 1000”?')).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+    expect(actions.remove).not.toHaveBeenCalled();
+  });
+
   it('deletes one material by its id and reloads the list', async () => {
     renderSection([material({})]);
     fireEvent.click(screen.getByRole('button', { name: 'Delete “Zahlen bis 1000”' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete material' }));
     await waitFor(() => {
       expect(refresh).toHaveBeenCalled();
     });

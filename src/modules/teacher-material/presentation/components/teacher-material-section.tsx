@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import { Alert, AlertDescription } from '@components/ui/alert';
 import { Button } from '@components/ui/button';
 import { Card, CardContent, CardHeader } from '@components/ui/card';
@@ -8,6 +10,8 @@ import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
 
 import { useTeacherMaterial } from '../hooks/use-teacher-material';
+
+import { ConfirmDeleteMaterial } from './confirm-delete-material';
 
 import type { MaterialView } from '../../application/contracts/material-views';
 
@@ -21,6 +25,8 @@ interface TeacherMaterialSectionProps {
 export function TeacherMaterialSection({ classroomId, materials }: TeacherMaterialSectionProps) {
   const { t, format, id, inputRef, isPending, error, setError, notice, maxSize, upload, remove } =
     useTeacherMaterial(classroomId);
+  // The material whose delete waits for the teacher's confirmation.
+  const [confirming, setConfirming] = useState<string | null>(null);
 
   return (
     <Card aria-labelledby={`${id}-title`}>
@@ -48,7 +54,7 @@ export function TeacherMaterialSection({ classroomId, materials }: TeacherMateri
               onChange={() => {
                 setError(null);
               }}
-              className="block w-full rounded-token-md border-2 border-border-strong bg-surface p-2 text-copy file:mr-3 file:rounded-token-sm file:border-0 file:bg-highlight file:px-3 file:py-2 file:font-semibold"
+              className="py-1 pl-1 file:mr-3 file:h-full file:rounded-token-sm file:border-0 file:bg-highlight file:px-3 file:font-semibold file:text-copy"
             />
             <p id={`${id}-hint`} className="text-sm text-copy-muted">
               {t('fileHint', { maxSize })}
@@ -81,13 +87,7 @@ export function TeacherMaterialSection({ classroomId, materials }: TeacherMateri
                   <p className="text-sm text-copy-muted">
                     {material.createdAt !== null &&
                       `${t('uploadedOn', { date: format.date(material.createdAt) })} · `}
-                    <span>
-                      {material.status === 'PROCESSED' ||
-                      material.status === 'FAILED' ||
-                      material.status === 'UPLOADED'
-                        ? t(`status.${material.status}`)
-                        : material.status}
-                    </span>
+                    <span>{t(`status.${material.status}`)}</span>
                   </p>
                   {material.status === 'FAILED' && (
                     <p className="text-sm text-copy">{t('failedReason')}</p>
@@ -96,15 +96,27 @@ export function TeacherMaterialSection({ classroomId, materials }: TeacherMateri
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
                   disabled={isPending}
                   aria-label={t('deleteLabel', { title: material.title })}
+                  aria-expanded={confirming === material.id}
                   onClick={() => {
-                    remove(material);
+                    setConfirming(material.id);
                   }}
                 >
                   {t('delete')}
                 </Button>
+                {confirming === material.id && (
+                  <ConfirmDeleteMaterial
+                    title={material.title}
+                    onKeep={() => {
+                      setConfirming(null);
+                    }}
+                    onConfirm={() => {
+                      setConfirming(null);
+                      remove(material);
+                    }}
+                  />
+                )}
               </li>
             ))}
           </ul>

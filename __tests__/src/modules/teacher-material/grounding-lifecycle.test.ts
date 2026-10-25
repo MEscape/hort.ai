@@ -28,7 +28,11 @@ it('grounds only the class member, marks teacher text untrusted, and stops immed
       ),
   });
   const query = new FindRelevantCompetencies({
-    competencies: { listCandidates: () => okAsync([]), saveDocument: () => okAsync('created') },
+    competencies: {
+      listCandidates: () => okAsync([]),
+      saveDocument: () => okAsync('created'),
+      findByCodes: () => okAsync([]),
+    },
     teacherMaterial,
     audit: { record: () => undefined },
   });
