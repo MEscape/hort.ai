@@ -13,6 +13,7 @@ import { CreateChildProfile } from './application/commands/create-child-profile'
 import { ResetOnboarding } from './application/commands/reset-onboarding';
 import { SaveControls } from './application/commands/save-controls';
 import { SaveInterests } from './application/commands/save-interests';
+import { GetChildProfileById } from './application/queries/get-child-profile-by-id';
 import { GetOnboardingState } from './application/queries/get-onboarding-state';
 import {
   LEVEL_BY_EVENT,
@@ -66,5 +67,8 @@ export const getLearnerCommands = once(() => {
 
 export const getLearnerQueries = once(() => {
   const dependencies = getDependencies();
-  return { getOnboardingState: new GetOnboardingState(dependencies) };
+  return {
+    getOnboardingState: new GetOnboardingState(dependencies),
+    getChildProfileById: new GetChildProfileById(dependencies),
+  };
 });

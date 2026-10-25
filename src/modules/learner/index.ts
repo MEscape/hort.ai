@@ -16,6 +16,7 @@ export type { CreateChildProfileError } from './application/commands/create-chil
 export type { ResetOnboardingError } from './application/commands/reset-onboarding';
 export type { SaveControlsError } from './application/commands/save-controls';
 export type { SaveInterestsError } from './application/commands/save-interests';
+export type { GetChildProfileByIdError } from './application/queries/get-child-profile-by-id';
 export type { GetOnboardingStateError } from './application/queries/get-onboarding-state';
 export {
   DAILY_LIMIT_MINUTES,

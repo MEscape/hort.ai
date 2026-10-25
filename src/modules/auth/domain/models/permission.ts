@@ -10,12 +10,16 @@
  * The profile itself belongs to the learner module; authentication only decides who may touch it.
  * `classroom.*`, `material.*` and `assignment.*` are a teacher's, on their own classes (#8, #32,
  * #29, #33).
+ *
+ * `voice.use` lets the tutors speak and turns the child's speech into text (paid provider calls).
+ * The child speaks within the guardian's session, so it is the parent's permission.
  */
 export const LEARNER_PERMISSIONS = [
   'learner.create',
   'learner.read',
   'learner.update',
   'learner.delete',
+  'voice.use',
 ] as const;
 
 export const TEACHER_PERMISSIONS = [
