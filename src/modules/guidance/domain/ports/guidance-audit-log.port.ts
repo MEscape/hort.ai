@@ -1,11 +1,17 @@
 import type { ActorId, TenantId } from '@modules/auth';
 
+import type { TopicClassifierName } from './topic-classifier.port';
 import type { AssessmentResult } from '../ai-output/ai-output';
 import type { FeedbackKind } from '../models/feedback-request';
 import type { HintFallbackReason } from '../models/hint-fallback-reason';
 import type { HintLevel } from '../models/hint-level';
 import type { HintSubject } from '../models/hint-subject';
-import type { ChildProfileId, HelpSessionId } from '../models/ids';
+import type { AssignmentId, ChildProfileId, HelpSessionId } from '../models/ids';
+import type { SessionOpening } from '../topic/session-topic';
+import type { ChildMessageIntent, TopicDecision, TopicGuess } from '../topic/topic-classification';
+
+/** A confidence reduced to what operations need to tune the thresholds; never the exact value. */
+export type ConfidenceBucket = 'low' | 'medium' | 'high';
 
 /**
  * What operations must see about hints and help sessions. Never the child's input or the AI's text:
@@ -48,6 +54,15 @@ export type GuidanceEvent =
       readonly code: string;
     }
   | {
+      /**
+       * A step of a session on an assignment went ahead without the teacher's key (#33): the child
+       * left the class, the assignment was deleted, or it could not be read. The code says which.
+       */
+      readonly type: 'guidance.solution_key_unavailable';
+      readonly step: 'hint' | 'answer_check';
+      readonly code: string;
+    }
+  | {
       readonly type: 'guidance.answer_checked';
       readonly tenantId: TenantId;
       readonly actorId: ActorId;
@@ -63,9 +78,13 @@ export type GuidanceEvent =
       readonly actorId: ActorId;
       readonly childProfileId: ChildProfileId;
       readonly sessionId: HelpSessionId;
+      /** The teacher's assignment the session is on (#33), `null` for the child's own task. */
+      readonly assignmentId: AssignmentId | null;
       readonly subject: HintSubject;
       /** The open session this one replaced, which ended `abandoned`. */
       readonly replaced: HelpSessionId | null;
+      /** How the session opens (#92); `null`: help as usual. */
+      readonly opening: SessionOpening['kind'] | null;
     }
   | {
       readonly type: 'guidance.comprehension_replied';
@@ -74,6 +93,27 @@ export type GuidanceEvent =
       readonly childProfileId: ChildProfileId;
       readonly sessionId: HelpSessionId;
       readonly understood: boolean;
+    }
+  | {
+      /** The topic classification (#92) could not be used; the session goes ahead as homework. */
+      readonly type: 'guidance.topic_classification_fallback_used';
+      readonly reason: 'timeout' | 'provider_unavailable' | 'invalid_output';
+      readonly codes: readonly string[];
+    }
+  | {
+      readonly type: 'guidance.topic_classified';
+      readonly classifiedBy: TopicClassifierName;
+      readonly intent: ChildMessageIntent;
+      readonly intentConfidence: ConfidenceBucket;
+      readonly topic: TopicGuess['kind'];
+      readonly topicConfidence: ConfidenceBucket | null;
+      readonly action: TopicDecision['action'];
+    }
+  | {
+      /** Only logged: the subject the child picked wins. */
+      readonly type: 'guidance.topic_subject_mismatch';
+      readonly picked: HintSubject;
+      readonly classified: HintSubject;
     };
 
 /** Append-only. `record` is synchronous and MUST NOT throw or block. */

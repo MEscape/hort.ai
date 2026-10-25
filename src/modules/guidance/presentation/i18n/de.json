@@ -20,11 +20,19 @@
         "comprehension_question": "Erklär mir in deinen eigenen Worten, wie du auf deine Antwort gekommen bist."
       }
     },
+    "opening": {
+      "clarify": "Erzähl mir ein bisschen mehr: Was sollst du bei der Aufgabe machen?",
+      "redirect": {
+        "small_talk": "Hallo! Schön, dass du da bist. Zeig mir gern deine Hausaufgabe, dann denken wir gemeinsam nach.",
+        "curiosity": "Spannende Frage! Frag am besten einen Erwachsenen oder schau in einem Buch nach. Hast du eine Hausaufgabe, bei der ich dir helfen kann?"
+      }
+    },
     "errors": {
       "validation": "Da hat etwas nicht gepasst. Bitte versuch es noch einmal.",
       "childInputInvalid": "Bitte schreib deine Antwort noch einmal.",
       "sessionNotFound": "Diese Aufgabe ist nicht mehr offen. Starte sie bitte neu.",
       "noOpenQuestion": "Gerade gibt es keine Frage zu beantworten.",
+      "assignmentNotFound": "Diese Schulaufgabe gibt es nicht mehr. Such dir eine andere aus oder frag deine Lehrerin oder deinen Lehrer.",
       "rateLimited": "Mach kurz eine Pause und versuch es gleich noch einmal.",
       "infrastructure": "Gerade klappt etwas nicht. Bitte versuch es gleich noch einmal.",
       "unexpected": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal."
