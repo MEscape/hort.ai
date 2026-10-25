@@ -15,6 +15,8 @@ import type { Permission } from './permission';
 export interface ResourceScope {
   readonly tenantId: TenantId;
   readonly ownerId: ActorId;
+  /** The child profile the resource belongs to, when it belongs to one (the stored profile's id). */
+  readonly childProfileId?: string;
 }
 
 /**
@@ -22,7 +24,8 @@ export interface ResourceScope {
  * never reach a client, because telling the reasons apart discloses whether a
  * resource exists for another parent.
  */
-export type DenialReason = 'tenant_mismatch' | 'owner_mismatch' | 'permission_missing';
+export type DenialReason =
+  'tenant_mismatch' | 'owner_mismatch' | 'child_mismatch' | 'permission_missing';
 
 export type AuthorizationDecision =
   { readonly isAllowed: true } | { readonly isAllowed: false; readonly reason: DenialReason };
@@ -42,7 +45,9 @@ export function actorHasPermission(actor: Actor, permission: Permission): boolea
  *  1. Tenant first. A resource in another tenant is denied before anything else.
  *  2. Then the owner. A parent holds the permission for their own learners only; being a parent
  *     grants nothing on another parent's. A platform admin is exempt here, never from the tenant.
- *  3. Then the permission, through the actor's roles.
+ *  3. Then the child, for a channel actor (`actor.delegation`): only the resources of its one bound child,
+ *     so a sibling's profile, or a resource of no child at all, is refused although the owner matches.
+ *  4. Then the permission, through the actor's roles.
  *
  * `scope` present means the operation targets a specific resource. Absent
  * means it is not tied to one (create, or list the actor's own). The application layer exposes
@@ -59,6 +64,9 @@ export function decide(
     }
     if (scope.ownerId !== actor.id && !actor.roles.includes(PLATFORM_ADMIN_ROLE)) {
       return { isAllowed: false, reason: 'owner_mismatch' };
+    }
+    if (isDefined(actor.delegation) && scope.childProfileId !== actor.delegation.childProfileId) {
+      return { isAllowed: false, reason: 'child_mismatch' };
     }
   }
   if (!actorHasPermission(actor, permission)) {

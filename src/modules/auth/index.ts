@@ -13,7 +13,8 @@ export { toActorId, toTenantId } from './domain/models/ids';
 export { PERMISSIONS } from './domain/models/permission';
 export type { Permission } from './domain/models/permission';
 export type { ResourceScope } from './domain/models/authorize';
-export type { Actor } from './domain/models/actor';
+export type { Actor, AuditedActor } from './domain/models/actor';
+export { auditedActor } from './domain/models/actor';
 export { actorHasPermission } from './domain/models/authorize';
 
 /** Authorization: every protected use case of every module receives this. */
@@ -22,6 +23,8 @@ export { getAccessControl, getAuthQueries, isAuthEnabled } from './composition';
 export { getParentAreaServices } from './composition';
 export { ParentAccessForm } from './presentation/components/parent-access-form';
 export { ReturnToChildButton } from './presentation/components/return-to-child-button';
+/** The Alexa demo coupling: a server-verified channel acting for one configured child only. */
+export { runAsChildChannel } from './composition';
 
 /**
  * The use cases a sign-in, sign-up, sign-out or password-reset screen calls, with the inputs and
