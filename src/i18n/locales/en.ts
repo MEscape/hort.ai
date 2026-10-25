@@ -5,6 +5,7 @@ import { enGuidance as guidance } from '@modules/guidance';
 import { enLearner as learner } from '@modules/learner';
 import { enProgression as progression } from '@modules/progression';
 import { enTeacherMaterial as teacherMaterial } from '@modules/teacher-material';
+import { enVoice as voice } from '@modules/voice';
 
 import enApp from '../messages/en.json';
 
@@ -23,6 +24,7 @@ const messages = {
   learner: learner.learner,
   progression: progression.progression,
   teacherMaterial: teacherMaterial.teacherMaterial,
+  voice: voice.voice,
 } as const;
 
 export default messages;

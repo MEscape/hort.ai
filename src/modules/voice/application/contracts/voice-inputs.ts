@@ -1,3 +1,4 @@
+import type { CompanionMessageRef, PredefinedWording } from '../../domain/models/companion-message';
 import type { SystemPhrase } from '../../domain/models/system-phrase';
 
 /**
@@ -35,4 +36,12 @@ export interface TranscribeSpeechInput {
   readonly audio: Uint8Array<ArrayBuffer>;
   /** A bare `type/subtype`, parameters removed. */
   readonly contentType: string;
+}
+
+/** Reading one companion message aloud: the message is named, its words are found on the server. */
+export interface IssueReadAloudTicketInput {
+  readonly childProfileId: string;
+  readonly message: CompanionMessageRef;
+  /** The translated predefined lines, from server presentation code. */
+  readonly wording: PredefinedWording;
 }
