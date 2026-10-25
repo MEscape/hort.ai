@@ -17,6 +17,14 @@ import { ParentLoading } from '../../_components/parent-loading';
 
 type Params = Promise<{ locale: string; taskId: string }>;
 
+/**
+ * The segment is untrusted and per request: one placeholder id lets the build prerender the shell
+ * (the layout reads the locale), every other id renders on demand.
+ */
+export function generateStaticParams() {
+  return [{ taskId: 'placeholder' }];
+}
+
 export async function generateMetadata({ params }: { readonly params: Params }) {
   const t = await getTranslations({
     locale: requireLocale((await params).locale),
