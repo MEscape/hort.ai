@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import { AnswerCoach } from '@modules/guidance/application/services/answer-coach';
 
-import { REQUEST, fakeFeedbackProvider, recordingAuditLog, task } from '../fakes';
+import {
+  REQUEST,
+  fakeFeedbackProvider,
+  fakeSafetyClassifier,
+  recordingAuditLog,
+  task,
+} from '../fakes';
 
 import type { FeedbackScripts } from '../fakes';
 
@@ -171,5 +177,24 @@ describe('AnswerCoach wording', () => {
     await coach.check(toCheck('7'));
 
     expect(requests.every((r) => r.level === LEVEL && r.answer === '7')).toBe(true);
+  });
+});
+
+describe('AnswerCoach with the safety classifier (#11)', () => {
+  it('rates the praise and the question, and replaces a flagged one with its predefined text', async () => {
+    const { provider } = fakeFeedbackProvider(WORDING);
+    const { audit } = recordingAuditLog();
+    const { safety, texts } = fakeSafetyClassifier({
+      scores: { 'guidance.child_safety.discouraging': 0.9 },
+    });
+    const coach = new AnswerCoach({ provider, audit, safety });
+
+    const feedback = await coach.check(toCheck('7'));
+
+    expect(feedback).toMatchObject({
+      praise: { kind: 'predefined', reason: 'unsafe_output' },
+      question: { kind: 'predefined', reason: 'unsafe_output' },
+    });
+    expect(texts.sort()).toEqual([PRAISE, QUESTION].sort());
   });
 });

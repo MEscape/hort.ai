@@ -13,6 +13,9 @@ describe('aiEnvSchema', () => {
       GEMINI_API_URL: 'https://generativelanguage.googleapis.com',
       GEMINI_MODEL_ID: 'gemini-3.8-flash',
       GEMINI_TIMEOUT_MS: 8000,
+      TYPESAFE_API_URL: 'https://api.typesafe.ai',
+      TYPESAFE_MODEL_ID: 'jev-1.14.0',
+      TYPESAFE_TIMEOUT_MS: 3000,
     });
   });
 
@@ -22,6 +25,8 @@ describe('aiEnvSchema', () => {
         GEMINI_API_KEY: 'k'.repeat(39),
         GEMINI_MODEL_ID: 'gemini-3.6-flash',
         GEMINI_TIMEOUT_MS: '5000',
+        TYPESAFE_API_KEY: 't'.repeat(40),
+        TYPESAFE_MODEL_ID: 'jev-1.13.0',
       }),
     ).toEqual([]);
   });
@@ -35,5 +40,8 @@ describe('aiEnvSchema', () => {
       'GEMINI_API_URL',
     ]);
     expect(problems({ GEMINI_TIMEOUT_MS: '10' })).toEqual(['GEMINI_TIMEOUT_MS']);
+    expect(problems({ TYPESAFE_API_KEY: 'short' })).toEqual(['TYPESAFE_API_KEY']);
+    expect(problems({ TYPESAFE_MODEL_ID: 'gpt-5' })).toEqual(['TYPESAFE_MODEL_ID']);
+    expect(problems({ TYPESAFE_TIMEOUT_MS: '100' })).toEqual(['TYPESAFE_TIMEOUT_MS']);
   });
 });
