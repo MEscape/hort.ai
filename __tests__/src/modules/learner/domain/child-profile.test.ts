@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import { LEARNER_VALIDATION_CODES } from '@modules/learner/domain/errors/learner-errors';
-import { confirmGuardian, createChildDetails } from '@modules/learner/domain/models/child-profile';
+import {
+  confirmGuardian,
+  createChildDetails,
+  isWelcomeComplete,
+  withWelcomeCompleted,
+} from '@modules/learner/domain/models/child-profile';
 import { FEDERAL_STATES, GRADES } from '@modules/learner/domain/models/federal-state';
 import { parseChildProfileId } from '@modules/learner/domain/models/ids';
 import { LEARNER_LIMITS } from '@modules/learner/domain/models/learner-limits';
@@ -136,5 +141,18 @@ describe('confirmGuardian', () => {
       confirmedAt: later,
       consentVersion: GUARDIAN_CONSENT_VERSION,
     });
+  });
+});
+
+describe('the child welcome', () => {
+  const at = new Date('2026-10-25T08:00:00.000Z');
+
+  it('is open until stamped, and stamping changes nothing else', () => {
+    const open = profileOf({ id: 'w', setupCompletedAt: new Date('2026-10-02T00:00:00Z') });
+    const done = withWelcomeCompleted(open, at);
+
+    expect(isWelcomeComplete(open)).toBe(false);
+    expect(isWelcomeComplete(done)).toBe(true);
+    expect(done).toEqual({ ...open, welcomeCompletedAt: at });
   });
 });

@@ -45,6 +45,8 @@ export interface ChildProfile {
   /** The furthest step the parent has reached; only moves forward. */
   readonly setupStep: SetupStep;
   readonly setupCompletedAt: Date | null;
+  /** When the child finished their own welcome after the setup; `null` while it is open. */
+  readonly welcomeCompletedAt: Date | null;
   readonly createdAt: Date;
 }
 
@@ -105,6 +107,15 @@ export function withSetupCompleted(profile: ChildProfile, completedAt: Date): Ch
 
 export function isSetupComplete(profile: ChildProfile): boolean {
   return profile.setupCompletedAt !== null;
+}
+
+/** The profile as it is once the child has finished their welcome. */
+export function withWelcomeCompleted(profile: ChildProfile, completedAt: Date): ChildProfile {
+  return { ...profile, welcomeCompletedAt: completedAt };
+}
+
+export function isWelcomeComplete(profile: ChildProfile): boolean {
+  return profile.welcomeCompletedAt !== null;
 }
 
 /**

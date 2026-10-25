@@ -28,6 +28,9 @@ export interface ProfilePatch {
   readonly guardian?: GuardianConfirmation;
 }
 
+/** What the child's welcome may change: only the interests and the companion. */
+export type WelcomePatch = Pick<ProfilePatch, 'interests' | 'tutorId'>;
+
 export interface SavedProfile {
   readonly profile: ChildProfile;
   /** Whether this call inserted the profile (`false`: it replaced the details of the existing one). */
@@ -88,6 +91,25 @@ export interface ChildProfileRepository {
    * call ever reports having completed it.
    */
   markSetupCompleted(
+    profile: ChildProfile,
+    completedAt: Date,
+  ): AppResultAsync<boolean, InfrastructureAppError>;
+
+  /**
+   * Stores the interests and/or companion the child changed during their welcome, on a profile
+   * whose setup is done and whose welcome is still open. Touches nothing else (not the step).
+   * Returns the stored profile, or `null` when the welcome was finished meanwhile or the profile is gone.
+   */
+  updateWelcomePending(
+    profile: ChildProfile,
+    patch: WelcomePatch,
+  ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
+
+  /**
+   * Finishes the child's welcome, in one conditional statement. `false` when it was finished
+   * already or the setup is not done, so only one call ever reports having completed it.
+   */
+  markWelcomeCompleted(
     profile: ChildProfile,
     completedAt: Date,
   ): AppResultAsync<boolean, InfrastructureAppError>;

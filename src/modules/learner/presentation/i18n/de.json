@@ -271,6 +271,7 @@
       "notFound": "Wir haben dieses Profil nicht gefunden. Geh bitte einen Schritt zurück und versuche es noch einmal.",
       "alreadyOnboarded": "Dein Kind ist schon eingerichtet. Wir bringen dich zu deiner Startseite.",
       "setupIncomplete": "Ein Schritt fehlt noch. Geh bitte noch einmal durch die Schritte.",
+      "welcomeAlreadyCompleted": "Das Kennenlernen ist schon fertig. Wir bringen dich zur Startseite.",
       "devResetUnavailable": "Das gibt es nur während der Entwicklung.",
       "validation": "Bitte prüfe deine Angaben.",
       "infrastructure": "Das konnten wir gerade nicht speichern. Es wurde nichts geändert. Bitte versuche es gleich noch einmal.",
@@ -288,6 +289,86 @@
       "dailyLimitInvalid": "Bitte wähle eines der angebotenen Limits.",
       "windowInvalid": "Das Zeitfenster muss mindestens 30 Minuten dauern.",
       "guardianConfirmationRequired": "Bitte bestätige, dass du Elternteil oder Erziehungsberechtigte/r bist."
+    },
+    "childWelcome": {
+      "metadata": {
+        "title": "Willkommen"
+      },
+      "progress": {
+        "label": "Deine ersten Schritte",
+        "step": "Schritt {current} von {total}"
+      },
+      "steps": {
+        "welcome": "Hallo",
+        "interests": "Lieblingsdinge",
+        "companion": "Freund",
+        "voice": "Stimme",
+        "rewards": "Sterne",
+        "celebration": "Fertig"
+      },
+      "actions": {
+        "back": "Zurück",
+        "next": "Weiter",
+        "retry": "Nochmal versuchen",
+        "saving": "Speichern…"
+      },
+      "saveError": "Das wurde nicht gespeichert. Bitte versuche es noch einmal.",
+      "welcome": {
+        "title": "Hallo {name}!",
+        "bubble": "Ich bin {companion}!",
+        "start": "Los geht’s"
+      },
+      "interests": {
+        "title": "Was magst du?",
+        "bubble": "Tippe, was du magst!",
+        "full": "{max} sind genug!",
+        "counter": "{count} von {max}"
+      },
+      "celebration": {
+        "title": "Geschafft, {name}!",
+        "bubble": "{companion} ist bereit!",
+        "start": "Los!"
+      }
+    },
+    "welcomeCompanion": {
+      "companion": {
+        "title": "Wer hilft dir?",
+        "group": "Begleiter",
+        "previous": "Vorheriger Begleiter",
+        "next": "Nächster Begleiter",
+        "selected": "{name}, {position} von {total}, ausgewählt",
+        "fits": "Passt zu dir",
+        "choose": "Mit {name} lernen"
+      },
+      "voice": {
+        "title": "Hör mal!",
+        "play": "{name} anhören",
+        "stop": "Stopp",
+        "retry": "Noch einmal",
+        "loading": "Gleich geht’s los…",
+        "speaking": "{name} spricht…",
+        "unavailable": "Gerade kein Ton. Weiter geht’s!",
+        "failed": "Das klappte nicht. Noch einmal?",
+        "progress": "So viel wurde abgespielt",
+        "saysLabel": "{name} sagt",
+        "talkOff": "Sprechen aus",
+        "words": {
+          "max": "Freundlich, kräftig, fröhlich",
+          "lili": "Sanft, warm, ruhig",
+          "fina": "Lebhaft, abenteuerlustig, frech"
+        }
+      },
+      "traits": {
+        "treu": "Treu",
+        "energiegeladen": "Energiegeladen",
+        "ermutigend": "Ermutigend",
+        "geduldig": "Geduldig",
+        "sanft": "Sanft",
+        "klug": "Klug",
+        "mutig": "Mutig",
+        "kreativ": "Kreativ",
+        "verspielt": "Verspielt"
+      }
     }
   }
 }

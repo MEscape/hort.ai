@@ -1,4 +1,5 @@
 import type { MouthAlignment } from '@components/brand/character';
+import type { CharacterFace } from '@components/brand/character-face';
 
 /** A companion the parent can choose, as the page prepared it from the tutor catalog. */
 export interface TutorOption {
@@ -16,6 +17,8 @@ export interface TutorOption {
   readonly imageOpenUrl: string;
   /** Lays the open-mouth picture over the closed one; see `MouthAlignment`. */
   readonly openAlignment?: MouthAlignment | undefined;
+  /** Where the eyes are, so the face can be animated; absent = the plain picture. */
+  readonly face?: CharacterFace | undefined;
   /** Absolute URL of the spoken introduction (MP3), empty when no storage address is configured. */
   readonly introUrl: string;
 }

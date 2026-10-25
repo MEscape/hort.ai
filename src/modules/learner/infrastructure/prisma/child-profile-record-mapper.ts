@@ -30,6 +30,7 @@ export interface ChildProfileRecord {
   readonly guardianConfirmedAt: InstantRecord | null;
   readonly guardianConsentVersion: string | null;
   readonly setupCompletedAt: InstantRecord | null;
+  readonly welcomeCompletedAt: InstantRecord | null;
   readonly createdAt: InstantRecord;
 }
 
@@ -51,6 +52,7 @@ export const CHILD_PROFILE_SELECT = [
   'guardianConfirmedAt',
   'guardianConsentVersion',
   'setupCompletedAt',
+  'welcomeCompletedAt',
   'createdAt',
 ] as const satisfies ReadonlyArray<keyof ChildProfileRecord>;
 
@@ -83,7 +85,8 @@ function guardianOf(record: ChildProfileRecord): GuardianConfirmation | null {
  * database CHECK constraints keep such a row from existing; it is left out rather than trusted.
  */
 export function toChildProfile(record: ChildProfileRecord): ChildProfile | null {
-  const { federalState, grade, setupStep, setupCompletedAt, interests } = record;
+  const { federalState, grade, setupStep, setupCompletedAt, welcomeCompletedAt, interests } =
+    record;
   const controls = controlsOf(record);
   if (
     !isFederalState(federalState) ||
@@ -107,6 +110,7 @@ export function toChildProfile(record: ChildProfileRecord): ChildProfile | null 
     guardian: guardianOf(record),
     setupStep,
     setupCompletedAt: setupCompletedAt === null ? null : instantToDate(setupCompletedAt),
+    welcomeCompletedAt: welcomeCompletedAt === null ? null : instantToDate(welcomeCompletedAt),
     createdAt: instantToDate(record.createdAt),
   };
 }

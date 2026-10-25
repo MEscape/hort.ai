@@ -60,6 +60,28 @@ export type LearnerEvent =
       readonly actorId: ActorId;
       readonly tenantId: TenantId;
       readonly childProfileId: ChildProfileId;
+    }
+  | {
+      readonly type: 'learner.child_interests_saved';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      readonly childProfileId: ChildProfileId;
+      /** How many interests, not which ones. */
+      readonly count: number;
+    }
+  | {
+      readonly type: 'learner.child_tutor_chosen';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      readonly childProfileId: ChildProfileId;
+      /** Catalog data, not child data. */
+      readonly tutorId: TutorId;
+    }
+  | {
+      readonly type: 'learner.child_welcome_completed';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+      readonly childProfileId: ChildProfileId;
     };
 
 /** Append-only. `record` is synchronous and MUST NOT throw or block. */

@@ -23,6 +23,7 @@ export const LEARNER_ERROR_CODES = {
   notFound: 'learner.not_found',
   alreadyOnboarded: 'learner.already_onboarded',
   setupIncomplete: 'learner.setup_incomplete',
+  welcomeAlreadyCompleted: 'learner.welcome_already_completed',
   devResetUnavailable: 'learner.dev_reset_unavailable',
   validationFailed: 'learner.validation_failed',
   persistenceFailed: 'learner.persistence_failed',
@@ -62,6 +63,14 @@ export function alreadyOnboarded(): ConflictAppError {
 /** The setup is completed before every step was walked: the parent still has steps to finish. */
 export function setupIncomplete(): ConflictAppError {
   return conflictError(LEARNER_ERROR_CODES.setupIncomplete, 'The setup is not ready to finish.');
+}
+
+/** The child already did their welcome; it runs once, so its choices are closed. */
+export function welcomeAlreadyCompleted(): ConflictAppError {
+  return conflictError(
+    LEARNER_ERROR_CODES.welcomeAlreadyCompleted,
+    'The child already finished the welcome.',
+  );
 }
 
 /** The development-only onboarding reset was called where it is switched off (production). Says nothing about the parent's data. */

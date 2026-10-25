@@ -19,6 +19,7 @@ import type {
   ProfilePatch,
   SavedProfile,
   UnfinishedProfileInput,
+  WelcomePatch,
 } from '../../domain/ports/child-profile.repository';
 
 const failures = createPersistenceFailures({
@@ -47,6 +48,16 @@ async function replaceDetails(input: UnfinishedProfileInput): Promise<boolean> {
   const changed = await unfinishedOf(input).updateAndCount({ displayName, federalState, grade });
   return changed > 0;
 }
+
+/** One profile of the parent whose setup is done and whose welcome is still open (`done` is set together with `setupCompletedAt`). */
+const welcomePending = ({ id, ownerId, tenantId }: Owner & { readonly id: ChildProfileId }) =>
+  db.orm.public.ChildProfile.where({
+    id,
+    ownerId,
+    tenantId,
+    setupStep: 'done',
+    welcomeCompletedAt: null,
+  });
 
 /** The columns a step's patch writes; a part the patch leaves out is not touched. */
 function columnsOf({ interests, tutorId, controls, guardian }: ProfilePatch) {
@@ -206,6 +217,36 @@ export class PrismaChildProfileRepository implements ChildProfileRepository {
           setupCompletedAt: null,
         }).updateAndCount({ setupStep: 'done', setupCompletedAt: dateToInstant(completedAt) }),
       failures.infraOnly('markSetupCompleted'),
+    ).map((changed) => changed > 0);
+  }
+
+  updateWelcomePending(
+    profile: ChildProfile,
+    patch: WelcomePatch,
+  ): AppResultAsync<ChildProfile | null, InfrastructureAppError> {
+    const { id, ownerId, tenantId } = profile;
+    return fromThrowableAsync(async () => {
+      // The step column is not part of the patch: the welcome never moves the parent's setup.
+      const changed = await welcomePending({ id, ownerId, tenantId }).updateAndCount(
+        columnsOf(patch),
+      );
+      return changed > 0 ? profiles().where({ id, ownerId, tenantId }).first() : null;
+    }, failures.infraOnly('updateWelcomePending')).map((record) =>
+      record === null ? null : toChildProfile(record),
+    );
+  }
+
+  markWelcomeCompleted(
+    profile: ChildProfile,
+    completedAt: Date,
+  ): AppResultAsync<boolean, InfrastructureAppError> {
+    const { id, ownerId, tenantId } = profile;
+    return fromThrowableAsync(
+      async () =>
+        welcomePending({ id, ownerId, tenantId }).updateAndCount({
+          welcomeCompletedAt: dateToInstant(completedAt),
+        }),
+      failures.infraOnly('markWelcomeCompleted'),
     ).map((changed) => changed > 0);
   }
 }

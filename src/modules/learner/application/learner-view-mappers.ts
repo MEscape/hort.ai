@@ -16,6 +16,7 @@ export function toChildProfileView(profile: ChildProfile): ChildProfileView {
     guardianConfirmed: hasCurrentGuardianConfirmation(profile),
     setupStep: profile.setupStep,
     setupCompletedAt: profile.setupCompletedAt,
+    welcomeCompletedAt: profile.welcomeCompletedAt,
   };
 }
 

@@ -8,7 +8,7 @@ import { getLearnerQueries } from '../../composition';
 import { toOnboardingStateDto } from '../dto/learner-dto';
 import { learnerRoutes } from '../routes';
 
-import type { OnboardingStateDto } from '../dto/learner-dto';
+import type { ChildProfileDto, OnboardingStateDto } from '../dto/learner-dto';
 
 /**
  * Where the signed-in parent stands in the setup, read from the backend. Page-level navigation
@@ -23,12 +23,34 @@ async function loadOnboardingState(): Promise<OnboardingStateDto> {
   return toOnboardingStateDto(result.value);
 }
 
-/** For the parent's home: a parent whose setup is not finished is sent into it. */
-export async function requireOnboarded(): Promise<void> {
-  const state = await loadOnboardingState();
-  if (state.step !== 'done') {
-    redirect({ href: learnerRoutes.onboarding(), locale: await getLocale() });
+/**
+ * For the parent's home: a parent whose setup is not finished is sent into it, and one whose child
+ * has not done their welcome yet is sent there. Returns the child's profile for what the home shows.
+ */
+export async function requireOnboarded(): Promise<ChildProfileDto> {
+  const { step, profile } = await loadOnboardingState();
+  if (step !== 'done' || profile === null) {
+    return redirect({ href: learnerRoutes.onboarding(), locale: await getLocale() });
   }
+  if (profile.welcomeCompletedAt === null) {
+    return redirect({ href: learnerRoutes.welcome(), locale: await getLocale() });
+  }
+  return profile;
+}
+
+/**
+ * For the welcome page: the setup must be finished (else back into it) and the welcome still open
+ * (else on to the home). Returns the profile the welcome edits.
+ */
+export async function requireChildWelcome(): Promise<ChildProfileDto> {
+  const { step, profile } = await loadOnboardingState();
+  if (step !== 'done' || profile === null) {
+    return redirect({ href: learnerRoutes.onboarding(), locale: await getLocale() });
+  }
+  if (profile.welcomeCompletedAt !== null) {
+    return redirect({ href: learnerRoutes.home(), locale: await getLocale() });
+  }
+  return profile;
 }
 
 /** For the onboarding page: a finished parent never sees it again. */

@@ -27,6 +27,8 @@ export interface ChildProfileView {
   readonly setupStep: SetupStep;
   /** UTC instant the parent finished the setup; `null` while it is open. */
   readonly setupCompletedAt: Date | null;
+  /** UTC instant the child finished their welcome; `null` while it is open. */
+  readonly welcomeCompletedAt: Date | null;
 }
 
 export interface OnboardingStateView {

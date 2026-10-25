@@ -328,6 +328,126 @@ describe.skipIf(!isEnabled)('PrismaChildProfileRepository against Postgres', () 
     ).toEqual([]);
   });
 
+  // The child welcome tables come from migration 20261024T2329_add_child_welcome_and_progress_events.
+  const WELCOMED_AT = new Date('2026-10-25T08:30:00.123Z');
+
+  async function finishSetup(owner: ReturnType<typeof freshOwner>) {
+    const profile = await reachReview(owner);
+    await repository.markSetupCompleted(profile, COMPLETED_AT);
+    return profile;
+  }
+
+  it('reads a new profile with an open welcome', async () => {
+    const owner = freshOwner();
+
+    expect((await saveProfile(owner)).welcomeCompletedAt).toBeNull();
+  });
+
+  it('stores the child’s interests and companion on a finished profile without touching anything else', async () => {
+    const owner = freshOwner();
+    const profile = await finishSetup(owner);
+
+    const stored = await repository.updateWelcomePending(profile, {
+      interests: ['music', 'art'],
+      tutorId: toTutorId('lili'),
+    });
+
+    expect(stored._unsafeUnwrap()).toMatchObject({
+      id: profile.id,
+      interests: ['music', 'art'],
+      tutorId: 'lili',
+      setupStep: 'done',
+      setupCompletedAt: COMPLETED_AT,
+      welcomeCompletedAt: null,
+    });
+  });
+
+  it('refuses the welcome writes while the setup is open', async () => {
+    const owner = freshOwner();
+    const profile = await reachReview(owner);
+
+    const patch = await repository.updateWelcomePending(profile, { interests: ['art'] });
+    const mark = await repository.markWelcomeCompleted(profile, WELCOMED_AT);
+
+    expect(patch._unsafeUnwrap()).toBeNull();
+    expect(mark._unsafeUnwrap()).toBe(false);
+    expect((await list(owner))[0]).toMatchObject({ interests: [], welcomeCompletedAt: null });
+  });
+
+  it('finishes the welcome once, stores the exact UTC instant and then refuses further welcome writes', async () => {
+    const owner = freshOwner();
+    const profile = await finishSetup(owner);
+
+    const first = await repository.markWelcomeCompleted(profile, WELCOMED_AT);
+    const second = await repository.markWelcomeCompleted(profile, new Date());
+    const late = await repository.updateWelcomePending(profile, { interests: ['art'] });
+
+    expect([first._unsafeUnwrap(), second._unsafeUnwrap()]).toEqual([true, false]);
+    expect(late._unsafeUnwrap()).toBeNull();
+    expect((await list(owner))[0]).toMatchObject({
+      interests: [],
+      welcomeCompletedAt: WELCOMED_AT,
+    });
+  });
+
+  it('lets exactly one of several simultaneous welcome completions win', async () => {
+    const owner = freshOwner();
+    const profile = await finishSetup(owner);
+
+    const outcomes = await Promise.all(
+      Array.from({ length: 5 }, () => repository.markWelcomeCompleted(profile, WELCOMED_AT)),
+    );
+
+    expect(outcomes.filter((outcome) => outcome._unsafeUnwrap())).toHaveLength(1);
+  });
+
+  it('does not let another parent or tenant write the welcome of this profile', async () => {
+    const owner = freshOwner();
+    const profile = await finishSetup(owner);
+    const otherParent = { ...profile, ownerId: toActorId('parent-2') };
+    const otherTenant = { ...profile, tenantId: toTenantId(`${owner.tenantId}-other`) };
+
+    const outcomes = await Promise.all([
+      repository.markWelcomeCompleted(otherParent, WELCOMED_AT),
+      repository.markWelcomeCompleted(otherTenant, WELCOMED_AT),
+    ]);
+    const patch = await repository.updateWelcomePending(otherParent, { interests: ['art'] });
+
+    expect(outcomes.map((outcome) => outcome._unsafeUnwrap())).toEqual([false, false]);
+    expect(patch._unsafeUnwrap()).toBeNull();
+    expect((await list(owner))[0]).toMatchObject({ interests: [], welcomeCompletedAt: null });
+  });
+
+  it('lets the database refuse a welcome stamp on a profile whose setup is open', async () => {
+    const owner = freshOwner();
+    const profile = await saveProfile(owner);
+
+    await expect(
+      db.orm.public.ChildProfile.where({ id: profile.id }).updateAndCount({
+        welcomeCompletedAt: WELCOMED_AT,
+      }),
+    ).rejects.toBeDefined();
+  });
+
+  it('removes the profile’s progress rows with the profile when the owner resets', async () => {
+    const owner = freshOwner();
+    const profile = await finishSetup(owner);
+    await db.orm.public.ProgressEvent.create({
+      ...owner,
+      childProfileId: profile.id,
+      kind: 'daily_reward',
+      eventKey: 'daily:2026-10-25',
+      xp: 5,
+    });
+    const events = () => db.orm.public.ProgressEvent.where({ childProfileId: profile.id }).all();
+    expect(await events()).toHaveLength(1);
+
+    const deleted = await repository.deleteAllOwned(owner);
+
+    expect(deleted._unsafeUnwrap()).toBe(1);
+    expect(await events()).toEqual([]);
+  });
+
   it('deletes all of the owner’s profiles, finished or not, and nothing of anyone else', async () => {
     const owner = freshOwner();
     const other = { tenantId: owner.tenantId, ownerId: toActorId('parent-2') };

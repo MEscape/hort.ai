@@ -13,6 +13,9 @@ export const LEVEL_BY_EVENT = {
   'learner.guardian_consent_recorded': 'info',
   'learner.onboarding_reset': 'info',
   'learner.setup_completed': 'info',
+  'learner.child_interests_saved': 'info',
+  'learner.child_tutor_chosen': 'info',
+  'learner.child_welcome_completed': 'info',
 } as const satisfies Record<LearnerEvent['type'], 'info' | 'warn'>;
 
 /** One structured log line per event under `learner.audit`; never throws. */
@@ -33,4 +36,7 @@ export const TRAIL_BY_EVENT = {
   'learner.guardian_consent_recorded': 'member',
   'learner.onboarding_reset': 'member',
   'learner.setup_completed': 'member',
+  'learner.child_interests_saved': 'member',
+  'learner.child_tutor_chosen': 'member',
+  'learner.child_welcome_completed': 'member',
 } as const satisfies AuditTrailPolicy<LearnerEvent['type']>;

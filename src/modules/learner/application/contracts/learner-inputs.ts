@@ -33,3 +33,8 @@ export interface SaveControlsInput {
 export interface CompleteSetupInput {
   readonly profileId: string;
 }
+
+/** The child's welcome edits the same two things the parent chose, so the inputs are the same. */
+export type SaveChildInterestsInput = SaveInterestsInput;
+export type ChooseChildTutorInput = ChooseTutorInput;
+export type CompleteChildWelcomeInput = CompleteSetupInput;

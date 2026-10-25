@@ -39,6 +39,7 @@ describe('GetOnboardingState', () => {
         guardianConfirmed: false,
         setupStep: 'controls',
         setupCompletedAt: null,
+        welcomeCompletedAt: null,
       },
     });
   });
@@ -75,6 +76,7 @@ describe('GetOnboardingState', () => {
       'setupCompletedAt',
       'setupStep',
       'tutorId',
+      'welcomeCompletedAt',
     ]);
   });
 

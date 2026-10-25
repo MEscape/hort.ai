@@ -3,7 +3,7 @@ import type {
   OnboardingStateView,
 } from '../../application/contracts/learner-views';
 
-/** What the browser gets of a child profile: plain values only, no dates, no owner. */
+/** What the browser gets of a child profile: plain values only (instants as ISO text), no owner. */
 export interface ChildProfileDto {
   readonly id: string;
   readonly displayName: string;
@@ -17,6 +17,8 @@ export interface ChildProfileDto {
   readonly allowedWindow: { readonly fromMinute: number; readonly untilMinute: number } | null;
   readonly learningInsights: boolean;
   readonly guardianConfirmed: boolean;
+  /** When the child finished their own welcome (ISO instant), or `null` while it is open. */
+  readonly welcomeCompletedAt: string | null;
 }
 
 export interface OnboardingStateDto {
@@ -37,6 +39,7 @@ export function toChildProfileDto(view: ChildProfileView): ChildProfileDto {
     allowedWindow: view.controls.allowedWindow,
     learningInsights: view.controls.learningInsights,
     guardianConfirmed: view.guardianConfirmed,
+    welcomeCompletedAt: view.welcomeCompletedAt?.toISOString() ?? null,
   };
 }
 
