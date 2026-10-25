@@ -19,6 +19,12 @@ The prompt that asks for the output is built by `buildHintPrompt` (`domain/promp
 
 On any rejection the caller discards the output, logs the rejection code (never the text or the child's input), and uses a predefined fallback for the requested kind and hint level (#10).
 
+## Provider: Gemini on Vertex AI (#10)
+
+The adapter is `VertexGeminiProvider` (`infrastructure/vertex/`): Gemini 3.8 Flash (`gemini-3.8-flash`) through Vertex AI `generateContent`, plain `fetch`, no SDK. The fixed instructions go in as the system instruction, the JSON data block as the only user message, with JSON output and every safety category at `BLOCK_LOW_AND_ABOVE`. It authenticates as a service account with the OAuth 2.0 JWT bearer flow (`service-account-token.ts`, `node:crypto`); the token is reused until a minute before it expires. A missed deadline is `timeout`, everything else `unavailable` with the HTTP status or the error name at most, never a token, a key or the child's text.
+
+It is **off by default** (`VERTEX_AI_ENABLED=false`): every hint is then the predefined prompt of its level. It is switched on only once the provider terms for an app used by children are cleared. Vertex AI and not the Gemini API, whose terms exclude services likely to be used by people under 18. Configuration (`src/lib/config/ai-env-schema.ts`, `.env.example` section 8): `VERTEX_AI_PROJECT_ID`, `VERTEX_AI_LOCATION` (default `eu`, Google's EU multi-region endpoint), `VERTEX_AI_MODEL_ID`, `VERTEX_AI_TIMEOUT_MS` (default 8000) and `VERTEX_AI_SERVICE_ACCOUNT_KEY`, the service account's JSON key file as one secret (role: Vertex AI User). Tests use fakes only; no test reaches Google.
+
 The contract is a domain function built on the `@lib/utils` shape guards, not a Zod schema. [`validation.md`](../rules/validation.md) reserves Zod for the presentation boundary, and AI output arrives in infrastructure. A domain function can be called from the provider adapter and tested without a provider.
 
 ## Shape (version 1)
