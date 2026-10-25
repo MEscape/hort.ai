@@ -3,7 +3,10 @@ import type { Actor } from '@modules/auth';
 import type { AppResultAsync } from '@lib/result';
 
 import type { ChildProfileId } from '../../domain/models/ids';
-import type { ChildProfileAccessError } from '../../domain/ports/child-profile-access.port';
+import type {
+  ChildProfileAccessError,
+  OwnChildProfile,
+} from '../../domain/ports/child-profile-access.port';
 import type { HelpSessionOwner } from '../../domain/ports/help-session.repository';
 import type { HelpSessionDependencies } from '../help-session-dependencies';
 
@@ -16,11 +19,16 @@ export function ownChildScope(
   actor: Actor,
   childProfileId: ChildProfileId,
 ): AppResultAsync<
-  { readonly owner: HelpSessionOwner; readonly childProfileId: ChildProfileId },
+  {
+    readonly owner: HelpSessionOwner;
+    readonly childProfileId: ChildProfileId;
+    readonly child: OwnChildProfile;
+  },
   ChildProfileAccessError
 > {
   return deps.childProfiles.findOwn(childProfileId).map((child) => ({
     owner: { tenantId: actor.tenantId, ownerId: actor.id },
     childProfileId: child.id,
+    child,
   }));
 }

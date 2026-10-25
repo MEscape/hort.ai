@@ -10,6 +10,7 @@ import type {
 import type { ChildTaskText } from '../models/child-task-text';
 import type { AnswerCheckStep, HelpSession, HelpSessionSource } from '../models/help-session';
 import type { ChildProfileId, HelpSessionId } from '../models/ids';
+import type { SessionTopic } from '../topic/session-topic';
 
 /** Whose children an operation reaches: the signed-in parent's own, in their own tenant. */
 export type HelpSessionOwner = Pick<HelpSessionRef, 'tenantId' | 'ownerId'>;
@@ -19,6 +20,7 @@ export interface NewHelpSession extends HelpSessionSource {
   readonly childProfileId: ChildProfileId;
   /** The open session this one replaces; it ends `abandoned` in the same transaction. */
   readonly replaces: HelpSessionId | null;
+  readonly topic: SessionTopic;
 }
 
 /**

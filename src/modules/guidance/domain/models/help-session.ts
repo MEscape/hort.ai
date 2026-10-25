@@ -6,6 +6,7 @@ import type { HintLevel } from './hint-level';
 import type { HintSubject } from './hint-subject';
 import type { AssignmentId, ChildProfileId, HelpSessionId } from './ids';
 import type { RecordedAnswerCheck } from '../ports/hint-session-store.port';
+import type { SessionTopic } from '../topic/session-topic';
 
 /** A session is worked on while `active`; it ends `completed` (understood) or `abandoned` (another task was started). */
 export type HelpSessionStatus = 'active' | 'completed' | 'abandoned';
@@ -44,6 +45,8 @@ export interface HelpSession {
   readonly updatedAt: Date;
   readonly hints: readonly GivenHint[];
   readonly answerChecks: readonly AnswerCheckStep[];
+  /** What the topic classification decided when the session started (#92). */
+  readonly topic: SessionTopic;
 }
 
 /** Where the child stands: still working, asked to answer the comprehension question, or done. */

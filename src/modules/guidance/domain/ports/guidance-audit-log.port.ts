@@ -7,6 +7,7 @@ import type { HintFallbackReason } from '../models/hint-fallback-reason';
 import type { HintLevel } from '../models/hint-level';
 import type { HintSubject } from '../models/hint-subject';
 import type { AssignmentId, ChildProfileId, HelpSessionId } from '../models/ids';
+import type { SessionOpening } from '../topic/session-topic';
 import type { ChildMessageIntent, TopicDecision, TopicGuess } from '../topic/topic-classification';
 
 /** A confidence reduced to what operations need to tune the thresholds; never the exact value. */
@@ -82,6 +83,8 @@ export type GuidanceEvent =
       readonly subject: HintSubject;
       /** The open session this one replaced, which ended `abandoned`. */
       readonly replaced: HelpSessionId | null;
+      /** How the session opens (#92); `null`: help as usual. */
+      readonly opening: SessionOpening['kind'] | null;
     }
   | {
       readonly type: 'guidance.comprehension_replied';
@@ -105,14 +108,6 @@ export type GuidanceEvent =
       readonly topic: TopicGuess['kind'];
       readonly topicConfidence: ConfidenceBucket | null;
       readonly action: TopicDecision['action'];
-    }
-  | {
-      readonly type: 'guidance.child_task_classified';
-      readonly tenantId: TenantId;
-      readonly actorId: ActorId;
-      readonly childProfileId: ChildProfileId;
-      readonly action: TopicDecision['action'];
-      readonly classifiedBy: TopicClassifierName | 'fallback';
     }
   | {
       /** Only logged: the subject the child picked wins. */
