@@ -1,0 +1,6 @@
+{
+  "id": "eule",
+  "rolle": "erzaehler",
+  "name": null,
+  "tts": { "provider": "elevenlabs", "voiceId": "YyYOpSknZlewhHezK5bv", "style": null }
+}

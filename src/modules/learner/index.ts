@@ -9,6 +9,7 @@
 /** @keep the home page decides from it whether to render the dev reset button (wired by the UI next). */
 export { getLearnerCommands, getLearnerQueries, isDevResetAvailable } from './composition';
 
+export type { AdoptSchoolSettingsError } from './application/commands/adopt-school-settings';
 export type { ChooseTutorError } from './application/commands/choose-tutor';
 export type { CompleteSetupError } from './application/commands/complete-setup';
 export type { CreateChildProfileError } from './application/commands/create-child-profile';
@@ -16,7 +17,7 @@ export type { CreateChildProfileError } from './application/commands/create-chil
 export type { ResetOnboardingError } from './application/commands/reset-onboarding';
 export type { SaveControlsError } from './application/commands/save-controls';
 export type { SaveInterestsError } from './application/commands/save-interests';
-export type { GetChildProfileError } from './application/queries/get-child-profile';
+export type { GetChildProfileByIdError } from './application/queries/get-child-profile-by-id';
 export type { GetOnboardingStateError } from './application/queries/get-onboarding-state';
 export {
   DAILY_LIMIT_MINUTES,

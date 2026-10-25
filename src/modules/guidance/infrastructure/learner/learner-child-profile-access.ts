@@ -11,7 +11,7 @@ import type { ChildProfileAccess } from '../../domain/ports/child-profile-access
 export const learnerChildProfileAccess: ChildProfileAccess = {
   findOwn: (id) =>
     getLearnerQueries()
-      .getChildProfile.execute(id)
+      .getChildProfileById.execute(id)
       .map((profile) => ({
         id: toChildProfileId(profile.id),
       })),
