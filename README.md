@@ -49,6 +49,7 @@ The application runs on your machine. Docker Compose runs only its local depende
 
 - `.env.example` documents every application variable, in numbered sections. Variables are validated at startup; a bad or missing value stops the app and names the variable.
 - Rate limiting always uses the Upstash store (no in-memory mode; unit tests use a double that lives only under `__tests__`). For development it can be switched off with `RATE_LIMIT_ENABLED=false`, like authentication with `AUTH_ENABLED=false`; production refuses both. Production requires `https` for Upstash, the storage endpoint and the public storage URL.
+- `CLASSROOM_INVITE_CODE_KEY` (optional, `openssl rand -base64 32`) encrypts classroom invite codes at rest so teachers can see them again. Without it codes are stored as a hash only and must be replaced to be shown; changing it makes stored codes unavailable until replaced.
 - Add a variable with `npm run gen -- env <NAME>` ([guide](docs/conventions/adding-an-environment-variable.md)).
 - Integration tests read the same variables (`.env` locally, the job environment in CI) and skip a service that is not configured.
 

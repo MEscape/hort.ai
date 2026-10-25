@@ -10,14 +10,19 @@ const ID_PARAM_MAX = 128;
  */
 const idParam = z.string().min(1).max(ID_PARAM_MAX).optional().catch(undefined);
 
-const teacherPageSchema = z.object({ classroom: idParam });
+const teacherPageSchema = z.object({ classroom: idParam, details: idParam });
 const childTasksSchema = z.object({ child: idParam });
 
-/** `classroom` selects one of the teacher's classes; anything else falls back to the newest. */
+/**
+ * `classroom` selects one of the teacher's classes; anything else falls back to the newest.
+ * `details` opens a class's details dialog; the classroom query checks it is the teacher's own.
+ */
 export function parseTeacherAssignmentsPageParams(raw: unknown): {
   readonly classroomId: string | undefined;
+  readonly detailsClassroomId: string | undefined;
 } {
-  return { classroomId: teacherPageSchema.parse(raw).classroom };
+  const parsed = teacherPageSchema.parse(raw);
+  return { classroomId: parsed.classroom, detailsClassroomId: parsed.details };
 }
 
 /** `child` names the signed-in parent's child whose class's assignments the start screen lists. */
