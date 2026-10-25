@@ -11,7 +11,9 @@ import type { CurrentActorProvider } from '../../domain/ports/current-actor-prov
 
 /** Who a channel acts for: the guardian who owns the one child profile the channel is bound to. */
 export interface ChildChannelBinding {
+  readonly channel: string;
   readonly guardianId: string;
+  readonly childProfileId: string;
   readonly tenantId: TenantId;
 }
 
@@ -20,9 +22,10 @@ const scope = new AsyncLocalStorage<Actor>();
 /**
  * The actor of a server-verified channel request (Alexa: Amazon's signature plus the skill id) that is
  * bound to one child by server configuration. It carries the guardian's id, so every use case still
- * checks ownership as for the guardian, but only `CHILD_CHANNEL_ROLE`: a parent operation is denied by
- * the same `decide` as any missing permission. The scope ends with `work`; a request outside it, every
- * web request included, keeps resolving its actor from its own session.
+ * looks resources up as the guardian's, but only `CHILD_CHANNEL_ROLE` and a `delegation` to the one
+ * child: a parent operation is denied for the missing permission, a sibling's profile by `decide`'s
+ * child check, and audit events name the channel. The scope ends with `work`; a request outside it,
+ * every web request included, keeps resolving its actor from its own session.
  */
 export function runInChildChannel<T>(
   binding: ChildChannelBinding,
@@ -32,6 +35,7 @@ export function runInChildChannel<T>(
     id: toActorId(binding.guardianId),
     tenantId: binding.tenantId,
     roles: [CHILD_CHANNEL_ROLE],
+    delegation: { channel: binding.channel, childProfileId: binding.childProfileId },
   };
   return scope.run(actor, work);
 }

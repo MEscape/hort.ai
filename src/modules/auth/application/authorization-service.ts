@@ -4,6 +4,7 @@ import type { AppResultAsync } from '@lib/result';
 import { isDefined } from '@lib/utils';
 
 import { permissionDenied } from '../domain/errors/auth-errors';
+import { auditedActor } from '../domain/models/actor';
 import { decide } from '../domain/models/authorize';
 
 import type { Actor } from '../domain/models/actor';
@@ -75,7 +76,7 @@ export function createAuthorizationService(deps: {
           if (isDefined(scope) && scope.ownerId !== actor.id) {
             deps.audit.record({
               type: 'authorization.admin_override',
-              actorId: actor.id,
+              ...auditedActor(actor),
               tenantId: actor.tenantId,
               permission,
               ownerId: scope.ownerId,
@@ -86,7 +87,7 @@ export function createAuthorizationService(deps: {
 
         deps.audit.record({
           type: 'authorization.denied',
-          actorId: actor.id,
+          ...auditedActor(actor),
           tenantId: actor.tenantId,
           permission,
           reason: decision.reason,

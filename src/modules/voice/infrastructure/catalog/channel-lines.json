@@ -1,9 +1,10 @@
 {
   "alexa.connection_test": "Lennart wann holen wir uns draußen Suppe",
+  "alexa.child.hello": "Hallo, schön, dass du da bist!",
   "alexa.child.learningPause": "Jetzt ist Lernpause. Bis später!",
-  "alexa.child.snack": "Snack-Zeit? Sag füttern.",
-  "alexa.child.snackHungry": "Ich habe Hunger! Sag füttern.",
-  "alexa.child.snackSleepy": "Ich bin müde. Snack-Zeit? Sag füttern.",
+  "alexa.child.snack": "Magst du mich füttern?",
+  "alexa.child.snackHungry": "Ich habe Hunger, magst du mich füttern?",
+  "alexa.child.snackSleepy": "Ich bin müde, magst du mich füttern?",
   "alexa.child.teacherTask": "Deine Lehrerin hat dir eine Aufgabe gegeben.",
   "alexa.child.teacherTasks": "Deine Lehrerin hat dir Aufgaben gegeben.",
   "alexa.child.whatNow": "Was möchtest du machen?",

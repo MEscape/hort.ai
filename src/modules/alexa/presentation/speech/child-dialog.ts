@@ -11,12 +11,11 @@ import type {
 } from '../../application/contracts/child-companion-model';
 
 /**
- * One piece of a reply: a fixed line or the catalog greeting (spoken in the companion's voice), or a
- * dynamic sentence (numbers, teacher titles) that Alexa speaks itself.
+ * One piece of a reply: a fixed line (spoken in the companion's voice), or a dynamic sentence (numbers,
+ * teacher titles) that Alexa speaks itself.
  */
 export type SpokenPart =
   | { readonly kind: 'line'; readonly text: string }
-  | { readonly kind: 'greeting'; readonly text: string }
   | { readonly kind: 'alexa'; readonly text: string };
 
 /** The only yes/no question of phase 1: the snack offer. */
@@ -67,6 +66,28 @@ const open = (parts: readonly SpokenPart[], question: OpenQuestion | null = null
 const closed = (text: string): ChildReply => ({ parts: [line(text)], open: false, question: null });
 const askWhatNow = (...parts: SpokenPart[]): ChildReply =>
   open([...parts, line(CHILD_LINES.whatNow)]);
+
+/** Whether a turn needs the child's use cases; every other one is answered without the database. */
+export function needsBackend(intent: ChildIntent, surface: DialogSurface): boolean {
+  switch (intent) {
+    case 'launch':
+    case 'feed':
+    case 'level':
+    case 'tasks':
+      return true;
+    case 'yes':
+      return surface.question === 'feed';
+    default:
+      return false;
+  }
+}
+
+/** The calm answer when the use cases did not answer in time: as for a failure, never an error. */
+export function timedOutReply(intent: ChildIntent): ChildReply {
+  return intent === 'launch'
+    ? closed(CHILD_LINES.unavailable)
+    : askWhatNow(line(CHILD_LINES.notNow));
+}
 
 /**
  * The child dialog of phase 1: which backend operation an intent needs and how its outcome is said.
@@ -131,8 +152,9 @@ function launchReply(home: AppResult<ChildHome>): ChildReply {
   if (!learningAllowed) {
     return closed(CHILD_LINES.learningPause);
   }
-  // The companion's catalog greeting; the channel fills in whose once the speaker is known.
-  const parts: SpokenPart[] = [{ kind: 'greeting', text: '' }];
+  // At most three short sentences (spec rule 2): a short hello in the companion's voice instead of its
+  // long catalog introduction, the teacher's tasks, then the snack offer or the question.
+  const parts: SpokenPart[] = [line(CHILD_LINES.hello)];
   if (openTasks > 0) {
     parts.push(line(openTasks === 1 ? CHILD_LINES.teacherTask : CHILD_LINES.teacherTasks));
   }

@@ -5,10 +5,11 @@
  * Dynamic parts (numbers outside the lists, teacher titles) are spoken in Alexa's voice instead.
  */
 export const CHILD_LINES = {
+  hello: 'Hallo, schön, dass du da bist!',
   learningPause: 'Jetzt ist Lernpause. Bis später!',
-  snack: 'Snack-Zeit? Sag füttern.',
-  snackHungry: 'Ich habe Hunger! Sag füttern.',
-  snackSleepy: 'Ich bin müde. Snack-Zeit? Sag füttern.',
+  snack: 'Magst du mich füttern?',
+  snackHungry: 'Ich habe Hunger, magst du mich füttern?',
+  snackSleepy: 'Ich bin müde, magst du mich füttern?',
   teacherTask: 'Deine Lehrerin hat dir eine Aufgabe gegeben.',
   teacherTasks: 'Deine Lehrerin hat dir Aufgaben gegeben.',
   whatNow: 'Was möchtest du machen?',

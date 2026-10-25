@@ -13,7 +13,8 @@ export { toActorId, toTenantId } from './domain/models/ids';
 export { PERMISSIONS } from './domain/models/permission';
 export type { Permission } from './domain/models/permission';
 export type { ResourceScope } from './domain/models/authorize';
-export type { Actor } from './domain/models/actor';
+export type { Actor, AuditedActor } from './domain/models/actor';
+export { auditedActor } from './domain/models/actor';
 export { actorHasPermission } from './domain/models/authorize';
 
 /** Authorization: every protected use case of every module receives this. */

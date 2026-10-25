@@ -7,6 +7,9 @@ import { parseTutorId } from '../../domain/models/ids';
 import type { TutorId } from '../../domain/models/ids';
 import type { ChildCompanion, ChildHome } from '../../domain/ports/child-companion.port';
 
+/** How audit events name this channel when it acts for the guardian. */
+const ALEXA_CHANNEL = 'alexa';
+
 /** Server configuration of the demo coupling; never anything from a request. */
 export interface DemoChildBinding {
   readonly guardianId: string;
@@ -18,13 +21,18 @@ export interface DemoChildBinding {
 
 /**
  * The child-app use cases for the ONE configured child, each run as the child channel of its guardian
- * (auth's `runAsChildChannel`), so the use cases authorize every call as they do for the web: own child
- * only, child-side permissions only. The modules are loaded on the first call, not with the route, so
+ * (auth's `runAsChildChannel`), so the use cases authorize every call as they do for the web, and auth
+ * keeps the channel to this one child and to the child-side permissions (no sibling, no parent operation,
+ * no learning XP; only the daily reward is written). The modules are loaded on the first call, not with the route, so
  * request verification stays cheap.
  */
 export function demoChildCompanion(binding: DemoChildBinding): ChildCompanion {
   const { childProfileId } = binding;
-  const inChannel = channelRunner(binding.guardianId);
+  const inChannel = channelRunner({
+    channel: ALEXA_CHANNEL,
+    guardianId: binding.guardianId,
+    childProfileId,
+  });
   return {
     companion: () =>
       inChannel(async () => {
@@ -99,13 +107,17 @@ export function demoChildCompanion(binding: DemoChildBinding): ChildCompanion {
 }
 
 /** Runs one use-case call inside the child channel scope; a failed module load is an infrastructure error. */
-function channelRunner(guardianId: string) {
+function channelRunner(channel: {
+  readonly channel: string;
+  readonly guardianId: string;
+  readonly childProfileId: string;
+}) {
   // An async `work` resolves the use case's ResultAsync to its Result inside the scope.
   return <T>(work: () => Promise<AppResult<T>>): AppResultAsync<T> =>
     fromThrowableAsync(
       async () => {
         const { runAsChildChannel } = await import('@modules/auth');
-        return runAsChildChannel(guardianId, work);
+        return runAsChildChannel(channel, work);
       },
       (cause) => infrastructureError('alexa.child_unavailable', 'Child channel failed.', cause),
     ).andThen((result) => result);

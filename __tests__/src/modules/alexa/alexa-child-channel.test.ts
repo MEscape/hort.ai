@@ -21,13 +21,15 @@ import channelLines from '@modules/voice/infrastructure/catalog/channel-lines.js
 
 import { infrastructureError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
-import { errAsync, okAsync } from '@lib/result';
+import { ResultAsync, errAsync, okAsync } from '@lib/result';
 
 const SKILL_ID = 'amzn1.ask.skill.00000000-0000-0000-0000-000000000000';
 const CLIP = 'https://clips.example/speech-clips/clip.mp3?sig=x';
 const introductions = catalogTutorIntroductions();
 const LILI_GREETING = introductions.find((intro) => intro.tutorId === 'lili')?.text ?? '';
 const MAX_GREETING = introductions.find((intro) => intro.tutorId === 'max')?.text ?? '';
+/** Sentences as a listener hears them: each ends with . ! or ?. */
+const sentences = (text: string) => text.split(/(?<=[.!?])\s+/).filter((part) => part.length > 0);
 
 const HOME: ChildHome = {
   tutorId: toTutorId('lili'),
@@ -43,22 +45,43 @@ interface FakeState {
   level?: AppResultAsync<LevelStatus>;
   tasks?: AppResultAsync<ChildTasks>;
   companion?: ChildHome['tutorId'];
+  /** Every use case hangs (a database that never answers). */
+  hang?: boolean;
 }
+
+/** A use-case call that never settles. */
+const hanging = <T>(): AppResultAsync<T> => new ResultAsync(new Promise(() => undefined));
 
 /** The bound child's use cases as fakes; `calls` records which operations a turn used. */
 function fakeChild(state: FakeState = {}) {
   const calls: string[] = [];
+  const hang = state.hang === true;
+  /** The voice lookups (`companion()`), apart from the operations in `calls`. */
+  const lookups: string[] = [];
   const companion: ChildCompanion = {
-    companion: () => okAsync(state.companion === undefined ? toTutorId('lili') : state.companion),
-    home: () => (calls.push('home'), state.home ?? okAsync(HOME)),
+    companion: () => (
+      lookups.push('companion'),
+      hang
+        ? hanging()
+        : okAsync(state.companion === undefined ? toTutorId('lili') : state.companion)
+    ),
+    home: () => (calls.push('home'), hang ? hanging() : (state.home ?? okAsync(HOME))),
     feed: () => (
       calls.push('feed'),
-      state.feed ?? okAsync({ outcome: 'granted', stars: 1, leveledUp: false, level: 1 })
+      hang
+        ? hanging()
+        : (state.feed ?? okAsync({ outcome: 'granted', stars: 1, leveledUp: false, level: 1 }))
     ),
-    level: () => (calls.push('level'), state.level ?? okAsync({ level: 3, starsToNext: 2 })),
-    tasks: () => (calls.push('tasks'), state.tasks ?? okAsync({ inClass: true, titles: [] })),
+    level: () => (
+      calls.push('level'),
+      hang ? hanging() : (state.level ?? okAsync({ level: 3, starsToNext: 2 }))
+    ),
+    tasks: () => (
+      calls.push('tasks'),
+      hang ? hanging() : (state.tasks ?? okAsync({ inClass: true, titles: [] }))
+    ),
   };
-  return { companion, calls };
+  return { companion, calls, lookups };
 }
 
 function endpoint(state: FakeState = {}, voice: TutorVoice | null = null) {
@@ -70,9 +93,13 @@ function endpoint(state: FakeState = {}, voice: TutorVoice | null = null) {
     introductions,
     voice,
     voiceDeadlineMs: 50,
-    child: { companion: child.companion, defaultTutorId: toTutorId('max') },
+    child: {
+      companion: child.companion,
+      defaultTutorId: toTutorId('max'),
+      backendDeadlineMs: 100,
+    },
   });
-  return { handle, calls: child.calls };
+  return { handle, calls: child.calls, lookups: child.lookups };
 }
 
 interface Turn {
@@ -140,13 +167,27 @@ const intent = (name: string, state?: FakeState, turn: Omit<Turn, 'intent'> = {}
   endpoint(state).handle(request('IntentRequest', { intent: name, ...turn }));
 
 describe('Alexa child channel: launch', () => {
-  it('greets with the own companion only, offers the snack and keeps listening', async () => {
+  it('greets with a short hello of the own companion, offers the snack and keeps listening', async () => {
     const { text, open, body } = await said(await launch());
 
-    expect(text).toBe(`${LILI_GREETING} ${CHILD_LINES.snack}`);
+    expect(text).toBe(`${CHILD_LINES.hello} ${CHILD_LINES.snack}`);
     expect(text).not.toContain(MAX_GREETING);
+    expect(text).not.toContain(LILI_GREETING);
     expect(open).toBe(true);
     expect(body.sessionAttributes?.question).toBe('feed');
+    expect(body.sessionAttributes?.speaker).toBe('lili');
+  });
+
+  it('says at most three sentences with the real catalog, teacher tasks and the snack', async () => {
+    for (const home of [
+      { ...HOME, openTasks: 3, mood: 'sleepy' as const },
+      { ...HOME, openTasks: 1, mood: 'bored' as const },
+      { ...HOME, openTasks: 2, rewardAvailable: false },
+    ]) {
+      const { text } = await said(await launch({ home: okAsync(home) }));
+
+      expect(sentences(text).length).toBeLessThanOrEqual(3);
+    }
   });
 
   it('says the learning-pause sentence outside the learning window and ends', async () => {
@@ -163,7 +204,7 @@ describe('Alexa child channel: launch', () => {
       await launch({ home: okAsync({ ...HOME, rewardAvailable: false }) }),
     );
 
-    expect(text).toBe(`${LILI_GREETING} ${CHILD_LINES.whatNow}`);
+    expect(text).toBe(`${CHILD_LINES.hello} ${CHILD_LINES.whatNow}`);
     expect(open).toBe(true);
     expect(body.sessionAttributes?.question).toBeNull();
   });
@@ -173,7 +214,7 @@ describe('Alexa child channel: launch', () => {
     const many = await said(await launch({ home: okAsync({ ...HOME, openTasks: 3 }) }));
     const none = await said(await launch());
 
-    expect(one.text).toBe(`${LILI_GREETING} ${CHILD_LINES.teacherTask} ${CHILD_LINES.snack}`);
+    expect(one.text).toBe(`${CHILD_LINES.hello} ${CHILD_LINES.teacherTask} ${CHILD_LINES.snack}`);
     expect(many.text).toContain(CHILD_LINES.teacherTasks);
     expect(none.text).not.toContain('Lehrerin');
   });
@@ -186,12 +227,12 @@ describe('Alexa child channel: launch', () => {
     expect(sleepy.text).toContain(CHILD_LINES.snackSleepy);
   });
 
-  it('greets as the default companion when the child has none', async () => {
-    const { text } = await said(
+  it('speaks as the default companion when the child has none', async () => {
+    const { body } = await said(
       await launch({ companion: null, home: okAsync({ ...HOME, tutorId: null }) }),
     );
 
-    expect(text.startsWith(MAX_GREETING)).toBe(true);
+    expect(body.sessionAttributes?.speaker).toBe('max');
   });
 
   it('answers a failed backend with a calm sentence, never an error', async () => {
@@ -388,14 +429,18 @@ describe('Alexa child channel: yes/no, help, repeat, stop and not understood', (
   it('keeps only surface state in the session attributes', async () => {
     const { body } = await said(await launch());
 
-    expect(Object.keys(body.sessionAttributes ?? {}).sort()).toEqual(['last', 'question']);
+    expect(Object.keys(body.sessionAttributes ?? {}).sort()).toEqual([
+      'last',
+      'question',
+      'speaker',
+    ]);
   });
 });
 
 describe('Alexa child channel: the first interaction model (FreieEingabeIntent only)', () => {
   it.each([
     ['füttern', 'feed'],
-    ['gib ihm was zu essen snack', 'feed'],
+    ['gib ihm was zu essen', 'feed'],
     ['welches level habe ich', 'level'],
     ['was habe ich auf', 'tasks'],
   ])('maps "%s" onto %s', async (utterance, operation) => {
@@ -424,6 +469,85 @@ describe('Alexa child channel: the first interaction model (FreieEingabeIntent o
   });
 });
 
+describe('Alexa child channel: only the free input is mapped by keywords', () => {
+  it('does not feed on an unknown intent whose slot says "füttern"', async () => {
+    for (const name of ['UnbekannterIntent', 'AMAZON.FallbackIntent']) {
+      const { handle, calls } = endpoint();
+
+      const { text } = await said(
+        await handle(request('IntentRequest', { intent: name, utterance: 'füttern' })),
+      );
+
+      expect(calls).toEqual([]);
+      expect(text).toBe(CHILD_LINES.notUnderstood);
+    }
+  });
+});
+
+describe('Alexa child channel: a hanging database', () => {
+  it('ends on stop at once, without asking the database', async () => {
+    for (const turn of [
+      { intent: 'AMAZON.StopIntent' },
+      { intent: 'FreieEingabeIntent', utterance: 'tschüss' },
+    ]) {
+      const { handle, calls, lookups } = endpoint({ hang: true });
+      const started = performance.now();
+
+      const { text, open } = await said(await handle(request('IntentRequest', turn)));
+
+      expect(text).toBe(CHILD_LINES.bye);
+      expect(open).toBe(false);
+      expect(calls).toEqual([]);
+      expect(lookups).toEqual([]);
+      expect(performance.now() - started).toBeLessThan(1_000);
+    }
+  });
+
+  it('answers help and repeat without the database, in the voice of the last reply', async () => {
+    const lineUrl = vi.fn((_tutorId: string, _text: string) => okAsync(CLIP));
+    const voice: TutorVoice = { audioUrl: () => okAsync(CLIP), lineUrl, greetingUrl: lineUrl };
+    const { handle, lookups } = endpoint({ hang: true }, voice);
+    const last = [{ kind: 'line', text: CHILD_LINES.whatNow }];
+
+    const help = await said(
+      await handle(request('IntentRequest', { intent: 'AMAZON.HelpIntent' })),
+    );
+    const repeat = await said(
+      await handle(
+        request('IntentRequest', {
+          intent: 'AMAZON.RepeatIntent',
+          attributes: { question: null, last, speaker: 'lili' },
+        }),
+      ),
+    );
+
+    expect(help.open && repeat.open).toBe(true);
+    expect(lookups).toEqual([]);
+    expect(lineUrl.mock.calls.at(-1)?.[0]).toBe('lili');
+  });
+
+  it('answers launch and feeding calmly within the deadline when the use cases hang', async () => {
+    const { handle } = endpoint({ hang: true });
+    const started = performance.now();
+
+    const launched = await said(await handle(request('LaunchRequest')));
+    const fed = await said(await handle(request('IntentRequest', { intent: 'FuetternIntent' })));
+
+    expect(launched.text).toBe(CHILD_LINES.unavailable);
+    expect(launched.open).toBe(false);
+    expect(fed.text).toBe(`${CHILD_LINES.notNow} ${CHILD_LINES.whatNow}`);
+    expect(performance.now() - started).toBeLessThan(1_000);
+  });
+
+  it('ignores a speaker in the attributes that is no ready tutor', async () => {
+    const { body } = await said(
+      await intent('AMAZON.HelpIntent', {}, { attributes: { speaker: 'nemo' } }),
+    );
+
+    expect(body.sessionAttributes?.speaker).toBe('max');
+  });
+});
+
 describe('Alexa child channel: voices', () => {
   function recordingVoice(fail = false) {
     const lineUrl = vi.fn((_tutorId: string, _text: string) =>
@@ -434,14 +558,15 @@ describe('Alexa child channel: voices', () => {
     return { voice, lineUrl, greetingUrl };
   }
 
-  it('speaks greeting and fixed lines in the own companion voice, numbers in Alexa voice', async () => {
+  it('speaks the fixed lines in the own companion voice, numbers in Alexa voice', async () => {
     const { voice, lineUrl, greetingUrl } = recordingVoice();
     const { handle } = endpoint({}, voice);
 
     const launched = await said(await handle(request('LaunchRequest')));
     const level = await said(await handle(request('IntentRequest', { intent: 'LevelIntent' })));
 
-    expect(greetingUrl).toHaveBeenCalledWith('lili');
+    expect(greetingUrl).not.toHaveBeenCalled();
+    expect(lineUrl).toHaveBeenCalledWith('lili', CHILD_LINES.hello);
     expect(lineUrl.mock.calls.every(([tutorId]) => tutorId === 'lili')).toBe(true);
     expect(launched.body.response.directives?.[0]?.document.mainTemplate.item.items).toEqual([
       { type: 'Audio', source: CLIP },

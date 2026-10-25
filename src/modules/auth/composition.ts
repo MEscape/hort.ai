@@ -223,12 +223,19 @@ const getCurrentActorProvider = once(() =>
 );
 
 /**
- * Runs `work` as the voice channel bound to one child of `guardianId` (see `CHILD_CHANNEL_ROLE`).
- * Only for a server-verified channel request whose binding comes from server configuration, never
- * from the request: the Alexa composition is the one caller.
+ * Runs `work` as `channel` acting for the one child `childProfileId` of `guardianId` (see
+ * `CHILD_CHANNEL_ROLE`). Only for a server-verified channel request whose binding comes from server
+ * configuration, never from the request: the Alexa composition is the one caller.
  */
-export function runAsChildChannel<T>(guardianId: string, work: () => Promise<T>): Promise<T> {
-  return runInChildChannel({ guardianId, tenantId: getTenantId() }, work);
+export function runAsChildChannel<T>(
+  binding: {
+    readonly channel: string;
+    readonly guardianId: string;
+    readonly childProfileId: string;
+  },
+  work: () => Promise<T>,
+): Promise<T> {
+  return runInChildChannel({ ...binding, tenantId: getTenantId() }, work);
 }
 
 /** What use cases of other modules receive. Per-request state lives in `headers()`. */

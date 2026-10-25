@@ -8,7 +8,7 @@ import { errAsync, okAsync } from '@lib/result';
 
 /** Which child each use case was asked for, and as whose channel. */
 const asked: string[] = [];
-const channels: string[] = [];
+const channels: unknown[] = [];
 let profileTutor: string | null = 'lili';
 let classroom: { id: string } | null = { id: 'class-1' };
 let failProgress = false;
@@ -24,8 +24,8 @@ const progress = (overrides: Record<string, unknown> = {}) => ({
 });
 
 vi.mock('@modules/auth', () => ({
-  runAsChildChannel: (guardianId: string, work: () => Promise<unknown>) => {
-    channels.push(guardianId);
+  runAsChildChannel: (binding: unknown, work: () => Promise<unknown>) => {
+    channels.push(binding);
     return work();
   },
 }));
@@ -101,7 +101,7 @@ beforeEach(() => {
 });
 
 describe('demoChildCompanion', () => {
-  it('reads home for the configured child only, as the guardian channel', async () => {
+  it('reads home for the configured child only, as the Alexa channel bound to that child', async () => {
     const home = await companion.home();
 
     expect(home._unsafeUnwrap()).toEqual({
@@ -112,7 +112,11 @@ describe('demoChildCompanion', () => {
       openTasks: 1,
     });
     expect(new Set(asked)).toEqual(new Set(['child-1']));
-    expect(channels).toEqual(['guardian-1']);
+    expect(new Set(channels.map((binding) => JSON.stringify(binding)))).toEqual(
+      new Set([
+        JSON.stringify({ channel: 'alexa', guardianId: 'guardian-1', childProfileId: 'child-1' }),
+      ]),
+    );
   });
 
   it('speaks as no companion when the profile names none or an unknown tutor', async () => {

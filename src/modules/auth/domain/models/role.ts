@@ -36,9 +36,10 @@ export const isRole = literalGuard(ROLES);
 export const PLATFORM_ADMIN_ROLE = 'platform_admin';
 
 /**
- * A voice channel acting for ONE child of its guardian (the Alexa demo coupling): the child-side reads
- * and the daily reward, nothing a parent decides (settings, consent, onboarding, voice, hints) and
- * nothing of a teacher. Never stored and never given by sign-in: only the channel scope in
+ * A voice channel acting for ONE child of its guardian (the Alexa demo coupling): reading that child and
+ * its progress, and its daily reward; no learning XP, nothing a parent decides (settings, consent, the
+ * onboarding state with every profile, voice, hints) and nothing of a teacher. `decide` additionally
+ * keeps it to the bound child (`Actor.delegation`). Never stored and never given by sign-in: only the channel scope in
  * infrastructure/channel grants it, for the duration of one server-verified channel request.
  */
 export const CHILD_CHANNEL_ROLE = 'child_channel';
@@ -55,7 +56,7 @@ const ROLE_PERMISSIONS = {
   parent: [...LEARNER_PERMISSIONS, ...GUIDANCE_PERMISSIONS, ...ACCOUNT_PERMISSIONS],
   teacher: [...TEACHER_PERMISSIONS, ...ACCOUNT_PERMISSIONS],
   platform_admin: PERMISSIONS,
-  child_channel: ['learner.read', 'progression.read', 'progression.update'],
+  child_channel: ['learner.read', 'progression.read', 'progression.daily_reward'],
 } as const satisfies Record<Role, readonly Permission[]>;
 
 /** Every permission a single role grants. Combining roles is `decide`'s job. */

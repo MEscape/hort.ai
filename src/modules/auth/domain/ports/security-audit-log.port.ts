@@ -1,3 +1,4 @@
+import type { AuditedActor } from '../models/actor';
 import type { DenialReason } from '../models/authorize';
 import type { ActorId, TenantId } from '../models/ids';
 import type { Permission } from '../models/permission';
@@ -9,21 +10,19 @@ import type { Permission } from '../models/permission';
  * sink's severity table and the trail policy to be updated (both are `satisfies Record<SecurityEvent['type'], ...>`).
  */
 export type SecurityEvent =
-  | {
+  | ({
       readonly type: 'authorization.denied';
-      readonly actorId: ActorId;
       readonly tenantId: TenantId;
       readonly permission: Permission;
       readonly reason: DenialReason;
-    }
-  | {
+    } & AuditedActor)
+  | ({
       /** A platform admin was let into a resource of another parent (`ownerId`). */
       readonly type: 'authorization.admin_override';
-      readonly actorId: ActorId;
       readonly tenantId: TenantId;
       readonly permission: Permission;
       readonly ownerId: ActorId;
-    }
+    } & AuditedActor)
   | {
       readonly type: 'authentication.sign_in_failed';
       readonly tenantId: TenantId;

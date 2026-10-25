@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
-import { renderAudio, speak, voiced } from './alexa-speech';
-import { childDialog } from './child-dialog';
+import { TimeoutError, withTimeout } from '@lib/utils';
+
+import { VOICE_DEADLINE_MS, renderAudio, speak, voiced } from './alexa-speech';
+import { childDialog, needsBackend, timedOutReply } from './child-dialog';
 
 import type { SessionAttributes, VoiceTiming } from './alexa-speech';
 import type { ChildIntent, ChildReply, DialogSurface, SpokenPart } from './child-dialog';
@@ -17,6 +19,8 @@ export interface ChildChannel {
   readonly companion: ChildCompanion;
   /** Speaks when the child has no ready companion (`ALEXA_TUTOR_ID`). */
   readonly defaultTutorId: TutorId;
+  /** Time the child's use cases (database) may take in total for one turn; tests shorten it. */
+  readonly backendDeadlineMs?: number;
 }
 
 export interface ChildRequest {
@@ -33,6 +37,15 @@ interface ChildChannelDeps extends VoiceTiming {
 }
 
 const CHILD_VOICE_TOKEN = 'child-companion';
+/**
+ * Alexa waits 8 s. A turn spends at most this on the child's use cases and at most
+ * `CHILD_VOICE_DEADLINE_MS` on the clips, leaving the rest for verification and a cold start. A turn
+ * that needs no use case (stop, help, repeat) never waits for the database at all.
+ */
+const CHILD_BACKEND_DEADLINE_MS = 3_000;
+const CHILD_VOICE_DEADLINE_MS = 3_000;
+/** The only intent of the first interaction model; its free text is mapped by keywords. */
+const FREE_INPUT_INTENT = 'FreieEingabeIntent';
 const MAX_REMEMBERED_PARTS = 8;
 const MAX_PART_LENGTH = 600;
 
@@ -69,7 +82,7 @@ const FREE_INPUT_RULES: ReadonlyArray<readonly [RegExp, ChildIntent]> = [
   [/\b(tschüss|tschüs|stopp?|beenden|aufhören|ende)\b/, 'stop'],
   [/^(ja|jawohl|jo|gerne?|okay|ok|klar)\b/, 'yes'],
   [/^(nein|nee|nö|nicht jetzt)\b/, 'no'],
-  [/fütter|futter|snack|hunger/, 'feed'],
+  [/fütter|futter|snack|hunger|essen/, 'feed'],
   [/level|sterne/, 'level'],
   [/was hab(e)? ich auf|welche (haus)?aufgaben|aufgaben von der schule|aufgegeben/, 'tasks'],
   [/hilfe|was kann ich/, 'help'],
@@ -78,13 +91,17 @@ const FREE_INPUT_RULES: ReadonlyArray<readonly [RegExp, ChildIntent]> = [
 ];
 
 const partSchema = z.object({
-  kind: z.enum(['line', 'greeting', 'alexa']),
+  kind: z.enum(['line', 'alexa']),
   text: z.string().max(MAX_PART_LENGTH),
 });
-/** Surface state only (rule 10): the open yes/no question and the last reply, for "Wiederholen". */
+/**
+ * Surface state only (rule 10): the open yes/no question, the last reply for "Wiederholen", and whose
+ * voice spoke it, so a turn without a use case keeps that voice without asking the database.
+ */
 const surfaceSchema = z.object({
   question: z.literal('feed').nullable().optional(),
   last: z.array(partSchema).max(MAX_REMEMBERED_PARTS).optional(),
+  speaker: z.string().max(MAX_PART_LENGTH).optional(),
 });
 
 /** Maps a request onto the child dialog and its reply onto Alexa speech in the companion's voice. */
@@ -93,16 +110,28 @@ export async function respondToChild(
   deps: ChildChannelDeps,
 ): Promise<Response> {
   const intent = request.type === 'LaunchRequest' ? 'launch' : intentOf(request);
-  const surface = readSurface(request.attributes);
-  const { companion, defaultTutorId } = deps.child;
-  // The companion's voice comes from the profile on every turn, in parallel with the operation.
-  const [own, reply] = await Promise.all([
-    companion.companion(),
-    childDialog(intent, surface, companion),
-  ]);
-  const speaker = (own.isOk() ? own.value : null) ?? defaultTutorId;
-  const spoken = withGreetingOf(reply, greetingOf(deps, speaker));
-  return render(spoken, speaker, deps);
+  const { surface, speaker: lastSpeaker } = readSurface(request.attributes, deps);
+  const { companion, defaultTutorId, backendDeadlineMs } = deps.child;
+  const fallbackSpeaker = lastSpeaker ?? defaultTutorId;
+  if (!needsBackend(intent, surface)) {
+    return render(await childDialog(intent, surface, companion), fallbackSpeaker, deps);
+  }
+  try {
+    // The companion's voice comes from the profile, in parallel with the operation, under one deadline.
+    const [own, reply] = await withTimeout(
+      Promise.all([
+        Promise.resolve(companion.companion()),
+        childDialog(intent, surface, companion),
+      ]),
+      backendDeadlineMs ?? CHILD_BACKEND_DEADLINE_MS,
+    );
+    return render(reply, (own.isOk() ? own.value : null) ?? fallbackSpeaker, deps);
+  } catch (thrown) {
+    if (!(thrown instanceof TimeoutError)) {
+      throw thrown;
+    }
+    return render(timedOutReply(intent), fallbackSpeaker, deps);
+  }
 }
 
 function intentOf(request: ChildRequest): ChildIntent {
@@ -111,34 +140,31 @@ function intentOf(request: ChildRequest): ChildIntent {
   if (mapped !== undefined) {
     return mapped;
   }
-  const words = request.utterance?.toLowerCase().trim() ?? '';
+  // Keywords map the free input only: an intent this channel does not know is not understood, whatever
+  // its slot holds.
+  const words = name === FREE_INPUT_INTENT ? (request.utterance?.toLowerCase().trim() ?? '') : '';
   if (words.length === 0) {
     return 'unknown';
   }
   return FREE_INPUT_RULES.find(([pattern]) => pattern.test(words))?.[1] ?? 'unknown';
 }
 
-function readSurface(attributes: SessionAttributes | undefined): DialogSurface {
+function readSurface(
+  attributes: SessionAttributes | undefined,
+  deps: ChildChannelDeps,
+): { surface: DialogSurface; speaker: TutorId | null } {
   const parsed = surfaceSchema.safeParse(attributes ?? {});
-  return parsed.success
-    ? { question: parsed.data.question ?? null, last: parsed.data.last ?? [] }
-    : { question: null, last: [] };
-}
-
-/** The catalog greeting of `tutorId` (the dialog runs before the speaker is known, so it is filled in after). */
-function greetingOf(deps: ChildChannelDeps, tutorId: TutorId): string {
-  return deps.introductions.find((intro) => intro.tutorId === tutorId)?.text ?? '';
-}
-
-function withGreetingOf(reply: ChildReply, greeting: string): ChildReply {
-  const parts = reply.parts
-    .map((part) => (part.kind === 'greeting' ? { ...part, text: greeting } : part))
-    .filter((part) => part.text.length > 0);
-  return { ...reply, parts };
+  if (!parsed.success) {
+    return { surface: { question: null, last: [] }, speaker: null };
+  }
+  const { question, last, speaker } = parsed.data;
+  // Only a ready catalog tutor is a voice; anything else in the attributes is ignored.
+  const known = deps.introductions.find((intro) => intro.tutorId === speaker)?.tutorId ?? null;
+  return { surface: { question: question ?? null, last: last ?? [] }, speaker: known };
 }
 
 /**
- * Fixed lines and the greeting as the companion's clips, dynamic sentences in Alexa's voice, all in one
+ * Fixed lines as the companion's clips, dynamic sentences in Alexa's voice, all in one
  * APL for Audio sequence. Clips are fetched in parallel under one deadline; without any clip the whole
  * reply is plain text in Alexa's voice.
  */
@@ -152,7 +178,7 @@ async function render(
   const tutorReply = { speech, conversation: reply.open ? 'open' : 'closed' } as const;
   const ending = {
     reprompt: last,
-    sessionAttributes: { question: reply.question, last: reply.parts },
+    sessionAttributes: { question: reply.question, last: reply.parts, speaker },
   };
   const { voice } = deps;
   if (!voice) {
@@ -180,9 +206,9 @@ function clipOf(
   if (part.kind === 'alexa') {
     return Promise.resolve(null);
   }
-  return voiced(
-    () =>
-      part.kind === 'greeting' ? voice.greetingUrl(speaker) : voice.lineUrl(speaker, part.text),
-    deps,
+  const voiceDeadlineMs = Math.min(
+    deps.voiceDeadlineMs ?? VOICE_DEADLINE_MS,
+    CHILD_VOICE_DEADLINE_MS,
   );
+  return voiced(() => voice.lineUrl(speaker, part.text), { ...deps, voiceDeadlineMs });
 }

@@ -17,17 +17,24 @@ import { unauthorizedError } from '@lib/errors';
 import { TENANT, failingWith, parent, recordingAudit, signedInAs } from '../fakes';
 
 const GUARDIAN = 'guardian-1';
-const OWN_CHILD = { tenantId: TENANT, ownerId: toActorId(GUARDIAN) };
+const OWN_CHILD = { tenantId: TENANT, ownerId: toActorId(GUARDIAN), childProfileId: 'child-1' };
+const SIBLING = { ...OWN_CHILD, childProfileId: 'child-2' };
 const CHILD_SIDE: readonly Permission[] = [
   'learner.read',
   'progression.read',
-  'progression.update',
+  'progression.daily_reward',
 ];
-const binding = { guardianId: GUARDIAN, tenantId: TENANT };
+const binding = {
+  channel: 'alexa',
+  guardianId: GUARDIAN,
+  childProfileId: 'child-1',
+  tenantId: TENANT,
+};
 const channelActor: Actor = {
   id: toActorId(GUARDIAN),
   tenantId: TENANT,
   roles: [CHILD_CHANNEL_ROLE],
+  delegation: { channel: 'alexa', childProfileId: 'child-1' },
 };
 
 const noSession = failingWith(unauthorizedError('auth.no_session', 'No session.'));
@@ -48,6 +55,27 @@ describe('child channel role', () => {
         reason: 'permission_missing',
       });
     }
+  });
+
+  it('is denied learning XP and the onboarding list of all profiles', () => {
+    expect(decide(channelActor, 'progression.update', OWN_CHILD).isAllowed).toBe(false);
+    expect(decide(channelActor, 'learner.list').isAllowed).toBe(false);
+  });
+
+  it('is denied a sibling of the bound child, and any resource of no child', () => {
+    expect(decide(channelActor, 'learner.read', SIBLING)).toEqual({
+      isAllowed: false,
+      reason: 'child_mismatch',
+    });
+    expect(
+      decide(channelActor, 'learner.read', { tenantId: TENANT, ownerId: toActorId(GUARDIAN) }),
+    ).toEqual({ isAllowed: false, reason: 'child_mismatch' });
+  });
+
+  it('leaves a guardian without delegation free to reach every own child', () => {
+    const guardian: Actor = { ...parent(), id: toActorId(GUARDIAN) };
+
+    expect(decide(guardian, 'learner.read', SIBLING).isAllowed).toBe(true);
   });
 
   it("is denied another guardian's child", () => {
@@ -99,17 +127,23 @@ describe('child channel scope', () => {
       audit,
     });
 
-    const [read, claim, settings, create] = await runInChildChannel(binding, () =>
+    const [read, claim, settings, create, sibling] = await runInChildChannel(binding, () =>
       Promise.all([
         authorization.requireOnResource('learner.read', OWN_CHILD),
-        authorization.requireOnResource('progression.update', OWN_CHILD),
+        authorization.requireOnResource('progression.daily_reward', OWN_CHILD),
         authorization.requireOnResource('learner.update', OWN_CHILD),
         authorization.requireInTenant('learner.create'),
+        authorization.requireOnResource('learner.read', SIBLING),
       ]),
     );
 
     expect(read.isOk() && claim.isOk()).toBe(true);
     expect(settings._unsafeUnwrapErr().code).toBe('auth.permission_denied');
     expect(create.isErr()).toBe(true);
+    expect(sibling._unsafeUnwrapErr().code).toBe('auth.permission_denied');
+    expect(audit.events).toContainEqual(
+      expect.objectContaining({ reason: 'child_mismatch', channel: 'alexa', onBehalfOf: GUARDIAN }),
+    );
+    expect(audit.events.some((event) => 'actorId' in event)).toBe(false);
   });
 });

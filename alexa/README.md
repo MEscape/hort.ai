@@ -49,33 +49,46 @@ The channel handles only channel matters itself: Stop/Cancel/Home ("Tschüss"), 
 guardian) bind the skill to that one child. Both or neither (the env schema refuses one alone); unset is the
 anonymous mode above. What the child can do by voice:
 
-| Child says                                                   | Companion                                                                                                                                                                                                                                                                                                                                        | Use case                                                                              |
-| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| „Alexa, öffne hort"                                          | outside the guardian's learning window: „Jetzt ist Lernpause. Bis später!" and end. Else only the **own** companion greets (catalog greeting, own voice); „Deine Lehrerin hat dir eine Aufgabe gegeben." when the class has assignments; „Snack-Zeit? Sag füttern." (mood variant) when the daily reward is open, else „Was möchtest du machen?" | `getChildProfileById` + `isLearningAllowedNow`, `getProgress`, `listChildAssignments` |
-| „füttern" / „ja" to the snack offer                          | „Lecker, danke! Du hast fünf Sterne bekommen." (+ „Level 3! Juhu!"); claimed: „Satt und froh! …"                                                                                                                                                                                                                                                 | `claimDailyReward`                                                                    |
-| „welches level habe ich"                                     | „Du bist auf Level 3. Noch 12 Sterne bis Level 4."; top level: its own sentence                                                                                                                                                                                                                                                                  | `getProgress`                                                                         |
-| „was habe ich auf"                                           | titles of at most three class assignments (never the key), then „Bald kann ich dir hier auch dabei helfen."; no tasks / no class: a friendly sentence                                                                                                                                                                                            | `getChildClassroom`, `listChildAssignments`                                           |
-| Hilfe, Wiederholen, Ja/Nein, Stopp/„Tschüss", not understood | context help (snack question or options), last reply again, first miss „Sag es bitte noch einmal", second miss the options; stop always ends                                                                                                                                                                                                     | –                                                                                     |
-| Phase-2 intents (Aufgabe, Tipp, Antwort, Auswahl, …)         | honest placeholder „Bald kann ich dir hier auch dabei helfen."                                                                                                                                                                                                                                                                                   | – (help session: phase 2)                                                             |
+| Child says                                                   | Companion                                                                                                                                                                                                                                                                                                                                                                                                                   | Use case                                                                              |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| „Alexa, öffne hort"                                          | outside the guardian's learning window: „Jetzt ist Lernpause. Bis später!" and end. Else at most three sentences: the **own** companion's short hello „Hallo, schön, dass du da bist!" (own voice, not the long catalog introduction); „Deine Lehrerin hat dir eine Aufgabe gegeben." when the class has assignments; „Magst du mich füttern?" (mood variant) when the daily reward is open, else „Was möchtest du machen?" | `getChildProfileById` + `isLearningAllowedNow`, `getProgress`, `listChildAssignments` |
+| „füttern" / „ja" to the snack offer                          | „Lecker, danke! Du hast fünf Sterne bekommen." (+ „Level 3! Juhu!"); claimed: „Satt und froh! …"                                                                                                                                                                                                                                                                                                                            | `claimDailyReward`                                                                    |
+| „welches level habe ich"                                     | „Du bist auf Level 3. Noch 12 Sterne bis Level 4."; top level: its own sentence                                                                                                                                                                                                                                                                                                                                             | `getProgress`                                                                         |
+| „was habe ich auf"                                           | titles of at most three class assignments (never the key), then „Bald kann ich dir hier auch dabei helfen."; no tasks / no class: a friendly sentence                                                                                                                                                                                                                                                                       | `getChildClassroom`, `listChildAssignments`                                           |
+| Hilfe, Wiederholen, Ja/Nein, Stopp/„Tschüss", not understood | context help (snack question or options), last reply again, first miss „Sag es bitte noch einmal", second miss the options; stop always ends                                                                                                                                                                                                                                                                                | –                                                                                     |
+| Phase-2 intents (Aufgabe, Tipp, Antwort, Auswahl, …)         | honest placeholder „Bald kann ich dir hier auch dabei helfen."                                                                                                                                                                                                                                                                                                                                                              | – (help session: phase 2)                                                             |
 
 **How the identity works.** The use cases resolve their actor through auth's `CurrentActorProvider`; an Alexa
-request has no session. `runAsChildChannel(guardianId, work)` (auth's public API) runs `work` inside an
-`AsyncLocalStorage` scope whose actor is the guardian's id with the single role `child_channel`. The scope wraps
+request has no session. `runAsChildChannel({ channel: 'alexa', guardianId, childProfileId }, work)` (auth's
+public API) runs `work` inside an `AsyncLocalStorage` scope whose actor is the guardian's id with the single role
+`child_channel` and a `delegation` to that one child. The scope wraps
 the provider _outside_ the per-request session memo, ends with `work`, and is opened only by
 `infrastructure/child/demo-child-companion.ts` for a request that passed signature, timestamp and skill-id checks.
 Every use case still authorizes itself, unchanged:
 
-- `child_channel` holds only `learner.read`, `progression.read`, `progression.update`. Settings, consent,
-  onboarding, voice tickets, hints and every teacher permission are refused by the same `decide` as any missing
-  permission (and audited as denials).
-- Ownership is checked as for the guardian, so another guardian's child is "not found". The child id comes from
-  server configuration only: the `ChildCompanion` port has no child-id parameter, so nothing in a request can name
-  another child (including a sibling).
+- `child_channel` holds only `learner.read`, `progression.read` and `progression.daily_reward` (the snack, apart
+  from `progression.update`, so learning XP via `awardLearningXp` is refused). Settings, consent, the onboarding
+  state with every profile (`learner.list`), voice tickets, hints and every teacher permission are refused by the
+  same `decide` as any missing permission (and audited as denials).
+- Ownership is checked as for the guardian, so another guardian's child is "not found". On top, `decide` keeps a
+  delegated actor to its bound child: a resource scope must name exactly that child profile (`childProfileId`,
+  set by the learner module from the stored profile), so a sibling is refused (`child_mismatch`) even through the
+  real use cases. The child id comes from server configuration only: the `ChildCompanion` port has no child-id
+  parameter.
+- Audit: events the channel causes carry `channel: 'alexa'` and `onBehalfOf: <guardian>` and no `actorId`, so the
+  trail never shows them as the guardian's own action.
 - Web requests never enter the scope; their actor still comes from their own Better Auth session. Tests:
-  `__tests__/src/modules/auth/infrastructure/child-channel-scope.test.ts`.
+  `__tests__/src/modules/auth/infrastructure/child-channel-scope.test.ts` and, through the real learner and
+  progression use cases (sibling, parent operations, learning XP, audit), `child-channel-use-cases.test.ts`.
 
-**Surface state only.** Alexa session attributes hold the open yes/no question (`question: 'feed'`) and the last
-reply (for „Wiederholen", and to tell a second miss from a first). Level, stars, mood and tasks are read from the
+**Timing.** Stop, help, repeat, „nein" and the placeholders need no use case and never wait for the database
+(the voice of the last reply comes from the session attributes). A turn that needs one waits at most 3 s for the
+use cases together, then answers calmly („Ich bin gleich wieder für dich da …" on launch); clips get at most
+3 s more, so Alexa's 8 s are kept. Keywords map only `FreieEingabeIntent` (the first model, e.g. „gib ihm was zu
+essen"); an unknown intent is „not understood" whatever its slot holds.
+
+**Surface state only.** Alexa session attributes hold the open yes/no question (`question: 'feed'`), the last
+reply (for „Wiederholen", and to tell a second miss from a first) and the catalog id of the voice that spoke it. Level, stars, mood and tasks are read from the
 backend on every turn. The child's name is never spoken.
 
 **Privacy (Amazon policy 2a).** A custom skill for children under 16 that works with child profiles is not
