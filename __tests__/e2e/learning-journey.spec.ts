@@ -1,0 +1,249 @@
+import { expect, test } from '@playwright/test';
+
+import { testClient } from './database';
+import { PARENT_EMAIL, PASSWORD } from './seed';
+
+import type { Page } from '@playwright/test';
+
+async function signedIn(page: Page) {
+  await page.goto('/de/sign-in');
+  await page.getByLabel('E-Mail-Adresse', { exact: true }).fill(PARENT_EMAIL);
+  await page.getByLabel('Passwort', { exact: true }).fill(PASSWORD);
+  await page.getByRole('button', { name: 'Anmelden', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'Zur Hausaufgabenhilfe' })).toBeVisible();
+  const cookies = await page.context().cookies();
+  expect(cookies.some((cookie) => cookie.httpOnly && cookie.name.includes('session_token'))).toBe(
+    true,
+  );
+  await expect(page.getByText('NichtDeinKind')).toHaveCount(0);
+  // The current product has one active child, not a profile-picker screen. The real home selects it.
+  await expect(page.getByRole('link', { name: 'Zur Hausaufgabenhilfe' })).toHaveAttribute(
+    'href',
+    /child=e2e-child/,
+  );
+}
+
+async function stored() {
+  const client = testClient();
+  await client.connect();
+  try {
+    return (
+      await client.query<{ id: string; status: string; currentHintLevel: string }>(
+        'SELECT id, status, "currentHintLevel" FROM "HelpSession" WHERE "childProfileId" = \'e2e-child\' ORDER BY "startedAt" DESC LIMIT 1',
+      )
+    ).rows[0];
+  } finally {
+    await client.end();
+  }
+}
+
+async function noModelSolution(page: Page) {
+  const companionLines = page
+    .getByRole('list', { name: 'Gespräch mit deinem Begleiter' })
+    .locator('li > div');
+  await expect(companionLines.first()).toBeVisible();
+  for (const text of await companionLines.allTextContents()) {
+    expect(text).not.toMatch(/\b(?:7|83)\b|Die Lösung ist|Richtig wäre/);
+  }
+}
+
+async function complete(page: Page, answer: string, fallback = 'valid') {
+  await page.getByLabel('Meine Antwort', { exact: true }).fill('6');
+  await page.getByRole('button', { name: 'Antwort prüfen', exact: true }).click();
+  await expect(page.getByRole('list', { name: 'Gespräch mit deinem Begleiter' })).toContainText(
+    /Schau dir|Noch nicht ganz/,
+  );
+  await expect(page.getByLabel('Meine Antwort', { exact: true })).toBeVisible();
+  await noModelSolution(page);
+  await page.getByLabel('Meine Antwort', { exact: true }).fill(answer);
+  await page.getByRole('button', { name: 'Antwort prüfen', exact: true }).click();
+  await expect(
+    page.getByText(
+      fallback === 'invalid' ? 'Super, das hast du selbst herausgefunden!' : 'Gut überlegt!',
+      {
+        exact: true,
+      },
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      fallback !== 'valid'
+        ? 'Erklär mir in deinen eigenen Worten, wie du auf deine Antwort gekommen bist.'
+        : 'Warum hast du hier addiert?',
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await noModelSolution(page);
+  await page.reload();
+  await expect(page.getByLabel('Erzähl es mir in deinen Worten')).toBeVisible();
+  await page
+    .getByLabel('Erzähl es mir in deinen Worten')
+    .fill('Ich habe addiert, weil etwas dazukommt.');
+  await page.getByRole('button', { name: 'Antworten', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Geschafft!', exact: true })).toBeVisible();
+  const session = await stored();
+  expect(session?.status).toBe('COMPLETED');
+  const client = testClient();
+  await client.connect();
+  try {
+    const reply = await client.query<{ replyText: string }>(
+      'SELECT "replyText" FROM "ComprehensionQuestion" WHERE "sessionId" = $1',
+      [session?.id],
+    );
+    expect(reply.rows).toEqual([{ replyText: 'Ich habe addiert, weil etwas dazukommt.' }]);
+  } finally {
+    await client.end();
+  }
+  await noModelSolution(page);
+}
+
+test.beforeEach(async ({ page, request }) => {
+  const client = testClient();
+  await client.connect();
+  try {
+    await client.query('DELETE FROM "HelpSession" WHERE "childProfileId" = $1', ['e2e-child']);
+  } finally {
+    await client.end();
+  }
+  await page.route('**/*', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.hostname === '127.0.0.1') {
+      await route.continue();
+    } else {
+      await route.abort();
+      throw new Error(`Unexpected external browser request: ${url.origin}`);
+    }
+  });
+  page.on('pageerror', (error) => {
+    throw error;
+  });
+  await request.post(`${process.env['E2E_FAKE_URL']}/mode`, { data: 'valid' });
+});
+
+test('parent login → own task → every hint → wrong/right → re-login/resume → understanding', async ({
+  page,
+}) => {
+  await signedIn(page);
+  await page.getByRole('link', { name: 'Zur Hausaufgabenhilfe' }).click();
+  await page.getByRole('button', { name: 'Meine Aufgabe', exact: true }).click();
+  await page
+    .getByLabel('Deine Aufgabe', { exact: true })
+    .fill('Lisa hat 3 Äpfel und bekommt 4 dazu. Wie viele Äpfel hat sie?');
+  await page.getByRole('button', { name: 'Fertig', exact: true }).click();
+  for (const [index, level] of [
+    'understand_task',
+    'activate_prior_knowledge',
+    'next_step',
+    'similar_example',
+  ].entries()) {
+    if (index > 0) {
+      await page.getByRole('button', { name: 'Ich möchte einen Tipp' }).click();
+    }
+    await expect(
+      page.getByText(`Denkanstoß ${level}: Was weißt du schon über die Aufgabe?`, { exact: true }),
+    ).toBeVisible();
+    await noModelSolution(page);
+  }
+  const before = await stored();
+  expect(before?.currentHintLevel).toBe('SIMILAR_EXAMPLE');
+  await page.reload();
+  await expect(page.getByLabel('Meine Antwort', { exact: true })).toBeVisible();
+  expect((await stored())?.id).toBe(before?.id);
+  await page.getByRole('link', { name: 'Später weitermachen' }).click();
+  await page.getByRole('button', { name: 'Abmelden', exact: true }).click();
+  await page.goto('/de/sign-in');
+  await page.getByLabel('E-Mail-Adresse', { exact: true }).fill('other@example.org');
+  await page.getByLabel('Passwort', { exact: true }).fill(PASSWORD);
+  await page.getByRole('button', { name: 'Anmelden', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'Zur Hausaufgabenhilfe' })).toHaveAttribute(
+    'href',
+    /child=e2e-foreign-child/,
+  );
+  // Real second-account access to the known foreign-child URL must reveal no session.
+  await page.goto('/de/help?child=e2e-child');
+  await expect(
+    page.getByText('Lisa hat 3 Äpfel und bekommt 4 dazu. Wie viele Äpfel hat sie?', {
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await expect(page.getByLabel('Meine Antwort', { exact: true })).toHaveCount(0);
+  expect((await stored())?.id).toBe(before?.id);
+  expect((await stored())?.currentHintLevel).toBe('SIMILAR_EXAMPLE');
+  await page.goto('/de');
+  await page.getByRole('button', { name: 'Abmelden', exact: true }).click();
+  await signedIn(page);
+  await page.getByRole('link', { name: /^Weiter:/ }).click();
+  await expect(page.getByLabel('Meine Antwort', { exact: true })).toBeVisible();
+  expect((await stored())?.id).toBe(before?.id);
+  await complete(page, '7');
+});
+
+for (const mode of ['valid', 'invalid', 'leaking']) {
+  test(`teacher assignment stays server-side; ${mode} AI; safe fallback and completion`, async ({
+    page,
+    request,
+  }) => {
+    await signedIn(page);
+    await request.post(`${process.env['E2E_FAKE_URL']}/mode`, { data: mode });
+    const wire: Array<Promise<string>> = [];
+    page.on('response', (response) => {
+      if (
+        response.url().startsWith(process.env['E2E_BASE_URL'] ?? '') &&
+        /text\/(?:html|x-component)|application\/json/.test(
+          response.headers()['content-type'] ?? '',
+        )
+      ) {
+        // Canceled prefetches contain no delivered response; complete bodies are awaited below.
+        wire.push(response.text().catch(() => ''));
+      }
+    });
+    await page.getByRole('link', { name: 'Zur Hausaufgabenhilfe' }).click();
+    await page.getByRole('button', { name: 'Schulaufgaben', exact: true }).click();
+    await expect(page.getByText('Unsere Plusaufgabe', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Mit dieser Aufgabe anfangen' }).click();
+    for (const index of [0, 1, 2, 3]) {
+      if (index > 0) {
+        await page.getByRole('button', { name: 'Ich möchte einen Tipp' }).click();
+      }
+      await expect
+        .poll(async () => (await stored())?.currentHintLevel)
+        .toBe(
+          ['UNDERSTAND_TASK', 'ACTIVATE_PRIOR_KNOWLEDGE', 'NEXT_STEP', 'SIMILAR_EXAMPLE'][index],
+        );
+      await expect(
+        page.getByRole('list', { name: 'Gespräch mit deinem Begleiter' }).locator('li > div'),
+      ).toHaveCount(index + 1);
+      await noModelSolution(page);
+    }
+    // Check the exact server-side key is absent from streamed HTML/RSC/action responses before the child submits it.
+    expect(wire.length).toBeGreaterThan(0);
+    const received = (await Promise.all(wire)).join('\n');
+    expect(received).toContain('Rechne 36 + 47');
+    expect(received).not.toMatch(/solutionKey|"83"|Die Lösung ist 83/);
+    const requests = await (await request.get(`${process.env['E2E_FAKE_URL']}/requests`)).text();
+    expect(requests).not.toContain('solutionKey');
+    if (mode !== 'valid') {
+      const client = testClient();
+      await client.connect();
+      try {
+        const hints = await client.query<{ fallbackReason: string; text: null }>(
+          'SELECT "fallbackReason", text FROM "HintEvent" WHERE "sessionId" = $1',
+          [(await stored())?.id],
+        );
+        expect(hints.rows).toHaveLength(4);
+        expect(
+          hints.rows.every(
+            (hint) =>
+              hint.text === null &&
+              hint.fallbackReason === (mode === 'invalid' ? 'invalid_output' : 'solution_leaked'),
+          ),
+        ).toBe(true);
+      } finally {
+        await client.end();
+      }
+    }
+    // Key-backed assessment still works with invalid/leaking provider wording.
+    // In leaking mode praise is deliberately safe, while the comprehension question leaks and must fall back.
+    await complete(page, '83', mode);
+  });
+}
