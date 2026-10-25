@@ -61,6 +61,9 @@ export { ResetPasswordForm } from './presentation/components/reset-password-form
 export { ResetPasswordLinkMissing } from './presentation/components/reset-password-link-missing';
 export { EmailVerificationResult } from './presentation/components/email-verification-result';
 export { SignOutButton } from './presentation/components/sign-out-button';
+/** The signed-in areas: the header with the account menu, and the account settings page. */
+export { AccountHeader } from './presentation/components/account-header';
+export { AccountSettings } from './presentation/components/account-settings';
 export { default as enAuth } from './presentation/i18n/en.json';
 export { default as deAuth } from './presentation/i18n/de.json';
 export { requireSignedIn } from './presentation/guards/require-signed-in';

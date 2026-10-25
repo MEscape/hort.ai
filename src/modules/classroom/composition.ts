@@ -5,6 +5,7 @@ import { getAccessControl } from '@modules/auth';
 import { getLearnerCommands, getLearnerQueries } from '@modules/learner';
 
 import { systemClock } from '@lib/clock';
+import { serverEnv } from '@lib/config/server';
 import { getClientAddressProvider, getRateLimiter } from '@lib/rate-limit';
 
 import { ArchiveClassroom } from './application/commands/archive-classroom';
@@ -15,11 +16,13 @@ import { RegenerateInviteCode } from './application/commands/regenerate-invite-c
 import { RenameClassroom } from './application/commands/rename-classroom';
 import { GetChildClassroom } from './application/queries/get-child-classroom';
 import { GetClassroomById } from './application/queries/get-classroom-by-id';
+import { GetClassroomDetails } from './application/queries/get-classroom-details';
 import { ListClassroomMembers } from './application/queries/list-classroom-members';
 import { ListClassrooms } from './application/queries/list-classrooms';
 import { loggerClassroomAuditLog } from './infrastructure/audit/logger-classroom-audit-log';
 import { LearnerChildProfileAccess } from './infrastructure/learner/learner-child-profile-access';
 import { PrismaClassroomRepository } from './infrastructure/prisma/prisma-classroom.repository';
+import { createAesGcmInviteCodeVault } from './infrastructure/security/aes-gcm-invite-code-vault';
 import { cryptoInviteCodeIssuer } from './infrastructure/security/crypto-invite-code-issuer';
 
 import type { ClassroomDependencies } from './application/classroom-dependencies';
@@ -33,6 +36,7 @@ const dependencies: ClassroomDependencies = {
   authorization: getAccessControl(),
   classrooms: new PrismaClassroomRepository(systemClock),
   inviteCodes: cryptoInviteCodeIssuer,
+  inviteCodeVault: createAesGcmInviteCodeVault(serverEnv.CLASSROOM_INVITE_CODE_KEY),
   childProfiles: new LearnerChildProfileAccess({
     // The learner module builds its use cases on first use; resolve them per call, not at import.
     getChildProfileById: { execute: (id) => getLearnerQueries().getChildProfileById.execute(id) },
@@ -43,6 +47,7 @@ const dependencies: ClassroomDependencies = {
   audit: loggerClassroomAuditLog,
   rateLimiter: getRateLimiter(),
   clientAddress: getClientAddressProvider(() => headers()),
+  clock: systemClock,
 };
 
 export const classroomCommands = {
@@ -57,6 +62,7 @@ export const classroomCommands = {
 export const classroomQueries = {
   listClassrooms: new ListClassrooms(dependencies),
   getClassroomById: new GetClassroomById(dependencies),
+  getClassroomDetails: new GetClassroomDetails(dependencies),
   listClassroomMembers: new ListClassroomMembers(dependencies),
   getChildClassroom: new GetChildClassroom(dependencies),
 } as const;

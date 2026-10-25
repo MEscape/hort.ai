@@ -1,6 +1,7 @@
 import { literalGuard } from '@lib/utils';
 
 import {
+  ACCOUNT_PERMISSIONS,
   GUIDANCE_PERMISSIONS,
   LEARNER_PERMISSIONS,
   PERMISSIONS,
@@ -43,8 +44,8 @@ export type Role = StoredRole | typeof PLATFORM_ADMIN_ROLE;
  * Move it to storage only when a real requirement for runtime-editable roles appears.
  */
 const ROLE_PERMISSIONS = {
-  parent: [...LEARNER_PERMISSIONS, ...GUIDANCE_PERMISSIONS],
-  teacher: TEACHER_PERMISSIONS,
+  parent: [...LEARNER_PERMISSIONS, ...GUIDANCE_PERMISSIONS, ...ACCOUNT_PERMISSIONS],
+  teacher: [...TEACHER_PERMISSIONS, ...ACCOUNT_PERMISSIONS],
   platform_admin: PERMISSIONS,
 } as const satisfies Record<Role, readonly Permission[]>;
 

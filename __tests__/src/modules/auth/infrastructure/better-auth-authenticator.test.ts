@@ -37,6 +37,7 @@ function build(thrown?: Error) {
     api,
     getHeaders: () => Promise.resolve(HEADERS),
     paths: PATHS,
+    localize: (pathname) => Promise.resolve(`/de${pathname}`),
   });
   return { authenticator, calls };
 }
@@ -56,7 +57,7 @@ describe('BetterAuthAuthenticator.signIn', () => {
         input: {
           email: 'mara@example.org',
           password: 'pw',
-          callbackURL: '/email-verified',
+          callbackURL: '/de/email-verified',
           headers: HEADERS,
         },
       },
@@ -120,6 +121,7 @@ describe('BetterAuthAuthenticator.signIn', () => {
         throw new Error('outside a request');
       },
       paths: PATHS,
+      localize: (pathname) => Promise.resolve(`/de${pathname}`),
     });
 
     const result = await authenticator.signIn({ email: 'a@b.de', password: 'pw' });
@@ -144,7 +146,7 @@ describe('BetterAuthAuthenticator.signUp', () => {
     expect(result.isOk()).toBe(true);
     expect(calls[0]).toMatchObject({
       method: 'signUpEmail',
-      input: { ...draft, callbackURL: '/email-verified' },
+      input: { ...draft, callbackURL: '/de/email-verified' },
     });
   });
 
@@ -200,7 +202,7 @@ describe('BetterAuthAuthenticator password reset', () => {
 
     expect(calls[0]).toMatchObject({
       method: 'requestPasswordReset',
-      input: { email: 'mara@example.org', redirectTo: '/reset-password' },
+      input: { email: 'mara@example.org', redirectTo: '/de/reset-password' },
     });
   });
 

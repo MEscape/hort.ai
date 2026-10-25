@@ -7,7 +7,8 @@
       "teachersOnlyTitle": "Nur für Lehrkräfte",
       "teachersOnlyBody": "Aufgaben stellen Lehrkräfte ein. Melde dich mit einem Lehrkraft-Konto an, um Aufgaben für deine Klasse zu stellen.",
       "noClassTitle": "Lege deine erste Klasse an",
-      "noClassBody": "Aufgaben gehören zu einer Klasse. Lege eine Klasse an und gib ihren Einladungscode an die Eltern weiter."
+      "noClassBody": "Aufgaben gehören zu einer Klasse. Lege eine Klasse an und gib ihren Einladungscode an die Eltern weiter.",
+      "classDetails": "Details zu Klasse {name}"
     },
     "overview": {
       "title": "Aufgaben für {classroom}",

@@ -1,5 +1,7 @@
 'use client';
 
+import type { ReactNode } from 'react';
+
 import { useTranslations } from '@i18n/client';
 
 import { useAssignmentWorkspace } from '../hooks/use-assignment-workspace';
@@ -23,6 +25,8 @@ interface TeacherAssignmentWorkspaceProps {
   readonly classroomName: string;
   /** Loaded by the page for the signed-in teacher; refreshed by the actions after each change. */
   readonly assignments: readonly TeacherAssignmentView[];
+  /** Rendered beside the class selector (the classroom module's "Add class"). */
+  readonly classroomActions?: ReactNode;
 }
 
 /** One class's assignments: list, create, edit with child preview, and confirmed deletion. */
@@ -31,6 +35,7 @@ export function TeacherAssignmentWorkspace({
   classroomId,
   classroomName,
   assignments,
+  classroomActions,
 }: TeacherAssignmentWorkspaceProps) {
   const t = useTranslations('assignments');
   const state = useAssignmentWorkspace(classroomId);
@@ -38,12 +43,13 @@ export function TeacherAssignmentWorkspace({
   const classroomSwitch = useClassroomSwitch(editor);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <ClassroomPicker
         classrooms={classrooms}
         selectedClassroomId={classroomId}
         onSelect={classroomSwitch.requestSwitch}
         isBlocked={classroomSwitch.isBlocked}
+        actions={classroomActions}
       />
       {classroomSwitch.pendingHref !== null && (
         <ConfirmPrompt
@@ -55,7 +61,7 @@ export function TeacherAssignmentWorkspace({
           onConfirm={classroomSwitch.discardAndSwitch}
         />
       )}
-      <p role="status" className="min-h-6 font-semibold text-primary-copy">
+      <p role="status" className="font-semibold text-primary-copy empty:sr-only">
         {state.noticeText}
       </p>
       {editor.view === 'overview' && (
