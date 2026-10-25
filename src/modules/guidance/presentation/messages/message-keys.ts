@@ -12,6 +12,8 @@ import {
   GUIDANCE_ERROR_CODES as ERRORS,
   GUIDANCE_VALIDATION_CODES as VALIDATION,
   SOLUTION_LEAK_VALIDATION_CODES as LEAK,
+  TOPIC_CLASSIFICATION_ERROR_CODES as TOPIC,
+  TOPIC_CLASSIFICATION_VALIDATION_CODES as TOPIC_FIELD,
 } from '../../application/contracts/guidance-constraints';
 
 import type { GuidanceCode } from '../../application/contracts/guidance-constraints';
@@ -26,7 +28,7 @@ export const GENERIC_ERROR_MESSAGE_KEY = fieldPath('errors', 'unexpected');
 /**
  * Codes -> translation keys, relative to the `guidance` namespace. `satisfies Record<...>` makes a
  * new code fail to compile until it has a message. AI output, child-safety and solution-leak codes never reach the
- * child (a rejected AI text becomes the predefined prompt), so they get the generic message.
+ * child (a rejected AI text becomes the predefined prompt), so they get the generic message; so do the topic classification codes (#92), which only ever lead to a fallback.
  */
 export const MESSAGE_KEY_BY_CODE = {
   [ERRORS.validationFailed]: VALIDATION_KEY,
@@ -74,6 +76,20 @@ export const MESSAGE_KEY_BY_CODE = {
   [LEAK.dictatesAnswer]: GENERIC_ERROR_MESSAGE_KEY,
   [LEAK.worksTheTask]: GENERIC_ERROR_MESSAGE_KEY,
   [LEAK.revealsKeyText]: GENERIC_ERROR_MESSAGE_KEY,
+  [TOPIC.rejected]: GENERIC_ERROR_MESSAGE_KEY,
+  [TOPIC_FIELD.notAnObject]: GENERIC_ERROR_MESSAGE_KEY,
+  [TOPIC_FIELD.unsupportedVersion]: GENERIC_ERROR_MESSAGE_KEY,
+  [TOPIC_FIELD.unknownField]: GENERIC_ERROR_MESSAGE_KEY,
+  [TOPIC_FIELD.missingField]: GENERIC_ERROR_MESSAGE_KEY,
+  [TOPIC_FIELD.invalidType]: GENERIC_ERROR_MESSAGE_KEY,
+  [TOPIC_FIELD.invalidIntent]: GENERIC_ERROR_MESSAGE_KEY,
+  [TOPIC_FIELD.invalidSubject]: GENERIC_ERROR_MESSAGE_KEY,
+  [TOPIC_FIELD.invalidConfidence]: GENERIC_ERROR_MESSAGE_KEY,
+  [TOPIC_FIELD.invalidTopicKind]: GENERIC_ERROR_MESSAGE_KEY,
+  [TOPIC_FIELD.unknownCompetency]: GENERIC_ERROR_MESSAGE_KEY,
+  [TOPIC_FIELD.invalidLabel]: GENERIC_ERROR_MESSAGE_KEY,
+  [TOPIC_FIELD.unsafeLabel]: GENERIC_ERROR_MESSAGE_KEY,
+  [TOPIC_FIELD.inconsistentTopic]: GENERIC_ERROR_MESSAGE_KEY,
 } as const satisfies Record<GuidanceCode, ValidKeys>;
 
 export type MessageKey =

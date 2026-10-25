@@ -9,6 +9,7 @@ import type { ChildProfileAccess } from '../domain/ports/child-profile-access.po
 import type { CompetencyRetrieval } from '../domain/ports/competency-retrieval.port';
 import type { GuidanceAuditLog } from '../domain/ports/guidance-audit-log.port';
 import type { HintSessionStore } from '../domain/ports/hint-session-store.port';
+import type { TopicClassifier } from '../domain/ports/topic-classifier.port';
 
 /** What every guidance use case about one step of a child's help session is built from. */
 export interface SessionStepDependencies {
@@ -28,4 +29,14 @@ export interface RequestHintDependencies extends SessionStepDependencies {
 
 export interface CheckAnswerDependencies extends SessionStepDependencies {
   readonly answers: AnswerCoach;
+}
+
+export interface ClassifyChildTaskDependencies {
+  readonly authorization: AuthorizationService;
+  readonly childProfiles: ChildProfileAccess;
+  readonly competencies: CompetencyRetrieval;
+  readonly rateLimiter: RateLimiter;
+  readonly audit: GuidanceAuditLog;
+  /** Without one (no `TYPESAFE_API_KEY`) every task goes ahead as homework without a competency. */
+  readonly classifier?: TopicClassifier;
 }
