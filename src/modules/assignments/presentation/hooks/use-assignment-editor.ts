@@ -102,6 +102,7 @@ export function useAssignmentEditor({ classroomId, onSaved }: AssignmentEditorOp
     preview,
     isDiscarding,
     isSaving,
+    hasUnsavedChanges: isDirty,
     formErrorCode,
     onPreview,
     onSave,

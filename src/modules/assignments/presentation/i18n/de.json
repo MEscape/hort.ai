@@ -86,6 +86,12 @@
       "taskTooLong": "Der Aufgabentext darf höchstens 4.000 Zeichen enthalten.",
       "dateInvalid": "Bitte wähle ein gültiges Datum.",
       "solutionTooLong": "Der Lösungsschlüssel darf höchstens 4.000 Zeichen enthalten."
+    },
+    "switch": {
+      "title": "Klasse wechseln und Änderungen verwerfen?",
+      "body": "Dein nicht gespeicherter Aufgabentext geht verloren. Speichere ihn zuerst, wenn du ihn behalten möchtest.",
+      "keep": "Weiter bearbeiten",
+      "confirm": "Verwerfen und Klasse wechseln"
     }
   }
 }

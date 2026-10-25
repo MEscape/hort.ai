@@ -3,7 +3,6 @@ import { Suspense } from 'react';
 import {
   assignmentRoutes,
   assignmentsQueries,
-  ClassroomPicker,
   FirstClassroomPanel,
   parseTeacherAssignmentsPageParams,
   TeacherAssignmentWorkspace,
@@ -45,9 +44,9 @@ function Overview({ overview }: { readonly overview: TeacherAssignmentOverview }
   }
   return (
     <div className="space-y-6">
-      <ClassroomPicker classrooms={overview.classrooms} selectedClassroomId={selected.id} />
       <TeacherAssignmentWorkspace
         key={selected.id}
+        classrooms={overview.classrooms}
         classroomId={selected.id}
         classroomName={selected.name}
         assignments={overview.assignments}

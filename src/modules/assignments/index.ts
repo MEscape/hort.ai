@@ -12,7 +12,6 @@ export {
   parseTeacherAssignmentsPageParams,
 } from './presentation/schemas/page-params-schema';
 export { TeacherAssignmentWorkspace } from './presentation/components/teacher-assignment-workspace';
-export { ClassroomPicker } from './presentation/components/classroom-picker';
 export { FirstClassroomPanel } from './presentation/components/first-classroom-panel';
 export { TeachersOnlyNotice } from './presentation/components/teachers-only-notice';
 export type {

@@ -86,6 +86,12 @@
       "taskTooLong": "The task text must be 4,000 characters or fewer.",
       "dateInvalid": "Choose a valid date.",
       "solutionTooLong": "The solution key must be 4,000 characters or fewer."
+    },
+    "switch": {
+      "title": "Switch class and discard your changes?",
+      "body": "Your unsaved assignment text will be lost. Save it first if you want to keep it.",
+      "keep": "Keep editing",
+      "confirm": "Discard and switch class"
     }
   }
 }

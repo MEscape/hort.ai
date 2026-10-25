@@ -1,3 +1,5 @@
+import type { AnchorHTMLAttributes } from 'react';
+
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -6,6 +8,18 @@ import { TeacherAssignmentWorkspace } from '@modules/assignments/presentation/co
 import messages from '@modules/assignments/presentation/i18n/en.json';
 
 import { I18nClientProvider } from '@components/providers/i18n-client-provider';
+
+import type * as I18n from '@i18n';
+
+const push = vi.hoisted(() => vi.fn());
+vi.mock('@i18n', async (original) => ({
+  ...(await original<typeof I18n>()),
+  useRouter: () => ({ push }),
+  // A plain anchor: the class links are tested for what the workspace does before navigating.
+  Link: ({ children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) => (
+    <a {...props}>{children}</a>
+  ),
+}));
 
 const actions = vi.hoisted(() => ({
   create: vi.fn(),
@@ -34,6 +48,10 @@ function renderWorkspace(assignments: readonly TeacherAssignmentView[] = []) {
   return render(
     <I18nClientProvider locale="en" timeZone="Pacific/Kiritimati" messages={messages} isDevelopment>
       <TeacherAssignmentWorkspace
+        classrooms={[
+          { id: 'class-a', name: '3a', grade: 3 },
+          { id: 'class-b', name: '4b', grade: 4 },
+        ]}
         classroomId="class-a"
         classroomName="3a"
         assignments={assignments}
@@ -191,5 +209,47 @@ describe('teacher assignment workspace', () => {
       expect(screen.getByRole('status')).toHaveTextContent('Assignment deleted.');
     });
     expect(actions.remove).toHaveBeenLastCalledWith({ id: SAVED.id });
+  });
+
+  describe('switching classes', () => {
+    const classB = () => screen.getByRole('link', { name: /4b/ });
+
+    it('asks before discarding an unsaved draft, and keeps it when asked to', async () => {
+      renderWorkspace();
+      fireEvent.click(screen.getByRole('button', { name: 'New assignment' }));
+      await fill('Assignment title', 'Unsaved draft');
+
+      expect(fireEvent.click(classB())).toBe(false);
+      expect(screen.getByRole('alert')).toHaveTextContent('Switch class and discard your changes?');
+      expect(push).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByRole('button', { name: 'Keep editing' }));
+      expect(screen.getByLabelText('Assignment title')).toHaveValue('Unsaved draft');
+      expect(push).not.toHaveBeenCalled();
+
+      fireEvent.click(classB());
+      fireEvent.click(screen.getByRole('button', { name: 'Discard and switch class' }));
+      expect(push).toHaveBeenCalledWith('/teacher/assignments?classroom=class-b');
+    });
+
+    it('switches straight away when nothing is unsaved', () => {
+      renderWorkspace();
+      expect(fireEvent.click(classB())).toBe(true);
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it('blocks switching while a save is running', async () => {
+      actions.create.mockReturnValue(new Promise(() => undefined));
+      renderWorkspace();
+      fireEvent.click(screen.getByRole('button', { name: 'New assignment' }));
+      await fill('Assignment title', 'Title');
+      await fill('Task text', 'Task');
+      fireEvent.click(screen.getByRole('button', { name: 'Save assignment' }));
+      await screen.findByRole('button', { name: 'Saving …' });
+
+      expect(fireEvent.click(classB())).toBe(false);
+      expect(classB()).toHaveAttribute('aria-disabled', 'true');
+      expect(screen.queryByText('Switch class and discard your changes?')).not.toBeInTheDocument();
+      expect(push).not.toHaveBeenCalled();
+    });
   });
 });
