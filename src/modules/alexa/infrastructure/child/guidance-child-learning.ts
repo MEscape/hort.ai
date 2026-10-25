@@ -81,8 +81,9 @@ export function guidanceChildLearning(
       }),
     tutorVoice: (message) =>
       inChannel(async () => {
-        const [{ deGuidance }, { getVoiceQueries, getHostedSpeech }, open] = await Promise.all([
-          guidance(),
+        // Guidance loads first: its module must be settled before the parallel loads below reuse it.
+        const { deGuidance } = await guidance();
+        const [{ getVoiceQueries, getHostedSpeech }, open] = await Promise.all([
           import('@modules/voice'),
           openSession(),
         ]);
