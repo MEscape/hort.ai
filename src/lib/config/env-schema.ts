@@ -5,12 +5,14 @@ import { integerSetting, postgresUrl } from './env-primitives';
 import { refineEnv } from './env-rules';
 import { mailEnvSchema } from './mail-env-schema';
 import { rateLimitEnvRules, rateLimitEnvSchema } from './rate-limit-env-schema';
+import { speechEnvSchema } from './speech-env-schema';
 import { storageEnvSchema } from './storage-env-schema';
 
 import type { AuthEnv } from './auth-env-schema';
 import type { EnvRule } from './env-rules';
 import type { MailEnv } from './mail-env-schema';
 import type { RateLimitEnv } from './rate-limit-env-schema';
+import type { SpeechEnv } from './speech-env-schema';
 import type { StorageEnv } from './storage-env-schema';
 
 const DEFAULT_NODE_ENV = 'development' as const;
@@ -45,7 +47,8 @@ type ServerEnvShape = z.infer<typeof serverEnvBaseSchema> &
   AuthEnv &
   MailEnv &
   RateLimitEnv &
-  StorageEnv;
+  StorageEnv &
+  SpeechEnv;
 
 const isProduction = (env: ServerEnvShape) => env.NODE_ENV === 'production';
 
@@ -80,6 +83,12 @@ const productionRules: ReadonlyArray<EnvRule<ServerEnvShape>> = [
       new URL(env.MAIL_API_URL).protocol !== 'https:',
     message: 'MAIL_API_URL must be an https URL in production.',
   },
+  {
+    path: 'ELEVENLABS_API_URL',
+    // Every request carries ELEVENLABS_API_KEY and a child's recorded voice.
+    violated: (env) => isProduction(env) && new URL(env.ELEVENLABS_API_URL).protocol !== 'https:',
+    message: 'ELEVENLABS_API_URL must be an https URL in production.',
+  },
   ...(['STORAGE_AZURE_BLOB_ENDPOINT', 'STORAGE_PUBLIC_BASE_URL'] as const).map(
     (name): EnvRule<ServerEnvShape> => ({
       path: name,
@@ -96,7 +105,7 @@ const productionRules: ReadonlyArray<EnvRule<ServerEnvShape>> = [
 /**
  * Server-only configuration.
  *
- * Authentication, mail, rate-limit and storage configuration are composed into the
+ * Authentication, mail, rate-limit, storage and speech configuration are composed into the
  * server schema so the application has one validated server configuration
  * object. Rules internal to one domain live in that domain's file and are
  * attached there (authentication, mail) or here (rate limit, which reads
@@ -108,6 +117,7 @@ export const serverEnvSchema = serverEnvBaseSchema
   .and(mailEnvSchema)
   .and(rateLimitEnvSchema)
   .and(storageEnvSchema)
+  .and(speechEnvSchema)
   .superRefine(refineEnv<ServerEnvShape>(rateLimitEnvRules, productionRules));
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

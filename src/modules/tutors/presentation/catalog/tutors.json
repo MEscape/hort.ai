@@ -18,7 +18,7 @@
         "charakter": "freundlich, kräftig, fröhlich (Jungenstimme)",
         "tempo": "normal",
         "tonhoehe": "mittel",
-        "tts": { "provider": "azure", "voiceId": "de-DE-KillianNeural", "style": null }
+        "tts": { "provider": "elevenlabs", "voiceId": "DsJNFaZXbVnwO9Nycgo3", "style": null }
       },
       "quelle": "hort_ai_hund_blau",
       "status": "bereit"
@@ -40,7 +40,7 @@
         "charakter": "sanft, warm, ruhig (Mädchenstimme)",
         "tempo": "langsam",
         "tonhoehe": "hoch",
-        "tts": { "provider": "azure", "voiceId": "de-DE-GiselaNeural", "style": null }
+        "tts": { "provider": "elevenlabs", "voiceId": "8pVdES9f9x71wHWeQsgz", "style": null }
       },
       "quelle": "hort_ai_hase",
       "status": "bereit"
@@ -62,7 +62,7 @@
         "charakter": "lebhaft, abenteuerlustig, frech-freundlich (Mädchenstimme)",
         "tempo": "normal",
         "tonhoehe": "mittel",
-        "tts": { "provider": "azure", "voiceId": "de-DE-MajaNeural", "style": null }
+        "tts": { "provider": "elevenlabs", "voiceId": "zndmYEEoWWxRYyEL2ZZY", "style": null }
       },
       "quelle": "hort_ai_drache",
       "status": "bereit"

@@ -1,4 +1,16 @@
 // use prisma-8
+
+// Conventions of the MVP data model (#8):
+// - Ids are text, generated on create. Timestamps are `timestamptz` instants in UTC; a calendar
+//   date without a time (an assignment's due date) is ISO text (`YYYY-MM-DD`), never an instant.
+// - `ownerId` is the `ActorId` of the account a row belongs to (a parent for a child profile and
+//   its help sessions, a teacher for a class, its material and its assignments). It is the owner
+//   column of the architecture policy (`OWNERSHIP.columns`); tables without one are owned through
+//   their foreign key or are global data (the official curriculum).
+// - The `*_rule` checks repeat the domain limits for writers that are not this application.
+// - Child data is minimal: a display name, federal state, grade, the chosen companion and consent
+//   flags. Nothing here is ever copied into the audit trail.
+
 enum AuditSeverity {
   INFO
   WARN
@@ -70,6 +82,53 @@ enum Interest {
   history
 }
 
+/// Primary-school subjects. The MVP slice is mathematics (#5).
+enum Subject {
+  MATH
+  GERMAN
+  GENERAL_STUDIES
+  ENGLISH
+}
+
+enum ClassroomStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum MaterialContentType {
+  PDF
+  TEXT
+}
+
+/// A teacher upload's lifecycle (#29). `DELETED` marks a row whose object is being removed.
+enum MaterialStatus {
+  UPLOADED
+  PROCESSED
+  FAILED
+  DELETED
+}
+
+enum HelpSessionStatus {
+  ACTIVE
+  COMPLETED
+  ABANDONED
+}
+
+/// The hint ladder of the guidance module (`HINT_LEVELS`), lowest help first.
+enum HintLevel {
+  UNDERSTAND_TASK
+  ACTIVATE_PRIOR_KNOWLEDGE
+  NEXT_STEP
+  SIMILAR_EXAMPLE
+}
+
+/// The results an answer assessment may carry (`ASSESSMENT_RESULTS` of the guidance module).
+enum AssessmentResult {
+  CORRECT
+  PARTLY_CORRECT
+  NOT_YET
+}
+
 /// A child's profile in the learner module: the minimum the product keeps about a child
 /// (display name, federal state, grade), the closed-list choices the parent made during setup
 /// (interests, companion, parent controls, guardian confirmation) and how far the setup got.
@@ -97,6 +156,9 @@ model ChildProfile {
   setupCompletedAt       DateTime?
   createdAt              DateTime     @default(now())
 
+  membership   ClassMembership?
+  helpSessions HelpSession[]
+
   @@index([tenantId, ownerId, createdAt])
   @@index([tenantId, ownerId], where: sql`("setupCompletedAt" IS NULL)`, unique: true, name: "ChildProfile_one_unfinished_per_owner")
   @@check(expression: sql`"grade" BETWEEN 1 AND 4`, name: "ChildProfile_grade_rule")
@@ -105,4 +167,276 @@ model ChildProfile {
   @@check(expression: sql`"dailyLimitMinutes" IS NULL OR "dailyLimitMinutes" IN (15, 30, 45, 60, 90)`, name: "ChildProfile_daily_limit_rule")
   @@check(expression: sql`("allowedFromMinute" IS NULL AND "allowedUntilMinute" IS NULL) OR ("allowedFromMinute" IS NOT NULL AND "allowedUntilMinute" IS NOT NULL AND "allowedFromMinute" >= 0 AND "allowedUntilMinute" <= 1440 AND "allowedFromMinute" % 15 = 0 AND "allowedUntilMinute" % 15 = 0 AND "allowedUntilMinute" - "allowedFromMinute" >= 30)`, name: "ChildProfile_allowed_window_rule")
   @@check(expression: sql`("setupStep" = 'done') = ("setupCompletedAt" IS NOT NULL)`, name: "ChildProfile_done_rule")
+}
+
+/// A teacher's class (classroom module). Only the SHA-256 hash of the invite code is stored;
+/// regenerating the code replaces the hash, so the old code stops working at once.
+model Classroom {
+  id                 String          @id @onCreate(uuid())
+  tenantId           String
+  ownerId            String
+  name               String
+  federalState       FederalState
+  grade              Int
+  subject            Subject
+  status             ClassroomStatus @default(ACTIVE)
+  inviteCodeHash     String          @unique
+  inviteCodeIssuedAt DateTime        @default(now())
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @default(now())
+
+  memberships ClassMembership[]
+  materials   TeacherMaterial[]
+  assignments Assignment[]
+
+  @@index([tenantId, ownerId, createdAt])
+  @@check(expression: sql`char_length("name") BETWEEN 1 AND 80`, name: "Classroom_name_rule")
+  @@check(expression: sql`"grade" BETWEEN 1 AND 4`, name: "Classroom_grade_rule")
+  @@check(expression: sql`"inviteCodeHash" ~ '^[0-9a-f]{64}$'`, name: "Classroom_invite_code_rule")
+}
+
+/// A child in a class. `childProfileId` is unique: a child is in at most one class (B S, #8).
+/// There is no inactive membership row: leaving deletes it, and archiving a class must delete its
+/// memberships in the same transaction (classroom use case, #32), so an archived class never
+/// blocks a child from joining another one.
+model ClassMembership {
+  id             String       @id @onCreate(uuid())
+  tenantId       String
+  classroomId    String
+  childProfileId String       @unique
+  joinedAt       DateTime     @default(now())
+
+  classroom      Classroom    @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  childProfile   ChildProfile @relation(fields: [childProfileId], references: [id], onDelete: Cascade)
+
+  @@index([classroomId, joinedAt])
+}
+
+/// An official curriculum document (#28): global data, versioned by `sourceKey` + `version`.
+/// `federalState` null means nationwide (the KMK standards, the fallback of #5).
+model CurriculumDocument {
+  id           String        @id @onCreate(uuid())
+  sourceKey    String
+  version      String
+  title        String
+  federalState FederalState?
+  subject      Subject
+  gradeFrom    Int
+  gradeTo      Int
+  sourceUrl    String?
+  createdAt    DateTime      @default(now())
+
+  competencies Competency[]
+
+  @@unique([sourceKey, version])
+  @@check(expression: sql`"sourceKey" ~ '^[a-z0-9][a-z0-9._-]{0,63}$'`, name: "CurriculumDocument_source_key_rule")
+  @@check(expression: sql`char_length("version") BETWEEN 1 AND 32`, name: "CurriculumDocument_version_rule")
+  @@check(expression: sql`char_length("title") BETWEEN 1 AND 300`, name: "CurriculumDocument_title_rule")
+  @@check(expression: sql`"gradeFrom" BETWEEN 1 AND 4 AND "gradeTo" BETWEEN "gradeFrom" AND 4`, name: "CurriculumDocument_grades_rule")
+}
+
+/// One competency of an official document, with its source reference (section, page).
+/// Federal state, subject and grades repeat the document's so retrieval reads one table.
+model Competency {
+  id           String             @id @onCreate(uuid())
+  documentId   String
+  code         String
+  federalState FederalState?
+  subject      Subject
+  gradeFrom    Int
+  gradeTo      Int
+  text         String
+  section      String
+  page         Int?
+  createdAt    DateTime           @default(now())
+
+  document     CurriculumDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, code])
+  @@index([subject, gradeFrom, gradeTo, federalState])
+  @@check(expression: sql`"code" ~ '^[a-z0-9][a-z0-9._-]{0,63}$'`, name: "Competency_code_rule")
+  @@check(expression: sql`char_length("text") BETWEEN 1 AND 2000`, name: "Competency_text_rule")
+  @@check(expression: sql`char_length("section") BETWEEN 1 AND 200`, name: "Competency_section_rule")
+  @@check(expression: sql`"page" IS NULL OR "page" >= 1`, name: "Competency_page_rule")
+  @@check(expression: sql`"gradeFrom" BETWEEN 1 AND 4 AND "gradeTo" BETWEEN "gradeFrom" AND 4`, name: "Competency_grades_rule")
+}
+
+/// A file a teacher uploaded for one of their classes (#29). The bytes live in object storage
+/// under `objectKey`; this row is the source of truth for whether the file exists.
+model TeacherMaterial {
+  id          String              @id @onCreate(uuid())
+  tenantId    String
+  ownerId     String
+  classroomId String
+  title       String
+  objectKey   String              @unique
+  contentType MaterialContentType
+  sizeBytes   Int
+  status      MaterialStatus      @default(UPLOADED)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @default(now())
+
+  classroom   Classroom           @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  sections    MaterialSection[]
+
+  @@index([classroomId, createdAt])
+  @@index([tenantId, ownerId, createdAt])
+  @@check(expression: sql`char_length("title") BETWEEN 1 AND 200`, name: "TeacherMaterial_title_rule")
+  @@check(expression: sql`char_length("objectKey") BETWEEN 1 AND 512`, name: "TeacherMaterial_object_key_rule")
+  @@check(expression: sql`"sizeBytes" >= 0`, name: "TeacherMaterial_size_rule")
+}
+
+/// A text section or competency extracted from teacher material. Deleting the material deletes
+/// these, so it no longer grounds anything (#29).
+model MaterialSection {
+  id         String          @id @onCreate(uuid())
+  materialId String
+  position   Int
+  code       String?
+  text       String
+  section    String?
+  page       Int?
+  createdAt  DateTime        @default(now())
+
+  material   TeacherMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@unique([materialId, position])
+  @@check(expression: sql`"position" >= 0`, name: "MaterialSection_position_rule")
+  @@check(expression: sql`"code" IS NULL OR "code" ~ '^[a-z0-9][a-z0-9._-]{0,63}$'`, name: "MaterialSection_code_rule")
+  @@check(expression: sql`char_length("text") BETWEEN 1 AND 2000`, name: "MaterialSection_text_rule")
+  @@check(expression: sql`"page" IS NULL OR "page" >= 1`, name: "MaterialSection_page_rule")
+}
+
+/// A work assignment a teacher posts for a class (#33). `solutionKey` is never sent to a child:
+/// only the answer check (#14) and the solution-leak guard (#31) read it.
+model Assignment {
+  id          String    @id @onCreate(uuid())
+  tenantId    String
+  ownerId     String
+  classroomId String
+  title       String
+  taskText    String
+  dueDate     String?
+  solutionKey String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
+
+  classroom    Classroom     @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  helpSessions HelpSession[]
+
+  @@index([classroomId, createdAt])
+  @@index([tenantId, ownerId, createdAt])
+  @@check(expression: sql`char_length("title") BETWEEN 1 AND 120`, name: "Assignment_title_rule")
+  @@check(expression: sql`char_length("taskText") BETWEEN 1 AND 4000`, name: "Assignment_task_text_rule")
+  @@check(expression: sql`"dueDate" IS NULL OR "dueDate" ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'`, name: "Assignment_due_date_rule")
+  @@check(expression: sql`"solutionKey" IS NULL OR char_length("solutionKey") BETWEEN 1 AND 4000`, name: "Assignment_solution_key_rule")
+}
+
+/// One help session of a child on one task (#17): the child's own task text, or an assignment of
+/// its class. The backend is the source of truth; `version` guards concurrent steps.
+model HelpSession {
+  id               String            @id @onCreate(uuid())
+  tenantId         String
+  ownerId          String
+  childProfileId   String
+  assignmentId     String?
+  taskText         String
+  status           HelpSessionStatus @default(ACTIVE)
+  currentHintLevel HintLevel?
+  version          Int               @default(1)
+  startedAt        DateTime          @default(now())
+  updatedAt        DateTime          @default(now())
+  endedAt          DateTime?
+
+  childProfile           ChildProfile            @relation(fields: [childProfileId], references: [id], onDelete: Cascade)
+  assignment             Assignment?             @relation(fields: [assignmentId], references: [id], onDelete: SetNull)
+  hintEvents             HintEvent[]
+  childAnswers           ChildAnswer[]
+  answerAssessments      AnswerAssessment[]
+  comprehensionQuestions ComprehensionQuestion[]
+
+  @@index([childProfileId, status, updatedAt])
+  @@index([tenantId, ownerId, updatedAt])
+  @@check(expression: sql`char_length("taskText") BETWEEN 1 AND 4000`, name: "HelpSession_task_text_rule")
+  @@check(expression: sql`"version" >= 1`, name: "HelpSession_version_rule")
+  @@check(expression: sql`("status" = 'ACTIVE') = ("endedAt" IS NULL)`, name: "HelpSession_ended_rule")
+}
+
+/// A hint the child received, at one level of the ladder. A step's `idempotencyKey` is unique per
+/// session, so saving the same step twice is refused by the database (#8, #17).
+model HintEvent {
+  id             String      @id @onCreate(uuid())
+  sessionId      String
+  idempotencyKey String
+  level          HintLevel
+  text           String
+  competencyCode String?
+  occurredAt     DateTime    @default(now())
+
+  session        HelpSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, idempotencyKey])
+  @@index([sessionId, occurredAt])
+  @@check(expression: sql`char_length("idempotencyKey") BETWEEN 1 AND 128`, name: "HintEvent_key_rule")
+  @@check(expression: sql`char_length("text") BETWEEN 1 AND 1000`, name: "HintEvent_text_rule")
+}
+
+/// An answer the child gave in a session.
+model ChildAnswer {
+  id             String      @id @onCreate(uuid())
+  sessionId      String
+  idempotencyKey String
+  text           String
+  occurredAt     DateTime    @default(now())
+
+  session        HelpSession       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  assessment     AnswerAssessment?
+
+  @@unique([sessionId, idempotencyKey])
+  /// The target of `AnswerAssessment`'s (answerId, sessionId) key: an assessment stays in its answer's session.
+  @@unique([id, sessionId])
+  @@index([sessionId, occurredAt])
+  @@check(expression: sql`char_length("idempotencyKey") BETWEEN 1 AND 128`, name: "ChildAnswer_key_rule")
+  @@check(expression: sql`char_length("text") BETWEEN 1 AND 1000`, name: "ChildAnswer_text_rule")
+}
+
+/// The assessment of one answer (#14): an allowlisted result plus a short text without the solution.
+model AnswerAssessment {
+  id             String           @id @onCreate(uuid())
+  sessionId      String
+  answerId       String           @unique
+  idempotencyKey String
+  result         AssessmentResult
+  text           String
+  occurredAt     DateTime         @default(now())
+
+  session        HelpSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  /// Keyed on (answerId, sessionId), so the answer must belong to the same session.
+  answer         ChildAnswer      @relation(fields: [answerId, sessionId], references: [id, sessionId], onDelete: Cascade)
+
+  @@unique([sessionId, idempotencyKey])
+  /// Implied by `answerId @unique`; Prisma needs it spelled out for the one-to-one composite key.
+  @@unique([answerId, sessionId])
+  @@check(expression: sql`char_length("idempotencyKey") BETWEEN 1 AND 128`, name: "AnswerAssessment_key_rule")
+  @@check(expression: sql`char_length("text") BETWEEN 1 AND 1000`, name: "AnswerAssessment_text_rule")
+}
+
+/// A comprehension question asked after the task (#15), and the child's reply once given.
+model ComprehensionQuestion {
+  id             String      @id @onCreate(uuid())
+  sessionId      String
+  idempotencyKey String
+  text           String
+  replyText      String?
+  occurredAt     DateTime    @default(now())
+  repliedAt      DateTime?
+
+  session        HelpSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, idempotencyKey])
+  @@index([sessionId, occurredAt])
+  @@check(expression: sql`char_length("idempotencyKey") BETWEEN 1 AND 128`, name: "ComprehensionQuestion_key_rule")
+  @@check(expression: sql`char_length("text") BETWEEN 1 AND 1000`, name: "ComprehensionQuestion_text_rule")
+  @@check(expression: sql`"replyText" IS NULL OR char_length("replyText") BETWEEN 1 AND 1000`, name: "ComprehensionQuestion_reply_rule")
+  @@check(expression: sql`("replyText" IS NULL) = ("repliedAt" IS NULL)`, name: "ComprehensionQuestion_replied_rule")
 }

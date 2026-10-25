@@ -59,6 +59,7 @@ export const AUTH_VALIDATION_CODES = {
   passwordMismatch: 'auth.validation.password_mismatch',
   nameRequired: 'auth.validation.name_required',
   nameTooLong: 'auth.validation.name_too_long',
+  roleInvalid: 'auth.validation.role_invalid',
   tokenInvalid: 'auth.validation.token_invalid',
   tenantInvalid: 'auth.validation.tenant_invalid',
 } as const;

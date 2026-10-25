@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { actorHasPermission, decide } from '@modules/auth/domain/models/authorize';
 import { toActorId } from '@modules/auth/domain/models/ids';
 import { PERMISSIONS } from '@modules/auth/domain/models/permission';
-import { permissionsForRole } from '@modules/auth/domain/models/role';
+import { permissionsForRole, ROLES } from '@modules/auth/domain/models/role';
 
 import { OTHER_TENANT, TENANT, parent } from '../fakes';
 
@@ -11,7 +11,7 @@ const OWN_PROFILE = { tenantId: TENANT, ownerId: toActorId('parent-1') };
 
 describe('decide', () => {
   it('lets a parent act on a resource they own', () => {
-    for (const permission of PERMISSIONS) {
+    for (const permission of permissionsForRole('parent')) {
       expect(decide(parent(), permission, OWN_PROFILE)).toEqual({ isAllowed: true });
     }
   });
@@ -66,8 +66,46 @@ describe('actorHasPermission', () => {
   });
 });
 
-describe('the parent role', () => {
-  it('holds every permission of the closed set, so a new permission is a deliberate grant', () => {
-    expect([...permissionsForRole('parent')].sort()).toEqual([...PERMISSIONS].sort());
+describe('the roles', () => {
+  it('together grant every permission of the closed set, so a new permission is a deliberate grant', () => {
+    const granted = ROLES.flatMap((role) => permissionsForRole(role));
+
+    expect([...new Set(granted)].sort()).toEqual([...PERMISSIONS].sort());
+  });
+
+  it('give a parent the learner permissions, voice, and nothing of a class', () => {
+    const permissions = permissionsForRole('parent');
+
+    expect(
+      permissions.every(
+        (permission) => permission.startsWith('learner.') || permission === 'voice.use',
+      ),
+    ).toBe(true);
+    expect(permissions).toContain('voice.use');
+    expect(permissions).not.toContain('classroom.read');
+  });
+
+  it('give a teacher classes, material and assignments, but no learner permission', () => {
+    const permissions = permissionsForRole('teacher');
+
+    expect(permissions.some((permission) => permission.startsWith('learner.'))).toBe(false);
+    expect(permissions).toEqual(expect.arrayContaining(['classroom.create', 'material.create']));
+  });
+
+  it("refuses a teacher a child profile, even one carrying the teacher's own id", () => {
+    const teacher = parent({ roles: ['teacher'] });
+
+    for (const permission of permissionsForRole('parent')) {
+      expect(decide(teacher, permission, OWN_PROFILE)).toEqual({
+        isAllowed: false,
+        reason: 'permission_missing',
+      });
+    }
+  });
+
+  it('refuses a parent every class permission', () => {
+    for (const permission of permissionsForRole('teacher')) {
+      expect(actorHasPermission(parent(), permission)).toBe(false);
+    }
   });
 });

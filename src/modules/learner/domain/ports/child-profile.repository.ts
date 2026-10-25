@@ -2,6 +2,7 @@ import type { InfrastructureAppError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
 
 import type { ChildDetails, ChildProfile, GuardianConfirmation } from '../models/child-profile';
+import type { FederalState, Grade } from '../models/federal-state';
 import type { ActorId, ChildProfileId, TenantId, TutorId } from '../models/ids';
 import type { Interest } from '../models/interests';
 import type { ParentControls } from '../models/parent-controls';
@@ -26,6 +27,12 @@ export interface ProfilePatch {
   readonly tutorId?: TutorId;
   readonly controls?: ParentControls;
   readonly guardian?: GuardianConfirmation;
+}
+
+/** The school data a class decides for its children. */
+export interface SchoolSettings {
+  readonly federalState: FederalState;
+  readonly grade: Grade;
 }
 
 export interface SavedProfile {
@@ -74,6 +81,15 @@ export interface ChildProfileRepository {
     profile: ChildProfile,
     patch: ProfilePatch,
     reaches: Exclude<SetupStep, 'child' | 'done'>,
+  ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
+
+  /**
+   * Stores a new federal state and grade on one of the owner's profiles, finished or not (a class
+   * the child joins sets both). Returns the stored profile, or `null` when it is gone.
+   */
+  updateSchoolSettings(
+    profile: ChildProfile,
+    settings: SchoolSettings,
   ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
 
   /**

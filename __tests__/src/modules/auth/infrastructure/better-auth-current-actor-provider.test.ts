@@ -18,7 +18,13 @@ const clock: Clock = { now: () => NOW };
 function session(overrides: Partial<SessionSnapshot['user']> & { createdAt?: Date } = {}) {
   const { createdAt = new Date(NOW.getTime() - 1000), ...user } = overrides;
   const snapshot: SessionSnapshot = {
-    user: { id: 'parent-1', email: 'mara@example.org', emailVerified: true, ...user },
+    user: {
+      id: 'parent-1',
+      email: 'mara@example.org',
+      emailVerified: true,
+      role: 'parent',
+      ...user,
+    },
     session: { createdAt },
   };
   return snapshot;
@@ -57,6 +63,25 @@ describe('BetterAuthCurrentActorProvider', () => {
       roles: ['parent'],
     });
   });
+
+  it('takes the role from the stored account: a teacher signs in as a teacher', async () => {
+    const { provider } = build(sessionOf(session({ role: 'teacher' })));
+
+    const result = await provider.getCurrentActor();
+
+    expect(result.isOk() && result.value.roles).toEqual(['teacher']);
+  });
+
+  it.each([undefined, null, 'admin', 'child', 42])(
+    'grants nothing for a stored role outside the closed set (%s): signed out',
+    async (role) => {
+      const { provider } = build(sessionOf(session({ role })));
+
+      const result = await provider.getCurrentActor();
+
+      expect(result.isErr() && result.error.code).toBe('auth.unauthenticated');
+    },
+  );
 
   it('never takes the tenant from the request, whatever the request claims', async () => {
     const hostile = new Headers({

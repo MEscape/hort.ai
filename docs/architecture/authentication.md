@@ -4,12 +4,13 @@ Who is signed in, and whether they may do what a use case asks. Owning rules: [`
 
 ## Identity model (MVP assumptions)
 
-| Concept               | What it is                                                                                                    | Where it lives                                                     |
-| --------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| **Parent (actor)**    | The only authenticated identity: an e-mail and password account, confirmed by e-mail                          | `auth` module (`Actor`, role `parent`)                             |
-| **Child profile**     | Data a parent owns: display name, federal state, grade. Not an account, has no credentials and no permissions | `learner` module ([learner.md](learner.md))                        |
-| **Learning progress** | Belongs to a child profile, therefore to that profile's parent                                                | a future learning module (not built)                               |
-| **Tenant**            | One configured tenant (`default`), the same for every account                                                 | `AUTH_DEFAULT_TENANT_ID`, stamped on every `Actor` by the provider |
+| Concept               | What it is                                                                                       | Where it lives                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| **Parent (actor)**    | An e-mail and password account, confirmed by e-mail, registered with the role `parent`           | `auth` module (`Actor`, role `parent`)                             |
+| **Teacher (actor)**   | An e-mail and password account registered with the role `teacher`; owns classes, material, tasks | `auth` module (`Actor`, role `teacher`)                            |
+| **Child profile**     | Data a parent owns: display name, federal state, grade and the setup choices. Not an account     | `learner` module ([learner.md](learner.md))                        |
+| **Learning progress** | Belongs to a child profile, therefore to that profile's parent                                   | help-session tables of #8 (`HelpSession` and its events)           |
+| **Tenant**            | One configured tenant (`default`), the same for every account                                    | `AUTH_DEFAULT_TENANT_ID`, stamped on every `Actor` by the provider |
 
 The product requirements do not say whether a child ever signs in with credentials of its own. Nothing here invents that policy: a child is a profile of a parent, and the parent's session is the only session. The model stays adaptable:
 
@@ -28,8 +29,14 @@ The product requirements do not say whether a child ever signs in with credentia
 `decide(actor, permission, scope?)` is a pure domain function, fail-closed, in this order:
 
 1. **Tenant**: the resource's stored `tenantId` must equal the actor's.
-2. **Owner**: the resource's stored `ownerId` must equal the actor's id. A parent holds `learner.*` for their own children only.
-3. **Permission**: any of the actor's roles grants it (`parent` grants every `learner.*` permission; the table is code, not data).
+2. **Owner**: the resource's stored `ownerId` must equal the actor's id. A parent holds `learner.*` for their own children only; a teacher holds `classroom.*`, `material.*` and `assignment.*` for their own classes only.
+3. **Permission**: any of the actor's roles grants it (the table is code, not data). The grants are disjoint: `parent` grants every `learner.*` permission and nothing else, `teacher` grants `classroom.*`, `material.*` and `assignment.*` and no `learner.*`.
+
+### Roles
+
+- An account has exactly one role, `parent` or `teacher`, chosen once in the sign-up form and validated by the domain (`createSignUpDraft`). It is stored on the provider's `user` row (`migrations/auth/0002_user_role.sql`, `CHECK ("role" IN ('parent', 'teacher'))`; accounts from before the migration are backfilled as `parent`).
+- Nothing after registration changes it: Better Auth's `/update-user` path is disabled, and the role is never read from a request. `BetterAuthCurrentActorProvider` reads the stored value; a missing or unknown value grants nothing (the session is treated as signed out).
+- **Documented risk:** a teacher account is not verified in the MVP. Anyone may register as a teacher and then create classes and invite codes; a teacher never gains access to child profiles (no `learner.*`), and a child joins a class only by a code a parent enters. Verification (school e-mail, manual approval) is a follow-up.
 
 `AuthorizationService` exposes two calls on purpose: `requireInTenant(permission)` (create, list your own) and `requireOnResource(permission, scope)` (a loaded resource). A caller cannot drop the scope by passing `undefined`. Every denial is the one `auth.permission_denied` error; the precise reason (`tenant_mismatch`, `owner_mismatch`, `permission_missing`) goes only to the audit log, because telling them apart would disclose that a resource exists for someone else.
 
@@ -86,7 +93,7 @@ Only the audit module's domain, application and infrastructure layers are used. 
 - **Routes:** `/[locale]/welcome`, `sign-in`, `sign-up`, `forgot-password`, `reset-password`, `email-verified`, and the protected `home` confirmation. `src/proxy.ts` negotiates the locale for bare paths (including email callbacks); the locale index redirects to welcome. The nonoptional catch-all handles unmatched paths. Private and emailed-link pages use noindex metadata.
 - **Boundaries:** pages compose the module's public API. Server Actions parse Zod schemas and call the existing application commands. Forms use React Hook Form; state, actions and navigation live in presentation hooks. `client.ts` exposes browser-safe routes and sign-out; catalogs are exported through the server public API as required by module policy. No audit presentation code is introduced.
 - **Identity:** registration asks for the parent's display name because the existing backend requires it. It does not create a child. Home confirms that the parent is signed in; learner setup, permissions, Alexa, characters, learning and progress remain separate future capabilities.
-- **Tenant:** the UI sends no tenant or role. Unknown input fields are discarded by the action schemas; the configured server tenant remains authoritative.
+- **Tenant and role:** the UI sends no tenant. It sends the role chosen at registration (`parent` or `teacher`), which the action schema and the domain accept only from that closed set; after registration nothing in a request can change it. Unknown input fields are discarded by the action schemas; the configured server tenant remains authoritative.
 - **Navigation and sessions:** only the sign-in action resolves untrusted `returnTo` to a same-origin path (default `/home`). Sign-in and sign-out revalidate the root layout after success. Session reads stay behind Suspense and are never cached across requests. The page guard redirects only authentication failures; infrastructure failures reach translated error boundaries.
 - **Feedback:** sign-up and recovery confirmation text does not disclose whether an address is registered. Password advice is browser-local and advisory; the backend's length policy remains authoritative. A verification landing message is informational and cannot grant a session; the provider still verifies email before sign-in. Repeated/malformed error parameters show failure.
 - **Interaction:** pending submissions disable their fields and primary action. Field errors are associated with inputs; invalid submission focuses the first field, form-level refusals focus the alert, and replacement success panels take heading focus. Password visibility uses an accessible pressed-state toggle. Recovery offers a 60-second resend delay in addition to server rate limiting. Inputs remain out of URLs and browser storage.
@@ -96,7 +103,7 @@ Only the audit module's domain, application and infrastructure layers are used. 
 
 ### Issue tracking
 
-This implementation contributes parent authentication, authorization primitives, audit integration and the account interface to [#9](https://github.com/MEscape/hort.ai/issues/9). The ticket also requires teacher roles, class isolation and child-profile creation/selection. Those capabilities remain outside this implementation; reference the ticket without closing it.
+This implementation contributes parent authentication, authorization primitives, audit integration and the account interface to [#9](https://github.com/MEscape/hort.ai/issues/9). #8 adds the teacher role, the learner module and the data model; class isolation use cases follow in #32. Reference the ticket without closing it.
 
 ### Presentation verification
 

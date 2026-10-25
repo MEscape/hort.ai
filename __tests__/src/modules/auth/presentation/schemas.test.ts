@@ -19,6 +19,7 @@ import { signUpSchema } from '@modules/auth/presentation/schemas/sign-up-schema'
 
 const PASSWORD = 'four unrelated words are helpful';
 const SIGN_UP = {
+  role: 'parent',
   name: '  Alex  ',
   email: ' alex@example.test ',
   password: PASSWORD,

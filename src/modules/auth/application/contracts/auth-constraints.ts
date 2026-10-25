@@ -11,3 +11,5 @@ export {
   CREDENTIAL_LIMITS,
   EMAIL_PATTERN,
 } from '../../domain/models/credentials';
+export { PARENT_ROLE, ROLES, TEACHER_ROLE } from '../../domain/models/role';
+export type { Role } from '../../domain/models/role';

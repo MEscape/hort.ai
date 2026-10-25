@@ -48,14 +48,18 @@ from `.env.example`.
 ## Voice (`stimme.tts`)
 
 `stimme` describes the voice in words (`charakter`, `tempo`, `tonhoehe`); `stimme.tts` names the
-concrete provider voice. Recommendation: Azure AI Speech (same subscription, German neural voices,
-SSML for rate and pitch). Child-friendly candidates: `de-DE-KillianNeural` (Max),
-`de-DE-GiselaNeural` (child voice, Lili), `de-DE-MajaNeural` (Fina); alternatives
-`de-DE-AmalaNeural`, `de-DE-ConradNeural`. Map `tempo`/`tonhoehe` to SSML `prosody` when TTS is
-built. Listen before choosing; nothing calls a TTS provider yet. These are candidates, not
-an acoustic acceptance test. Microsoft's [voice list](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)
-marks Gisela as a child voice; Killian and Maja are not listed as child voices. Check regional
-availability and credit eligibility when provisioning Speech; no Speech resource is created here.
+concrete provider voice. The tutors speak through ElevenLabs (module `voice`, see its README):
+
+| Tutor | `voiceId`              | ElevenLabs voice         |
+| ----- | ---------------------- | ------------------------ |
+| Max   | `DsJNFaZXbVnwO9Nycgo3` | Barnaby                  |
+| Lili  | `8pVdES9f9x71wHWeQsgz` | Nicole                   |
+| Fina  | `zndmYEEoWWxRYyEL2ZZY` | Lumi (Funny and Playful) |
+
+They are library voices and need a paid plan (Starter or higher). Swapping a voice is an edit of
+`voiceId` here, not a code change; the voice module reads it on the server. Only tutors with
+`status === 'bereit'` and `provider: "elevenlabs"` speak. The narrator (the owl) is not a tutor;
+its voice lives in the voice module.
 
 ## Integration handoff (not implemented here)
 
