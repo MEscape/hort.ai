@@ -25,8 +25,8 @@ export async function generateMetadata({
 
 async function Task() {
   await requireSignedIn('/home/task');
-  await requireOnboarded();
-  return <TaskScreen />;
+  const child = await requireOnboarded();
+  return <TaskScreen childProfileId={child.id} />;
 }
 
 export default function TaskPage() {

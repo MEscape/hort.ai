@@ -1,30 +1,44 @@
 'use client';
 
-import { useRef, useState, type ChangeEvent, type Ref, type SubmitEvent } from 'react';
+import {
+  useRef,
+  useState,
+  useTransition,
+  type ChangeEvent,
+  type Ref,
+  type SubmitEvent,
+} from 'react';
 
-import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert';
+import { startHelpSessionAction } from '@modules/guidance/client';
+
 import { Button } from '@components/ui/button';
 import { Card, CardContent, CardHeader } from '@components/ui/card';
-import { Lightbulb } from '@components/ui/icons';
 import { Label } from '@components/ui/label';
+
+import { useRouter } from '@i18n';
 
 import { useTranslations } from '@i18n/client';
 
 import { isBlank } from '@lib/utils';
 
 const TASK_CHARACTER_LIMIT = 1000;
+/** The MVP helps with maths only (docs/product/mvp-scope.md). */
+const MVP_SUBJECT = 'math';
 
 interface TaskEntryProps {
   readonly draft: string;
   readonly onDraftChange: (value: string) => void;
   readonly headingRef: Ref<HTMLHeadingElement>;
+  readonly childProfileId: string;
 }
 
 // @ui-plain textarea No shared Textarea primitive is installed yet.
-// @unsaved-work none This frontend-only draft is never submitted or persisted.
-export function TaskEntry({ draft, onDraftChange, headingRef }: TaskEntryProps) {
+// @unsaved-work none This transient task is submitted directly to start a session.
+export function TaskEntry({ draft, onDraftChange, headingRef, childProfileId }: TaskEntryProps) {
   const t = useTranslations('app');
-  const [status, setStatus] = useState<'editing' | 'invalid' | 'unavailable'>('editing');
+  const router = useRouter();
+  const [status, setStatus] = useState<'editing' | 'invalid' | 'failed'>('editing');
+  const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
@@ -34,8 +48,19 @@ export function TaskEntry({ draft, onDraftChange, headingRef }: TaskEntryProps) 
       inputRef.current?.focus();
       return;
     }
-    // Issue #12: replace this local notice with the authenticated session-creation Server Action.
-    setStatus('unavailable');
+    setStatus('editing');
+    startTransition(async () => {
+      const result = await startHelpSessionAction({
+        childProfileId,
+        task: draft,
+        subject: MVP_SUBJECT,
+      }).catch(() => null);
+      if (result?.ok) {
+        router.push('/help');
+      } else {
+        setStatus('failed');
+      }
+    });
   }
 
   function handleChange(event: ChangeEvent<HTMLTextAreaElement>) {
@@ -86,24 +111,27 @@ export function TaskEntry({ draft, onDraftChange, headingRef }: TaskEntryProps) 
             </p>
           )}
           <div className="flex flex-wrap gap-3">
-            <Button type="submit" size="lg">
-              {t('start.entry.review')}
+            <Button type="submit" size="lg" disabled={isPending}>
+              {isPending ? t('start.entry.sending') : t('start.entry.review')}
             </Button>
             <Button
               type="button"
               variant="ghost"
               onClick={handleClear}
-              disabled={draft.length === 0}
+              disabled={draft.length === 0 || isPending}
             >
               {t('start.entry.clear')}
             </Button>
           </div>
-          {status === 'unavailable' && (
-            <Alert variant="hint" role="status">
-              <Lightbulb aria-hidden="true" />
-              <AlertTitle>{t('start.entry.unavailableTitle')}</AlertTitle>
-              <AlertDescription>{t('start.entry.unavailableBody')}</AlertDescription>
-            </Alert>
+          {status === 'failed' && (
+            <p role="alert" className="text-nudge">
+              {t('start.entry.failed')}
+            </p>
+          )}
+          {isPending && (
+            <p role="status" aria-live="polite">
+              {t('start.entry.sending')}
+            </p>
           )}
         </form>
       </CardContent>

@@ -10,7 +10,7 @@ import { useAppFormatters } from '@i18n/formatters/client';
 
 import type { ClosedReason } from './screen-time-view';
 
-/** The existing task entry; it takes the typed task until sessions can be started (issue #12). */
+/** The task entry of the child's home: the typed task starts a help session. */
 const TYPE_TASK_HREF = '/home/task';
 
 interface TaskCardProps {
