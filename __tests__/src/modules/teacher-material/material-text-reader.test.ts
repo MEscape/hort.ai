@@ -16,7 +16,17 @@ it('writes the checked bytes through one signed PUT and reports a refused write'
   expect(w.location).toEqual(location);
   expect(request).toHaveBeenCalledWith(
     'https://storage.test/upload',
-    expect.objectContaining({ method: 'PUT', body: bytes, redirect: 'error' }),
+    expect.objectContaining({
+      method: 'PUT',
+      body: bytes,
+      redirect: 'error',
+      headers: expect.objectContaining({ 'If-None-Match': '*' }),
+    }),
+  );
+
+  request.mockResolvedValueOnce(new Response(null, { status: 409 }));
+  expect((await writer.write(location, bytes, 'text/plain'))._unsafeUnwrapErr().code).toBe(
+    'teacher_material.already_written',
   );
 
   request.mockResolvedValueOnce(new Response(null, { status: 403 }));

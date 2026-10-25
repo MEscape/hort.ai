@@ -2,7 +2,7 @@ import { conflictError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
-import { materialUploadKey } from '../../domain/models/material';
+import { MATERIAL_ALREADY_WRITTEN, materialUploadKey } from '../../domain/models/material';
 import { loadAuthorizedMaterial } from '../load-authorized-material';
 import { MATERIAL_RATE_LIMITS } from '../rate-limits';
 import { extractMaterial } from '../services/extract-material';
@@ -15,6 +15,9 @@ import type { MaterialDependencies } from '../material-dependencies';
  * statements, never raw text. The checked bytes are written by the server to the material's own
  * key, which no upload capability names, and the upload is removed: the upload URL stays valid
  * for its whole lifetime, so the uploaded object could still be replaced after the check.
+ * The write is create-only: when a parallel (or crashed) completion already published a copy,
+ * the statements are re-taken from that copy, so whichever completion wins the status CAS stores
+ * statements that match the served bytes, and no completion ever overwrites them.
  */
 export class CompleteMaterialUpload {
   constructor(private readonly deps: MaterialDependencies) {}
@@ -44,7 +47,14 @@ export class CompleteMaterialUpload {
             }
             return extractMaterial(this.deps, row, upload)
               .andThen(({ bytes, statements }) =>
-                writer.write(published, bytes, row.contentType).map(() => statements),
+                writer
+                  .write(published, bytes, row.contentType)
+                  .map(() => statements)
+                  .orElse((error) =>
+                    error.code === MATERIAL_ALREADY_WRITTEN
+                      ? extractMaterial(this.deps, row, published).map((copy) => copy.statements)
+                      : errAsync(error),
+                  ),
               )
               .orElse((error) =>
                 materials

@@ -8,7 +8,7 @@ import { GetMaterialReadUrl } from '@modules/teacher-material/application/querie
 import { ListMaterials } from '@modules/teacher-material/application/queries/list-materials';
 
 import { infrastructureError, validationError } from '@lib/errors';
-import { errAsync, okAsync } from '@lib/result';
+import { ResultAsync, errAsync, okAsync } from '@lib/result';
 
 import { createBrokenRateLimiter } from '../../support/rate-limiting';
 import { parent } from '../auth/fakes';
@@ -162,6 +162,47 @@ it('does not remove a processed object when another completion fails concurrentl
   await new CompleteMaterialUpload(w.deps).execute('material-1');
   expect(w.rows[0]?.status).toBe('PROCESSED');
   expect(w.deleted).toBe(false);
+});
+
+it('never overwrites a published copy when two completions read different upload versions', async () => {
+  const w = world();
+  await new BeginMaterialUpload(w.deps).execute(w.input);
+  const first = new TextEncoder().encode('- Zahlen bis 1000 vergleichen und ordnen.');
+  const second = new TextEncoder().encode('- Zahlen bis 9999 vergleichen und ordnen.');
+  expect(second.length).toBe(first.length);
+  // Both completions read the upload before either writes; the teacher replaced it in between.
+  const versions = [first, second];
+  let release: () => void = () => undefined;
+  const bothRead = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let reads = 0;
+  const read = w.deps.textReader.read;
+  w.deps.textReader.read = (location, max) => {
+    if (location.key !== UPLOAD_KEY) {
+      return read(location, max);
+    }
+    const version = versions[reads++] ?? first;
+    if (reads === 2) {
+      release();
+    }
+    return okAsync(undefined)
+      .andThen(() => ResultAsync.fromSafePromise(bothRead))
+      .map(() => version);
+  };
+
+  const complete = new CompleteMaterialUpload(w.deps);
+  const results = await Promise.all([
+    complete.execute('material-1'),
+    complete.execute('material-1'),
+  ]);
+
+  expect(results.filter((r) => r.isOk()).length).toBeGreaterThanOrEqual(1);
+  expect(w.rows[0]?.status).toBe('PROCESSED');
+  const served = new TextDecoder().decode(w.written.get(PUBLISHED_KEY));
+  expect(served).toBe(new TextDecoder().decode(first));
+  // The stored statements belong to the served bytes, whichever completion won the CAS.
+  expect(w.sections.get('material-1')?.map((s) => s.text)).toEqual([served.replace(/^- /, '')]);
 });
 
 it('bounds upload attempts per teacher and refuses a broken limiter', async () => {

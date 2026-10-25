@@ -14,7 +14,10 @@ export interface MaterialTextReader {
   read(location: ObjectLocation, maxBytes: number): AppResultAsync<Uint8Array>;
 }
 export interface MaterialObjectWriter {
-  /** The server's own write of already validated bytes to a key no client capability names. */
+  /**
+   * The server's own write of already validated bytes to a key no client capability names.
+   * Create-only: fails with `MATERIAL_ALREADY_WRITTEN` instead of replacing an existing copy.
+   */
   write(location: ObjectLocation, bytes: Uint8Array, contentType: string): AppResultAsync<void>;
 }
 export interface MaterialIngest {

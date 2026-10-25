@@ -4,7 +4,7 @@ import { toActorId } from '@modules/auth/domain/models/ids';
 import type { MaterialDependencies } from '@modules/teacher-material/application/material-dependencies';
 import type { Material } from '@modules/teacher-material/domain/models/material';
 
-import { forbiddenError } from '@lib/errors';
+import { conflictError, forbiddenError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 import type { ObjectLocation } from '@lib/storage';
 
@@ -111,9 +111,13 @@ export function world() {
         return okAsync('https://storage.test/read');
       },
     },
-    textReader: { read: () => okAsync(state.bytes) },
+    textReader: { read: (location) => okAsync(state.written.get(location.key) ?? state.bytes) },
     writer: {
+      // Create-only, like the real If-None-Match write.
       write: (location, written) => {
+        if (state.written.has(location.key)) {
+          return errAsync(conflictError('teacher_material.already_written', 'Exists'));
+        }
         state.written.set(location.key, written);
         return okAsync(undefined);
       },
