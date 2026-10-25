@@ -1,4 +1,5 @@
 export type {
+  PasswordChangeInput,
   PasswordResetInput,
   PasswordResetRequestInput,
   SignInInput,

@@ -29,7 +29,7 @@ The classroom module is reached only through `ClassroomAccess` (domain port), im
 
 ## Teacher screen
 
-Overview of the selected class (list, empty state), create, edit, child preview, delete with confirmation. Saving shows progress and announces success in a status line; a refused save keeps the input and marks the fields. Unsaved changes are guarded on reload and need confirmation before leaving the editor. A teacher without an active class creates one inline (classroom module's `CreateClassroomForm`, MVP scope Hessen/mathematics); its invite code is shown once.
+Overview of the selected class (list, empty state), create, edit, child preview, delete with confirmation. Saving shows progress and announces success in a status line; a refused save keeps the input and marks the fields. Unsaved changes are guarded on reload and need confirmation before leaving the editor. A teacher without an active class creates one inline (classroom module's `CreateClassroomForm`, MVP scope Hessen/mathematics); later classes come from "Add class" beside the class selector, which leaves a draft in the editor as it is. After creating, a dialog shows the class, its invite code (copy button) and how to share it until the teacher closes it (`ClassroomCreationProvider` sits above everything that re-renders once the class exists). Each class's info button opens its details (`?details=<id>`, loaded after the ownership check): the current code or "Code unavailable" for hash-only classes, its expiry, an explicit confirmed "Generate new code", and the children by display name.
 
 Limits (domain, repeated by the database checks): title 120, task text 4,000, solution key 4,000 characters; the due date is an optional ISO calendar date.
 

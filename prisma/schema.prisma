@@ -220,6 +220,10 @@ model Classroom {
   subject            Subject
   status             ClassroomStatus @default(ACTIVE)
   inviteCodeHash     String          @unique
+  /// The current invite code, encrypted (AES-256-GCM, `CLASSROOM_INVITE_CODE_KEY`) so its teacher can
+  /// see it again. `NULL` for classes from before, or while no key is configured: then only the hash
+  /// exists and the code can only be replaced. Lookups never use this column.
+  inviteCodeCiphertext String?
   inviteCodeIssuedAt DateTime        @default(now())
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @default(now())
@@ -232,6 +236,7 @@ model Classroom {
   @@check(expression: sql`char_length("name") BETWEEN 1 AND 80`, name: "Classroom_name_rule")
   @@check(expression: sql`"grade" BETWEEN 1 AND 4`, name: "Classroom_grade_rule")
   @@check(expression: sql`"inviteCodeHash" ~ '^[0-9a-f]{64}$'`, name: "Classroom_invite_code_rule")
+  @@check(expression: sql`"inviteCodeCiphertext" IS NULL OR char_length("inviteCodeCiphertext") BETWEEN 1 AND 256`, name: "Classroom_invite_code_ciphertext_rule")
 }
 
 /// A child in a class. `childProfileId` is unique: a child is in at most one class (B S, #8).

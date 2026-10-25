@@ -1303,6 +1303,13 @@
                   "kind": "scalar"
                 }
               },
+              "inviteCodeCiphertext": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "inviteCodeHash": {
                 "nullable": false,
                 "type": {
@@ -1432,6 +1439,9 @@
                 },
                 "id": {
                   "column": "id"
+                },
+                "inviteCodeCiphertext": {
+                  "column": "inviteCodeCiphertext"
                 },
                 "inviteCodeHash": {
                   "column": "inviteCodeHash"
@@ -3527,6 +3537,11 @@
                   "prefix": "Classroom_grade_rule"
                 },
                 {
+                  "expression": "\"inviteCodeCiphertext\" IS NULL OR char_length(\"inviteCodeCiphertext\") BETWEEN 1 AND 256",
+                  "name": "Classroom_invite_code_ciphertext_rule_f890fa23",
+                  "prefix": "Classroom_invite_code_ciphertext_rule"
+                },
+                {
                   "expression": "\"inviteCodeHash\" ~ '^[0-9a-f]{64}$'",
                   "name": "Classroom_invite_code_rule_2c36461a",
                   "prefix": "Classroom_invite_code_rule"
@@ -3577,6 +3592,11 @@
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": false
+                },
+                "inviteCodeCiphertext": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
                 },
                 "inviteCodeHash": {
                   "codecId": "pg/text@1",
@@ -4983,7 +5003,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "eca80640cb0a769525df6288850067119387f7f45ed38d34e0c24729a1900541"
+    "storageHash": "8f90a014cfc1c9c32a01d95dad6cd89b3515c3ca47dfd8ae078cd5e51ac97e79"
   },
   "execution": {
     "executionHash": "5388a8400147d76b9e718711335599d04f7ca67a9c7f7b82d886bf9fb1c1aec5",
