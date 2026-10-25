@@ -4,7 +4,7 @@ import { HortaiLogo } from '@components/brand/hortai-logo';
 
 interface StartPageShellProps {
   readonly children: ReactNode;
-  /** Replaces the plain logo (the page passes the account header for the signed-in parent). */
+  /** Replaces the plain logo (the page passes the child's header). */
   readonly header?: ReactNode;
 }
 
