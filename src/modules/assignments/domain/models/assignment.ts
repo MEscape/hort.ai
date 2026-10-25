@@ -53,6 +53,17 @@ export interface ChildAssignment {
   readonly dueDate: string | null;
 }
 
+/**
+ * An assignment as the help on it needs it (#33): its task text and the teacher's solution key.
+ * Server-side only. It leaves this module only towards the guidance module, which compares the key
+ * with the child's answer (#14) and the AI's text (#31) and never shows, stores or sends it on.
+ */
+export interface AssignmentForHelp {
+  readonly id: AssignmentId;
+  readonly text: string;
+  readonly solutionKey: string | null;
+}
+
 /** Allowlist projection: neither solutionKey nor account identifiers can escape by spreading. */
 export function toChildAssignment(assignment: Assignment): ChildAssignment {
   return {

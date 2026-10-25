@@ -8,6 +8,7 @@ import { CreateAssignment } from './application/commands/create-assignment';
 import { DeleteAssignment } from './application/commands/delete-assignment';
 import { UpdateAssignment } from './application/commands/update-assignment';
 import { GetAssignmentById } from './application/queries/get-assignment-by-id';
+import { GetAssignmentForHelp } from './application/queries/get-assignment-for-help';
 import { GetTeacherAssignmentOverview } from './application/queries/get-teacher-assignment-overview';
 import { ListChildAssignments } from './application/queries/list-child-assignments';
 import { loggerAssignmentAuditLog } from './infrastructure/audit/logger-assignment-audit-log';
@@ -29,6 +30,8 @@ const dependencies: AssignmentsDependencies = {
 
 export const assignmentsQueries = {
   getAssignmentById: new GetAssignmentById(dependencies),
+  /** Server-side only: carries the solution key, for the guidance module's help on an assignment (#33). */
+  getAssignmentForHelp: new GetAssignmentForHelp(dependencies),
   getTeacherAssignmentOverview: new GetTeacherAssignmentOverview(dependencies),
   listChildAssignments: new ListChildAssignments(dependencies),
 } as const;
