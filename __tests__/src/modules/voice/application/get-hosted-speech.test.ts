@@ -18,7 +18,7 @@ import { errAsync, ok, okAsync, ResultAsync } from '@lib/result';
 import type { SpeechProvider } from '@lib/speech';
 
 import { createBrokenRateLimiter, createTestRateLimiter } from '../../../support/rate-limiting';
-import { fakeSpeech } from '../fakes';
+import { allowing, denying, fakeSpeech } from '../fakes';
 
 const EXPIRES = new Date('2026-10-25T12:15:00.000Z');
 
@@ -273,6 +273,64 @@ describe('GetHostedSpeech', () => {
     expect(speech.synthesize).toHaveBeenNthCalledWith(2, {
       voiceId: 'VoiceMax',
       text: CONNECTION_TEST_SENTENCE,
+    });
+  });
+
+  describe('a read-aloud ticket redeemed by a channel acting for a child', () => {
+    const ticketSource = (ticket = 'ticket-1'): HostedSpeechSource => ({
+      kind: 'ticket',
+      ticket,
+      childProfileId: 'child-1',
+    });
+    const tickets = () => ({
+      issue: vi.fn(() => 'ticket-1'),
+      redeem: vi.fn((ticket: string) => (ticket === 'ticket-1' ? 'Wie viele Murmeln?' : null)),
+    });
+
+    it('speaks the ticket text for the holder, child and voice it was issued to', async () => {
+      const speech = fakeSpeech();
+      const issued = tickets();
+      const query = new GetHostedSpeech(
+        dependencies({
+          speech,
+          authorization: allowing(),
+          tickets: issued,
+          channelLines: { isChannelLine: () => false },
+        }),
+      );
+
+      const spoken = await query.execute({ speakerId: 'max', source: ticketSource() });
+
+      expect(spoken.isOk()).toBe(true);
+      expect(issued.redeem).toHaveBeenCalledWith('ticket-1', {
+        tenantId: 'default',
+        actorId: 'parent-1',
+        childProfileId: 'child-1',
+        speakerId: 'max',
+      });
+      expect(speech.synthesize).toHaveBeenCalledWith({
+        voiceId: 'VoiceMax',
+        text: 'Wie viele Murmeln?',
+      });
+    });
+
+    it('refuses a foreign or forged ticket, a caller without voice.use, and a store without tickets', async () => {
+      const speech = fakeSpeech();
+      const forged = await new GetHostedSpeech(
+        dependencies({ speech, authorization: allowing(), tickets: tickets() }),
+      ).execute({ speakerId: 'max', source: ticketSource('forged') });
+      const denied = await new GetHostedSpeech(
+        dependencies({ speech, authorization: denying(), tickets: tickets() }),
+      ).execute({ speakerId: 'max', source: ticketSource() });
+      const unwired = await new GetHostedSpeech(dependencies({ speech })).execute({
+        speakerId: 'max',
+        source: ticketSource(),
+      });
+
+      expect(forged._unsafeUnwrapErr().code).toBe('voice.validation_failed');
+      expect(denied._unsafeUnwrapErr().code).toBe('auth.permission_denied');
+      expect(unwired.isErr()).toBe(true);
+      expect(speech.synthesize).not.toHaveBeenCalled();
     });
   });
 });
