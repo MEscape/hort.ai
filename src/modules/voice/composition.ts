@@ -24,6 +24,7 @@ import { catalogSpeakerVoices } from './infrastructure/catalog/catalog-speaker-v
 import { catalogSystemPhrases } from './infrastructure/catalog/catalog-system-phrases';
 import { helpSessionCompanionMessages } from './infrastructure/guidance/help-session-companion-messages';
 import { learnerChildVoiceConsent } from './infrastructure/learner/learner-child-voice-consent';
+import { cachedCompanionSpeech } from './infrastructure/storage/cached-companion-speech';
 import { objectStoreSpeechClips } from './infrastructure/storage/object-store-speech-clips';
 import { hmacSpokenTextTickets } from './infrastructure/tickets/hmac-spoken-text-tickets';
 import { createVoiceRouteHandlers } from './presentation/http/voice-route-handlers';
@@ -40,10 +41,16 @@ const TICKET_KEY_BYTES = 32;
  */
 export const getVoiceQueries = once(() => {
   const authorization = getAccessControl();
+  const provider = getSpeechProvider();
+  const store = getObjectStore();
+  const speech =
+    provider !== null && store?.supports('private') === true
+      ? cachedCompanionSpeech(provider, objectStoreSpeechClips(store, { clock: systemClock }))
+      : provider;
   const dependencies = {
     authorization,
     rateLimiter: getRateLimiter(),
-    speech: getSpeechProvider(),
+    speech,
     voices: catalogSpeakerVoices(),
     phrases: catalogSystemPhrases(),
     tickets: hmacSpokenTextTickets({ secret: ticketSecret(), clock: systemClock }),

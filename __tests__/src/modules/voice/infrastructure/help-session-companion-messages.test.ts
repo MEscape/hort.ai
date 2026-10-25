@@ -8,7 +8,6 @@ import type {
 import { helpSessionCompanionMessages } from '@modules/voice/infrastructure/guidance/help-session-companion-messages';
 
 import { forbiddenError, infrastructureError, notFoundError } from '@lib/errors';
-import type { AppError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
@@ -32,8 +31,8 @@ function setup({
   sessionResult = okAsync(session()),
   translate = vi.fn((key: string) => `translated:${key}`),
 }: {
-  profileResult?: AppResultAsync<unknown, AppError>;
-  sessionResult?: AppResultAsync<unknown, AppError>;
+  profileResult?: AppResultAsync<unknown>;
+  sessionResult?: AppResultAsync<unknown>;
   translate?: PredefinedWording;
 } = {}) {
   const getChildProfile = vi.fn(() => profileResult);

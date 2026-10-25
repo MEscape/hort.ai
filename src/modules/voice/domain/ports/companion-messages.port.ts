@@ -1,4 +1,3 @@
-import type { AppError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
 
 import type { CompanionMessageRef, PredefinedWording } from '../models/companion-message';

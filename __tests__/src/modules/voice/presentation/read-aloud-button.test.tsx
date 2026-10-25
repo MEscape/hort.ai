@@ -53,12 +53,14 @@ function actionSuccess() {
   action.mockResolvedValue({
     ok: true,
     data: { ticket: 'signed-ticket', speakerId: 'speaker-9' },
-  } as Awaited<ReturnType<typeof readAloudAction>>);
+  });
 }
 
 function lastAudio() {
   const audio = FakeAudio.instances.at(-1);
-  if (audio === undefined) throw new Error('no audio element was created');
+  if (audio === undefined) {
+    throw new Error('no audio element was created');
+  }
   return audio;
 }
 
@@ -93,7 +95,9 @@ describe('ReadAloudButton', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Read aloud' }));
 
-    await waitFor(() => expect(lastAudio().play).toHaveBeenCalledOnce());
+    await waitFor(() => {
+      expect(lastAudio().play).toHaveBeenCalledOnce();
+    });
     expect(action).toHaveBeenCalledWith({ childProfileId, message });
     expect(fetchMock).toHaveBeenCalledOnce();
     const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -103,6 +107,7 @@ describe('ReadAloudButton', () => {
     expect(JSON.parse(options.body as string)).toEqual({
       speakerId: 'speaker-9',
       ticket: 'signed-ticket',
+      childProfileId,
     });
     expect(JSON.parse(options.body as string)).not.toHaveProperty('text');
     expect(lastAudio().src).toBe('blob:voice-audio');
@@ -111,8 +116,10 @@ describe('ReadAloudButton', () => {
     act(() => lastAudio().onended?.());
     fireEvent.click(screen.getByRole('button', { name: 'Read aloud' }));
 
-    await waitFor(() => expect(lastAudio().play).toHaveBeenCalledTimes(2));
-    expect(action).toHaveBeenCalledOnce();
+    await waitFor(() => {
+      expect(lastAudio().play).toHaveBeenCalledTimes(2);
+    });
+    expect(action).toHaveBeenCalledTimes(2);
     expect(fetchMock).toHaveBeenCalledOnce();
     expect(FakeAudio.instances).toHaveLength(1);
   });

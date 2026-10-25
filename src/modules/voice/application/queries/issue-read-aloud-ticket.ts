@@ -1,3 +1,13 @@
+import type {
+  ValidationAppError,
+  NotFoundAppError,
+  ConflictAppError,
+  UnauthorizedAppError,
+  ForbiddenAppError,
+  RateLimitedAppError,
+  InfrastructureAppError,
+  UnexpectedAppError,
+} from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
@@ -24,7 +34,19 @@ const NARRATOR = toSpeakerId('eule');
 export class IssueReadAloudTicket {
   constructor(private readonly deps: IssueReadAloudTicketDependencies) {}
 
-  execute(input: IssueReadAloudTicketInput): AppResultAsync<ReadAloudTicketView> {
+  execute(
+    input: IssueReadAloudTicketInput,
+  ): AppResultAsync<
+    ReadAloudTicketView,
+    | ValidationAppError
+    | NotFoundAppError
+    | ConflictAppError
+    | UnauthorizedAppError
+    | ForbiddenAppError
+    | RateLimitedAppError
+    | InfrastructureAppError
+    | UnexpectedAppError
+  > {
     return this.deps.authorization.requireInTenant('voice.use').andThen((actor) =>
       parseChildProfileId(input.childProfileId).asyncAndThen((childProfileId) =>
         this.deps.messages.companionOf(childProfileId).andThen((companion) => {
@@ -39,6 +61,8 @@ export class IssueReadAloudTicket {
               ticket: this.deps.tickets.issue(text, {
                 tenantId: actor.tenantId,
                 actorId: actor.id,
+                childProfileId,
+                speakerId: this.speakerOf(companion),
               }),
               speakerId: this.speakerOf(companion),
             }));

@@ -13,6 +13,8 @@ export type SpeechSource =
 export interface SynthesizeSpeechInput {
   readonly speakerId: string;
   readonly source: SpeechSource;
+  /** Required to redeem a companion-message ticket; checked against current parental consent. */
+  readonly childProfileId?: string;
 }
 
 /**

@@ -77,13 +77,16 @@ export function useVoiceInput(
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** True while the browser asks for the microphone, so a second tap starts nothing. */
   const startingRef = useRef(false);
+  const mountedRef = useRef(true);
   const onTranscriptRef = useRef(onTranscript);
   useEffect(() => {
     onTranscriptRef.current = onTranscript;
   }, [onTranscript]);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
       const recorder = recorderRef.current;
       recorderRef.current = null;
       if (recorder !== null) {
@@ -99,9 +102,8 @@ export function useVoiceInput(
       if (timerRef.current !== null) {
         clearTimeout(timerRef.current);
       }
-    },
-    [],
-  );
+    };
+  }, []);
 
   const stop = () => {
     const recorder = recorderRef.current;
@@ -124,6 +126,9 @@ export function useVoiceInput(
     setStatus('transcribing');
     try {
       const text = (await transcribe(childProfileId, recording)).trim();
+      if (!mountedRef.current) {
+        return;
+      }
       if (text === '') {
         setProblem('nothing_heard');
       } else {
@@ -154,8 +159,23 @@ export function useVoiceInput(
     } finally {
       startingRef.current = false;
     }
+    if (!mountedRef.current) {
+      stream.getTracks().forEach((track) => {
+        track.stop();
+      });
+      return;
+    }
     const type = supportedType();
-    const recorder = new MediaRecorder(stream, type === undefined ? undefined : { mimeType: type });
+    let recorder: MediaRecorder;
+    try {
+      recorder = new MediaRecorder(stream, type === undefined ? undefined : { mimeType: type });
+    } catch {
+      stream.getTracks().forEach((track) => {
+        track.stop();
+      });
+      setProblem('unsupported');
+      return;
+    }
     const chunks: Blob[] = [];
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) {

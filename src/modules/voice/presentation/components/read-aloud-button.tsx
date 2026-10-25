@@ -1,12 +1,13 @@
 'use client';
 
-import { Spinner, Square, Volume2 } from '@components/ui/icons';
 import { Button } from '@components/ui/button';
+import { Spinner, Square, Volume2 } from '@components/ui/icons';
 
 import { useTranslations } from '@i18n/client';
 
-import type { CompanionMessageRef } from '../../application/contracts/voice-constraints';
 import { useReadAloud } from '../hooks/use-read-aloud';
+
+import type { CompanionMessageRef } from '../../application/contracts/voice-constraints';
 
 export interface ReadAloudButtonProps {
   /** The child the message was for: the server checks it is the parent's own. */
@@ -26,7 +27,12 @@ export function ReadAloudButton({ allowed, ...control }: ReadAloudButtonProps) {
   if (!allowed) {
     return null;
   }
-  return <ReadAloudControl {...control} />;
+  return (
+    <ReadAloudControl
+      key={`${control.childProfileId}:${JSON.stringify(control.message)}`}
+      {...control}
+    />
+  );
 }
 
 function ReadAloudControl({

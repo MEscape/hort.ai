@@ -2,6 +2,7 @@ import type { AuthorizationError } from '@modules/auth';
 
 import type {
   InfrastructureAppError,
+  ForbiddenAppError,
   NotFoundAppError,
   RateLimitedAppError,
   ValidationAppError,
@@ -16,8 +17,9 @@ import {
   unknownSpeaker,
   VOICE_VALIDATION_CODES,
   voiceDisabled,
+  voiceConsentRequired,
 } from '../../domain/errors/voice-errors';
-import { parseSpeakerId } from '../../domain/models/ids';
+import { parseChildProfileId, parseSpeakerId } from '../../domain/models/ids';
 import { speakableText } from '../../domain/models/utterance';
 import { VOICE_RATE_LIMITS } from '../rate-limits';
 
@@ -29,6 +31,7 @@ import type { VoiceDependencies } from '../voice-dependencies';
 
 export type SynthesizeSpeechError =
   | AuthorizationError
+  | ForbiddenAppError
   | ValidationAppError
   | NotFoundAppError
   | RateLimitedAppError
@@ -60,10 +63,26 @@ export class SynthesizeSpeech {
         if (voiceId === null) {
           return errAsync(unknownSpeaker());
         }
-        const holder = { tenantId: actor.tenantId, actorId: actor.id };
+        const holder: TicketHolder = {
+          tenantId: actor.tenantId,
+          actorId: actor.id,
+          speakerId: input.speakerId,
+          ...(input.childProfileId === undefined ? {} : { childProfileId: input.childProfileId }),
+        };
         return this.wordsOf(input.source, speakerId.value, holder)
           .andThen(speakableText)
-          .asyncAndThen((text) =>
+          .asyncAndThen((text) => {
+            const consent =
+              input.childProfileId === undefined
+                ? okAsync(true)
+                : parseChildProfileId(input.childProfileId).asyncAndThen((id) =>
+                    this.deps.consent.voiceConsentOf(id),
+                  );
+            return consent.andThen((allowed) =>
+              allowed ? okAsync(text) : errAsync(voiceConsentRequired()),
+            );
+          })
+          .andThen((text) =>
             this.deps.rateLimiter
               .enforce({
                 policy: VOICE_RATE_LIMITS.synthesize,

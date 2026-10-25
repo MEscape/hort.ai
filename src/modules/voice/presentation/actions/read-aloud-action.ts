@@ -1,13 +1,12 @@
 'use server';
 
-import { getTranslations } from '@i18n/server';
-
 import { toActionResult } from '@lib/result';
 import type { ActionResult } from '@lib/result';
 
 import { getVoiceQueries } from '../../composition';
 import { parseVoiceInput } from '../schemas/parse-voice-input';
 import { readAloudSchema } from '../schemas/read-aloud-schema';
+import { predefinedWording } from '../services/predefined-wording';
 
 /** What the browser posts to `/api/voice/speech` to hear the message. */
 export interface ReadAloudTicketDto {
@@ -22,11 +21,11 @@ export interface ReadAloudTicketDto {
  * guidance catalog in the request's language, as the child reads them.
  */
 export async function readAloudAction(input: unknown): Promise<ActionResult<ReadAloudTicketDto>> {
-  const t = await getTranslations('guidance');
+  const wording = await predefinedWording();
   const result = await parseVoiceInput(readAloudSchema, input).asyncAndThen((values) =>
     getVoiceQueries().issueReadAloudTicket.execute({
       ...values,
-      wording: (key) => t(key as Parameters<typeof t>[0]),
+      wording,
     }),
   );
   return toActionResult(result);

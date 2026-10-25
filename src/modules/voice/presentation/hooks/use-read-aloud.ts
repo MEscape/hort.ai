@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import type { CompanionMessageRef } from '../../application/contracts/voice-constraints';
 import { readAloudAction } from '../actions/read-aloud-action';
+
+import type { CompanionMessageRef } from '../../application/contracts/voice-constraints';
 
 export type ReadAloudStatus = 'idle' | 'loading' | 'playing';
 
@@ -33,15 +34,15 @@ function problemOf(code: unknown): ReadAloudProblem {
 }
 
 /** Asks the server for the message's ticket, then for its audio: the browser never sends words. */
-async function fetchSpeech(childProfileId: string, message: CompanionMessageRef): Promise<string> {
-  const issued = await readAloudAction({ childProfileId, message });
-  if (!issued.ok) {
-    throw new ReadAloudError(problemOf(issued.error.code));
-  }
+async function fetchSpeech(
+  childProfileId: string,
+  ticket: string,
+  speakerId: string,
+): Promise<string> {
   const response = await fetch(SPEECH_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ speakerId: issued.data.speakerId, ticket: issued.data.ticket }),
+    body: JSON.stringify({ childProfileId, speakerId, ticket }),
   });
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as { readonly code?: unknown } | null;
@@ -76,9 +77,19 @@ export function useReadAloud(childProfileId: string, message: CompanionMessageRe
 
   const play = async (audio: HTMLAudioElement) => {
     try {
+      setStatus('loading');
+      // Recheck ownership and consent even when replaying the cached audio.
+      const issued = await readAloudAction({ childProfileId, message });
+      if (!issued.ok) {
+        throw new ReadAloudError(problemOf(issued.error.code));
+      }
       if (urlRef.current === null) {
-        setStatus('loading');
-        urlRef.current = await fetchSpeech(childProfileId, message);
+        const url = await fetchSpeech(childProfileId, issued.data.ticket, issued.data.speakerId);
+        if (audioRef.current !== audio) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+        urlRef.current = url;
       }
       if (audioRef.current !== audio) {
         return;

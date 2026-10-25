@@ -4,6 +4,9 @@ import type { ActorId, TenantId } from '@modules/auth';
 export interface TicketHolder {
   readonly tenantId: TenantId;
   readonly actorId: ActorId;
+  /** Companion-message tickets are bound to this child and voice, including at playback. */
+  readonly childProfileId?: string;
+  readonly speakerId?: string;
 }
 
 /**

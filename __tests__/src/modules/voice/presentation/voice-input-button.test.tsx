@@ -100,7 +100,9 @@ describe('VoiceInputButton', () => {
     await startRecording();
     await stopRecording();
 
-    await waitFor(() => expect(onTranscript).toHaveBeenCalledWith('Hello there!'));
+    await waitFor(() => {
+      expect(onTranscript).toHaveBeenCalledWith('Hello there!');
+    });
     expect(fetchMock).toHaveBeenCalledOnce();
     const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe('/api/voice/transcription');

@@ -41,6 +41,8 @@ describe('IssueReadAloudTicket', () => {
     expect(deps.tickets.issue).toHaveBeenCalledWith('Hallo, Kind!', {
       tenantId: 'default',
       actorId: 'parent-1',
+      childProfileId: 'child-1',
+      speakerId: 'tutor-1',
     });
   });
 
