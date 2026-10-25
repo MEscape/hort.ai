@@ -5,9 +5,9 @@
 export interface StartHelpSessionInput {
   readonly childProfileId: string;
   /** The task as the child typed or dictated it. Not read when `assignmentId` is given. */
-  readonly task?: string;
+  readonly task?: string | undefined;
   /** A teacher's assignment as the task: its text comes from the assignments module, never the client. */
-  readonly assignmentId?: string;
+  readonly assignmentId?: string | undefined;
   /** One of `HINT_SUBJECTS`; it picks the curriculum that grounds the session's hints. */
   readonly subject: string;
 }

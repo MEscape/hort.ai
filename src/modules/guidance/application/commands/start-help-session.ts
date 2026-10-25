@@ -1,12 +1,19 @@
 import type { Actor, AuthorizationError } from '@modules/auth';
 
-import type { InfrastructureAppError, NotFoundAppError, ValidationAppError } from '@lib/errors';
+import type {
+  InfrastructureAppError,
+  NotFoundAppError,
+  RateLimitedAppError,
+  ValidationAppError,
+} from '@lib/errors';
 import { okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
 import { isSameTask } from '../../domain/models/help-session';
 import { parseHintSubject } from '../../domain/models/hint-subject';
 import { parseChildProfileId } from '../../domain/models/ids';
+import { GUIDANCE_RATE_LIMITS } from '../rate-limits';
+import { spendChildBudget } from '../services/child-budget';
 import { parseRequestedTask, resolveSessionSource } from '../services/help-session-source';
 import { toHelpSessionView } from '../services/help-session-view';
 import { ownChildScope } from '../services/own-child-session';
@@ -19,7 +26,11 @@ import type { StartHelpSessionView } from '../contracts/help-session-views';
 import type { HelpSessionDependencies } from '../help-session-dependencies';
 
 export type StartHelpSessionError =
-  AuthorizationError | ValidationAppError | NotFoundAppError | InfrastructureAppError;
+  | AuthorizationError
+  | ValidationAppError
+  | NotFoundAppError
+  | RateLimitedAppError
+  | InfrastructureAppError;
 
 /**
  * A parent's child starts a help session on their own task (#17), or on a teacher's assignment of
@@ -31,8 +42,9 @@ export type StartHelpSessionError =
  * assignments module is asked whether the child's class has the assignment. Another class's
  * assignment is `guidance.assignment_not_found`, exactly like a missing one, and nothing is stored.
  *
- * `hint.request` is the guidance capability of the child's guardian, as for hints themselves. No
- * rate limit: a start costs no provider call, and the one-open-session rule bounds what it stores.
+ * `hint.request` is the guidance capability of the child's guardian, as for hints themselves. A start
+ * costs no provider call, but every new task stores a session, so it spends the child's
+ * `sessionStart` budget once the child is known to be the parent's own.
  */
 export class StartHelpSession {
   constructor(private readonly deps: HelpSessionDependencies) {}
@@ -40,7 +52,8 @@ export class StartHelpSession {
   execute(
     input: StartHelpSessionInput,
   ): AppResultAsync<StartHelpSessionView, StartHelpSessionError> {
-    const { authorization } = this.deps;
+    const { authorization, rateLimiter } = this.deps;
+    const policy = GUIDANCE_RATE_LIMITS.sessionStart;
 
     return authorization.requireInTenant('hint.request').andThen((actor) =>
       parseChildProfileId(input.childProfileId)
@@ -51,9 +64,11 @@ export class StartHelpSession {
         )
         .asyncAndThen(({ id, requested, subject }) =>
           ownChildScope(this.deps, actor, id).andThen(({ owner, childProfileId }) =>
-            resolveSessionSource(this.deps, { childProfileId, requested, subject }).andThen(
-              (source) => this.startOrContinue(actor, { owner, childProfileId, source }),
-            ),
+            spendChildBudget(rateLimiter, { actor, childProfileId, policy })
+              .andThen(() =>
+                resolveSessionSource(this.deps, { childProfileId, requested, subject }),
+              )
+              .andThen((source) => this.startOrContinue(actor, { owner, childProfileId, source })),
           ),
         ),
     );

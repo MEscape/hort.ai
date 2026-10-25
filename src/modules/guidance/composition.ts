@@ -115,6 +115,7 @@ const getHelpSessionDependencies = once((): HelpSessionDependencies => ({
   authorization: getAccessControl(),
   childProfiles: learnerChildProfileAccess,
   assignments: getAssignmentAccess(),
+  rateLimiter: getRateLimiter(),
   sessions: getHelpSessionRepository(),
   audit: loggerGuidanceAuditLog,
 }));

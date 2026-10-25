@@ -25,7 +25,7 @@ An answer, its assessment and its question share the request id of the check (`i
 
 ## Use cases
 
-All use `hint.request`, the guardian's guidance permission, and ask the learner module whether the child is theirs before any session is read. None calls a provider, so none has a rate limit; the one-open-session rule and the hint and answer budgets bound what is written.
+All use `hint.request`, the guardian's guidance permission, and ask the learner module whether the child is theirs before any session is read. None calls a provider. Starting spends the child's `guidance.session-start` budget (30 in 10 minutes, denied when the limiter's store is down), because each new task stores a session and abandons the open one; reading spends none, and a reply follows only a checked answer, which the answer budget bounds. The Server Actions over these use cases are listed in the [help session contract](help-session-contract.md).
 
 - `StartHelpSession { childProfileId, task, subject }` or `{ childProfileId, assignmentId, subject }`: `started` or `continued`, with the session view. See "Sessions on a teacher's assignment" below.
 - `GetOpenHelpSession { childProfileId }`: the open session's view for "Continue", or `null`.

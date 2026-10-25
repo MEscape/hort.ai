@@ -10,8 +10,10 @@ import type {
 } from '@modules/guidance/domain/ports/help-session.repository';
 
 import { notFoundError } from '@lib/errors';
+import type { RateLimiter } from '@lib/rate-limit';
 import { errAsync, okAsync } from '@lib/result';
 
+import { createTestRateLimiter } from '../../support/rate-limiting';
 import { parent, recordingAudit as recordingSecurityAudit, signedInAs } from '../auth/fakes';
 
 import { OWN_CHILD, fakeAssignments, ownChildren, recordingAuditLog, task } from './fakes';
@@ -41,7 +43,7 @@ const notFound = () =>
 
 /**
  * An in-memory store with the port's contract: one active session per child, scoped to the owner
- * that started it, steps once per request id. It keeps what it was asked, for the assertions.
+ * that started it, hints and answer checks once per request id. It keeps what it was asked, for the assertions.
  */
 export function inMemorySessions(initial: readonly HelpSession[] = []) {
   const sessions = new Map(initial.map((session) => [session.id as string, session]));
@@ -83,8 +85,38 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
       return session === null ? errAsync(notFound()) : okAsync(session);
     },
     load: (ref) => repository.loadSession(ref).map(toLadderState),
-    recordHint: () => okAsync('recorded'),
-    recordAnswerCheck: () => okAsync('recorded'),
+    recordHint: (ref, hint) => {
+      const session = active(ref.childProfileId, ref.sessionId);
+      if (session === null) {
+        return errAsync(notFound());
+      }
+      if (session.hints.some((given) => given.requestId === hint.requestId)) {
+        return okAsync('duplicate');
+      }
+      sessions.set(session.id, {
+        ...session,
+        hintLevel: hint.level,
+        hints: [...session.hints, hint],
+      });
+      return okAsync('recorded');
+    },
+    recordAnswerCheck: (ref, check) => {
+      const session = active(ref.childProfileId, ref.sessionId);
+      if (session === null) {
+        return errAsync(notFound());
+      }
+      if (session.answerChecks.some((stored) => stored.requestId === check.requestId)) {
+        return okAsync('duplicate');
+      }
+      const step = {
+        ...check,
+        hintLevel: session.hintLevel,
+        question: check.question === null ? null : { text: check.question.text, reply: null },
+        occurredAt: UPDATED_AT,
+      };
+      sessions.set(session.id, { ...session, answerChecks: [...session.answerChecks, step] });
+      return okAsync('recorded');
+    },
     recordComprehensionReply: (ref, reply) => {
       const session = active(ref.childProfileId, ref.sessionId);
       if (session === null) {
@@ -110,6 +142,7 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
 export function helpSessionDependencies(
   repository: HelpSessionRepository,
   actor: Actor = parent(),
+  rateLimiter: RateLimiter = createTestRateLimiter(),
   assignments: ReturnType<typeof fakeAssignments> = fakeAssignments(),
 ): {
   readonly deps: HelpSessionDependencies;
@@ -123,6 +156,7 @@ export function helpSessionDependencies(
         audit: recordingSecurityAudit(),
       }),
       childProfiles: ownChildren(),
+      rateLimiter,
       assignments: assignments.access,
       sessions: repository,
       audit,
