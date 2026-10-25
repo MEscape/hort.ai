@@ -32,18 +32,25 @@ export interface ChildRequest {
 
 interface ChildChannelDeps extends VoiceTiming {
   readonly child: ChildChannel;
+  /** When the whole request must be answered (`now()` milliseconds), verification already spent. */
+  readonly deadlineAt: number;
+  readonly now: () => number;
   readonly introductions: readonly TutorIntroduction[];
   readonly voice: TutorVoice | null;
 }
 
 const CHILD_VOICE_TOKEN = 'child-companion';
 /**
- * Alexa waits 8 s. A turn spends at most this on the child's use cases and at most
- * `CHILD_VOICE_DEADLINE_MS` on the clips, leaving the rest for verification and a cold start. A turn
- * that needs no use case (stop, help, repeat) never waits for the database at all.
+ * Within the request's budget (`deadlineAt`, counted before verification), a turn spends at most this on
+ * the child's use cases and at most `CHILD_VOICE_DEADLINE_MS` on the clips, each capped by what is left:
+ * the use cases keep `VOICE_RESERVE_MS` free for the answer, clips stop `RENDER_RESERVE_MS` before the
+ * deadline, and with no time left the answer is plain text. A turn that needs no use case (stop, help,
+ * repeat) never waits for the database at all.
  */
 const CHILD_BACKEND_DEADLINE_MS = 3_000;
 const CHILD_VOICE_DEADLINE_MS = 3_000;
+const VOICE_RESERVE_MS = 1_000;
+const RENDER_RESERVE_MS = 200;
 /** The only intent of the first interaction model; its free text is mapped by keywords. */
 const FREE_INPUT_INTENT = 'FreieEingabeIntent';
 const MAX_REMEMBERED_PARTS = 8;
@@ -123,7 +130,10 @@ export async function respondToChild(
         Promise.resolve(companion.companion()),
         childDialog(intent, surface, companion),
       ]),
-      backendDeadlineMs ?? CHILD_BACKEND_DEADLINE_MS,
+      Math.max(
+        0,
+        Math.min(backendDeadlineMs ?? CHILD_BACKEND_DEADLINE_MS, timeLeft(deps) - VOICE_RESERVE_MS),
+      ),
     );
     return render(reply, (own.isOk() ? own.value : null) ?? fallbackSpeaker, deps);
   } catch (thrown) {
@@ -132,6 +142,10 @@ export async function respondToChild(
     }
     return render(timedOutReply(intent), fallbackSpeaker, deps);
   }
+}
+
+function timeLeft(deps: ChildChannelDeps): number {
+  return deps.deadlineAt - deps.now();
 }
 
 function intentOf(request: ChildRequest): ChildIntent {
@@ -181,10 +195,18 @@ async function render(
     sessionAttributes: { question: reply.question, last: reply.parts, speaker },
   };
   const { voice } = deps;
-  if (!voice) {
+  const voiceDeadlineMs = Math.min(
+    deps.voiceDeadlineMs ?? VOICE_DEADLINE_MS,
+    CHILD_VOICE_DEADLINE_MS,
+    timeLeft(deps) - RENDER_RESERVE_MS,
+  );
+  if (!voice || voiceDeadlineMs <= 0) {
     return speak(tutorReply, ending);
   }
-  const urls = await Promise.all(reply.parts.map((part) => clipOf(part, { speaker, voice, deps })));
+  const timing = { ...deps, voiceDeadlineMs };
+  const urls = await Promise.all(
+    reply.parts.map((part) => clipOf(part, { speaker, voice, timing })),
+  );
   if (urls.every((url) => url === null)) {
     return speak(tutorReply, ending);
   }
@@ -201,14 +223,10 @@ async function render(
 
 function clipOf(
   part: SpokenPart,
-  { speaker, voice, deps }: { speaker: TutorId; voice: TutorVoice; deps: ChildChannelDeps },
+  { speaker, voice, timing }: { speaker: TutorId; voice: TutorVoice; timing: VoiceTiming },
 ): Promise<string | null> {
   if (part.kind === 'alexa') {
     return Promise.resolve(null);
   }
-  const voiceDeadlineMs = Math.min(
-    deps.voiceDeadlineMs ?? VOICE_DEADLINE_MS,
-    CHILD_VOICE_DEADLINE_MS,
-  );
-  return voiced(() => voice.lineUrl(speaker, part.text), { ...deps, voiceDeadlineMs });
+  return voiced(() => voice.lineUrl(speaker, part.text), timing);
 }

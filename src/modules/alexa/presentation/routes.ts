@@ -45,6 +45,12 @@ const NOT_UNDERSTOOD_SENTENCE = 'Das habe ich nicht verstanden. Sag es bitte noc
 const TUTOR_FAILED_SENTENCE =
   'Da ist gerade etwas schiefgelaufen. Versuch es bitte gleich noch einmal.';
 
+/**
+ * Alexa waits 8 s for an answer. The whole request, verification included, gets this much from its
+ * arrival; the rest is margin for the network. The child channel splits what verification leaves.
+ */
+const REQUEST_BUDGET_MS = 7_000;
+
 /** Sent when Alexa could not play a clip (for example an expired URL); notification only, no answer. */
 const APLA_RUNTIME_ERROR = 'Alexa.Presentation.APLA.RuntimeError';
 const TUTOR_INTROS_TOKEN = 'tutor-intros';
@@ -98,6 +104,10 @@ interface AlexaEndpointOptions {
    * teacher tasks). `null`/absent keeps the anonymous channel: introductions and tutor turns as before.
    */
   readonly child?: ChildChannel | null;
+  /** The whole request's time from arrival (default `REQUEST_BUDGET_MS`); tests shorten it. */
+  readonly requestBudgetMs?: number;
+  /** Milliseconds of a monotonic-enough clock for the request budget (default `Date.now`). */
+  readonly now?: () => number;
 }
 
 /**
@@ -109,6 +119,9 @@ export function createAlexaEndpoint(
   options: AlexaEndpointOptions,
 ): (request: Request) => Promise<Response> {
   return async (request) => {
+    const now = options.now ?? Date.now;
+    // Counted from arrival, before verification, which is never skipped to save time.
+    const deadlineAt = now() + (options.requestBudgetMs ?? REQUEST_BUDGET_MS);
     const { skillId } = options;
     if (!skillId) {
       return failure(HTTP.serviceUnavailable, 'alexa_not_configured');
@@ -131,7 +144,7 @@ export function createAlexaEndpoint(
     if (!isForSkill(envelope.data, skillId)) {
       return failure(HTTP.forbidden, 'wrong_skill');
     }
-    return respond(envelope.data, options);
+    return respond(envelope.data, options, { deadlineAt, now });
   };
 }
 
@@ -140,7 +153,17 @@ function isForSkill(envelope: Envelope, skillId: string): boolean {
   return envelope.context.System.application.applicationId === skillId && sessionSkill === skillId;
 }
 
-async function respond(envelope: Envelope, options: AlexaEndpointOptions): Promise<Response> {
+/** When the request must be answered, and the clock to tell how much of that is left. */
+interface RequestBudget {
+  readonly deadlineAt: number;
+  readonly now: () => number;
+}
+
+async function respond(
+  envelope: Envelope,
+  options: AlexaEndpointOptions,
+  budget: RequestBudget,
+): Promise<Response> {
   const { request } = envelope;
   if (request.type === 'SessionEndedRequest' || request.type === APLA_RUNTIME_ERROR) {
     return acknowledge(request.type, options);
@@ -151,7 +174,7 @@ async function respond(envelope: Envelope, options: AlexaEndpointOptions): Promi
   }
   const introductions = options.introductions ?? [];
   if (options.child) {
-    return answerChild(envelope, options.child, options);
+    return answerChild(envelope, options.child, options, budget);
   }
   if (request.type === 'LaunchRequest' && introductions.length > 0) {
     return introduce(introductions, options);
@@ -173,6 +196,7 @@ function answerChild(
   envelope: Envelope,
   child: ChildChannel,
   options: AlexaEndpointOptions,
+  budget: RequestBudget,
 ): Promise<Response> {
   const { request } = envelope;
   return respondToChild(
@@ -184,6 +208,7 @@ function answerChild(
     },
     {
       ...options,
+      ...budget,
       child,
       introductions: options.introductions ?? [],
       voice: options.voice ?? null,

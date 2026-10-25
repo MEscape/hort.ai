@@ -82,9 +82,11 @@ Every use case still authorizes itself, unchanged:
   progression use cases (sibling, parent operations, learning XP, audit), `child-channel-use-cases.test.ts`.
 
 **Timing.** Stop, help, repeat, „nein" and the placeholders need no use case and never wait for the database
-(the voice of the last reply comes from the session attributes). A turn that needs one waits at most 3 s for the
-use cases together, then answers calmly („Ich bin gleich wieder für dich da …" on launch); clips get at most
-3 s more, so Alexa's 8 s are kept. Keywords map only `FreieEingabeIntent` (the first model, e.g. „gib ihm was zu
+(the voice of the last reply comes from the session attributes). Every request has 7 s from its arrival,
+counted before the signature check (which is never skipped). Of what is left, a turn that needs use cases gives
+them at most 3 s together and keeps 1 s free, then answers calmly („Ich bin gleich wieder für dich da …" on
+launch); clips get at most 3 s and stop 0.2 s before the deadline, else the reply is plain text. So Alexa's 8 s
+hold even with a slow certificate download, a hanging database and a hanging voice provider. Keywords map only `FreieEingabeIntent` (the first model, e.g. „gib ihm was zu
 essen"); an unknown intent is „not understood" whatever its slot holds.
 
 **Surface state only.** Alexa session attributes hold the open yes/no question (`question: 'feed'`), the last

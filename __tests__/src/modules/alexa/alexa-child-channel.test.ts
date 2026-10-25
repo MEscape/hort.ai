@@ -21,7 +21,7 @@ import channelLines from '@modules/voice/infrastructure/catalog/channel-lines.js
 
 import { infrastructureError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
-import { ResultAsync, errAsync, okAsync } from '@lib/result';
+import { ResultAsync, errAsync, ok, okAsync } from '@lib/result';
 
 const SKILL_ID = 'amzn1.ask.skill.00000000-0000-0000-0000-000000000000';
 const CLIP = 'https://clips.example/speech-clips/clip.mp3?sig=x';
@@ -610,5 +610,53 @@ describe('Alexa child channel: latency of the channel itself', () => {
     }
 
     expect((performance.now() - started) / 20).toBeLessThan(100);
+  });
+});
+
+describe('Alexa child channel: the whole request stays within its budget', () => {
+  /** Slow verification, hanging use cases and hanging clips at once, with the production deadlines. */
+  function worstCase(budgetMs: number, verifyMs: number) {
+    const child = fakeChild({ hang: true });
+    const hangingClip = () => hanging<string>();
+    const handle = createAlexaEndpoint({
+      skillId: SKILL_ID,
+      verify: () =>
+        new ResultAsync(
+          new Promise((resolve) => {
+            setTimeout(() => resolve(ok(undefined)), verifyMs);
+          }),
+        ),
+      tutor: connectionTestTutor,
+      introductions,
+      voice: { audioUrl: hangingClip, lineUrl: hangingClip, greetingUrl: hangingClip },
+      child: { companion: child.companion, defaultTutorId: toTutorId('max') },
+      requestBudgetMs: budgetMs,
+    });
+    return handle;
+  }
+
+  it('answers launch calmly before the deadline counted from arrival, verification included', async () => {
+    const handle = worstCase(1_500, 400);
+    const started = performance.now();
+
+    const { text, open } = await said(await handle(request('LaunchRequest')));
+
+    const elapsed = performance.now() - started;
+    expect(text).toBe(CHILD_LINES.unavailable);
+    expect(open).toBe(false);
+    expect(elapsed).toBeGreaterThanOrEqual(400);
+    expect(elapsed).toBeLessThan(1_500);
+  });
+
+  it('ends on stop before the deadline with hanging clips and slow verification', async () => {
+    const handle = worstCase(1_500, 400);
+    const started = performance.now();
+
+    const { text } = await said(
+      await handle(request('IntentRequest', { intent: 'AMAZON.StopIntent' })),
+    );
+
+    expect(text).toBe(CHILD_LINES.bye);
+    expect(performance.now() - started).toBeLessThan(1_500);
   });
 });
