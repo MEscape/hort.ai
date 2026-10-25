@@ -96,11 +96,15 @@ function checkEmail(email: string, bag: FieldErrorBag): void {
 }
 
 /** Sign-in only bounds the size: enforcing the policy there would punish old passwords. */
-function checkSubmittedPassword(password: string, bag: FieldErrorBag): void {
+function checkSubmittedPassword(
+  password: string,
+  bag: FieldErrorBag,
+  field: 'password' | 'currentPassword' = 'password',
+): void {
   if (password.length === 0) {
-    bag.add('password', CODES.passwordRequired);
+    bag.add(field, CODES.passwordRequired);
   } else if (password.length > CREDENTIAL_LIMITS.passwordMax) {
-    bag.add('password', CODES.passwordTooLong);
+    bag.add(field, CODES.passwordTooLong);
   }
 }
 
@@ -188,4 +192,38 @@ export function createPasswordResetDraft(
     return err(bag.toError());
   }
   return ok({ token: input.token, newPassword: input.newPassword });
+}
+
+/** Changing one's own password: the current one (checked by the provider) and a new one. */
+export interface PasswordChangeInput {
+  readonly currentPassword: string;
+  readonly newPassword: string;
+}
+
+export interface PasswordChange {
+  readonly currentPassword: string;
+  readonly newPassword: string;
+}
+
+/** The new password meets the same policy as at sign-up; the current one is only bounded in size. */
+export function createPasswordChange(
+  input: PasswordChangeInput,
+): AppResult<PasswordChange, ValidationAppError> {
+  const bag = createAuthErrorBag();
+  checkSubmittedPassword(input.currentPassword, bag, 'currentPassword');
+  checkNewPassword(input.newPassword, 'newPassword', bag);
+
+  if (bag.hasErrors) {
+    return err(bag.toError());
+  }
+  return ok({ currentPassword: input.currentPassword, newPassword: input.newPassword });
+}
+
+/** A new display name, by the same rules as at sign-up. The only account field a person may change. */
+export function createDisplayName(raw: string): AppResult<string, ValidationAppError> {
+  const bag = createAuthErrorBag();
+  const name = raw.trim();
+  checkName(name, bag);
+
+  return bag.hasErrors ? err(bag.toError()) : ok(name);
 }

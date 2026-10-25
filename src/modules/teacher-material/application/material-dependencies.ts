@@ -7,6 +7,7 @@ import type { MaterialAuditLog } from '../domain/ports/material-audit-log.port';
 import type {
   MaterialClassrooms,
   MaterialIngest,
+  MaterialObjectWriter,
   MaterialTextReader,
 } from '../domain/ports/material-services.port';
 import type { MaterialRepository } from '../domain/ports/material.repository';
@@ -17,6 +18,7 @@ export interface MaterialDependencies {
   readonly classrooms: MaterialClassrooms;
   readonly store: ObjectStore;
   readonly textReader: MaterialTextReader;
+  readonly writer: MaterialObjectWriter;
   readonly ingest: MaterialIngest;
   readonly newId: () => string;
   readonly rateLimiter: RateLimiter;

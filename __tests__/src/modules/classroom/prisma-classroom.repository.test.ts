@@ -50,14 +50,21 @@ describe('classroom persistence ownership', () => {
     expect(query.where).toHaveBeenCalledWith({ id, tenantId, ownerId });
   });
 
-  it.each(['rename', 'replaceInviteCode'] as const)(
-    'pins %s to the owner at write time',
-    async (method) => {
-      const result = await repository[method](id, { tenantId, ownerId }, 'new value');
-      expect(result._unsafeUnwrapErr().kind).toBe('not_found');
-      expect(query.where).toHaveBeenCalledWith({ id, tenantId, ownerId });
-    },
-  );
+  it('pins rename to the owner at write time', async () => {
+    const result = await repository.rename(id, { tenantId, ownerId }, 'new value');
+    expect(result._unsafeUnwrapErr().kind).toBe('not_found');
+    expect(query.where).toHaveBeenCalledWith({ id, tenantId, ownerId });
+  });
+
+  it('pins replaceInviteCode to the owner at write time', async () => {
+    const result = await repository.replaceInviteCode(
+      id,
+      { tenantId, ownerId },
+      { hash: 'a'.repeat(64), sealed: null },
+    );
+    expect(result._unsafeUnwrapErr().kind).toBe('not_found');
+    expect(query.where).toHaveBeenCalledWith({ id, tenantId, ownerId });
+  });
 
   it('does not delete memberships when the owner-scoped archive misses', async () => {
     expect((await repository.archive(id, tenantId, ownerId))._unsafeUnwrapErr().kind).toBe(

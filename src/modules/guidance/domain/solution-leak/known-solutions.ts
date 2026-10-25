@@ -1,6 +1,6 @@
 import { unique } from '@lib/utils';
 
-import { expressionsIn, numberKey, numbersIn, readMath } from './read-math';
+import { expressionsIn, numberKey, numbersIn, readMath, readMathAsWritten } from './read-math';
 
 /** Word problems name their numbers in prose; with more than this many, guessing the operation stops being useful. */
 const MAX_WORD_PROBLEM_NUMBERS = 4;
@@ -111,6 +111,9 @@ export function knownSolutions(task: string, solutionKey: string | null): KnownS
   return {
     results: new Set([...derived, ...keyNumbers].filter((n) => !shown.has(n))),
     keyWords: solutionKey !== null && keyNumbers.length === 0 ? keyWordsOf(solutionKey) : [],
-    taskParts: new Set(taskNumbers.flatMap(placeValueParts)),
+    // Money and clock times count as one result above, but a step on their written parts is a step too.
+    taskParts: new Set(
+      unique([...taskNumbers, ...numbersIn(readMathAsWritten(task))]).flatMap(placeValueParts),
+    ),
   };
 }

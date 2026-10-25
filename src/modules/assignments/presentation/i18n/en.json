@@ -7,7 +7,8 @@
       "teachersOnlyTitle": "For teachers only",
       "teachersOnlyBody": "Assignments are posted by teachers. Sign in with a teacher account to post work for your class.",
       "noClassTitle": "Create your first class",
-      "noClassBody": "Assignments are posted to a class. Create a class, then share its invite code with the parents."
+      "noClassBody": "Assignments are posted to a class. Create a class, then share its invite code with the parents.",
+      "classDetails": "Details of class {name}"
     },
     "overview": {
       "title": "Assignments for {classroom}",

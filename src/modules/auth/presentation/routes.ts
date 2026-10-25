@@ -25,4 +25,8 @@ export const authRoutes = {
   resetPassword: () => '/reset-password',
   /** Landing page after the emailed verification link; Better Auth appends `?error=` on failure. */
   emailVerified: () => '/email-verified',
+  /** Where a signed-in person goes home: the role-aware start page. */
+  home: () => DEFAULT_RETURN_PATH,
+  /** The signed-in person's own account: name, address, role, password. */
+  settings: () => '/settings',
 } as const;
