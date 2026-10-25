@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+
 import { AuthShell } from '@modules/auth';
 import { loadOpenHelpSession } from '@modules/guidance';
 import { HelpConversation } from '@modules/guidance/client';
@@ -63,7 +65,9 @@ export default async function HelpPage({
   return (
     <I18nProvider locale={locale} namespaces={['guidance']}>
       <AuthShell>
-        <HelpContent />
+        <Suspense fallback={null}>
+          <HelpContent />
+        </Suspense>
       </AuthShell>
     </I18nProvider>
   );

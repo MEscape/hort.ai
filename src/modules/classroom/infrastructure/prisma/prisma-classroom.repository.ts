@@ -38,6 +38,7 @@ import type {
   ClassroomOwnerScope,
   NewClassroom,
   NewMembership,
+  StoredInviteCode,
 } from '../../domain/ports/classroom.repository';
 
 const failures = createPersistenceFailures({
@@ -105,13 +106,14 @@ export class PrismaClassroomRepository implements ClassroomRepository {
   }
 
   create(input: NewClassroom): AppResultAsync<Classroom, InfrastructureAppError> {
-    const { tenantId, ownerId, draft, inviteCodeHash } = input;
+    const { tenantId, ownerId, draft, inviteCodeHash, sealedInviteCode } = input;
     return fromThrowableAsync(
       async () =>
         classrooms().create({
           tenantId,
           ownerId,
           inviteCodeHash,
+          inviteCodeCiphertext: sealedInviteCode ?? null,
           ...toClassroomCreateData(draft),
         }),
       failures.infraOnly('create'),
@@ -138,7 +140,7 @@ export class PrismaClassroomRepository implements ClassroomRepository {
   replaceInviteCode(
     id: ClassroomId,
     scope: ClassroomOwnerScope,
-    inviteCodeHash: string,
+    code: StoredInviteCode,
   ): AppResultAsync<Classroom, NotFoundAppError | InfrastructureAppError> {
     const { tenantId, ownerId } = scope;
     const now = this.clock.now();
@@ -146,11 +148,30 @@ export class PrismaClassroomRepository implements ClassroomRepository {
       async () =>
         classrooms()
           .where({ id, tenantId, ownerId })
-          .update({ inviteCodeHash, inviteCodeIssuedAt: instantOf(now), ...touched(now) }),
+          .update({
+            inviteCodeHash: code.hash,
+            inviteCodeCiphertext: code.sealed,
+            inviteCodeIssuedAt: instantOf(now),
+            ...touched(now),
+          }),
       failures.infraOnly('replaceInviteCode'),
     )
       .andThen(failures.requireRow(classroomNotFound))
       .map(toClassroom);
+  }
+
+  findSealedInviteCode(
+    id: ClassroomId,
+    scope: ClassroomOwnerScope,
+  ): AppResultAsync<string | null, InfrastructureAppError> {
+    const { tenantId, ownerId } = scope;
+    return fromThrowableAsync(
+      async () =>
+        db.orm.public.Classroom.select('inviteCodeCiphertext')
+          .where({ id, tenantId, ownerId })
+          .first(),
+      failures.infraOnly('findSealedInviteCode'),
+    ).map((record) => record?.inviteCodeCiphertext ?? null);
   }
 
   archive(

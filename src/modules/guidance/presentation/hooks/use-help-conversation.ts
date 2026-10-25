@@ -172,7 +172,12 @@ export function useHelpConversation(childProfileId: string, initial: HelpSession
   // The session opens with the thinking prompt of `understand_task`, asked for once per mount;
   // its fixed id makes a reload or a retry return the stored prompt instead of a second one.
   useEffect(() => {
-    if (opened.current || initial.hints.length > 0 || phaseOf(initial.status) !== 'working') {
+    if (
+      opened.current ||
+      initial.hints.length > 0 ||
+      initial.opening !== null ||
+      phaseOf(initial.status) !== 'working'
+    ) {
       return;
     }
     opened.current = true;

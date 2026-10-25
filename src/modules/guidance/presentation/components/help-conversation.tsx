@@ -13,6 +13,7 @@ import { useTranslations } from '@i18n/client';
 
 import { useHelpConversation } from '../hooks/use-help-conversation';
 import { messageKeyForCode } from '../messages/message-keys';
+import { guidanceRoutes } from '../routes';
 
 import { ConversationLines } from './conversation-lines';
 
@@ -20,6 +21,10 @@ import type { HelpSessionDto } from '../dto/guidance-dto';
 import type { HelpConversationState } from '../hooks/use-help-conversation';
 
 const DRAFT_MAX_LENGTH = 1000;
+const REDIRECT_KEY = {
+  small_talk: 'opening.redirect.small_talk',
+  curiosity: 'opening.redirect.curiosity',
+} as const;
 
 interface HelpConversationProps {
   readonly childProfileId: string;
@@ -128,9 +133,24 @@ export function HelpConversation({ childProfileId, initial, companion }: HelpCon
           <p className="text-lead whitespace-pre-wrap">{initial.task}</p>
         </CardContent>
       </Card>
+      {initial.opening !== null && (
+        <Card>
+          <CardContent className="gap-4">
+            <p className="font-semibold">{companion.name}</p>
+            <p>
+              {initial.opening.kind === 'clarify'
+                ? t('opening.clarify')
+                : t(REDIRECT_KEY[initial.opening.intent])}
+            </p>
+            <Button asChild size="lg">
+              <Link href={guidanceRoutes.start(childProfileId)}>{t('conversation.newTask')}</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
       <ConversationLines lines={state.lines} companion={companion} />
       <StepStatus state={state} companionName={companion.name} />
-      {state.phase === 'working' && (
+      {state.phase === 'working' && initial.opening === null && (
         <Card>
           <CardContent className="gap-5">
             <div className="flex flex-wrap items-center gap-3">

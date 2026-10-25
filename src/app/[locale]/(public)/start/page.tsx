@@ -5,6 +5,7 @@ import type { Metadata } from 'next';
 import { assignmentsQueries, parseChildTasksPageParams } from '@modules/assignments';
 import type { ChildAssignmentView } from '@modules/assignments';
 import { requireSignedIn } from '@modules/auth';
+import { requireOnboarded } from '@modules/learner';
 
 import { I18nProvider } from '@components/providers/i18n-provider';
 
@@ -55,10 +56,13 @@ async function loadSchoolAssignments(
 async function StartContent({ searchParams }: Pick<StartPageProps, 'searchParams'>) {
   const params = await searchParams;
   const parsed = parseChildTasksPageParams(params);
+  const childProfileId = parsed.childProfileId ?? (await requireOnboarded()).id;
   return (
     <StartScreen
-      schoolAssignments={await loadSchoolAssignments(Promise.resolve(params))}
-      childProfileId={parsed.childProfileId ?? null}
+      schoolAssignments={await loadSchoolAssignments(
+        Promise.resolve({ ...params, child: childProfileId }),
+      )}
+      childProfileId={childProfileId}
     />
   );
 }

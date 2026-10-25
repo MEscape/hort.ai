@@ -499,7 +499,7 @@ describe('ReplyToComprehensionQuestion', () => {
     // XP for the session is granted once (#83).
     expect(rewards).toEqual(['session-1']);
     // The session is completed, so it is no longer open to replies.
-    expect(again._unsafeUnwrapErr().kind).toBe('not_found');
+    expect(again._unsafeUnwrap()).toEqual({ sessionId: 'session-1', status: 'understood' });
     expect(store.replies).toHaveLength(1);
   });
 

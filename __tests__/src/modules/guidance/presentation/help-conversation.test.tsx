@@ -56,6 +56,7 @@ function session(overrides: Partial<HelpSessionDto> = {}): HelpSessionDto {
     hints: [{ kind: 'fallback', level: 'understand_task', reason: 'provider_unavailable' }],
     answerChecks: [],
     openQuestion: null,
+    opening: null,
     updatedAt: '2026-10-25T08:00:00.000Z',
     ...overrides,
   };
@@ -67,6 +68,13 @@ const renderScreen = (initial: HelpSessionDto) =>
 describe('HelpConversation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('shows the stored clarification without calling the hint model', () => {
+    renderScreen(session({ hints: [], opening: { kind: 'clarify' } }));
+    expect(screen.getByText('opening.clarify')).toBeVisible();
+    expect(screen.queryByText('conversation.hint')).not.toBeInTheDocument();
+    expect(actions.requestHint).not.toHaveBeenCalled();
   });
 
   it('continues a stored session: task, hints and the working controls', () => {

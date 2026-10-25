@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { actorHasPermission, decide } from '@modules/auth/domain/models/authorize';
 import { toActorId } from '@modules/auth/domain/models/ids';
-import { PERMISSIONS } from '@modules/auth/domain/models/permission';
+import { ACCOUNT_PERMISSIONS, PERMISSIONS } from '@modules/auth/domain/models/permission';
 import { permissionsForRole, ROLES } from '@modules/auth/domain/models/role';
 
 import { OTHER_TENANT, TENANT, admin, parent } from '../fakes';
@@ -82,6 +82,9 @@ describe('actorHasPermission', () => {
   });
 });
 
+/** The account permissions every role holds; the role separation is about everything else. */
+const isRoleSpecific = (permission: string) => !permission.startsWith('account.');
+
 describe('the roles', () => {
   it('together grant every permission of the closed set, so a new permission is a deliberate grant', () => {
     const granted = [...ROLES, 'platform_admin' as const].flatMap((role) =>
@@ -95,6 +98,8 @@ describe('the roles', () => {
     const permissions = permissionsForRole('parent');
 
     expect(permissions.filter((permission) => !permission.startsWith('learner.')).sort()).toEqual([
+      'account.read',
+      'account.update',
       'hint.request',
       'progression.read',
       'progression.update',
@@ -114,7 +119,7 @@ describe('the roles', () => {
   it("refuses a teacher a child profile, even one carrying the teacher's own id", () => {
     const teacher = parent({ roles: ['teacher'] });
 
-    for (const permission of permissionsForRole('parent')) {
+    for (const permission of permissionsForRole('parent').filter(isRoleSpecific)) {
       expect(decide(teacher, permission, OWN_PROFILE)).toEqual({
         isAllowed: false,
         reason: 'permission_missing',
@@ -123,9 +128,16 @@ describe('the roles', () => {
   });
 
   it('refuses a parent every class permission', () => {
-    for (const permission of permissionsForRole('teacher')) {
+    for (const permission of permissionsForRole('teacher').filter(isRoleSpecific)) {
       expect(actorHasPermission(parent(), permission)).toBe(false);
     }
+  });
+
+  it('gives every role its own account, and only that permission in common', () => {
+    const shared = permissionsForRole('parent').filter((permission) =>
+      permissionsForRole('teacher').includes(permission),
+    );
+    expect([...shared].sort()).toEqual([...ACCOUNT_PERMISSIONS].sort());
   });
 
   it('gives the platform admin every permission of the closed set', () => {
