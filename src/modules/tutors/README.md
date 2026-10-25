@@ -22,7 +22,11 @@ The browser loads the pictures directly from `STORAGE_PUBLIC_BASE_URL/tutors/<id
 
 ## Showing a tutor
 
-Use the shared `Character` component (`src/components/brand/character.tsx`) with `tutorImageKey(id, 'mund_zu')` and `tutorImageKey(id, 'mund_auf')` resolved against `STORAGE_PUBLIC_BASE_URL`, and `useCharacterVoice` (`src/hooks/use-character-voice.ts`) with `tutorIntroKey(id)` to play the introduction. The lip sync (mouth open while the audio plays) is in `Character`; this module stays the catalog and the storage keys, so every screen that shows a tutor reuses the same two pieces. The pictures should be transparent (the component draws no background of its own); until every uploaded picture is, one with a white background only disappears on a white surface.
+Use the shared `Character` component (`src/components/brand/character.tsx`) with `tutorImageKey(id, 'mund_zu')` and `tutorImageKey(id, 'mund_auf')` resolved against `STORAGE_PUBLIC_BASE_URL`, and `useCharacterVoice` (`src/hooks/use-character-voice.ts`) with `tutorIntroKey(id)` to play the introduction. The lip sync (mouth open while the audio plays) is in `Character`; this module stays the catalog and the storage keys, so every screen that shows a tutor reuses the same two pieces. The pictures are transparent (the component draws no background of its own).
+
+## Face geometry
+
+`presentation/catalog/tutor-faces.ts` (`tutorFace(id)`) holds where each tutor's eyes are on both pictures (eye-white contour, pupil, shine, fur colours) and the mouth (the spot the feeding game aims the food at), measured from the uploaded drawings, so `Character` can animate lids and happy eyes on top of them. It is passed to the UI as `TutorOption.face`; a tutor without an entry stays a plain picture. When a picture is re-exported, measure the eyes again, otherwise the lids drift off the eyes.
 
 ## Adding a tutor
 
@@ -40,8 +44,7 @@ The sync is idempotent: it overwrites the same keys, sets `Content-Type: image/s
 `Cache-Control: public, max-age=86400` (manifest: 5 minutes) and checks size and type with `head`
 after each upload. It never prints the account key or a signed URL. Inputs are all read before
 writing; the manifest is published last, but this is not an atomic multi-blob deployment. Overwrites
-may remain cached for up to one day; use versioned URLs/cache busting in a future asset rollout if
-immediate replacement is required. Original SVGs are kept byte-for-byte (no unverified optimization).
+may remain cached for up to one day, so the app asks for the pictures as `<url>?v=<TUTOR_IMAGE_VERSION>` (`tutorImageUrl`, used by `buildTutorOptions`): **after uploading a picture again, change `TUTOR_IMAGE_VERSION` in `presentation/catalog/tutor-catalog.ts`**, and every browser fetches the new file at once. The page also preloads the active companion's two pictures (`preloadTutorPictures`). Original SVGs are kept byte-for-byte (no unverified optimization).
 Locally it runs against Azurite (`docker compose --env-file .env.docker up -d`) with the values
 from `.env.example`.
 
