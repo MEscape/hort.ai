@@ -10,6 +10,8 @@ import type { TutorId } from '../models/ids';
 export interface TutorVoice {
   /** A short-lived public HTTPS URL of `text` spoken by the tutor (a bearer link: never log it). */
   audioUrl(text: string): AppResultAsync<string>;
+  /** Like `audioUrl`, in the voice of `tutorId` (the coupled child's own companion). */
+  lineUrl(tutorId: TutorId, text: string): AppResultAsync<string>;
   /** A short-lived public HTTPS URL of the catalog greeting of `tutorId`, in that tutor's voice. */
   greetingUrl(tutorId: TutorId): AppResultAsync<string>;
 }

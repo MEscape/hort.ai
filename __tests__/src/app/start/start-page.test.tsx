@@ -17,7 +17,7 @@ vi.mock('@modules/learner', () => ({
     },
   }),
 }));
-vi.mock('@modules/auth', () => ({ AccountHeader: () => null, requireSignedIn: vi.fn() }));
+vi.mock('@modules/auth', () => ({ requireSignedIn: vi.fn() }));
 vi.mock('@modules/assignments', () => ({
   assignmentsQueries: { listChildAssignments: { execute: dependencies.assignments } },
   parseChildTasksPageParams: (params: { child?: string }) => ({ childProfileId: params.child }),

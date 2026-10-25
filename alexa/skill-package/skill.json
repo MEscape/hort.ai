@@ -5,8 +5,8 @@
       "locales": {
         "de-DE": {
           "name": "hort.ai",
-          "summary": "Privater Entwicklungs-Verbindungstest für hort.ai.",
-          "description": "Privater Entwicklungs-Verbindungstest für hort.ai. Nicht zur Veröffentlichung bestimmt.",
+          "summary": "Privater Entwicklungs-Skill für hort.ai.",
+          "description": "Privater Entwicklungs-Skill für hort.ai. Nicht zur Veröffentlichung bestimmt.",
           "examplePhrases": ["Alexa, öffne hort"],
           "keywords": []
         }

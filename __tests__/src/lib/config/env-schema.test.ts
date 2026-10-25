@@ -56,6 +56,16 @@ describe('serverEnvSchema', () => {
     ]);
   });
 
+  it('takes the Alexa demo coupling only as a pair', () => {
+    const coupling = { ALEXA_DEMO_GUARDIAN_ID: 'user-1', ALEXA_DEMO_CHILD_PROFILE_ID: 'child-1' };
+    const message =
+      'ALEXA_DEMO_CHILD_PROFILE_ID: ALEXA_DEMO_GUARDIAN_ID and ALEXA_DEMO_CHILD_PROFILE_ID must be set together.';
+
+    expect(problems({ ...production, ...coupling })).toEqual([]);
+    expect(problems({ ...development, ALEXA_DEMO_GUARDIAN_ID: 'user-1' })).toEqual([message]);
+    expect(problems({ ...development, ALEXA_DEMO_CHILD_PROFILE_ID: 'child-1' })).toEqual([message]);
+  });
+
   it('accepts a complete production configuration', () => {
     expect(problems(production)).toEqual([]);
   });

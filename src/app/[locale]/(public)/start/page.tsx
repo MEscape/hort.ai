@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 
 import { assignmentsQueries, parseChildTasksPageParams } from '@modules/assignments';
 import type { ChildAssignmentView } from '@modules/assignments';
-import { AccountHeader, requireSignedIn } from '@modules/auth';
+import { requireSignedIn } from '@modules/auth';
 import { getLearnerQueries, requireOnboarded } from '@modules/learner';
 
 import { I18nProvider } from '@components/providers/i18n-provider';
@@ -16,6 +16,7 @@ import { getTranslations } from '@i18n/server';
 import { buildPrivateMetadata } from '@lib/seo';
 import { buildQueryString } from '@lib/utils';
 
+import { StartHeader } from './_components/start-header';
 import { StartPageShell } from './_components/start-page-shell';
 import { StartScreen } from './_components/start-screen';
 
@@ -74,8 +75,8 @@ export default async function StartPage({ params, searchParams }: StartPageProps
   const locale = requireLocale((await params).locale);
 
   return (
-    <I18nProvider locale={locale} namespaces={['assignments', 'auth', 'voice']}>
-      <StartPageShell header={<AccountHeader />}>
+    <I18nProvider locale={locale} namespaces={['assignments', 'voice']}>
+      <StartPageShell header={<StartHeader />}>
         <Suspense fallback={<StartScreen schoolAssignments={null} childProfileId={null} />}>
           <StartContent searchParams={searchParams} />
         </Suspense>
