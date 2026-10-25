@@ -20,7 +20,7 @@ import { getLocale, getMessages, getTranslations } from '@i18n/server';
 import { systemClock } from '@lib/clock';
 import { serverEnv } from '@lib/config/server';
 import { buildPrivateMetadata } from '@lib/seo';
-import { isDefined } from '@lib/utils';
+import { isDefined, truncate } from '@lib/utils';
 
 import { buildTutorOptions, preloadTutorPictures } from '../onboarding/tutor-options';
 
@@ -82,9 +82,10 @@ async function unfinishedOf(session: OpenHelpSession | null): Promise<Unfinished
     general_studies: t('world.subjects.natur'),
   } as const satisfies Record<OpenHelpSession['subject'], string>;
   return {
-    title: session.task.slice(0, TASK_PREVIEW_LIMIT),
+    title: truncate(session.task.replace(/\s+/g, ' ').trim(), TASK_PREVIEW_LIMIT),
     area: subjects[session.subject],
-    lastStep: t('home.continue.hints', { count: session.hints.length }),
+    // The opening thinking prompt is not a hint the child asked for (the conversation counts the same way).
+    lastStep: t('home.continue.hints', { count: Math.max(0, session.hints.length - 1) }),
     updatedAt: session.updatedAt,
     href: '/help',
   };

@@ -18,6 +18,24 @@ describe('createAssignmentDraft', () => {
     ).toEqual({ title: 'Titel', text: 'Aufgabe', dueDate: null, solutionKey: null });
   });
 
+  it('cleans invisible characters and separators that arrive with pasted text', () => {
+    const draft = createAssignmentDraft(
+      {
+        ...valid,
+        text: 'Rechne\u200B 3 + 4.\u2028Dann 5\u00AD + 6.\r\nEnde\u202E',
+      },
+      context,
+    )._unsafeUnwrap();
+
+    expect(draft.text).toBe('Rechne 3 + 4.\nDann 5 + 6.\nEnde');
+  });
+
+  it('refuses a text that is empty once invisible characters are gone', () => {
+    const result = createAssignmentDraft({ ...valid, text: '\u200B \u2060' }, context);
+
+    expect(result.isErr()).toBe(true);
+  });
+
   it.each(['2026-02-29', '2026-13-01', '2026-02-30', '26-01-01', '2026-1-1'])(
     'refuses %s, which is not a real calendar day',
     (dueDate) => {
