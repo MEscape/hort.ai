@@ -16,7 +16,7 @@ export interface TutorTurn {
 }
 
 export interface TutorReply {
-  /** Plain text (no SSML) that the channel reads out in its standard voice. */
+  /** Plain text (no SSML): spoken in the tutor's voice when one is configured, else in the channel's voice. */
   readonly speech: string;
   /** `open`: the tutor expects an answer and the channel keeps listening; `closed`: the conversation ends. */
   readonly conversation: 'open' | 'closed';

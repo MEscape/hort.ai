@@ -7,6 +7,7 @@ import { systemClock } from '@lib/clock';
 import { serverEnv } from '@lib/config/server';
 import { once } from '@lib/utils';
 
+import { AdoptSchoolSettings } from './application/commands/adopt-school-settings';
 import { ChooseChildTutor } from './application/commands/choose-child-tutor';
 import { ChooseTutor } from './application/commands/choose-tutor';
 import { CompleteChildWelcome } from './application/commands/complete-child-welcome';
@@ -16,6 +17,7 @@ import { ResetOnboarding } from './application/commands/reset-onboarding';
 import { SaveChildInterests } from './application/commands/save-child-interests';
 import { SaveControls } from './application/commands/save-controls';
 import { SaveInterests } from './application/commands/save-interests';
+import { GetChildProfileById } from './application/queries/get-child-profile-by-id';
 import { GetOnboardingState } from './application/queries/get-onboarding-state';
 import {
   LEVEL_BY_EVENT,
@@ -64,6 +66,7 @@ export const getLearnerCommands = once(() => {
     saveControls: new SaveControls(dependencies),
     completeSetup: new CompleteSetup(dependencies),
     resetOnboarding: new ResetOnboarding(dependencies),
+    adoptSchoolSettings: new AdoptSchoolSettings(dependencies),
     saveChildInterests: new SaveChildInterests(dependencies),
     chooseChildTutor: new ChooseChildTutor(dependencies),
     completeChildWelcome: new CompleteChildWelcome(dependencies),
@@ -72,5 +75,8 @@ export const getLearnerCommands = once(() => {
 
 export const getLearnerQueries = once(() => {
   const dependencies = getDependencies();
-  return { getOnboardingState: new GetOnboardingState(dependencies) };
+  return {
+    getOnboardingState: new GetOnboardingState(dependencies),
+    getChildProfileById: new GetChildProfileById(dependencies),
+  };
 });

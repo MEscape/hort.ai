@@ -1,7 +1,8 @@
 # Alexa voice channel (Development stage only)
 
 `POST /api/alexa` makes Alexa a second channel onto hort.ai's tutor: the child speaks, Alexa transcribes,
-this endpoint hands the free text to the tutor and reads the tutor's answer back in Alexa's standard voice.
+this endpoint hands the free text to the tutor and plays the tutor's answer in the tutor's own (ElevenLabs) voice,
+falling back to Alexa's standard voice whenever that voice is not available in time.
 Alexa holds **no learning logic**. Today a connection-test stub answers every turn with
 `Lennart wann holen wir uns draußen Suppe` and ends the session.
 
@@ -12,8 +13,10 @@ Echo / simulator ─HTTPS─▶ src/app/api/alexa/route.ts            (framework
                            └─ modules/alexa/composition.ts       (wiring: skill id, verifier, tutor adapter)
                                ├─ infrastructure/ask-sdk/…       official ASK SDK signature + timestamp verifiers
                                ├─ presentation/routes.ts         Alexa JSON ⇄ TutorTurn / TutorReply, skill-id check
-                               └─ domain/ports/tutor-conversation.port.ts   ◀── the only seam to the tutor
-                                    implemented today by infrastructure/connection-test/connection-test-tutor.ts (stub)
+                               ├─ domain/ports/tutor-conversation.port.ts   ◀── the only seam to the tutor
+                               │    implemented today by infrastructure/connection-test/connection-test-tutor.ts (stub)
+                               └─ domain/ports/tutor-voice.port.ts          ◀── the tutor's voice
+                                    implemented by infrastructure/voice/voice-module-tutor-voice.ts → @modules/voice
 ```
 
 The port is channel-neutral:
@@ -26,7 +29,7 @@ The port is channel-neutral:
 
 | `TutorReply` (out) | meaning                                                                        |
 | ------------------ | ------------------------------------------------------------------------------ |
-| `speech`           | plain text (no SSML), read in Alexa's standard voice                           |
+| `speech`           | plain text (no SSML), spoken in the tutor's voice (see below) or Alexa's voice |
 | `conversation`     | `open`: Alexa keeps listening (with the same text as re-prompt); `closed`: end |
 
 `respond(turn)` returns `AppResultAsync<TutorReply>`. An error is spoken as a short apology and ends the session;
@@ -49,8 +52,66 @@ The channel handles only channel matters itself: Stop/Cancel/Home ("Tschüss"), 
 6. Answer within the time budget below; return plain text without markup, emojis or links.
 7. Put the rate limit into the tutor use case (it is the public, cost-incurring operation): a global and/or
    per-`conversationId` budget. Not per client address: all Alexa traffic arrives from a few Amazon addresses.
-   A refusal comes back as an error and is spoken as the short apology. The endpoint itself has no budget yet;
-   unsigned or forged requests stop at the timestamp/signature checks before any tutor work.
+   A refusal comes back as an error and is spoken as the short apology. Unsigned or forged requests never
+   reach the tutor (see "Request verification").
+
+## Request verification
+
+`infrastructure/ask-sdk/ask-request-verifier.ts` wraps the official ASK SDK verifiers (no own certificate code)
+in cheap guards that run first, so a forged request cannot make the server fetch certificates at will:
+
+1. Timestamp within ±150 s of the server clock (the SDK alone only rejects old dates).
+2. `SignatureCertChainUrl` of the form `https://s3.amazonaws.com/echo.api/echo-api-cert-<letters/digits>.pem` (today
+   `echo-api-cert-EUAmazon-prod-…pem`): no query, fragment, port, encoding, host case variants or dot segments.
+   The SDK caches certificates per URL string, so a certificate has exactly one cache key.
+3. Download budget: a URL that has not yet verified a request costs a download from S3; such downloads run one at
+   a time and at most 5 per 10 minutes per server instance. A URL that verified a request skips the budget.
+   The download itself (`infrastructure/ask-sdk/cert-chain-download.ts`) replaces only the SDK's transport, whose
+   `https.get` has no timeout: `fetch` with `AbortSignal.timeout(3 s)` for connect, headers and body together,
+   no redirects, at most 64 KiB (Content-Length checked first, then bytes counted while reading; the read stops at
+   the limit). On timeout or overflow the request is aborted (socket closed) and the slot is free again.
+4. Then the SDK: timestamp verifier, certificate chain, signature (`Signature-256`), and finally the skill id.
+
+If Amazon rotates its certificate while an attacker keeps the budget exhausted, real requests fail until the
+window passes (at most 10 minutes); that trades availability for a hard cap on outbound downloads.
+
+## Tutor voice
+
+A successful tutor reply is played as an audio clip in a tutor's ElevenLabs voice (default `max`, the dog), via
+an **APL for Audio** directive (`Alexa.Presentation.APLA.RenderDocument`, one `Audio` component). Channel phrases
+(Tschüss, help, not understood) and the failure apology stay in Alexa's voice.
+
+1. `voice-module-tutor-voice.ts` calls `getHostedSpeech()` from `@modules/voice` (the channel never calls
+   ElevenLabs). The voice module keys a clip by a SHA-256 of voice and text, looks it up in the **private**
+   storage container (`speech-clips/<hash>.mp3`), synthesizes and uploads only on a miss (global budget
+   `voice.hosted-synthesize`, 60 per 10 minutes) and returns a **15-minute read-only SAS URL**. A fixed sentence
+   is therefore synthesized once; every later answer is a HEAD plus a local signature. Concurrent misses of the
+   same clip share one synthesis (single flight per server instance).
+2. `routes.ts` waits at most **4 s** for that URL (`withTimeout`), then answers with plain text instead. Any error
+   (no key, no storage, unknown tutor, budget spent, provider or upload failure, timeout) has the same outcome:
+   Alexa's voice, HTTP 200. Only the reason code is logged (`Alexa tutor voice unavailable`), never text or URL.
+3. Format: ElevenLabs `mp3_44100_128` is played as is (APLA allows MP3 up to 48 kHz; SSML `<audio>` would need
+   48 kbps / ≤24 kHz and a transcode). An open conversation re-prompts with the same text in Alexa's voice.
+4. APLA plays on every Alexa device and needs **no interface in the console or manifest**; Alexa does not list it
+   in `supportedInterfaces` (checked in the simulator), so there is no per-device check. Alexa reports a clip it
+   could not play with `Alexa.Presentation.APLA.RuntimeError`; the endpoint acknowledges it (empty response) and
+   logs `apla_runtime_error`.
+5. Amazon requires `Access-Control-Allow-Origin: *` on APLA audio URLs
+   ([URL requirements](https://developer.amazon.com/en-US/docs/alexa/alexa-presentation-language/apla-audio.html#url-requirements)).
+   The Blob service of both storage accounts (`sthortaiprod95af81`, `sthortaiprev95af81`) therefore has a second
+   CORS rule: origins `*`, methods `GET`/`HEAD` only, max age 3600 s. It follows the existing `*.vercel.app` /
+   localhost rule (which keeps answering with its own origin). Access still needs the SAS; a write preflight from a
+   foreign origin is refused (403). Read it back with
+   `az storage account blob-service-properties show … --query cors`; a new account needs the same rule.
+
+Content rule: clips are fetched by Amazon from a public (signed) URL, so they must never contain data about a
+child. The connection-test sentence is fixed text. Before real tutor answers are voiced, the tutor must keep
+names and personal details out of `speech` (or switch `ALEXA_TUTOR_VOICE=false`). Clips live until removed:
+add a storage lifecycle rule (delete `hortai-private/speech-clips/` after 1 day) before dynamic answers are voiced.
+
+Cost: one synthesis per distinct text and voice. The test sentence is 40 characters, billed once (ElevenLabs
+Starter: 40,000 characters a month); cached answers cost nothing at ElevenLabs. Dynamic answers cost their length
+each (about 100–300 characters for a short tutor reply).
 
 ## Interaction model
 
@@ -67,9 +128,14 @@ The model in the repository is the one imported in the Developer Console. Change
 
 ## Environment
 
-| Name             | Required | Notes                                                               |
-| ---------------- | -------- | ------------------------------------------------------------------- |
-| `ALEXA_SKILL_ID` | yes      | `amzn1.ask.skill.…` from the console. Unset → endpoint answers 503. |
+| Name                | Required | Notes                                                                  |
+| ------------------- | -------- | ---------------------------------------------------------------------- |
+| `ALEXA_SKILL_ID`    | yes      | `amzn1.ask.skill.…` from the console. Unset → endpoint answers 503.    |
+| `ALEXA_TUTOR_VOICE` | no       | `true` (default) speaks tutor replies in a tutor's voice; `false` off. |
+| `ALEXA_TUTOR_ID`    | no       | Tutor catalog id whose voice is used; default `max`.                   |
+
+The tutor voice also needs `ELEVENLABS_API_KEY` and object storage with `STORAGE_AZURE_PRIVATE_CONTAINER`
+(`STORAGE_PROVIDER=azure`); without them every answer uses Alexa's voice.
 
 The skill id is not a secret, but it is environment-specific and therefore not committed.
 
@@ -90,18 +156,24 @@ The skill id is not a secret, but it is environment-specific and therefore not c
 
 ## Hosting
 
-- Today: a cloudflared Quick Tunnel to a small Node host on the Hermes VM. Its URL is **ephemeral**: a restart of
-  the tunnel yields a new URL that must be entered in the console (step 3). `skill.json` records the current one.
-- Target: the Vercel deployment (`https://<project>.vercel.app/api/alexa`) with `ALEXA_SKILL_ID` set there.
-  Switch the console endpoint only after the simulator answers through Vercel. Preview deployments are behind
-  Vercel Authentication (401 "Protected deployment"), so Alexa cannot reach them; only an unprotected deployment works.
+- **Current: Vercel Production** `https://hort-ai.vercel.app/api/alexa` (console endpoint and `skill.json`), certificate
+  type "sub-domain of a domain that has a wildcard certificate" (Vercel serves `*.vercel.app`). `ALEXA_SKILL_ID` is
+  set in the Vercel project's Production environment. The production domain is not behind Vercel Authentication;
+  it must stay that way, because Alexa cannot send bypass headers. Preview deployments are protected (401) and
+  therefore unusable for Alexa. Quick check: an unsigned `POST` must answer **400** `invalid_alexa_request`;
+  **503** `alexa_not_configured` means the skill id is missing in that environment.
+- **Fallback: tunnel on the Hermes VM.** User units `hort-alexa-runner` (Node host on `127.0.0.1:3077`, bundles
+  `src/modules/alexa` from this repository via `runner/build.mjs`) and `hort-alexa-tunnel` (cloudflared Quick
+  Tunnel). The tunnel URL is **ephemeral**: every restart or VM reboot yields a new one
+  (`journalctl --user -u hort-alexa-tunnel | grep trycloudflare`), which must be entered in the console (step 3).
+  Use it only if Vercel fails; switch back afterwards.
 
 ## Known limits
 
-- **8-second answer limit.** Alexa abandons a request after 8 s. Measured today: ~0.4 s for the first request
-  after a (re)start (certificate download from Amazon's S3, cached per certificate URL afterwards), 1–3 ms warm,
-  plus ~0.1 s tunnel. A 5.3 s outlier coincided with heavy memory pressure and swapping on the host; the host
-  process now runs without swap. An LLM tutor must stay well below 8 s end-to-end including a cold start
+- **8-second answer limit.** Alexa abandons a request after 8 s. Measured on Vercel Production: simulator round trip
+  (speech recognition, endpoint, speech output) 2.1 s warm and 2.4 s after 17 minutes idle; an unsigned request
+  takes 0.2 s. The first signed request per instance also downloads Amazon's certificate (0.4–2 s, cached per URL
+  afterwards). On the VM fallback a 5.3 s outlier coincided with swapping; that process now runs without swap. An LLM tutor must stay well below 8 s end-to-end including a cold start
   on Vercel; for longer work send an Alexa **Progressive Response** ("Moment, ich überlege…") first and keep the
   final answer under the limit. Not built yet.
 - **Voice only.** No photo/image input (homework photos stay a web feature); answers are read aloud, so no
@@ -120,8 +192,8 @@ The skill id is not a secret, but it is environment-specific and therefore not c
 has advisory **GHSA-86w9-cpqp-85rv** (RSA PKCS#1 v1.5 signature verification, `<= 1.4.0`, no patched release).
 node-forge is used only for the certificate-chain check of Amazon's signing certificate, whose URL is pinned to
 `https://s3.amazonaws.com/echo.api/`; the request signature itself is verified with `node:crypto`. The advisory is
-accepted as a reviewed, time-boxed exception until **2027-01-24** (decision B S, 2026-10-24). The repository
-currently has no automated dependency audit (GitHub Actions were replaced by the Vercel build pipeline), so
-`npm audit --omit=dev` reports exactly this one high advisory and nothing enforces the date; if an audit gate is
-reintroduced, allow only `GHSA-86w9-cpqp-85rv` and only until that date. Exit: a patched node-forge or SDK
-release, or replacing the SDK verifier with a `node:crypto` certificate-chain check.
+accepted as a reviewed, time-boxed exception until **2027-01-24** (decision B S, 2026-10-24). It is enforced by
+`npm run audit:prod` (`scripts/audit-production.ts`), the first step of `npm run build:vercel` and `npm run check`:
+every high or critical advisory in production dependencies fails the build, except this GHSA through its expiry
+date; from 2027-01-25 it fails too. The team replaced GitHub Actions with the Vercel build, so the gate lives
+there. Exit: a patched node-forge or SDK release, or replacing the SDK verifier with a `node:crypto` certificate-chain check.

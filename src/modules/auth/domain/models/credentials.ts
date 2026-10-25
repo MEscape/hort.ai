@@ -5,6 +5,10 @@ import { SECONDS_PER_HOUR } from '@lib/utils';
 
 import { AUTH_VALIDATION_CODES, createAuthErrorBag } from '../errors/auth-errors';
 
+import { isRole } from './role';
+
+import type { StoredRole } from './role';
+
 const CODES = AUTH_VALIDATION_CODES;
 
 /** Single definition of every credential limit; forms, the provider and tests derive from it. */
@@ -31,6 +35,8 @@ export interface SignUpInput {
   readonly name: string;
   readonly email: string;
   readonly password: string;
+  /** Chosen once, at registration; stored with the account and never changed by a later request. */
+  readonly role: string;
 }
 
 export interface PasswordResetRequestInput {
@@ -52,6 +58,7 @@ export interface SignUpDraft {
   readonly name: string;
   readonly email: string;
   readonly password: string;
+  readonly role: StoredRole;
 }
 
 export interface PasswordResetRequest {
@@ -142,11 +149,15 @@ export function createSignUpDraft(input: SignUpInput): AppResult<SignUpDraft, Va
   checkName(name, bag);
   checkEmail(email, bag);
   checkNewPassword(input.password, 'password', bag);
+  const { role } = input;
+  if (!isRole(role)) {
+    bag.add('role', CODES.roleInvalid);
+  }
 
-  if (bag.hasErrors) {
+  if (bag.hasErrors || !isRole(role)) {
     return err(bag.toError());
   }
-  return ok({ name, email, password: input.password });
+  return ok({ name, email, password: input.password, role });
 }
 
 export function createPasswordResetRequest(

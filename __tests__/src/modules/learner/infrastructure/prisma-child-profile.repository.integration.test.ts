@@ -515,7 +515,7 @@ describe.skipIf(!isEnabled)('PrismaChildProfileRepository against Postgres', () 
     const owner = freshOwner();
     const base = { ...owner, displayName: 'Lisa', federalState: 'BY', grade: 2 } as const;
     const create = (ownerId: string, extra: Record<string, unknown>) =>
-      db.orm.public.ChildProfile.create({ ...base, ownerId, ...extra } as never);
+      db.orm.public.ChildProfile.create({ ...base, ownerId, ...extra });
 
     await expect(
       create('c1', { interests: ['nature', 'animals', 'science', 'art', 'music'] }),

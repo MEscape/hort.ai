@@ -1,7 +1,9 @@
 import { deAssignments as assignments } from '@modules/assignments';
 import { deAuth as auth } from '@modules/auth';
+import { deClassroom as classroom } from '@modules/classroom';
 import { deLearner as learner } from '@modules/learner';
 import { deProgression as progression } from '@modules/progression';
+import { deTeacherMaterial as teacherMaterial } from '@modules/teacher-material';
 
 import deApp from '../messages/de.json';
 
@@ -17,8 +19,10 @@ const messages = {
   app: deApp,
   assignments: assignments.assignments,
   auth: auth.auth,
+  classroom: classroom.classroom,
   learner: learner.learner,
   progression: progression.progression,
+  teacherMaterial: teacherMaterial.teacherMaterial,
 } as const satisfies TranslationSchema<MessageCatalog>;
 
 export default messages;

@@ -9,7 +9,7 @@ import { createBrokenRateLimiter, createTestRateLimiter } from '../../../support
 import { clientAt, fakeAuthenticator, recordingAudit } from '../fakes';
 
 const PASSWORD = 'a-long-enough-password';
-const MARA = { name: 'Mara', email: 'mara@example.org', password: PASSWORD };
+const MARA = { name: 'Mara', email: 'mara@example.org', password: PASSWORD, role: 'parent' };
 
 function build(overrides: Partial<AuthenticationDependencies> = {}) {
   const authenticator = fakeAuthenticator();

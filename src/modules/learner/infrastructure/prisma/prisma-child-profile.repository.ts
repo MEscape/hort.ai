@@ -18,6 +18,7 @@ import type {
   ProfileOwner,
   ProfilePatch,
   SavedProfile,
+  SchoolSettings,
   UnfinishedProfileInput,
   WelcomePatch,
 } from '../../domain/ports/child-profile.repository';
@@ -36,6 +37,7 @@ interface Owner {
   readonly ownerId: ActorId;
 }
 
+/** @owner-scope builder Every caller below pins `tenantId` and `ownerId` (or sets them on create). */
 const profiles = () => db.orm.public.ChildProfile.select(...CHILD_PROFILE_SELECT);
 
 /** The parent's unfinished profile: at most one row, by the partial unique index. */
@@ -189,6 +191,22 @@ export class PrismaChildProfileRepository implements ChildProfileRepository {
           ? profiles().where({ id, ownerId, tenantId }).first()
           : null,
       failures.infraOnly('updateUnfinished'),
+    ).map((record) => (record === null ? null : toChildProfile(record)));
+  }
+
+  updateSchoolSettings(
+    profile: ChildProfile,
+    { federalState, grade }: SchoolSettings,
+  ): AppResultAsync<ChildProfile | null, InfrastructureAppError> {
+    const { id, ownerId, tenantId } = profile;
+    return fromThrowableAsync(
+      async () =>
+        (await profiles()
+          .where({ id, ownerId, tenantId })
+          .updateAndCount({ federalState, grade })) > 0
+          ? profiles().where({ id, ownerId, tenantId }).first()
+          : null,
+      failures.infraOnly('updateSchoolSettings'),
     ).map((record) => (record === null ? null : toChildProfile(record)));
   }
 

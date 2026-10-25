@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import type { UnauthorizedAppError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
-import { parseJson } from '@lib/utils';
+import { parseJson, TimeoutError, withTimeout } from '@lib/utils';
 
 import {
   parseConversationId,
@@ -11,6 +11,8 @@ import {
   type TutorReply,
   type TutorTurn,
 } from '../application/contracts/tutor-conversation-model';
+
+import type { TutorVoice } from '../application/contracts/tutor-voice-model';
 
 /** 24 KiB; Alexa request envelopes are far smaller. */
 const MAX_BODY_BYTES = 24_576;
@@ -39,6 +41,22 @@ const NOT_UNDERSTOOD_SENTENCE = 'Das habe ich nicht verstanden. Sag es bitte noc
 const TUTOR_FAILED_SENTENCE =
   'Da ist gerade etwas schiefgelaufen. Versuch es bitte gleich noch einmal.';
 
+/**
+ * Time the tutor's voice may take (synthesis and upload on a cache miss) before the answer falls back to
+ * Alexa's voice. Alexa waits 8 s in total; verification (a cold certificate download) and a cold start need
+ * the rest.
+ */
+const VOICE_DEADLINE_MS = 4_000;
+/**
+ * APL for Audio plays on every Alexa device and needs no interface in the skill manifest, so requests do not
+ * list it in `supportedInterfaces` (verified in the simulator); there is nothing to check per device.
+ */
+const APLA_INTERFACE = 'Alexa.Presentation.APLA';
+/** APL for Audio specification version (Amazon: "Currently 0.91"). */
+const APLA_VERSION = '0.91';
+/** Sent when Alexa could not play a clip (for example an expired URL); notification only, no answer. */
+const APLA_RUNTIME_ERROR = 'Alexa.Presentation.APLA.RuntimeError';
+
 const envelopeSchema = z.object({
   version: z.literal('1.0'),
   context: z.object({ System: z.object({ application: z.object({ applicationId: z.string() }) }) }),
@@ -49,7 +67,7 @@ const envelopeSchema = z.object({
     })
     .optional(),
   request: z.object({
-    type: z.enum(['LaunchRequest', 'IntentRequest', 'SessionEndedRequest']),
+    type: z.enum(['LaunchRequest', 'IntentRequest', 'SessionEndedRequest', APLA_RUNTIME_ERROR]),
     requestId: z.string(),
     timestamp: z.iso.datetime({ offset: true }),
     locale: z.literal('de-DE').optional(),
@@ -72,6 +90,11 @@ interface AlexaEndpointOptions {
     headers: Record<string, string>,
   ) => AppResultAsync<void, UnauthorizedAppError>;
   readonly tutor: TutorConversation;
+  /** Speaks tutor replies in the tutor's voice; `null`/absent keeps Alexa's standard voice. */
+  readonly voice?: TutorVoice | null;
+  readonly voiceDeadlineMs?: number;
+  /** Told why a reply fell back to Alexa's voice (an error code or `timeout`); never the text or a URL. */
+  readonly onVoiceFallback?: (reason: string) => void;
 }
 
 /**
@@ -104,7 +127,7 @@ export function createAlexaEndpoint(
     if (!isForSkill(envelope.data, skillId)) {
       return failure(HTTP.forbidden, 'wrong_skill');
     }
-    return respond(envelope.data, options.tutor);
+    return respond(envelope.data, options);
   };
 }
 
@@ -113,9 +136,12 @@ function isForSkill(envelope: Envelope, skillId: string): boolean {
   return envelope.context.System.application.applicationId === skillId && sessionSkill === skillId;
 }
 
-async function respond(envelope: Envelope, tutor: TutorConversation): Promise<Response> {
+async function respond(envelope: Envelope, options: AlexaEndpointOptions): Promise<Response> {
   const { request } = envelope;
-  if (request.type === 'SessionEndedRequest') {
+  if (request.type === APLA_RUNTIME_ERROR) {
+    options.onVoiceFallback?.('apla_runtime_error');
+  }
+  if (request.type === 'SessionEndedRequest' || request.type === APLA_RUNTIME_ERROR) {
     return Response.json({ version: '1.0', response: {} });
   }
   const conversationId = parseConversationId(envelope.session?.sessionId ?? request.requestId);
@@ -126,8 +152,36 @@ async function respond(envelope: Envelope, tutor: TutorConversation): Promise<Re
   if ('speech' in next) {
     return speak(next);
   }
-  const reply = await tutor.respond(next);
-  return speak(reply.unwrapOr(TUTOR_FAILED_REPLY));
+  const reply = await options.tutor.respond(next);
+  if (reply.isErr()) {
+    return speak(TUTOR_FAILED_REPLY);
+  }
+  const audioUrl = await tutorAudio(reply.value, options);
+  return audioUrl === null ? speak(reply.value) : speakAudio(reply.value, audioUrl);
+}
+
+/** The reply in the tutor's voice within the deadline, or `null` for Alexa's own voice. Never fails. */
+async function tutorAudio(
+  reply: TutorReply,
+  options: AlexaEndpointOptions,
+): Promise<string | null> {
+  const { voice, onVoiceFallback } = options;
+  if (!voice) {
+    return null;
+  }
+  try {
+    const url = await withTimeout(
+      Promise.resolve(voice.audioUrl(reply.speech)),
+      options.voiceDeadlineMs ?? VOICE_DEADLINE_MS,
+    );
+    if (url.isOk()) {
+      return url.value;
+    }
+    onVoiceFallback?.(url.error.code);
+  } catch (thrown) {
+    onVoiceFallback?.(thrown instanceof TimeoutError ? 'timeout' : 'unexpected');
+  }
+  return null;
 }
 
 /** Either a tutor turn, or a reply the channel gives itself (stop, help, nothing understood). */
@@ -163,6 +217,32 @@ function speak(reply: TutorReply): Response {
     response: {
       outputSpeech,
       ...(isOpen ? { reprompt: { outputSpeech } } : {}),
+      shouldEndSession: !isOpen,
+    },
+  });
+}
+
+/**
+ * The reply as an audio clip (APL for Audio: mp3 up to 48 kHz from a public HTTPS URL). An open
+ * conversation re-prompts with the same text in Alexa's voice when the child stays silent.
+ */
+function speakAudio(reply: TutorReply, audioUrl: string): Response {
+  const isOpen = reply.conversation === 'open';
+  return Response.json({
+    version: '1.0',
+    response: {
+      directives: [
+        {
+          type: `${APLA_INTERFACE}.RenderDocument`,
+          token: 'tutor-voice',
+          document: {
+            type: 'APLA',
+            version: APLA_VERSION,
+            mainTemplate: { item: { type: 'Audio', source: audioUrl } },
+          },
+        },
+      ],
+      ...(isOpen ? { reprompt: { outputSpeech: { type: 'PlainText', text: reply.speech } } } : {}),
       shouldEndSession: !isOpen,
     },
   });

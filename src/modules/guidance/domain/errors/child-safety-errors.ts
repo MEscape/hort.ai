@@ -6,6 +6,7 @@ export const CHILD_SAFETY_VALIDATION_CODES = {
   asksForPersonalData: 'guidance.child_safety.asks_for_personal_data',
   asksForSecrecy: 'guidance.child_safety.asks_for_secrecy',
   inappropriateContent: 'guidance.child_safety.inappropriate_content',
+  discouraging: 'guidance.child_safety.discouraging',
 } as const;
 
 export type ChildSafetyValidationCode =

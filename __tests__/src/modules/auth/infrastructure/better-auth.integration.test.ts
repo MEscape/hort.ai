@@ -148,7 +148,12 @@ describe.skipIf(!isEnabled)('Better Auth adapters against the auth database', ()
   });
 
   it('creates an account that cannot sign in until its address is confirmed', async () => {
-    const created = await authenticatorFor().signUp({ name: 'Mara', email, password: PASSWORD });
+    const created = await authenticatorFor().signUp({
+      name: 'Mara',
+      email,
+      password: PASSWORD,
+      role: 'parent',
+    });
     const verification = await tokenFrom('verification', 0);
 
     expect(created.isOk()).toBe(true);
@@ -190,6 +195,7 @@ describe.skipIf(!isEnabled)('Better Auth adapters against the auth database', ()
       name: 'Someone else',
       email,
       password: NEW_PASSWORD,
+      role: 'teacher',
     });
 
     expect(repeated.isOk()).toBe(true);

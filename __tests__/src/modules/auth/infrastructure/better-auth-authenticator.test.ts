@@ -129,7 +129,12 @@ describe('BetterAuthAuthenticator.signIn', () => {
 });
 
 describe('BetterAuthAuthenticator.signUp', () => {
-  const draft = { name: 'Mara', email: 'mara@example.org', password: 'a-long-enough-password' };
+  const draft = {
+    name: 'Mara',
+    email: 'mara@example.org',
+    password: 'a-long-enough-password',
+    role: 'parent',
+  } as const;
 
   it('creates the account through the provider', async () => {
     const { authenticator, calls } = build();

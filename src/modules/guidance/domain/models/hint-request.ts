@@ -1,10 +1,7 @@
 import type { ChildTaskText } from './child-task-text';
 import type { HintLevel } from './hint-level';
 
-/**
- * A curriculum competency retrieved for the child's task. Kept to what the
- * prompt needs until curriculum retrieval (#28) defines its own model.
- */
+/** A curriculum competency retrieved for the child's task (#28), kept to what the prompt needs. */
 export interface CurriculumCompetency {
   readonly code: string;
   readonly description: string;

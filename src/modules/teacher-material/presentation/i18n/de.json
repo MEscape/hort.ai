@@ -1,0 +1,15 @@
+{
+  "teacherMaterial": {
+    "errors": {
+      "notFound": "Der Eintrag wurde nicht gefunden.",
+      "validation": "Bitte überprüfen Sie Ihre Eingaben.",
+      "infrastructure": "Ein Dienstfehler ist aufgetreten. Bitte versuchen Sie es später erneut.",
+      "unexpected": "Ein unerwarteter Fehler ist aufgetreten."
+    },
+    "validation": {
+      "idInvalid": "Die Kennung ist ungültig.",
+      "required": "Dieses Feld ist erforderlich.",
+      "tooLong": "Dieser Wert ist zu lang."
+    }
+  }
+}

@@ -37,6 +37,16 @@ const SECRECY_PATTERNS = [
 const INAPPROPRIATE_WORDS =
   /\b(?:idiot\w*|versager\w*|hässlich\w*|bescheuert\w*|umbring\w*|umgebracht|töte\w*|nackt\w*|sex\w*|porno\w*|drogen?|stupid|loser|kill\w*|naked|porn\w*|drugs?)\b/;
 
+/**
+ * Feedback is never punishing (#14): no verdict on the child, no blame for a mistake. "Noch nicht"
+ * is fine; "falsch", "dumm" or "enttäuscht" are not. A false positive only costs one fallback.
+ */
+const DISCOURAGING_PATTERNS = [
+  /\b(?:falsch|dumm\w*|faul\w*|schlecht\w*|peinlich\w*|enttäusch\w*|schäm\w*)\b/,
+  /\bschon\s+wieder\b/,
+  /\b(?:wrong|dumb|lazy|bad\s+job|disappoint\w*|ashamed)\b/,
+];
+
 const normalize = (text: string) => text.normalize('NFKC').toLowerCase().replace(/\s+/g, ' ');
 
 /**
@@ -55,6 +65,9 @@ export function checkChildSafeText(text: string): ChildSafetyValidationCode[] {
   }
   if (INAPPROPRIATE_WORDS.test(normalized)) {
     codes.push(CHILD_SAFETY_VALIDATION_CODES.inappropriateContent);
+  }
+  if (DISCOURAGING_PATTERNS.some((pattern) => pattern.test(normalized))) {
+    codes.push(CHILD_SAFETY_VALIDATION_CODES.discouraging);
   }
   return codes;
 }
