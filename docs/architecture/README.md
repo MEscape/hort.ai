@@ -12,5 +12,7 @@ The [product vision](../product/vision.md) defines the agreed behavior. The [con
 | Progress, XP and the daily reward | [`progression.md`](progression.md)               |
 | Brand identity and assets         | [`branding.md`](branding.md)                     |
 | AI output contract                | [`ai-output-contract.md`](ai-output-contract.md) |
+| Island world and its pictures     | [`world.md`](world.md)                           |
+| Parent area and dashboard         | [`parent-dashboard.md`](parent-dashboard.md)     |
 
 The shared libraries are documented in [`src/lib/README.md`](../../src/lib/README.md). Add a document here when a subsystem spans several modules or parts of `src/lib`, and link it from the rule or convention that depends on it.

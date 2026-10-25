@@ -174,6 +174,147 @@
 }
 
 /*
+ * Islands. The drawn placeholder of every world area (`src/modules/world`) paints with these
+ * tokens only: the same matte, warm, slightly muted world as the brand, lit from the top left.
+ * Objects (wood, roofs, leaves, water) are shared by every island; a biome ([data-biome] on the
+ * island's <svg>) changes only its ground. Decorative paint, never text: no contrast pairs here.
+ * The canonical art direction for the generated pictures is in `docs/architecture/world.md`.
+ */
+:root {
+  --hortai-island-wood: #a86b3c;
+  --hortai-island-wood-shade: #7b4a26;
+  --hortai-island-roof: #c8553d;
+  --hortai-island-wall: #fbf1e3;
+  --hortai-island-stone: #c2b6a8;
+  --hortai-island-stone-shade: #94877a;
+  --hortai-island-leaf: #5f9a4a;
+  --hortai-island-leaf-shade: #3f7440;
+  --hortai-island-leaf-light: #8cc06a;
+  --hortai-island-water: #6fb7d6;
+  --hortai-island-water-light: #c3e5f0;
+  --hortai-island-snow: #f6f7fb;
+  --hortai-island-petal: #f2a7b5;
+}
+
+:root,
+[data-biome] {
+  --hortai-island-rim: #7fb35a;
+  --hortai-island-top: #a3cc6e;
+  --hortai-island-side: #8a5a3a;
+  --hortai-island-rock: #b39b86;
+  --hortai-island-rock-shade: #8a7363;
+  --hortai-island-path: #efdcb4;
+}
+
+[data-biome='forest'] {
+  --hortai-island-rim: #4f8a4a;
+  --hortai-island-top: #6fa85a;
+  --hortai-island-side: #6e4a30;
+  --hortai-island-rock: #9c8a7a;
+  --hortai-island-rock-shade: #76665a;
+  --hortai-island-path: #d9c49a;
+}
+
+[data-biome='autumn'] {
+  --hortai-island-rim: #d08a3c;
+  --hortai-island-top: #e7b25c;
+  --hortai-island-side: #8a5534;
+  --hortai-island-rock: #b59a84;
+  --hortai-island-rock-shade: #8c7463;
+  --hortai-island-path: #f3dfb9;
+}
+
+[data-biome='snow'] {
+  --hortai-island-rim: #8cbf73;
+  --hortai-island-top: #eef3f8;
+  --hortai-island-side: #8a6a55;
+  --hortai-island-rock: #a9a4b8;
+  --hortai-island-rock-shade: #807a92;
+  --hortai-island-path: #d8e2ec;
+}
+
+[data-biome='lake'] {
+  --hortai-island-rim: #8cc06a;
+  --hortai-island-top: #a7d27a;
+  --hortai-island-side: #7a573c;
+  --hortai-island-rock: #a7a2a0;
+  --hortai-island-rock-shade: #7f7a78;
+  --hortai-island-path: #eadcb8;
+}
+
+[data-biome='beach'] {
+  --hortai-island-rim: #f0d9a6;
+  --hortai-island-top: #9fcd73;
+  --hortai-island-side: #b08458;
+  --hortai-island-rock: #c7b49a;
+  --hortai-island-rock-shade: #9e8a72;
+  --hortai-island-path: #f6e7c3;
+}
+
+[data-biome='village'] {
+  --hortai-island-rim: #86b862;
+  --hortai-island-top: #aed37a;
+  --hortai-island-side: #8a5a3a;
+  --hortai-island-rock: #b9a48f;
+  --hortai-island-rock-shade: #8f7a67;
+  --hortai-island-path: #e9d6b5;
+}
+
+[data-biome='workshop'] {
+  --hortai-island-rim: #93b565;
+  --hortai-island-top: #d6b77e;
+  --hortai-island-side: #7f5233;
+  --hortai-island-rock: #b39b86;
+  --hortai-island-rock-shade: #876f5e;
+  --hortai-island-path: #f0dfc0;
+}
+
+[data-biome='night'] {
+  --hortai-island-rim: #5b7f8f;
+  --hortai-island-top: #8b88c4;
+  --hortai-island-side: #4f4470;
+  --hortai-island-rock: #6f6a94;
+  --hortai-island-rock-shade: #4e4a72;
+  --hortai-island-path: #d6d1f0;
+}
+
+[data-biome='garden'] {
+  --hortai-island-rim: #6fae58;
+  --hortai-island-top: #9bcb68;
+  --hortai-island-side: #7a4e30;
+  --hortai-island-rock: #b09a85;
+  --hortai-island-rock-shade: #85705f;
+  --hortai-island-path: #e4cfa6;
+}
+
+[data-biome='canyon'] {
+  --hortai-island-rim: #e2b27a;
+  --hortai-island-top: #eac48f;
+  --hortai-island-side: #b5714a;
+  --hortai-island-rock: #c98d63;
+  --hortai-island-rock-shade: #9c6546;
+  --hortai-island-path: #f6e1bd;
+}
+
+[data-biome='cave'] {
+  --hortai-island-rim: #8fa08a;
+  --hortai-island-top: #b5b6c4;
+  --hortai-island-side: #6d6a80;
+  --hortai-island-rock: #9b97ad;
+  --hortai-island-rock-shade: #706c86;
+  --hortai-island-path: #dcd8e6;
+}
+
+[data-biome='candy'] {
+  --hortai-island-rim: #a8d8b9;
+  --hortai-island-top: #e8c6e6;
+  --hortai-island-side: #b07fa0;
+  --hortai-island-rock: #c9a7c4;
+  --hortai-island-rock-shade: #9a7a99;
+  --hortai-island-path: #fff1d6;
+}
+
+/*
  * Registers the tokens with Tailwind so components write `bg-primary
  * text-primary-foreground rounded-token` instead of arbitrary values.
  * `inline` keeps every utility pointing at the live CSS variable.
@@ -242,6 +383,26 @@
   --color-landscape-far: var(--hortai-color-landscape-far);
   --color-landscape-near: var(--hortai-color-landscape-near);
   --color-landscape-front: var(--hortai-color-landscape-front);
+
+  --color-island-wood: var(--hortai-island-wood);
+  --color-island-wood-shade: var(--hortai-island-wood-shade);
+  --color-island-roof: var(--hortai-island-roof);
+  --color-island-wall: var(--hortai-island-wall);
+  --color-island-stone: var(--hortai-island-stone);
+  --color-island-stone-shade: var(--hortai-island-stone-shade);
+  --color-island-leaf: var(--hortai-island-leaf);
+  --color-island-leaf-shade: var(--hortai-island-leaf-shade);
+  --color-island-leaf-light: var(--hortai-island-leaf-light);
+  --color-island-water: var(--hortai-island-water);
+  --color-island-water-light: var(--hortai-island-water-light);
+  --color-island-snow: var(--hortai-island-snow);
+  --color-island-petal: var(--hortai-island-petal);
+  --color-island-rim: var(--hortai-island-rim);
+  --color-island-top: var(--hortai-island-top);
+  --color-island-side: var(--hortai-island-side);
+  --color-island-rock: var(--hortai-island-rock);
+  --color-island-rock-shade: var(--hortai-island-rock-shade);
+  --color-island-path: var(--hortai-island-path);
 
   --color-chart-1: var(--hortai-chart-1);
   --color-chart-2: var(--hortai-chart-2);

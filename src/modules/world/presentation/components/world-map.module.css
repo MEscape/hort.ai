@@ -1,0 +1,15 @@
+/*
+ * How close the islands stand (screen pixels per world unit) and how big each is drawn. A phone
+ * spaces them closer but keeps every island and its name readable, so a whole archipelago fits.
+ */
+.viewport {
+  --world-spread: 0.62;
+  --world-island: 9.5rem;
+}
+
+@media (min-width: 40rem) {
+  .viewport {
+    --world-spread: 0.7;
+    --world-island: 11.5rem;
+  }
+}

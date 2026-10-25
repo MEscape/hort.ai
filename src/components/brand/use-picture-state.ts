@@ -9,6 +9,7 @@ export interface PictureStateView {
   readonly attach: (picture: HTMLImageElement | null) => (() => void) | undefined;
   /** For `onError`. */
   readonly markFailed: () => void;
+  readonly markReady: () => void;
 }
 
 /**
@@ -19,7 +20,16 @@ export interface PictureStateView {
  * one is decoded right away, in the background, so its first swap in is not slow either.
  */
 export function usePictureState(url: string | undefined): PictureStateView {
-  const [state, setState] = useState<PictureState>('ready');
+  const [snapshot, setSnapshot] = useState<{ url: string | undefined; state: PictureState }>({
+    url,
+    state: url === undefined ? 'ready' : 'pending',
+  });
+  const setState = useCallback(
+    (state: PictureState) => {
+      setSnapshot({ url, state });
+    },
+    [url],
+  );
   const attach = useCallback(
     (picture: HTMLImageElement | null) => {
       if (picture === null || url === undefined || !('decode' in picture)) {
@@ -47,14 +57,17 @@ export function usePictureState(url: string | undefined): PictureStateView {
         isCurrent = false;
       };
     },
-    [url],
+    [url, setState],
   );
 
   return {
-    state,
+    state: snapshot.url === url ? snapshot.state : 'pending',
     attach,
     markFailed: () => {
       setState('failed');
+    },
+    markReady: () => {
+      setState('ready');
     },
   };
 }
