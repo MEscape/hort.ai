@@ -24,6 +24,7 @@
       "validation": "Something did not fit. Please try again.",
       "childInputInvalid": "Please write your answer again.",
       "sessionNotFound": "This task is no longer open. Please start it again.",
+      "noOpenQuestion": "There is no question to answer right now.",
       "rateLimited": "Take a short break and try again in a moment.",
       "infrastructure": "Something is not working right now. Please try again in a moment.",
       "unexpected": "Something went wrong. Please try again."

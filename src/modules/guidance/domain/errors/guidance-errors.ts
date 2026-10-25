@@ -7,8 +7,12 @@ export const GUIDANCE_ERROR_CODES = {
   validationFailed: 'guidance.validation_failed',
   rateLimited: 'guidance.rate_limited',
   rateLimiterFailed: 'guidance.rate_limiter_failed',
+  /** No active help session of this child with this id: missing, ended or someone else's (#17). */
   sessionNotFound: 'guidance.session_not_found',
+  /** The help session could not be read or written. */
   sessionStoreFailed: 'guidance.session_store_failed',
+  /** The child replied, but the session asks no comprehension question right now (#78). */
+  noOpenQuestion: 'guidance.no_open_question',
 } as const;
 
 /** Field-level codes, carried in `fieldErrors`. */

@@ -34,6 +34,7 @@ export const MESSAGE_KEY_BY_CODE = {
   [ERRORS.rateLimiterFailed]: fieldPath('errors', 'infrastructure'),
   [ERRORS.sessionNotFound]: fieldPath('errors', 'sessionNotFound'),
   [ERRORS.sessionStoreFailed]: fieldPath('errors', 'infrastructure'),
+  [ERRORS.noOpenQuestion]: fieldPath('errors', 'noOpenQuestion'),
   [VALIDATION.childProfileIdInvalid]: VALIDATION_KEY,
   [VALIDATION.subjectInvalid]: VALIDATION_KEY,
   [VALIDATION.sessionIdInvalid]: VALIDATION_KEY,

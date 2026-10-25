@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'073e39acca7299a40a57a7f3fae59f0191a148a085bae26fc5ac55b61d1f5495'>;
+  StorageHashBase<'eca80640cb0a769525df6288850067119387f7f45ed38d34e0c24729a1900541'>;
 export type ExecutionHash =
   ExecutionHashBase<'5388a8400147d76b9e718711335599d04f7ca67a9c7f7b82d886bf9fb1c1aec5'>;
 export type ProfileHash =
@@ -242,6 +242,16 @@ type FieldTypeOverrides = {
   readonly public: {
     readonly models: {
       readonly AnswerAssessment: {
+        readonly assessedBy: {
+          readonly output: 'SOLUTION_KEY' | 'AI';
+          readonly input: 'SOLUTION_KEY' | 'AI';
+        };
+        readonly hintLevel: {
+          readonly output:
+            'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
+          readonly input:
+            'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
+        };
         readonly result: {
           readonly output: 'CORRECT' | 'PARTLY_CORRECT' | 'NOT_YET';
           readonly input: 'CORRECT' | 'PARTLY_CORRECT' | 'NOT_YET';
@@ -461,6 +471,10 @@ type FieldTypeOverrides = {
           readonly output: 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
           readonly input: 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
         };
+        readonly subject: {
+          readonly output: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+          readonly input: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+        };
       };
       readonly HintEvent: {
         readonly level: {
@@ -503,6 +517,16 @@ export type FieldInputTypes = FieldTypesFromDomain<
 type ColumnTypeOverrides = {
   readonly public: {
     readonly AnswerAssessment: {
+      readonly assessedBy: {
+        readonly output: 'SOLUTION_KEY' | 'AI';
+        readonly input: 'SOLUTION_KEY' | 'AI';
+      };
+      readonly hintLevel: {
+        readonly output:
+          'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
+        readonly input:
+          'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
+      };
       readonly result: {
         readonly output: 'CORRECT' | 'PARTLY_CORRECT' | 'NOT_YET';
         readonly input: 'CORRECT' | 'PARTLY_CORRECT' | 'NOT_YET';
@@ -722,6 +746,10 @@ type ColumnTypeOverrides = {
         readonly output: 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
         readonly input: 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
       };
+      readonly subject: {
+        readonly output: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+        readonly input: 'MATH' | 'GERMAN' | 'GENERAL_STUDIES' | 'ENGLISH';
+      };
     };
     readonly HintEvent: {
       readonly level: {
@@ -764,6 +792,8 @@ export type StorageColumnInputTypes = ColumnTypesFromStorage<
 export namespace Models {
   export type public_AnswerAssessment = {
     answerId: FieldOutputTypes['public']['AnswerAssessment']['answerId'];
+    assessedBy: FieldOutputTypes['public']['AnswerAssessment']['assessedBy'];
+    hintLevel: FieldOutputTypes['public']['AnswerAssessment']['hintLevel'];
     id: FieldOutputTypes['public']['AnswerAssessment']['id'];
     idempotencyKey: FieldOutputTypes['public']['AnswerAssessment']['idempotencyKey'];
     occurredAt: FieldOutputTypes['public']['AnswerAssessment']['occurredAt'];
@@ -914,6 +944,7 @@ export namespace Models {
     ownerId: FieldOutputTypes['public']['HelpSession']['ownerId'];
     startedAt: FieldOutputTypes['public']['HelpSession']['startedAt'];
     status: FieldOutputTypes['public']['HelpSession']['status'];
+    subject: FieldOutputTypes['public']['HelpSession']['subject'];
     taskText: FieldOutputTypes['public']['HelpSession']['taskText'];
     tenantId: FieldOutputTypes['public']['HelpSession']['tenantId'];
     updatedAt: FieldOutputTypes['public']['HelpSession']['updatedAt'];
@@ -934,6 +965,7 @@ export namespace Models {
   };
   export type public_HintEvent = {
     competencyCode: FieldOutputTypes['public']['HintEvent']['competencyCode'];
+    fallbackReason: FieldOutputTypes['public']['HintEvent']['fallbackReason'];
     id: FieldOutputTypes['public']['HintEvent']['id'];
     idempotencyKey: FieldOutputTypes['public']['HintEvent']['idempotencyKey'];
     level: FieldOutputTypes['public']['HintEvent']['level'];
@@ -1031,6 +1063,18 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
+                readonly assessedBy: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly hintLevel: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
                 readonly id: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
@@ -1053,7 +1097,7 @@ type ContractBase = Omit<
                 readonly result: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly sessionId: {
@@ -1065,7 +1109,7 @@ type ContractBase = Omit<
                 readonly text: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
+                  readonly nullable: true;
                   readonly many: false;
                 };
               };
@@ -1847,7 +1891,7 @@ type ContractBase = Omit<
                 readonly text: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
+                  readonly nullable: true;
                   readonly many: false;
                 };
               };
@@ -2006,6 +2050,12 @@ type ContractBase = Omit<
                   };
                   readonly many: false;
                 };
+                readonly subject: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
                 readonly taskText: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
@@ -2058,6 +2108,13 @@ type ContractBase = Omit<
                   readonly unique: false;
                 },
                 {
+                  readonly name: 'HelpSession_one_active_per_child_f47b7342';
+                  readonly prefix: 'HelpSession_one_active_per_child';
+                  readonly columns: readonly ['childProfileId'];
+                  readonly where: '("status" = \'ACTIVE\')';
+                  readonly unique: true;
+                },
+                {
                   readonly name: 'HelpSession_tenantId_ownerId_updatedAt_idx_f60bcd45';
                   readonly prefix: 'HelpSession_tenantId_ownerId_updatedAt_idx';
                   readonly columns: readonly ['tenantId', 'ownerId', 'updatedAt'];
@@ -2099,6 +2156,12 @@ type ContractBase = Omit<
                   readonly nullable: true;
                   readonly many: false;
                 };
+                readonly fallbackReason: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
                 readonly id: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
@@ -2133,7 +2196,7 @@ type ContractBase = Omit<
                 readonly text: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
+                  readonly nullable: true;
                   readonly many: false;
                 };
               };
@@ -2436,6 +2499,10 @@ type ContractBase = Omit<
             };
           };
           readonly valueSet: {
+            readonly AssessedBy: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['SOLUTION_KEY', 'AI'];
+            };
             readonly AssessmentResult: {
               readonly kind: 'valueSet';
               readonly values: readonly ['CORRECT', 'PARTLY_CORRECT', 'NOT_YET'];
@@ -2604,6 +2671,14 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly assessedBy: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly hintLevel: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -2620,7 +2695,7 @@ type ContractBase = Omit<
                 };
               };
               readonly result: {
-                readonly nullable: false;
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly sessionId: {
@@ -2628,7 +2703,7 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly text: {
-                readonly nullable: false;
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
             };
@@ -2663,6 +2738,8 @@ type ContractBase = Omit<
               readonly namespaceId: 'public';
               readonly fields: {
                 readonly answerId: { readonly column: 'answerId' };
+                readonly assessedBy: { readonly column: 'assessedBy' };
+                readonly hintLevel: { readonly column: 'hintLevel' };
                 readonly id: { readonly column: 'id' };
                 readonly idempotencyKey: { readonly column: 'idempotencyKey' };
                 readonly occurredAt: { readonly column: 'occurredAt' };
@@ -3335,7 +3412,7 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly text: {
-                readonly nullable: false;
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
             };
@@ -3483,6 +3560,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly subject: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly taskText: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -3585,6 +3666,7 @@ type ContractBase = Omit<
                 readonly ownerId: { readonly column: 'ownerId' };
                 readonly startedAt: { readonly column: 'startedAt' };
                 readonly status: { readonly column: 'status' };
+                readonly subject: { readonly column: 'subject' };
                 readonly taskText: { readonly column: 'taskText' };
                 readonly tenantId: { readonly column: 'tenantId' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
@@ -3595,6 +3677,10 @@ type ContractBase = Omit<
           readonly HintEvent: {
             readonly fields: {
               readonly competencyCode: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly fallbackReason: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
@@ -3622,7 +3708,7 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly text: {
-                readonly nullable: false;
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
             };
@@ -3645,6 +3731,7 @@ type ContractBase = Omit<
               readonly namespaceId: 'public';
               readonly fields: {
                 readonly competencyCode: { readonly column: 'competencyCode' };
+                readonly fallbackReason: { readonly column: 'fallbackReason' };
                 readonly id: { readonly column: 'id' };
                 readonly idempotencyKey: { readonly column: 'idempotencyKey' };
                 readonly level: { readonly column: 'level' };
@@ -3886,6 +3973,13 @@ type ContractBase = Omit<
           };
         };
         readonly enum: {
+          readonly AssessedBy: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'SOLUTION_KEY'; readonly value: 'SOLUTION_KEY' },
+              { readonly name: 'AI'; readonly value: 'AI' },
+            ];
+          };
           readonly AssessmentResult: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -4017,6 +4111,10 @@ type ContractBase = Omit<
           };
         };
         readonly enumMemberTypes?: {
+          readonly AssessedBy: readonly [
+            { readonly name: 'SOLUTION_KEY'; readonly value: 'SOLUTION_KEY' },
+            { readonly name: 'AI'; readonly value: 'AI' },
+          ];
           readonly AssessmentResult: readonly [
             { readonly name: 'CORRECT'; readonly value: 'CORRECT' },
             { readonly name: 'PARTLY_CORRECT'; readonly value: 'PARTLY_CORRECT' },
