@@ -76,10 +76,21 @@ export function profileOf(
  * changed something, so a test can assert that an idempotent call wrote nothing.
  */
 export class InMemoryChildProfiles implements ChildProfileRepository {
-  updateParentControls(profile: ChildProfile, controls: Omit<ChildProfile['controls'], 'voiceEnabled'>): AppResultAsync<ChildProfile | null, InfrastructureAppError> {
-    const index = this.rows.findIndex((row) => row.id === profile.id && row.ownerId === profile.ownerId && row.tenantId === profile.tenantId && row.setupCompletedAt !== null);
+  updateParentControls(
+    profile: ChildProfile,
+    controls: Omit<ChildProfile['controls'], 'voiceEnabled'>,
+  ): AppResultAsync<ChildProfile | null, InfrastructureAppError> {
+    const index = this.rows.findIndex(
+      (row) =>
+        row.id === profile.id &&
+        row.ownerId === profile.ownerId &&
+        row.tenantId === profile.tenantId &&
+        row.setupCompletedAt !== null,
+    );
     const stored = this.rows[index];
-    if (!stored) { return okAsync<ChildProfile | null>(null); }
+    if (!stored) {
+      return okAsync<ChildProfile | null>(null);
+    }
     this.writes += 1;
     const updated = { ...stored, controls: { ...stored.controls, ...controls } };
     this.rows[index] = updated;
