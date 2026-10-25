@@ -136,7 +136,9 @@ Through the guidance audit log, never with the task, a label or the classifier's
 
 The child's reply to a clarifying question goes in through `startHelpSessionAction` again, as the task text with the explanation added. It replaces the open session, and because that session asked to clarify, the reply is classified with `clarificationAlreadyAsked: true`, so it is never asked a second time.
 
-Still open: the distress check (#90) must run before the classification, so a stopped text never reaches it; the stored `competencyCode` is not yet used to rank the hint's grounding or for learning events (#35).
+**Grounding on the stored competency (#35).** Every hint and every answer check of a session with a stored `competencyCode` is grounded in that competency alone (`groundInCurriculum` in `application/services/session-step.ts`). The code is not trusted on its own: the step retrieves the child's current candidates as before and uses the code only when it is still one of them, so a code of another state, grade or an older curriculum never reaches the AI. When it is not (or retrieval fails), the step is grounded exactly as an unclassified session is, and a missing code is logged as `guidance.stored_competency_unavailable` (`warn`, level only). An open topic label never grounds anything.
+
+Still open: the distress check (#90) must run before the classification, so a stopped text never reaches it; learning events do not aggregate on `competencyCode` yet (#35).
 
 ## Changing the contract
 

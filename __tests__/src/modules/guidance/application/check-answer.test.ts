@@ -5,6 +5,7 @@ import type { CurrentActorProvider } from '@modules/auth/domain/ports/current-ac
 import { CheckAnswer } from '@modules/guidance/application/commands/check-answer';
 import { GUIDANCE_RATE_LIMITS } from '@modules/guidance/application/rate-limits';
 import { AnswerCoach } from '@modules/guidance/application/services/answer-coach';
+import type { CurriculumCompetency } from '@modules/guidance/domain/models/hint-request';
 import { parseStepRequestId } from '@modules/guidance/domain/models/ids';
 
 import type { RateLimiter } from '@lib/rate-limit';
@@ -14,6 +15,7 @@ import { parent, recordingAudit as recordingSecurityAudit, signedInAs } from '..
 import {
   ASSIGNMENT,
   ASSIGNMENT_TEXT,
+  CANDIDATES,
   OTHER_CHILD,
   OWN_CHILD,
   SOLUTION_KEY,
@@ -67,6 +69,7 @@ interface BuildOptions {
   readonly rateLimiter?: RateLimiter;
   readonly scripts?: FeedbackScripts;
   readonly curriculumFails?: true;
+  readonly curriculum?: readonly CurriculumCompetency[];
   readonly owned?: Parameters<typeof ownChildren>[0];
   readonly assignments?: ReturnType<typeof fakeAssignments>;
   readonly sessions?: ReturnType<typeof fakeSessionStore>;
@@ -75,7 +78,10 @@ interface BuildOptions {
 function build(options: BuildOptions = {}) {
   const { provider, requests } = fakeFeedbackProvider(options.scripts ?? CORRECT);
   const { audit, events } = recordingAuditLog();
-  const { retrieval, queries } = fakeCompetencies({ fails: options.curriculumFails === true });
+  const { retrieval, queries } = fakeCompetencies({
+    fails: options.curriculumFails === true,
+    ...(options.curriculum === undefined ? {} : { found: options.curriculum }),
+  });
   const sessions = options.sessions ?? fakeSessionStore([onNextStep()]);
   const checkAnswer = new CheckAnswer({
     authorization: createAuthorizationService({
@@ -286,6 +292,34 @@ describe('CheckAnswer', () => {
       REQUEST.competencies,
       REQUEST.competencies,
     ]);
+  });
+
+  it('words every feedback in the competency the session was classified with, and only that one (#35)', async () => {
+    const { checkAnswer, requests } = build({
+      curriculum: CANDIDATES,
+      sessions: fakeSessionStore([onNextStep({ competencyCode: 'M2.4' })]),
+    });
+
+    await checkAnswer.execute(input());
+
+    expect(requests.map((r) => r.competencies)).toEqual([
+      [CANDIDATES[1]],
+      [CANDIDATES[1]],
+      [CANDIDATES[1]],
+    ]);
+  });
+
+  it("words the feedback as before when the stored competency is no longer one of the child's", async () => {
+    const { checkAnswer, requests, events } = build({
+      curriculum: CANDIDATES,
+      sessions: fakeSessionStore([onNextStep({ competencyCode: 'M9.9' })]),
+    });
+
+    const result = await checkAnswer.execute(input());
+
+    expect(result.isOk() && result.value).toMatchObject({ result: 'correct' });
+    expect(requests.map((r) => r.competencies)).toEqual([CANDIDATES, CANDIDATES, CANDIDATES]);
+    expect(events).toContainEqual({ type: 'guidance.stored_competency_unavailable', level: LEVEL });
   });
 
   it('still checks the answer ungrounded when the curriculum is unreachable, and logs why', async () => {
