@@ -25,6 +25,16 @@ export interface MaterialStatement {
 }
 /** 10 MiB bounds storage and extraction work per upload. TXT is UTF-8; PDF needs #29's follow-up extractor. */
 export const MATERIAL_MAX_BYTES = 10_485_760;
+/**
+ * Word and PowerPoint files (#126) are turned into their text on the server before anything is
+ * stored: from then on the material is the UTF-8 text, exactly as if the teacher had uploaded it.
+ */
+export const MATERIAL_WORD_CONTENT_TYPE =
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+export const MATERIAL_POWERPOINT_CONTENT_TYPE =
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+export type ConvertibleMaterialMime =
+  typeof MATERIAL_WORD_CONTENT_TYPE | typeof MATERIAL_POWERPOINT_CONTENT_TYPE;
 export const MATERIAL_URL_SECONDS = 60;
 export const MATERIAL_LIST_LIMIT = 100;
 export const MATERIAL_SNIFF_BYTES = 512;

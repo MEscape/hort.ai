@@ -6,6 +6,7 @@ import type { ObjectStore } from '@lib/storage';
 import type { MaterialAuditLog } from '../domain/ports/material-audit-log.port';
 import type {
   MaterialClassrooms,
+  MaterialDocumentConverter,
   MaterialIngest,
   MaterialObjectWriter,
   MaterialTextReader,
@@ -20,6 +21,7 @@ export interface MaterialDependencies {
   readonly textReader: MaterialTextReader;
   readonly writer: MaterialObjectWriter;
   readonly ingest: MaterialIngest;
+  readonly converter: MaterialDocumentConverter;
   readonly newId: () => string;
   readonly rateLimiter: RateLimiter;
   readonly audit: MaterialAuditLog;
