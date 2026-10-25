@@ -75,6 +75,7 @@ function leavingIsGuarded(): boolean {
 describe('teacher assignment workspace', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.sessionStorage.clear();
     actions.create.mockResolvedValue({ ok: true, data: SAVED });
     actions.update.mockResolvedValue({ ok: true, data: SAVED });
     actions.remove.mockResolvedValue({ ok: true, data: undefined });
@@ -168,6 +169,24 @@ describe('teacher assignment workspace', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
     expect(screen.getByRole('heading', { name: 'No assignments yet' })).toBeInTheDocument();
     expect(actions.create).not.toHaveBeenCalled();
+  });
+
+  it('keeps an unsaved draft when browser back/forward replaces the class editor (#85)', async () => {
+    const first = renderWorkspace();
+    fireEvent.click(screen.getByRole('button', { name: 'New assignment' }));
+    await fill('Assignment title', 'Draft title');
+    await fill('Task text', 'Draft task');
+    // History navigation to another class and back: no click, the keyed editor is unmounted.
+    first.unmount();
+
+    renderWorkspace();
+    expect(await screen.findByLabelText('Assignment title')).toHaveValue('Draft title');
+    expect(screen.getByLabelText('Task text')).toHaveValue('Draft task');
+    expect(leavingIsGuarded()).toBe(true);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
+    expect(window.sessionStorage.length).toBe(0);
   });
 
   it('edits a saved assignment with its stored values', async () => {
