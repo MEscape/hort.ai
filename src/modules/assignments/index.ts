@@ -3,7 +3,8 @@
  * from here and nowhere deeper. Components that run in the browser import from `./client`.
  *
  * Teacher storage is reached only through authorized use cases. The child-facing query returns the
- * child projection, which has no solution key.
+ * child projection, which has no solution key. `getAssignmentForHelp` is the one read with the key,
+ * for the guidance module's server-side checks (#33).
  */
 export { assignmentsQueries } from './composition';
 export { assignmentRoutes } from './presentation/routes';
@@ -15,6 +16,7 @@ export { TeacherAssignmentWorkspace } from './presentation/components/teacher-as
 export { FirstClassroomPanel } from './presentation/components/first-classroom-panel';
 export { TeachersOnlyNotice } from './presentation/components/teachers-only-notice';
 export type {
+  AssignmentForHelpView,
   ChildAssignmentView,
   TeacherAssignmentOverview,
 } from './application/contracts/assignment-views';
