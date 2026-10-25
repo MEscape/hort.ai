@@ -31,6 +31,12 @@ export const LEARNER_PERMISSIONS = [
 
 export const GUIDANCE_PERMISSIONS = ['hint.request'] as const;
 
+/**
+ * The signed-in person's own account (name, password): every role has it, and it only ever reaches
+ * the account of the session itself, never another one.
+ */
+export const ACCOUNT_PERMISSIONS = ['account.read', 'account.update'] as const;
+
 export const TEACHER_PERMISSIONS = [
   'classroom.create',
   'classroom.read',
@@ -49,6 +55,7 @@ export const PERMISSIONS = [
   ...LEARNER_PERMISSIONS,
   ...GUIDANCE_PERMISSIONS,
   ...TEACHER_PERMISSIONS,
+  ...ACCOUNT_PERMISSIONS,
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

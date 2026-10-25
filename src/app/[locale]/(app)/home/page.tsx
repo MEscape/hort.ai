@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import { assignmentRoutes } from '@modules/assignments';
 import {
+  AccountHeader,
   AuthFormSkeleton,
   AuthShell,
   isAuthEnabled,
@@ -11,6 +12,7 @@ import {
 } from '@modules/auth';
 import { SignOutButton } from '@modules/auth/client';
 import { ChildClassroomPanel, classroomQueries } from '@modules/classroom';
+import { loadOpenHelpSession } from '@modules/guidance';
 import {
   ResetOnboardingButton,
   VoiceConsentSwitch,
@@ -34,6 +36,8 @@ import { buildQueryString } from '@lib/utils';
 
 import { buildTutorOptions, preloadTutorPictures } from '../onboarding/tutor-options';
 
+const TASK_PREVIEW_LIMIT = 48;
+
 export async function generateMetadata({
   params,
 }: {
@@ -48,6 +52,7 @@ async function ChildActions({ child }: { readonly child: { id: string; displayNa
   const t = await getTranslations('app');
   // The classroom query authorizes the parent on the stored child profile again.
   const result = await classroomQueries.getChildClassroom.execute(child.id);
+  const activeSession = await loadOpenHelpSession(child.id);
   if (result.isErr()) {
     throw new Error(result.error.code, { cause: result.error });
   }
@@ -59,6 +64,13 @@ async function ChildActions({ child }: { readonly child: { id: string; displayNa
           {t('home.startHomework')}
         </Link>
       </Button>
+      {activeSession !== null && (
+        <Button asChild size="lg">
+          <Link href="/help">
+            {t('home.continueHelp', { task: activeSession.task.slice(0, TASK_PREVIEW_LIMIT) })}
+          </Link>
+        </Button>
+      )}
       <ChildClassroomPanel
         childProfileId={child.id}
         childName={child.displayName}
@@ -139,8 +151,11 @@ export default async function HomePage({
 }) {
   const locale = requireLocale((await params).locale);
   return (
-    <I18nProvider locale={locale} namespaces={['auth', 'learner', 'classroom', 'progression']}>
-      <AuthShell>
+    <I18nProvider
+      locale={locale}
+      namespaces={['auth', 'learner', 'classroom', 'progression', 'guidance']}
+    >
+      <AuthShell header={<AccountHeader />}>
         <Suspense fallback={<AuthFormSkeleton />}>
           <Home />
         </Suspense>

@@ -34,30 +34,30 @@ const GREETING: Record<MailLocale, string> = { de: 'Hallo {name},', en: 'Hello {
 const COPY: Record<MailLocale, Record<AuthEmailKind, EmailCopy>> = {
   de: {
     verification: {
-      subject: 'Bestätigen Sie Ihre E-Mail-Adresse',
+      subject: 'Bestätige deine E-Mail-Adresse',
       intro:
-        'Willkommen bei {appName}! Bitte bestätigen Sie Ihre E-Mail-Adresse, damit wir Ihr Konto aktivieren können.',
+        'Willkommen bei {appName}! Bitte bestätige deine E-Mail-Adresse, damit wir dein Konto aktivieren können.',
       actionLabel: 'E-Mail-Adresse bestätigen',
       note: 'Der Link ist {minutes} Minuten gültig.',
       outro:
-        'Sie haben kein Konto angelegt? Dann können Sie diese Nachricht ignorieren; es passiert nichts.',
+        'Du hast kein Konto angelegt? Dann kannst du diese Nachricht ignorieren; es passiert nichts.',
     },
     password_reset: {
       subject: 'Passwort zurücksetzen',
       intro:
-        'Für Ihr Konto bei {appName} wurde das Zurücksetzen des Passworts angefordert. Wählen Sie mit dem Button ein neues Passwort.',
+        'Für dein Konto bei {appName} wurde das Zurücksetzen des Passworts angefordert. Wähle mit dem Button ein neues Passwort.',
       actionLabel: 'Neues Passwort festlegen',
       note: 'Der Link ist {minutes} Minuten gültig und kann nur einmal verwendet werden.',
-      outro: 'Das waren nicht Sie? Dann ist keine Aktion nötig; Ihr Passwort bleibt unverändert.',
+      outro: 'Das warst nicht du? Dann ist nichts zu tun; dein Passwort bleibt unverändert.',
     },
     existing_account: {
-      subject: 'Registrierungsversuch mit Ihrer E-Mail-Adresse',
+      subject: 'Registrierungsversuch mit deiner E-Mail-Adresse',
       intro:
         'Jemand hat versucht, mit dieser E-Mail-Adresse ein Konto bei {appName} anzulegen. Es besteht bereits ein Konto, deshalb wurde nichts geändert.',
       actionLabel: 'Zur Anmeldung',
-      note: 'Passwort vergessen? Auf der Anmeldeseite können Sie es zurücksetzen.',
+      note: 'Passwort vergessen? Auf der Anmeldeseite kannst du es zurücksetzen.',
       outro:
-        'Waren Sie das nicht, ist keine Aktion nötig; Ihr Konto und Ihr Passwort sind unverändert.',
+        'Warst du das nicht, ist nichts zu tun; dein Konto und dein Passwort sind unverändert.',
     },
   },
   en: {

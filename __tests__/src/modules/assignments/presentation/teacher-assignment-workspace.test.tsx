@@ -44,20 +44,33 @@ const SAVED: TeacherAssignmentView = {
   solutionKey: 'TEACHER_PRIVATE_KEY',
 };
 
-function renderWorkspace(assignments: readonly TeacherAssignmentView[] = []) {
-  return render(
+const CLASSROOMS = [
+  { id: 'class-a', name: '3a', grade: 3 },
+  { id: 'class-b', name: '4b', grade: 4 },
+];
+
+function Workspace({
+  assignments = [],
+  classrooms = CLASSROOMS,
+}: {
+  readonly assignments?: readonly TeacherAssignmentView[];
+  readonly classrooms?: typeof CLASSROOMS;
+}) {
+  return (
     <I18nClientProvider locale="en" timeZone="Pacific/Kiritimati" messages={messages} isDevelopment>
       <TeacherAssignmentWorkspace
-        classrooms={[
-          { id: 'class-a', name: '3a', grade: 3 },
-          { id: 'class-b', name: '4b', grade: 4 },
-        ]}
+        classrooms={classrooms}
         classroomId="class-a"
         classroomName="3a"
         assignments={assignments}
+        classroomActions={<button type="button">Add class</button>}
       />
-    </I18nClientProvider>,
+    </I18nClientProvider>
   );
+}
+
+function renderWorkspace(assignments: readonly TeacherAssignmentView[] = []) {
+  return render(<Workspace assignments={assignments} />);
 }
 
 async function fill(label: string, value: string) {
@@ -75,6 +88,7 @@ function leavingIsGuarded(): boolean {
 describe('teacher assignment workspace', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.sessionStorage.clear();
     actions.create.mockResolvedValue({ ok: true, data: SAVED });
     actions.update.mockResolvedValue({ ok: true, data: SAVED });
     actions.remove.mockResolvedValue({ ok: true, data: undefined });
@@ -170,6 +184,38 @@ describe('teacher assignment workspace', () => {
     expect(actions.create).not.toHaveBeenCalled();
   });
 
+  it('keeps an unsaved draft when browser back/forward replaces the class editor (#85)', async () => {
+    const first = renderWorkspace();
+    fireEvent.click(screen.getByRole('button', { name: 'New assignment' }));
+    await fill('Assignment title', 'Draft title');
+    await fill('Task text', 'Draft task');
+    // History navigation to another class and back: no click, the keyed editor is unmounted.
+    first.unmount();
+
+    renderWorkspace();
+    expect(await screen.findByLabelText('Assignment title')).toHaveValue('Draft title');
+    expect(screen.getByLabelText('Task text')).toHaveValue('Draft task');
+    expect(leavingIsGuarded()).toBe(true);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
+    expect(window.sessionStorage.length).toBe(0);
+  });
+
+  it('does not restore a stale draft after all changes were reverted to the baseline', async () => {
+    const first = renderWorkspace();
+    fireEvent.click(screen.getByRole('button', { name: 'New assignment' }));
+    await fill('Assignment title', 'Temporary title');
+    expect(window.sessionStorage.length).toBe(1);
+    await fill('Assignment title', '');
+    expect(window.sessionStorage.length).toBe(0);
+    first.unmount();
+
+    renderWorkspace();
+    expect(screen.getByRole('heading', { name: 'No assignments yet' })).toBeVisible();
+    expect(screen.queryByLabelText('Assignment title')).not.toBeInTheDocument();
+  });
+
   it('edits a saved assignment with its stored values', async () => {
     renderWorkspace([SAVED]);
     expect(screen.getByText('Solution key saved')).toBeInTheDocument();
@@ -212,7 +258,7 @@ describe('teacher assignment workspace', () => {
   });
 
   describe('switching classes', () => {
-    const classB = () => screen.getByRole('link', { name: /4b/ });
+    const classB = () => screen.getByRole('link', { name: /^4b/ });
 
     it('asks before discarding an unsaved draft, and keeps it when asked to', async () => {
       renderWorkspace();
@@ -250,6 +296,20 @@ describe('teacher assignment workspace', () => {
       expect(classB()).toHaveAttribute('aria-disabled', 'true');
       expect(screen.queryByText('Switch class and discard your changes?')).not.toBeInTheDocument();
       expect(push).not.toHaveBeenCalled();
+    });
+
+    it('keeps an unsaved draft when another class is created and the page refreshes', async () => {
+      const view = renderWorkspace();
+      expect(screen.getByRole('button', { name: 'Add class' })).toBeVisible();
+      fireEvent.click(screen.getByRole('button', { name: 'New assignment' }));
+      await fill('Assignment title', 'Unsaved draft');
+
+      // The refresh after "Add class": one more class, the selected one unchanged.
+      view.rerender(
+        <Workspace classrooms={[...CLASSROOMS, { id: 'class-c', name: '2c', grade: 2 }]} />,
+      );
+      expect(screen.getByRole('link', { name: /^2c/ })).toBeInTheDocument();
+      expect(screen.getByLabelText('Assignment title')).toHaveValue('Unsaved draft');
     });
   });
 });

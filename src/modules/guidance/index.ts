@@ -53,5 +53,8 @@ export { GUIDANCE_ERROR_CODES, GUIDANCE_VALIDATION_CODES } from './domain/errors
 export { CHILD_DISTRESS_ERROR_CODES } from './domain/errors/child-distress-errors';
 
 /** The module's message catalogs, registered in `src/i18n/locales`. */
+/** Framework entry point for pages: the child's open help session, or `null` (#17). */
+export { loadOpenHelpSession } from './presentation/guards/load-open-help-session';
+
 export { default as enGuidance } from './presentation/i18n/en.json';
 export { default as deGuidance } from './presentation/i18n/de.json';

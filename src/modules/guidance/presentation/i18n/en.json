@@ -45,6 +45,27 @@
       "hours": "Someone is there for you Monday to Saturday from 2 pm to 8 pm.",
       "emergency": "If you are in danger right now, call 110 (police) or 112 (emergency) straight away.",
       "summary": "Thank you for telling me. It is brave to talk about it. Tell an adult you trust. You can also call the Nummer gegen Kummer: 116 111, free and without giving your name, Monday to Saturday from 2 pm to 8 pm. If you are in danger right now, call 110 or 112."
+    },
+    "conversation": {
+      "label": "Conversation with your companion",
+      "you": "You",
+      "taskTitle": "Your task",
+      "thinking": "{name} is thinking …",
+      "hint": "I'd like a hint",
+      "hintsUsed": "Hints used: {count}",
+      "answerLabel": "My answer",
+      "checkAnswer": "Check my answer",
+      "replyLabel": "Tell me in your own words",
+      "sendReply": "Reply",
+      "empty": "Write something first.",
+      "retry": "Try again",
+      "later": "Continue later",
+      "doneTitle": "You did it!",
+      "doneBody": "You worked it out yourself and explained it. {name} is happy with you!",
+      "home": "Back to home",
+      "emptyTitle": "No task is open right now",
+      "emptyBody": "Start a new task and I'll help you think it through.",
+      "newTask": "New task"
     }
   }
 }

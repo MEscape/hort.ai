@@ -14,6 +14,8 @@ export interface Material extends MaterialScope {
   readonly contentType: 'text/plain';
   readonly sizeBytes: number;
   status: 'UPLOADED' | 'PROCESSED' | 'FAILED' | 'DELETED';
+  /** Set by the database; absent on a row that is just being created. */
+  readonly createdAt?: Date;
 }
 export interface MaterialStatement {
   readonly code: string;

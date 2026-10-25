@@ -7,13 +7,13 @@ import type {
   NotFoundAppError,
   ValidationAppError,
 } from '@lib/errors';
-import { errAsync } from '@lib/result';
+import { ResultAsync, errAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
 import { isTaskUnderstood } from '../../domain/answer-check/answer-decision';
 import { GUIDANCE_ERROR_CODES } from '../../domain/errors/guidance-errors';
 import { parseChildTaskText } from '../../domain/models/child-task-text';
-import { openQuestionCheck } from '../../domain/models/help-session';
+import { isSessionUnderstood, openQuestionCheck } from '../../domain/models/help-session';
 import { parseChildProfileId, parseHelpSessionId } from '../../domain/models/ids';
 import { checkForDistress } from '../services/distress-check';
 import { ownChildScope } from '../services/own-child-session';
@@ -61,7 +61,12 @@ export class ReplyToComprehensionQuestion {
         .asyncAndThen(({ id, sessionId, reply }) =>
           ownChildScope(this.deps, actor, id).andThen(({ owner, childProfileId }) => {
             const ref = { ...owner, childProfileId, sessionId };
-            return sessions.loadSession(ref).andThen((session) => {
+            return sessions.loadSession(ref, true).andThen((session) => {
+              // A lost HTTP response must not turn a stored completion into an error. No new
+              // write or reward: return only the authenticated session's proven completion.
+              if (session.status === 'completed' && isSessionUnderstood(session)) {
+                return okAsync({ sessionId, status: 'understood' as const });
+              }
               const check = openQuestionCheck(session);
               if (check === null) {
                 return errAsync(noOpenQuestion());
@@ -76,6 +81,13 @@ export class ReplyToComprehensionQuestion {
                   text: reply,
                   completes: understood,
                 })
+                .andThen((outcome) =>
+                  outcome === 'recorded' && understood && this.deps.reward !== undefined
+                    ? ResultAsync.fromSafePromise(
+                        this.deps.reward.award(childProfileId, sessionId),
+                      ).map(() => outcome)
+                    : okAsync(outcome),
+                )
                 .map((outcome): ComprehensionReplyView => {
                   if (outcome === 'recorded') {
                     audit.record({

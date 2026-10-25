@@ -29,6 +29,14 @@ describe('renderAuthEmail', () => {
     },
   );
 
+  it.each(KINDS)('addresses the parent informally in German, like the app (%s)', (kind) => {
+    const mail = renderAuthEmail({ kind, locale: 'de', appName: 'Hort.ai', url: LINK });
+
+    for (const part of [mail.subject, mail.text]) {
+      expect(part).not.toMatch(/\b(Sie|Ihr|Ihre|Ihrer|Ihnen)\b/);
+    }
+  });
+
   it('states how long a verification or reset link stays valid', () => {
     expect(
       renderAuthEmail({ kind: 'verification', locale: 'en', appName: 'Hort.ai', url: LINK }).text,

@@ -45,6 +45,27 @@
       "hours": "Dort ist montags bis samstags von 14 bis 20 Uhr jemand für dich da.",
       "emergency": "Wenn du gerade in Gefahr bist, ruf sofort 110 (Polizei) oder 112 (Notruf) an.",
       "summary": "Danke, dass du mir das erzählst. Es ist mutig, darüber zu sprechen. Erzähl es einem Erwachsenen, dem du vertraust. Du kannst auch die Nummer gegen Kummer anrufen: 116 111, kostenlos und ohne deinen Namen, montags bis samstags von 14 bis 20 Uhr. Wenn du gerade in Gefahr bist, ruf 110 oder 112 an."
+    },
+    "conversation": {
+      "label": "Gespräch mit deinem Begleiter",
+      "you": "Du",
+      "taskTitle": "Deine Aufgabe",
+      "thinking": "{name} denkt nach …",
+      "hint": "Ich möchte einen Tipp",
+      "hintsUsed": "Tipps genutzt: {count}",
+      "answerLabel": "Meine Antwort",
+      "checkAnswer": "Antwort prüfen",
+      "replyLabel": "Erzähl es mir in deinen Worten",
+      "sendReply": "Antworten",
+      "empty": "Schreib zuerst etwas auf.",
+      "retry": "Nochmal versuchen",
+      "later": "Später weitermachen",
+      "doneTitle": "Geschafft!",
+      "doneBody": "Du hast die Aufgabe selbst herausgefunden und erklärt. {name} freut sich mit dir!",
+      "home": "Zur Startseite",
+      "emptyTitle": "Gerade ist keine Aufgabe offen",
+      "emptyBody": "Starte eine neue Aufgabe, dann helfe ich dir beim Nachdenken.",
+      "newTask": "Neue Aufgabe"
     }
   }
 }
