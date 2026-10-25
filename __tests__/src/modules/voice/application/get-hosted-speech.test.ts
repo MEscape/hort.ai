@@ -184,7 +184,9 @@ describe('GetHostedSpeech', () => {
       query.execute({ speakerId: 'max', text: 'Hallo Lennart' }),
     );
     const other = query.execute({ speakerId: 'max', text: 'Tschüss Lennart' });
-    await vi.waitFor(() => { expect(synthesize).toHaveBeenCalledTimes(2); });
+    await vi.waitFor(() => {
+      expect(synthesize).toHaveBeenCalledTimes(2);
+    });
     open();
     const results = await Promise.all(burst);
 
