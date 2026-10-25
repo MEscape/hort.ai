@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 
 import { assignmentRoutes } from '@modules/assignments';
 import { AccountHeader, AuthShell, requireSignedIn, TEACHER_ROLE } from '@modules/auth';
+import { classroomQueries } from '@modules/classroom';
 import { loadOpenHelpSession } from '@modules/guidance';
 import { requireOnboarded } from '@modules/learner';
 import { loadProgressDto } from '@modules/progression';
@@ -115,6 +116,12 @@ async function ChildHome() {
 /** A teacher has no child setup (parent onboarding needs `learner.read`): their own short home. */
 async function TeacherHome() {
   const t = await getTranslations('app');
+  // The classroom query lists only the signed-in teacher's own classes.
+  const result = await classroomQueries.listClassrooms.execute();
+  if (result.isErr()) {
+    throw new Error(result.error.code, { cause: result.error });
+  }
+  const classrooms = result.value.filter(({ status }) => status === 'active');
   return (
     <AuthShell header={<AccountHeader />}>
       <Card>
@@ -124,6 +131,21 @@ async function TeacherHome() {
         </CardHeader>
         <CardContent>
           <p className="text-center text-copy-muted">{t('home.teacherDescription')}</p>
+          {classrooms.length === 0 ? (
+            <p className="text-center">{t('home.teacherNoClassroom')}</p>
+          ) : (
+            <ul aria-label={t('home.teacherClassrooms')} className="w-full space-y-2">
+              {classrooms.map((classroom) => (
+                <li key={classroom.id}>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href={assignmentRoutes.teacherClassroom(classroom.id)}>
+                      {t('home.teacherClassroom', { name: classroom.name, grade: classroom.grade })}
+                    </Link>
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
           <Button asChild>
             <Link href={assignmentRoutes.teacher()}>{t('home.teacherAssignments')}</Link>
           </Button>

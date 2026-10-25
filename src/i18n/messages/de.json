@@ -77,6 +77,9 @@
     },
     "teacherDescription": "Dein Lehrkraft-Konto ist bereit. Hier stellst du Aufgaben für deine Klasse ein.",
     "teacherAssignments": "Zu den Aufgaben",
+    "teacherClassrooms": "Deine Klassen",
+    "teacherClassroom": "Klasse {name} (Jahrgangsstufe {grade})",
+    "teacherNoClassroom": "Du hast noch keine Klasse. Lege sie unter „Zu den Aufgaben“ an.",
     "startHomework": "Zur Hausaufgabenhilfe",
     "continueHelp": "Weiter: {task}"
   },

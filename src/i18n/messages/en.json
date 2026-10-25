@@ -77,6 +77,9 @@
     },
     "teacherDescription": "Your teacher account is ready. Post assignments for your class here.",
     "teacherAssignments": "Go to assignments",
+    "teacherClassrooms": "Your classes",
+    "teacherClassroom": "Class {name} (grade {grade})",
+    "teacherNoClassroom": "You have no class yet. Create it under “Go to assignments”.",
     "startHomework": "Open homework help",
     "continueHelp": "Continue: {task}"
   },
