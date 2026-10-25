@@ -18,6 +18,7 @@ export interface LearningPause {
   readonly anyTime: boolean;
 }
 
+// eslint-disable-next-line no-restricted-syntax -- a fixed-zone calendar key for comparing days, not user-facing locale formatting
 const dayFormat = new Intl.DateTimeFormat('en-CA', {
   timeZone: LEARNER_TIME_ZONE,
   year: 'numeric',
@@ -25,6 +26,7 @@ const dayFormat = new Intl.DateTimeFormat('en-CA', {
   day: '2-digit',
 });
 
+// eslint-disable-next-line no-restricted-syntax -- fixed 24-hour Berlin clock text for the parent's window, not locale formatting
 const clockFormat = new Intl.DateTimeFormat('en-GB', {
   timeZone: LEARNER_TIME_ZONE,
   hour: '2-digit',
@@ -42,8 +44,7 @@ export function learningPauseOf(
   now: Date = new Date(),
 ): LearningPause | null {
   if (
-    error === undefined ||
-    error.retryAfterSeconds === undefined ||
+    error?.retryAfterSeconds === undefined ||
     (error.code !== GUIDANCE_ERROR_CODES.learningWindowClosed &&
       error.code !== GUIDANCE_ERROR_CODES.dailyLimitReached)
   ) {

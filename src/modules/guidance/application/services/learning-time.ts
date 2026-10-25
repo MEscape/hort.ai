@@ -7,11 +7,11 @@ import { GUIDANCE_ERROR_CODES, learningTimeClosed } from '../../domain/errors/gu
 import { LEARNING_LOOKBACK_MS, countLearningMinutes } from '../../domain/models/learning-time';
 
 import type { OwnChildProfile } from '../../domain/ports/child-profile-access.port';
-import type { LearningDay } from '../../domain/ports/learning-time-policy.port';
 import type {
   HelpSessionOwner,
   HelpSessionRepository,
 } from '../../domain/ports/help-session.repository';
+import type { LearningDay } from '../../domain/ports/learning-time-policy.port';
 import type { LearningTimeDependencies } from '../learning-time-dependencies';
 
 const MS_PER_SECOND = MS_PER_MINUTE / SECONDS_PER_MINUTE;
@@ -40,7 +40,7 @@ export function refusalOf(day: LearningDay, now: Date): LearningTimeRefusal | nu
 export function requireWindowOpen(
   { clock, learningTime }: LearningTimeDependencies,
   child: OwnChildProfile,
-): AppResult<void, LearningTimeRefusal> {
+): AppResult<undefined, LearningTimeRefusal> {
   const now = clock.now();
   const refusal = refusalOf(learningTime.assess(child.controls, null, now), now);
   return refusal === null ? ok(undefined) : err(refusal);
@@ -62,7 +62,7 @@ export function usedMinutesToday(
   const now = clock.now();
   return sessions
     .learningActivity(owner, child.id, new Date(now.getTime() - LEARNING_LOOKBACK_MS))
-    .map((instants) => countLearningMinutes(instants, now, learningTime.calendarDay));
+    .map((instants) => countLearningMinutes(instants, now, (instant) => learningTime.calendarDay(instant)));
 }
 
 /**
@@ -74,12 +74,12 @@ export function requireDailyBudget(
   sessions: Pick<HelpSessionRepository, 'learningActivity'>,
   owner: HelpSessionOwner,
   child: OwnChildProfile,
-): AppResultAsync<void, LearningTimeRefusal | InfrastructureAppError> {
+): AppResultAsync<undefined, LearningTimeRefusal | InfrastructureAppError> {
   return usedMinutesToday(deps, sessions, owner, child).andThen((used) => {
     const now = deps.clock.now();
     const refusal = refusalOf(deps.learningTime.assess(child.controls, used, now), now);
     return refusal === null
-      ? okAsync<void, LearningTimeRefusal>(undefined)
-      : errAsync<void, LearningTimeRefusal>(refusal);
+      ? okAsync<undefined, LearningTimeRefusal>(undefined)
+      : errAsync<undefined, LearningTimeRefusal>(refusal);
   });
 }

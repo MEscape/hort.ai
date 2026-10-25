@@ -1,12 +1,5 @@
 import type { Clock } from '@lib/clock';
-import {
-  createPersistenceFailures,
-  dateToInstant,
-  db,
-  instantToDate,
-  rollbackWith,
-  rollbackable,
-} from '@lib/db';
+import { createPersistenceFailures, dateToInstant, db, rollbackWith, rollbackable } from '@lib/db';
 import type { Rollbackable } from '@lib/db';
 import { conflictError, infrastructureError, notFoundError } from '@lib/errors';
 import type { ConflictAppError, InfrastructureAppError } from '@lib/errors';
@@ -31,6 +24,7 @@ import {
   toTopicRecord,
   toHelpSession,
 } from './help-session-record-mapper';
+import { loadLearningActivity } from './learning-activity.repository';
 
 import type { LevelValue } from './help-session-record-mapper';
 import type { HelpSession } from '../../domain/models/help-session';
@@ -48,10 +42,6 @@ const failures = createPersistenceFailures({
 });
 
 /** Only seen inside this file: a unique index refused a repeat, which is an expected outcome. */
-/** Bounds of the day's activity read (#88): a child cannot produce more than this in 26 hours. */
-const ACTIVITY_SESSION_LIMIT = 500;
-const ACTIVITY_STEP_LIMIT = 2000;
-
 const alreadyStored = () => conflictError('guidance.step_already_stored', 'Already stored.');
 
 const sessionNotFound = () =>
@@ -204,53 +194,7 @@ export class PrismaHelpSessionRepository implements HelpSessionRepository {
           ),
     );
 
-  learningActivity: HelpSessionRepository['learningActivity'] = (owner, childProfileId, since) =>
-    fromThrowableAsync(async () => {
-      const from = dateToInstant(since);
-      // Every step touches its session, so a session untouched since `since` has no step in range.
-      // @owner-scope actor Exact tenant, parent and child.
-      const sessions = await db.orm.public.HelpSession.where({
-        tenantId: owner.tenantId,
-        ownerId: owner.ownerId,
-        childProfileId,
-      })
-        .where((row) => row.updatedAt.gte(from))
-        .select('id', 'startedAt')
-        .limit(ACTIVITY_SESSION_LIMIT)
-        .all();
-      const ids = sessions.map(({ id }) => id);
-      if (ids.length === 0) {
-        return [];
-      }
-      const [hints, answers, replies] = await Promise.all([
-        // @owner-scope derived Sessions were read above with tenant, owner and child.
-        db.orm.public.HintEvent.where((row) => row.sessionId.in(ids))
-          .where((row) => row.occurredAt.gte(from))
-          .select('occurredAt')
-          .limit(ACTIVITY_STEP_LIMIT)
-          .all(),
-        // @owner-scope derived Sessions were read above with tenant, owner and child.
-        db.orm.public.ChildAnswer.where((row) => row.sessionId.in(ids))
-          .where((row) => row.occurredAt.gte(from))
-          .select('occurredAt')
-          .limit(ACTIVITY_STEP_LIMIT)
-          .all(),
-        // @owner-scope derived Sessions were read above with tenant, owner and child.
-        db.orm.public.ComprehensionQuestion.where((row) => row.sessionId.in(ids))
-          .where((row) => row.repliedAt.gte(from))
-          .select('repliedAt')
-          .limit(ACTIVITY_STEP_LIMIT)
-          .all(),
-      ]);
-      return [
-        ...sessions.map(({ startedAt }) => startedAt),
-        ...hints.map(({ occurredAt }) => occurredAt),
-        ...answers.map(({ occurredAt }) => occurredAt),
-        ...replies.map(({ repliedAt }) => repliedAt),
-      ]
-        .filter((instant) => instant !== null)
-        .map(instantToDate);
-    }, failures.infraOnly('learningActivity'));
+  learningActivity: HelpSessionRepository['learningActivity'] = loadLearningActivity;
 
   loadSession: HelpSessionRepository['loadSession'] = (ref, includeCompleted = false) =>
     this.read(ref, includeCompleted);

@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 
-import { learningPauseOf } from '../components/learning-pause';
 import { checkAnswerAction } from '../actions/check-answer-action';
 import { replyComprehensionAction } from '../actions/reply-comprehension-action';
 import { requestHintAction } from '../actions/request-hint-action';
+import { learningPauseOf } from '../components/learning-pause';
 
 import type { FeedbackText } from '../../application/contracts/answer-views';
 import type { HintOutcome } from '../../application/contracts/hint-views';

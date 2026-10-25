@@ -2,6 +2,7 @@ import type { AuthorizationService } from '@modules/auth';
 
 import type { RateLimiter } from '@lib/rate-limit';
 
+import type { LearningTimeDependencies } from './learning-time-dependencies';
 import type { AnswerCoach } from './services/answer-coach';
 import type { HintOrchestrator } from './services/hint-orchestrator';
 import type { AssignmentAccess } from '../domain/ports/assignment-access.port';
@@ -9,7 +10,6 @@ import type { ChildProfileAccess } from '../domain/ports/child-profile-access.po
 import type { CompetencyRetrieval } from '../domain/ports/competency-retrieval.port';
 import type { GuidanceAuditLog } from '../domain/ports/guidance-audit-log.port';
 import type { HintSessionStore } from '../domain/ports/hint-session-store.port';
-import type { LearningTimeDependencies } from './learning-time-dependencies';
 
 /** What every guidance use case about one step of a child's help session is built from. */
 export interface SessionStepDependencies extends LearningTimeDependencies {

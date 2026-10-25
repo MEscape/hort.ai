@@ -49,7 +49,7 @@ function StepStatus({
           {t('conversation.thinking', { name: companionName })}
         </p>
       )}
-      {failure?.pause != null && <LearningPauseNote pause={failure.pause} />}
+      {failure?.pause ? <LearningPauseNote pause={failure.pause} /> : null}
       {failure !== null && failure.pause === null && (
         <div role="alert" className="flex flex-wrap items-center gap-3">
           <p className="font-semibold text-nudge">
