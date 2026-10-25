@@ -4,9 +4,11 @@ import { TEACHER_ROLE } from '@modules/auth/domain/models/role';
 import { ReplyToComprehensionQuestion } from '@modules/guidance/application/commands/reply-to-comprehension-question';
 import { StartHelpSession } from '@modules/guidance/application/commands/start-help-session';
 import { GetOpenHelpSession } from '@modules/guidance/application/queries/get-open-help-session';
+import { GUIDANCE_RATE_LIMITS } from '@modules/guidance/application/rate-limits';
 import type { AnswerCheckStep } from '@modules/guidance/domain/models/help-session';
 import { toStepRequestId } from '@modules/guidance/domain/models/ids';
 
+import { createBrokenRateLimiter, createTestRateLimiter } from '../../../support/rate-limiting';
 import { parent } from '../../auth/fakes';
 import { OTHER_CHILD, OWN_CHILD, task } from '../fakes';
 import { helpSessionDependencies, inMemorySessions, storedSession } from '../help-session-fakes';
@@ -269,5 +271,53 @@ describe('ReplyToComprehensionQuestion', () => {
       code: 'guidance.session_not_found',
     });
     expect(store.replies).toEqual([]);
+  });
+});
+
+describe('StartHelpSession rate limit', () => {
+  const POLICY = GUIDANCE_RATE_LIMITS.sessionStart;
+  const startNew = (deps: ReturnType<typeof helpSessionDependencies>['deps'], n: number) =>
+    new StartHelpSession(deps).execute({
+      childProfileId: OWN_CHILD,
+      task: `Rechne ${String(n)} + 1.`,
+      subject: 'math',
+    });
+
+  it('stops a child who keeps starting new tasks, before anything more is stored', async () => {
+    const store = inMemorySessions();
+    const { deps } = helpSessionDependencies(store.repository);
+    for (let n = 0; n < POLICY.limit; n += 1) {
+      expect((await startNew(deps, n)).isOk()).toBe(true);
+    }
+
+    const error = (await startNew(deps, POLICY.limit))._unsafeUnwrapErr();
+
+    expect(error).toMatchObject({ kind: 'rate_limited', code: 'guidance.rate_limited' });
+    expect(store.starts).toHaveLength(POLICY.limit);
+  });
+
+  it("does not spend the budget on another parent's child", async () => {
+    const store = inMemorySessions();
+    const limiter = createTestRateLimiter();
+    const { deps } = helpSessionDependencies(store.repository, parent(), limiter);
+    for (let n = 0; n < POLICY.limit; n += 1) {
+      await new StartHelpSession(deps).execute({
+        childProfileId: OTHER_CHILD,
+        task: TASK,
+        subject: 'math',
+      });
+    }
+
+    expect((await startNew(deps, 0)).isOk()).toBe(true);
+  });
+
+  it('refuses to start when the budget cannot be checked', async () => {
+    const store = inMemorySessions();
+    const { deps } = helpSessionDependencies(store.repository, parent(), createBrokenRateLimiter());
+
+    const error = (await startNew(deps, 0))._unsafeUnwrapErr();
+
+    expect(error.code).toBe('guidance.rate_limiter_failed');
+    expect(store.starts).toEqual([]);
   });
 });

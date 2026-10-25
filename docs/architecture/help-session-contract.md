@@ -1,6 +1,6 @@
 # Help session contract for the learner UI
 
-The typed contract between the child's help screen and the backend: start or resume a help session, ask for a hint, check the child's own answer, reply to the comprehension question. Status: **version 1, agreed on 2026-10-25** with the threads building the hint ladder and actions (#30) and the help sessions (#17, #78), so the UI (#12) can be built against fakes while the backend lands. Where an endpoint PR ships a different shape, the shipped code wins and this document is updated to it. Screens and order: [`learner-ui-plan.md`](../product/learner-ui-plan.md).
+The typed contract between the child's help screen and the backend: start or resume a help session, ask for a hint, check the child's own answer, reply to the comprehension question. Status: **version 1, agreed on 2026-10-25; all five actions shipped** (PR #91 for hints and answers, the session actions on top of #93) with the threads building the hint ladder and actions (#30) and the help sessions (#17, #78), so the UI (#12) can be built against fakes while the backend lands. Where an endpoint PR ships a different shape, the shipped code wins and this document is updated to it. Screens and order: [`learner-ui-plan.md`](../product/learner-ui-plan.md).
 
 Owning rules: [`api.md`](../rules/api.md), [`validation.md`](../rules/validation.md), [`errors.md`](../rules/errors.md), [`security.md`](../rules/security.md). Builds on the [AI output contract](ai-output-contract.md) (#6) and the guidance module's views (`src/modules/guidance/application/contracts/`).
 
@@ -17,29 +17,33 @@ Owning rules: [`api.md`](../rules/api.md), [`validation.md`](../rules/validation
 
 | Action                     | Input                                              | Success data             | Provides          |
 | -------------------------- | -------------------------------------------------- | ------------------------ | ----------------- |
-| `startHelpSessionAction`   | `{ childProfileId, task, subject }`                | `HelpSessionDto`         | #17               |
+| `startHelpSessionAction`   | `{ childProfileId, task, subject }`                | `StartHelpSessionDto`    | #17               |
 | `getOpenHelpSessionAction` | `{ childProfileId }`                               | `HelpSessionDto \| null` | #17               |
 | `requestHintAction`        | `{ requestId, childProfileId, sessionId }`         | `HintDto`                | #30 (on #10, #31) |
 | `checkAnswerAction`        | `{ requestId, childProfileId, sessionId, answer }` | `AnswerFeedbackDto`      | #14 (PR #81), #30 |
 | `replyComprehensionAction` | `{ childProfileId, sessionId, reply }`             | `ComprehensionReplyDto`  | #78               |
 
-The task text and the subject are sent once, when the session starts. Starting with a different task while a session is active ends the old one and starts a new one. A teacher assignment as the source (`assignmentId`) follows once the class-membership check of #33 (PR #74) is available; the session stores it as optional already. Hint and answer calls name the session, and the backend reads the task, subject and ladder position from it. Until #17 lands, the existing commands take `task` and `subject` directly (`RequestHintInput`, `CheckAnswerInput`) and a server-side caller picks the level (`TODO(#30)` in `hint-inputs.ts`); the UI must not depend on that interim shape.
+The task text and the subject are sent once, when the session starts. Starting with a different task while a session is active ends the old one and starts a new one. A teacher assignment as the source (`assignmentId`) follows once the class-membership check of #33 (PR #74) is available. Hint and answer calls name the session, and the backend reads the task, subject and ladder position from it.
+
+All five live in `src/modules/guidance/presentation/actions/`, with their schemas in `presentation/schemas/guidance-schema.ts` and the DTOs in `presentation/dto/guidance-dto.ts`. Starting spends the child's `guidance.session-start` budget (30 in 10 minutes), because every new task stores a session; reading the open session and replying spend none (a read, and a reply that follows only a checked answer, which spent the check budget).
 
 ## Input schemas (presentation boundary)
 
 Zod schemas next to each action, per [`validation.md`](../rules/validation.md). The backend re-checks every text as child input (`parseChildTaskText`: trimmed, 1 to 1000 code points, no control or invisible characters); the schemas only reject the wrong shape early.
 
+As shipped, ids and the request id are bounded strings (1 to 128 characters) and the subject a short string; their exact shape (and `HINT_SUBJECTS`) is checked by the domain, which answers with the same field codes. Child texts are bounded at 2000 code units (the domain counts 1000 code points). In outline:
+
 ```ts
 import { z } from 'zod';
 
-const id = z.string().uuid();
-const requestId = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/);
-const childText = z.string().max(1000); // emptiness and characters are checked by the use case
+const id = z.string().min(1).max(128); // the domain checks the exact shape
+const requestId = id;
+const childText = z.string().max(2000); // emptiness and characters are checked by the use case
 
 export const startHelpSessionSchema = z.object({
   childProfileId: id,
   task: childText,
-  subject: z.enum(['math', 'german', 'general_studies', 'english']), // HINT_SUBJECTS
+  subject: z.string().max(32), // the use case checks it against HINT_SUBJECTS
 });
 
 export const getOpenHelpSessionSchema = z.object({ childProfileId: id });
@@ -120,8 +124,14 @@ type AnswerFeedbackDto = { sessionId: string } & (
 
 interface ComprehensionReplyDto {
   sessionId: string;
-  /** Decided by `isTaskUnderstood`: a stored `correct` result and a stored reply. */
-  status: 'understood';
+  /** Decided by `isTaskUnderstood`: a stored `correct` result and a stored reply. A `status` sent by the client is dropped. */
+  status: 'working' | 'understood';
+}
+
+interface StartHelpSessionDto {
+  /** `continued` when the same task (after normalization) and subject was already open. */
+  outcome: 'started' | 'continued';
+  session: HelpSessionDto;
 }
 
 type HelpSessionStatus =
@@ -129,19 +139,19 @@ type HelpSessionStatus =
 
 interface HelpSessionDto {
   sessionId: string;
-  /** Set once a teacher assignment can be the source (#33); null for the child's own task. */
-  assignmentId: string | null;
   /** The child's own text, or the teacher's assignment text. Never the solution key. */
   task: string;
   subject: 'math' | 'german' | 'general_studies' | 'english';
   status: HelpSessionStatus;
+  /** The rung the session is on, null before the first hint. */
+  hintLevel: HintLevel | null;
   /** Hints given so far, oldest first, as stored; lets "Continue" show where the child was. */
   hints: readonly HintText[];
   /** Answer checks so far, oldest first, so the screen can resume after a check. No answer text, no solution. */
   answerChecks: readonly {
     result: 'correct' | 'partly_correct' | 'not_yet' | null;
     assessedBy: 'solution_key' | 'ai' | null;
-    level: HintLevel; // the rung the session was on at the time
+    hintLevel: HintLevel | null; // the rung the session was on at the time
   }[];
   /** The open comprehension question while `status` is `awaiting_comprehension_reply`, else null. */
   openQuestion: FeedbackText | null;
@@ -149,6 +159,8 @@ interface HelpSessionDto {
   updatedAt: string;
 }
 ```
+
+`assignmentId` is not in the DTO yet; it is added with the teacher-assignment sessions (#33).
 
 The UI never stores session state as the truth: after a reload it calls `getOpenHelpSessionAction` and renders what comes back.
 
@@ -163,10 +175,11 @@ The UI never stores session state as the truth: after a reload it calls `getOpen
 | `learner.not_found`             | unknown child, or not the parent's own                                                                                    | "We could not find this profile" and back to start                                                             |
 | `guidance.validation_failed`    | `fieldErrors`: `guidance.validation.child_profile_id_invalid`, `guidance.validation.subject_invalid`                      | treat as a bug: generic retry, focus the subject choice for `subject_invalid`                                  |
 | `guidance.child_input_invalid`  | `fieldErrors` under `task`, `answer` or `reply`: `guidance.child_input.empty`, `.too_long`, `.contains_control_character` | gentle prompt on that field ("Write your task here", "That is a lot of text, can you shorten it?"), input kept |
-| `guidance.rate_limited`         | the child's budget is used (20 hints or 10 checks in 10 minutes)                                                          | calm pause line from the companion; re-enable after `retryAfterSeconds`, no visible countdown                  |
+| `guidance.rate_limited`         | the child's budget is used (20 hints, 10 checks or 30 starts in 10 minutes)                                               | calm pause line from the companion; re-enable after `retryAfterSeconds`, no visible countdown                  |
 | `guidance.rate_limiter_failed`  | the budget could not be checked                                                                                           | "Hort needs a moment", retry button                                                                            |
 | `guidance.session_not_found`    | unknown, ended or another child's session                                                                                 | reload the open session; if none, back to start                                                                |
 | `guidance.session_store_failed` | the session could not be read or written                                                                                  | "Hort needs a moment", retry button, input kept                                                                |
+| `guidance.no_open_question`     | a reply, but no comprehension question waits for one (already answered, or none asked)                                    | reload the open session and show what it says                                                                  |
 | any other                       | infrastructure failure                                                                                                    | "Something went wrong, let's try again", input kept                                                            |
 
 The session codes come with #30 and #17; an ended session is deliberately not a code of its own. A wrong answer is never an error: it is `ok: true` with `result: 'not_yet'`.
@@ -186,4 +199,4 @@ Fallback wording lives in the guidance module's i18n catalog, keyed by level or 
 ## Open points
 
 - Whether starting a session also returns the first thinking prompt, or the UI asks for the first rung (`understand_task`) right after start. This document assumes the latter, so the start stays cheap and the ladder has one entry point (#30 decides).
-- XP for a finished task is granted by the backend through `AwardLearningXp` (`help_session_completed`) when the session becomes `understood`; the UI only reacts to the returned progress ([`progression.md`](progression.md)).
+- The reply action does not grant any progression. Whether a finished task earns anything is open: the product direction drops XP and streaks unless re-confirmed, and only the small progression the [vision](../product/vision.md) allows may follow, granted by the backend, never by the UI.
