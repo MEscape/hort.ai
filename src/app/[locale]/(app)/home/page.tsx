@@ -1,13 +1,18 @@
 import { Suspense } from 'react';
 
-import { requireSignedIn } from '@modules/auth';
+import { assignmentRoutes } from '@modules/assignments';
+import { AccountHeader, AuthShell, requireSignedIn, TEACHER_ROLE } from '@modules/auth';
+import { loadOpenHelpSession } from '@modules/guidance';
 import { requireOnboarded } from '@modules/learner';
 import { loadProgressDto } from '@modules/progression';
 import { FALLBACK_AREA_ID, worldIsland } from '@modules/world';
 
+import { Hort } from '@components/brand/hort';
 import { I18nProvider } from '@components/providers/i18n-provider';
+import { Button } from '@components/ui/button';
+import { Card, CardContent, CardHeader } from '@components/ui/card';
 
-import { requireLocale } from '@i18n';
+import { Link, requireLocale } from '@i18n';
 
 import { getLocale, getMessages, getTranslations } from '@i18n/server';
 
@@ -21,10 +26,14 @@ import { buildTutorOptions, preloadTutorPictures } from '../onboarding/tutor-opt
 import { HomeLoading } from './_components/home-loading';
 import { HomeScreen } from './_components/home-screen';
 
-import type { WorldPreviewIsland } from './_components/home-types';
+import type { UnfinishedTask, WorldPreviewIsland } from './_components/home-types';
 
 /** The islands the card shows. Only the starting island is clear: nothing records a discovery yet. */
 const PREVIEW_AREA_IDS = [FALLBACK_AREA_ID, 'zahlenwald', 'maerchenwald'] as const;
+
+const TASK_PREVIEW_LIMIT = 48;
+
+type OpenHelpSession = NonNullable<Awaited<ReturnType<typeof loadOpenHelpSession>>>;
 
 export async function generateMetadata({
   params,
@@ -43,8 +52,28 @@ async function previewIslands(): Promise<readonly WorldPreviewIsland[]> {
   ).filter(isDefined);
 }
 
+/** The open help session as the continue card shows it: a few words of the task, never an answer. */
+async function unfinishedOf(session: OpenHelpSession | null): Promise<UnfinishedTask | null> {
+  if (session === null) {
+    return null;
+  }
+  const t = await getTranslations('app');
+  const subjects = {
+    math: t('world.subjects.mathe'),
+    german: t('world.subjects.deutsch'),
+    english: t('world.subjects.sprachenKunst'),
+    general_studies: t('world.subjects.natur'),
+  } as const satisfies Record<OpenHelpSession['subject'], string>;
+  return {
+    title: session.task.slice(0, TASK_PREVIEW_LIMIT),
+    area: subjects[session.subject],
+    lastStep: t('home.continue.hints', { count: session.hints.length }),
+    updatedAt: session.updatedAt,
+    href: '/help',
+  };
+}
+
 async function ChildHome() {
-  await requireSignedIn('/home');
   const child = await requireOnboarded();
   const tutors = buildTutorOptions();
   preloadTutorPictures(tutors, child.tutorId);
@@ -70,9 +99,9 @@ async function ChildHome() {
         serverNow: now.toISOString(),
         // Nothing measures learning time yet, so a daily limit shows "time not available".
         usedMinutes: null,
-        // Sessions (#17), teacher assignments (#33) and discoveries have no backend yet.
+        // The time strip's live session (#17) and teacher assignment counts (#33) are not wired yet.
         session: null,
-        unfinished: null,
+        unfinished: await unfinishedOf(await loadOpenHelpSession(child.id)),
         teacherNewCount: null,
         world: await previewIslands(),
         // The voices speak German and only while the parent's voice control is on; otherwise the
@@ -83,6 +112,36 @@ async function ChildHome() {
   );
 }
 
+/** A teacher has no child setup (parent onboarding needs `learner.read`): their own short home. */
+async function TeacherHome() {
+  const t = await getTranslations('app');
+  return (
+    <AuthShell header={<AccountHeader />}>
+      <Card>
+        <CardHeader>
+          <Hort mood="happy" />
+          <h1 className="text-3xl">{t('home.title')}</h1>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-copy-muted">{t('home.teacherDescription')}</p>
+          <Button asChild>
+            <Link href={assignmentRoutes.teacher()}>{t('home.teacherAssignments')}</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </AuthShell>
+  );
+}
+
+/**
+ * Where the signed-in account goes next. Navigation only: every use case behind these links
+ * authorizes the account itself.
+ */
+async function Home() {
+  const actor = await requireSignedIn('/home');
+  return actor.roles.includes(TEACHER_ROLE) ? <TeacherHome /> : <ChildHome />;
+}
+
 export default async function HomePage({
   params,
 }: {
@@ -90,9 +149,12 @@ export default async function HomePage({
 }) {
   const locale = requireLocale((await params).locale);
   return (
-    <I18nProvider locale={locale} namespaces={['auth', 'learner', 'progression']}>
+    <I18nProvider
+      locale={locale}
+      namespaces={['auth', 'learner', 'classroom', 'progression', 'guidance']}
+    >
       <Suspense fallback={<HomeLoading />}>
-        <ChildHome />
+        <Home />
       </Suspense>
     </I18nProvider>
   );

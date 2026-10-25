@@ -10,7 +10,7 @@ import { systemClock } from '@lib/clock';
 import { APP_IDENTITY, publicEnv } from '@lib/config';
 import { serverEnv } from '@lib/config/server';
 import type { ServerEnv } from '@lib/config/server';
-import { getMailTransport } from '@lib/mail/server';
+import { getMailTransport, resolveMailLocale } from '@lib/mail/server';
 import { getClientAddressProvider, getRateLimiter } from '@lib/rate-limit';
 import { ResultAsync, errAsync, okAsync } from '@lib/result';
 import { toLocalizedPath } from '@lib/seo';
@@ -18,6 +18,7 @@ import { invariant, isDefined, once } from '@lib/utils';
 
 import { createAuthorizationService } from './application/authorization-service';
 import { AdmitLinkRequest } from './application/commands/admit-link-request';
+import { ChangePassword } from './application/commands/change-password';
 import { CloseParentArea } from './application/commands/close-parent-area';
 import { OpenParentArea } from './application/commands/open-parent-area';
 import { RequestPasswordReset } from './application/commands/request-password-reset';
@@ -25,6 +26,8 @@ import { ResetPassword } from './application/commands/reset-password';
 import { SignIn } from './application/commands/sign-in';
 import { SignOut } from './application/commands/sign-out';
 import { SignUp } from './application/commands/sign-up';
+import { UpdateDisplayName } from './application/commands/update-display-name';
+import { GetAccount } from './application/queries/get-account';
 import { GetCurrentActor } from './application/queries/get-current-actor';
 import { RequireParentAccess } from './application/queries/require-parent-access';
 import { reauthenticationRequired } from './domain/errors/auth-errors';
@@ -34,6 +37,8 @@ import {
   TRAIL_BY_EVENT,
   loggerSecurityAuditLog,
 } from './infrastructure/audit/logger-security-audit-log';
+import { accountApiFrom } from './infrastructure/better-auth/better-auth-account-api';
+import { BetterAuthAccountManager } from './infrastructure/better-auth/better-auth-account-manager';
 import { authenticationApiFrom } from './infrastructure/better-auth/better-auth-authentication-api';
 import { BetterAuthAuthenticator } from './infrastructure/better-auth/better-auth-authenticator';
 import { BetterAuthCurrentActorProvider } from './infrastructure/better-auth/better-auth-current-actor-provider';
@@ -47,7 +52,10 @@ import { UnconfiguredAuthMailer } from './infrastructure/mail/unconfigured-auth-
 import { getAuthPool } from './infrastructure/pg/auth-pool';
 import { authRoutes } from './presentation/routes';
 
-import type { AuthenticationDependencies } from './application/auth-dependencies';
+import type {
+  AccountDependencies,
+  AuthenticationDependencies,
+} from './application/auth-dependencies';
 import type { AuthorizationService } from './application/authorization-service';
 import type { TenantId } from './domain/models/ids';
 import type { AuthMailer } from './domain/ports/auth-mailer.port';
@@ -219,10 +227,25 @@ export const getAccessControl = once<AuthorizationService>(() =>
   }),
 );
 
+/**
+ * The signed-in person's own account (header, settings page). Built without touching the provider,
+ * so the queries below can be built with authentication off; calling them then fails closed.
+ */
+const getAccountDependencies = once((): AccountDependencies => ({
+  authorization: getAccessControl(),
+  accounts: new BetterAuthAccountManager({
+    api: accountApiFrom(getAuth),
+    getHeaders: () => headers(),
+  }),
+  rateLimiter: getRateLimiter(),
+  audit: auditLog,
+}));
+
 export const getAuthQueries = once(
   () =>
     ({
       getCurrentActor: new GetCurrentActor({ currentActor: getCurrentActorProvider() }),
+      getAccount: new GetAccount(getAccountDependencies()),
     }) as const,
 );
 
@@ -285,6 +308,7 @@ const getAuthenticationDependencies = once((): AuthenticationDependencies => ({
       afterEmailVerification: authRoutes.emailVerified(),
       passwordReset: authRoutes.resetPassword(),
     },
+    localize: async (pathname) => toLocalizedPath(await resolveMailLocale(), pathname),
   }),
   rateLimiter: getRateLimiter(),
   clientAddress: getClientAddressProvider(() => headers()),
@@ -300,6 +324,8 @@ export const getAuthCommands = once(() => {
     requestPasswordReset: new RequestPasswordReset(dependencies),
     resetPassword: new ResetPassword(dependencies),
     admitLinkRequest: new AdmitLinkRequest(dependencies),
+    updateDisplayName: new UpdateDisplayName(getAccountDependencies()),
+    changePassword: new ChangePassword(getAccountDependencies()),
   } as const;
 });
 

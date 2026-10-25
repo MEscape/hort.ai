@@ -5,6 +5,7 @@ import { ResultAsync, errAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
 import {
+  CLASSROOM_ERROR_CODES,
   childAlreadyInClassroom,
   fromRateLimitFailure,
   inviteCodeInvalid,
@@ -48,31 +49,32 @@ function enforceJoinBudget(
     .mapErr(fromRateLimitFailure);
 }
 
+/** The class a code currently admits to, with the code's hash for the re-check under the lock. */
+interface CodedClassroom {
+  readonly classroom: Classroom;
+  readonly inviteCodeHash: string;
+}
+
 /**
- * The active class whose CURRENT code this is. Malformed, unknown, replaced and archived all end
- * the same way, and the refusal is audited without the code (it may be a guess at someone's code).
+ * The active class whose CURRENT, unexpired code this is. Malformed, unknown, replaced, expired
+ * and archived all end the same way (`inviteCodeInvalid`, audited by the caller without the code:
+ * it may be a guess at someone's code).
  */
 function findClassroomByCode(
   deps: ClassroomDependencies,
   actor: Actor,
   rawCode: string,
-): AppResultAsync<Classroom, ChildProfileAccessError> {
-  const refuse = () => {
-    deps.audit.record({
-      type: 'classroom.join_refused',
-      actorId: actor.id,
-      tenantId: actor.tenantId,
-      reason: 'invite_code_invalid',
-    });
-    return errAsync(inviteCodeInvalid());
-  };
+): AppResultAsync<CodedClassroom, ChildProfileAccessError> {
   const code = normalizeInviteCode(rawCode);
   if (code === null) {
-    return refuse();
+    return errAsync(inviteCodeInvalid());
   }
+  const inviteCodeHash = deps.inviteCodes.hashOf(code);
   return deps.classrooms
-    .findActiveByInviteCodeHash(deps.inviteCodes.hashOf(code), actor.tenantId)
-    .andThen((classroom) => (classroom === null ? refuse() : okAsync(classroom)));
+    .findActiveByInviteCodeHash(inviteCodeHash, actor.tenantId)
+    .andThen((classroom) =>
+      classroom === null ? errAsync(inviteCodeInvalid()) : okAsync({ classroom, inviteCodeHash }),
+    );
 }
 
 /**
@@ -84,10 +86,10 @@ function findClassroomByCode(
 function joinOnce(
   deps: ClassroomDependencies,
   actor: Actor,
-  target: { readonly childProfileId: ChildProfileId; readonly classroom: Classroom },
+  target: { readonly childProfileId: ChildProfileId } & CodedClassroom,
 ): AppResultAsync<JoinOutcome, JoinClassroomError> {
   const { classrooms, childProfiles, audit } = deps;
-  const { childProfileId, classroom } = target;
+  const { childProfileId, classroom, inviteCodeHash } = target;
   return classrooms
     .findMembershipOfChild(childProfileId, actor.tenantId)
     .andThen((current): AppResultAsync<JoinOutcome, JoinClassroomError> => {
@@ -104,7 +106,13 @@ function joinOnce(
         return errAsync(childAlreadyInClassroom());
       }
       return classrooms
-        .addMember({ tenantId: actor.tenantId, classroomId: classroom.id, childProfileId })
+        .addMember({
+          tenantId: actor.tenantId,
+          classroomId: classroom.id,
+          childProfileId,
+          // Re-checked under the class's lock: the code may be replaced or expire meanwhile.
+          inviteCodeHash,
+        })
         .andThen((joinedAt) =>
           childProfiles
             .adoptClassroomSettings(childProfileId, {
@@ -141,20 +149,33 @@ export class JoinClassroom {
           childProfiles.requireOwnChild(childProfileId).map(() => childProfileId),
         )
         .andThen((childProfileId) =>
-          findClassroomByCode(this.deps, actor, input.inviteCode).andThen((classroom) =>
-            joinOnce(this.deps, actor, { childProfileId, classroom }).map(({ view, isNew }) => {
-              if (isNew) {
+          findClassroomByCode(this.deps, actor, input.inviteCode)
+            .andThen((coded) =>
+              joinOnce(this.deps, actor, { childProfileId, ...coded }).map(({ view, isNew }) => {
+                if (isNew) {
+                  audit.record({
+                    type: 'classroom.child_joined',
+                    actorId: actor.id,
+                    tenantId: actor.tenantId,
+                    classroomId: coded.classroom.id,
+                    childProfileId,
+                  });
+                }
+                return view;
+              }),
+            )
+            .mapErr((error) => {
+              // At lookup or, when the code changed meanwhile, under the class lock.
+              if (error.code === CLASSROOM_ERROR_CODES.inviteCodeInvalid) {
                 audit.record({
-                  type: 'classroom.child_joined',
+                  type: 'classroom.join_refused',
                   actorId: actor.id,
                   tenantId: actor.tenantId,
-                  classroomId: classroom.id,
-                  childProfileId,
+                  reason: 'invite_code_invalid',
                 });
               }
-              return view;
+              return error;
             }),
-          ),
         ),
     );
   }

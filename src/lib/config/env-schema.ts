@@ -39,7 +39,7 @@ const serverEnvBaseSchema = z.object({
   /** `false` keeps Alexa's standard voice for every answer; `true` speaks tutor answers in a tutor's voice. */
   ALEXA_TUTOR_VOICE: booleanFlag(true),
 
-  /** Catalog id of the tutor whose voice Alexa uses. An id without a voice falls back to Alexa's voice. */
+  /** Catalog id of the tutor whose voice speaks Alexa tutor replies (launch greetings use each tutor's own). */
   ALEXA_TUTOR_ID: z
     .string()
     .regex(/^[a-z][a-z0-9-]{1,30}$/)
@@ -53,6 +53,17 @@ const serverEnvBaseSchema = z.object({
 
   /** How many days the audit trail keeps an entry before the daily retention sweep deletes it. */
   AUDIT_RETENTION_DAYS: integerSetting(DEFAULT_AUDIT_RETENTION_DAYS),
+
+  /**
+   * 32 random bytes, base64 (`openssl rand -base64 32`), that encrypt classroom invite codes at rest
+   * (AES-256-GCM) so a teacher can see their class's code again. Unset: codes are stored as a hash
+   * only, as before, and a teacher must replace a code to see one. Server-only; never log it.
+   * Changing it makes the stored codes unreadable (they show as unavailable until replaced).
+   */
+  CLASSROOM_INVITE_CODE_KEY: z
+    .string()
+    .regex(/^[A-Za-z0-9+/]{43}=$/, { error: 'Must be 32 random bytes, base64-encoded.' })
+    .optional(),
 });
 
 /** Everything the server schema validates, as one value: what the rules below read. */

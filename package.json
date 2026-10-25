@@ -27,7 +27,7 @@
     "db:migrate:auth": "tsx migrations/apply-auth-migration.ts",
     "db:migrate": "npm run db:migrate:app && npm run db:migrate:auth",
     "db:verify": "prisma db verify --strict",
-    "db:seed": "tsx --conditions=react-server prisma/seed.ts",
+    "db:seed": "tsx --import ./scripts/lib/server-runtime.ts prisma/seed.ts",
     "db:studio": "prisma studio",
     "i18n:check": "vitest run __tests__/architecture/i18n-catalogs.test.ts",
     "gen": "tsx scripts/gen.ts",
@@ -35,7 +35,7 @@
     "world:assets": "tsx scripts/world-assets.ts",
     "dead-code": "tsx scripts/dead-code.ts",
     "tutors:sync": "tsx scripts/sync-tutors.ts",
-    "curriculum:ingest": "tsx --conditions=react-server scripts/ingest-curriculum.ts",
+    "curriculum:ingest": "tsx --import ./scripts/lib/server-runtime.ts scripts/ingest-curriculum.ts",
     "audit:prod": "tsx scripts/audit-production.ts"
   },
   "dependencies": {

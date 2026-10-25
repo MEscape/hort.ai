@@ -4,9 +4,12 @@ import {
   createClassroomDraft,
   parseClassroomName,
 } from '@modules/classroom/domain/models/classroom';
+import { parseClassMembershipId } from '@modules/classroom/domain/models/ids';
 import {
   INVITE_CODE_ALPHABET,
+  INVITE_CODE_VALIDITY_DAYS,
   formatInviteCode,
+  inviteCodeValidSince,
   normalizeInviteCode,
 } from '@modules/classroom/domain/models/invite-code';
 import { cryptoInviteCodeIssuer } from '@modules/classroom/infrastructure/security/crypto-invite-code-issuer';
@@ -67,5 +70,24 @@ describe('classroom rules', () => {
 
   it('refuses a name longer than 80 characters', () => {
     expect(parseClassroomName('x'.repeat(81)).isErr()).toBe(true);
+  });
+});
+
+describe('invite code validity', () => {
+  it('admits codes issued at most 14 days ago', () => {
+    expect(INVITE_CODE_VALIDITY_DAYS).toBe(14);
+    expect(inviteCodeValidSince(new Date('2026-10-24T12:00:00Z'))).toEqual(
+      new Date('2026-10-10T12:00:00Z'),
+    );
+  });
+});
+
+describe('membership ids', () => {
+  it('accepts an id of the right shape and refuses an empty or overlong one', () => {
+    expect(parseClassMembershipId('membership-1')._unsafeUnwrap()).toBe('membership-1');
+    expect(parseClassMembershipId('').isErr()).toBe(true);
+    expect(parseClassMembershipId('x'.repeat(129))._unsafeUnwrapErr().fieldErrors).toEqual({
+      memberId: ['classroom.validation.id_invalid'],
+    });
   });
 });

@@ -1,0 +1,62 @@
+{
+  "guidance": {
+    "hint": {
+      "step": "Hint {step} of {total}",
+      "fallback": {
+        "understand_task": "Read the task again, slowly. What are you meant to find out?",
+        "activate_prior_knowledge": "What do you already know about a task like this? Have you done something similar before?",
+        "next_step": "What could you do first? Just think about the next small step.",
+        "similar_example": "Think of a similar, easier task. How would you solve that one? Then try it the same way with your task."
+      }
+    },
+    "feedback": {
+      "fallback": {
+        "answer_assessment": {
+          "partly_correct": "You are on a good way! Take another close look at your answer.",
+          "not_yet": "Not quite yet, and that is completely normal. A hint can help you on.",
+          "unassessed": "I could not check that just now. Would you like a hint, or try again in a moment?"
+        },
+        "praise": "Great, you worked that out yourself!",
+        "comprehension_question": "Tell me in your own words how you got to your answer."
+      }
+    },
+    "opening": {
+      "clarify": "Tell me a little more: what are you supposed to do in this task?",
+      "redirect": {
+        "small_talk": "Hello! Nice to see you. Show me your homework and we can think it through together.",
+        "curiosity": "What an interesting question! Ask a grown-up or look it up in a book. Do you have homework I can help you with?"
+      }
+    },
+    "errors": {
+      "validation": "Something did not fit. Please try again.",
+      "childInputInvalid": "Please write your answer again.",
+      "sessionNotFound": "This task is no longer open. Please start it again.",
+      "noOpenQuestion": "There is no question to answer right now.",
+      "assignmentNotFound": "This school task is not available any more. Pick another one or ask your teacher.",
+      "rateLimited": "Take a short break and try again in a moment.",
+      "infrastructure": "Something is not working right now. Please try again in a moment.",
+      "unexpected": "Something went wrong. Please try again."
+    },
+    "conversation": {
+      "label": "Conversation with your companion",
+      "you": "You",
+      "taskTitle": "Your task",
+      "thinking": "{name} is thinking …",
+      "hint": "I'd like a hint",
+      "hintsUsed": "Hints used: {count}",
+      "answerLabel": "My answer",
+      "checkAnswer": "Check my answer",
+      "replyLabel": "Tell me in your own words",
+      "sendReply": "Reply",
+      "empty": "Write something first.",
+      "retry": "Try again",
+      "later": "Continue later",
+      "doneTitle": "You did it!",
+      "doneBody": "You worked it out yourself and explained it. {name} is happy with you!",
+      "home": "Back to home",
+      "emptyTitle": "No task is open right now",
+      "emptyBody": "Start a new task and I'll help you think it through.",
+      "newTask": "New task"
+    }
+  }
+}

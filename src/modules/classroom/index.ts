@@ -11,6 +11,20 @@ export { classroomQueries } from './composition';
 
 export { classroomRoutes } from './presentation/routes';
 
+/** A teacher's first class, rendered by the assignment screen when the teacher has none yet (#33). */
+export { CreateClassroomForm } from './presentation/components/create-classroom-form';
+
+/** A parent's view of their child's class: join with a code, see it, leave it (#32, #33). */
+export { ChildClassroomPanel } from './presentation/components/child-classroom-panel';
+
+/**
+ * The teacher's class screens: the provider owns the "class created" dialog (it must sit above
+ * anything that re-renders once the class exists), "Add class", and a class's details dialog.
+ */
+export { ClassroomCreationProvider } from './presentation/components/classroom-creation-provider';
+export { AddClassroomDialog } from './presentation/components/add-classroom-dialog';
+export { ClassroomDetailsDialog } from './presentation/components/classroom-details-dialog';
+
 export { default as enClassroom } from './presentation/i18n/en.json';
 export { default as deClassroom } from './presentation/i18n/de.json';
 
@@ -18,6 +32,7 @@ export { CLASSROOM_ERROR_CODES } from './application/contracts/classroom-constra
 export type {
   ChildClassroomView,
   ClassMemberView,
+  ClassroomDetailsView,
   ClassroomView,
   ClassroomWithInviteCodeView,
 } from './application/contracts/classroom-views';

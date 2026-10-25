@@ -1,12 +1,28 @@
+import { toActorId, toTenantId } from '@modules/auth';
 import { parseChildTaskText } from '@modules/guidance/domain/models/child-task-text';
 import type { ChildTaskText } from '@modules/guidance/domain/models/child-task-text';
 import type {
   FeedbackKind,
   FeedbackRequest,
 } from '@modules/guidance/domain/models/feedback-request';
-import type { HintRequest } from '@modules/guidance/domain/models/hint-request';
-import { toChildProfileId } from '@modules/guidance/domain/models/ids';
-import type { ChildProfileId } from '@modules/guidance/domain/models/ids';
+import type {
+  GivenHint,
+  HintLadderState,
+} from '@modules/guidance/domain/models/help-session-state';
+import type {
+  CurriculumCompetency,
+  HintRequest,
+} from '@modules/guidance/domain/models/hint-request';
+import {
+  toAssignmentId,
+  toChildProfileId,
+  toHelpSessionId,
+} from '@modules/guidance/domain/models/ids';
+import type { AssignmentId, ChildProfileId } from '@modules/guidance/domain/models/ids';
+import type {
+  AssignmentAccess,
+  AssignmentTask,
+} from '@modules/guidance/domain/ports/assignment-access.port';
 import type { ChildProfileAccess } from '@modules/guidance/domain/ports/child-profile-access.port';
 import type {
   CompetencyQuery,
@@ -18,6 +34,11 @@ import type {
   HintProvider,
   HintProviderFailure,
 } from '@modules/guidance/domain/ports/hint-provider.port';
+import type {
+  HelpSessionRef,
+  HintSessionStore,
+  RecordedAnswerCheck,
+} from '@modules/guidance/domain/ports/hint-session-store.port';
 import type {
   SafetyClassifier,
   SafetyScores,
@@ -91,8 +112,55 @@ export function ownChildren(owned: readonly ChildProfileId[] = [OWN_CHILD]): Chi
   };
 }
 
-/** Curriculum retrieval that returns REQUEST's competencies, or fails when `fails`; it keeps every query. */
-export function fakeCompetencies(options: { readonly fails?: boolean } = {}) {
+export const ASSIGNMENT = toAssignmentId('assignment-1');
+export const OTHER_CLASS_ASSIGNMENT = toAssignmentId('assignment-of-another-class');
+export const ASSIGNMENT_TEXT = 'Rechne 36 + 47 und schreibe deinen Rechenweg auf.';
+export const SOLUTION_KEY = '83';
+
+/**
+ * The assignments of the own child's class, as the assignments module answers: any other id (another
+ * class's, a deleted one) and any other child is "not found". `fails` makes every lookup fail as an
+ * unreachable store would. It keeps every lookup.
+ */
+export function fakeAssignments(
+  options: {
+    readonly assignments?: readonly AssignmentTask[];
+    readonly childProfileId?: ChildProfileId;
+    readonly fails?: boolean;
+  } = {},
+) {
+  const {
+    assignments = [{ id: ASSIGNMENT, text: ASSIGNMENT_TEXT, solutionKey: SOLUTION_KEY }],
+    childProfileId = OWN_CHILD,
+  } = options;
+  const lookups: Array<{ readonly childProfileId: ChildProfileId; readonly id: AssignmentId }> = [];
+  const access: AssignmentAccess = {
+    findForChild(child, id) {
+      lookups.push({ childProfileId: child, id });
+      if (options.fails === true) {
+        return errAsync(
+          infrastructureError('assignments.persistence_failed', 'The assignments are unreachable.'),
+        );
+      }
+      const found = child === childProfileId ? assignments.find((a) => a.id === id) : undefined;
+      return found === undefined
+        ? errAsync(notFoundError('guidance.assignment_not_found', 'The assignment was not found.'))
+        : okAsync(found);
+    },
+  };
+  return { access, lookups };
+}
+
+/** Two candidates of the child's curriculum; a classified session stores the second one's code. */
+export const CANDIDATES: readonly CurriculumCompetency[] = [
+  { code: 'M2.1', description: 'Addieren im Zahlenraum bis 20' },
+  { code: 'M2.4', description: 'Sachaufgaben lösen' },
+];
+
+/** Curriculum retrieval that returns `found` (REQUEST's competencies), or fails when `fails`; it keeps every query. */
+export function fakeCompetencies(
+  options: { readonly fails?: boolean; readonly found?: readonly CurriculumCompetency[] } = {},
+) {
   const queries: CompetencyQuery[] = [];
   const retrieval: CompetencyRetrieval = {
     findFor(query) {
@@ -101,7 +169,7 @@ export function fakeCompetencies(options: { readonly fails?: boolean } = {}) {
         ? errAsync(
             infrastructureError('curriculum.infrastructure', 'The curriculum is unreachable.'),
           )
-        : okAsync(REQUEST.competencies);
+        : okAsync(options.found ?? REQUEST.competencies);
     },
   };
   return { retrieval, queries };
@@ -124,4 +192,100 @@ export function fakeFeedbackProvider(scripts: FeedbackScripts) {
     },
   };
   return { provider, requests };
+}
+
+export const SESSION = toHelpSessionId('session-1');
+
+const sessionKey = (ref: HelpSessionRef) =>
+  [ref.tenantId, ref.ownerId, ref.childProfileId, ref.sessionId].join(':');
+
+/** A help session of the default parent's own child, as the session storage would hold it. */
+export function openSession(
+  overrides: Partial<HintLadderState> & {
+    readonly childProfileId?: ChildProfileId;
+    readonly sessionId?: string;
+  } = {},
+) {
+  const { childProfileId = OWN_CHILD, sessionId = SESSION, ...state } = overrides;
+  return {
+    ref: {
+      tenantId: toTenantId('default'),
+      ownerId: toActorId('parent-1'),
+      childProfileId,
+      sessionId: toHelpSessionId(sessionId),
+    } satisfies HelpSessionRef,
+    state: {
+      task: REQUEST.task,
+      assignmentId: null,
+      subject: 'math',
+      competencyCode: null,
+      hints: [],
+      answers: [],
+      ...state,
+    } satisfies HintLadderState,
+  };
+}
+
+/**
+ * An in-memory session storage: only a session it was given, for exactly that tenant, parent and
+ * child, is found. It stores each request id once, as the database's unique key does, and keeps
+ * every answer check. `failsRecording` makes every write fail as an unreachable store would.
+ */
+export function fakeSessionStore(
+  sessions: ReadonlyArray<ReturnType<typeof openSession>> = [openSession()],
+  options: { readonly failsRecording?: boolean } = {},
+) {
+  const stored = new Map(
+    sessions.map(({ ref, state }) => [
+      sessionKey(ref),
+      { ...state, hints: [...state.hints], answers: [...state.answers] },
+    ]),
+  );
+  const checks: RecordedAnswerCheck[] = [];
+  const missing = () =>
+    errAsync(notFoundError('guidance.session_not_found', 'The help session was not found.'));
+  const writeFailed = () =>
+    errAsync(infrastructureError('guidance.session_store_failed', 'The session store is down.'));
+  const store: HintSessionStore = {
+    load(ref) {
+      const session = stored.get(sessionKey(ref));
+      return session === undefined
+        ? missing()
+        : okAsync({ ...session, hints: [...session.hints], answers: [...session.answers] });
+    },
+    recordHint(ref, hint: GivenHint) {
+      const session = stored.get(sessionKey(ref));
+      if (options.failsRecording) {
+        return writeFailed();
+      }
+      if (session === undefined) {
+        return missing();
+      }
+      if (session.hints.some((h) => h.requestId === hint.requestId)) {
+        return okAsync('duplicate');
+      }
+      session.hints.push(hint);
+      return okAsync('recorded');
+    },
+    recordAnswerCheck(ref, check) {
+      const session = stored.get(sessionKey(ref));
+      if (options.failsRecording) {
+        return writeFailed();
+      }
+      if (session === undefined) {
+        return missing();
+      }
+      if (checks.some((c) => c.requestId === check.requestId)) {
+        return okAsync('duplicate');
+      }
+      checks.push(check);
+      session.answers.push(check.result);
+      return okAsync('recorded');
+    },
+  };
+  return {
+    store,
+    checks,
+    hintsOf: (ref = openSession().ref) => stored.get(sessionKey(ref))?.hints ?? [],
+  };
 }

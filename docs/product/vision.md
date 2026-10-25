@@ -12,11 +12,11 @@ Hort.ai is not an exercise app. It does not offer its own exercises, lessons or 
 
 ## Who it is for
 
-| Role    | What they do                                                                                                                                                                                 |
-| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Child   | Primary school, grades 1 to 4, in any German federal state. Talks to Hort.ai by text and, preferably, by voice while working on a task.                                                      |
-| Parent  | Creates the child's profile (interests, companion, controls), links it to a class, and sees a short summary of where the child needed help.                                                  |
-| Teacher | Creates a class and invites children with a code. May upload curriculum material and may post work assignments for the class. Sees aggregates for their own classes only, never transcripts. |
+| Role    | What they do                                                                                                                                                                                                                                                                                                                 |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Child   | Primary school, grades 1 to 4, in any German federal state. Talks to Hort.ai by text and, preferably, by voice while working on a task.                                                                                                                                                                                      |
+| Parent  | Creates the child's profile (interests, companion, controls), links it to a class, and sees a short summary of where the child needed help.                                                                                                                                                                                  |
+| Teacher | Creates a class and invites children with a code (valid for 14 days, a new code replaces it). May upload curriculum material and may post work assignments for the class. To manage a class, sees the display name and join date of its children; learning data only as aggregates for their own classes, never transcripts. |
 
 ## How a help session works
 

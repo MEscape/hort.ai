@@ -30,7 +30,8 @@
     },
     "continue": {
       "heading": "Weiter: {title}",
-      "detail": "{area}, letzter Schritt: {step} · {time}"
+      "detail": "{area}, letzter Schritt: {step} · {time}",
+      "hints": "{count, plural, =0 {noch kein Tipp} one {# Tipp} other {# Tipps}}"
     },
     "teacher": {
       "title": "Von meiner Lehrkraft",
@@ -73,14 +74,18 @@
       "wrong": "Nicht ganz. Bitte versuche es noch einmal.",
       "close": "Schließen",
       "areaTitle": "Elternbereich"
-    }
+    },
+    "teacherDescription": "Dein Lehrkraft-Konto ist bereit. Hier stellst du Aufgaben für deine Klasse ein.",
+    "teacherAssignments": "Zu den Aufgaben",
+    "startHomework": "Zur Hausaufgabenhilfe",
+    "continueHelp": "Weiter: {task}"
   },
   "metadata": {
     "description": "Ein KI-gestützter, kindgerechter Lernbegleiter, der Lernen zu einer interaktiven Reise macht."
   },
   "routeError": {
     "title": "Etwas ist schiefgelaufen",
-    "description": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "description": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.",
     "retry": "Erneut versuchen"
   },
   "notFound": {
@@ -116,20 +121,25 @@
       "title": "Was ist deine Aufgabe?",
       "label": "Deine Aufgabe",
       "placeholder": "Schreibe deine Hausaufgabe hier …",
-      "note": "Bis zu {limit} Zeichen. Dein Text bleibt auf dieser Seite und wird nicht gespeichert.",
+      "note": "Bis zu {limit} Zeichen.",
       "empty": "Schreibe zuerst deine Aufgabe auf.",
       "review": "Fertig",
       "clear": "Text löschen",
       "unavailableTitle": "Hilfe kommt bald",
-      "unavailableBody": "Deine Aufgabe wurde nicht gesendet oder gespeichert. Du kannst sie hier weiter bearbeiten."
+      "unavailableBody": "Deine Aufgabe wurde nicht gesendet oder gespeichert. Du kannst sie hier weiter bearbeiten.",
+      "sending": "Wird gestartet …",
+      "failed": "Das hat gerade nicht geklappt. Versuch es bitte noch einmal."
     },
     "school": {
       "title": "Schulaufgaben",
-      "body": "Aufgaben von deiner Lehrkraft sind hier noch nicht verfügbar."
+      "body": "Aufgaben von deiner Lehrkraft sind hier noch nicht verfügbar.",
+      "startHelp": "Mit dieser Aufgabe anfangen",
+      "failed": "Das hat gerade nicht geklappt. Versuch es bitte noch einmal."
     },
     "resume": {
       "title": "Weiter",
-      "body": "Gespeicherte Aufgaben sind hier noch nicht verfügbar."
+      "body": "Gespeicherte Aufgaben sind hier noch nicht verfügbar.",
+      "continue": "Zur Hilfe"
     }
   },
   "world": {

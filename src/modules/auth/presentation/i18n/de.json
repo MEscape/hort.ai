@@ -169,6 +169,32 @@
       "intro": "Gib dein Kontopasswort ein, um die Elterneinstellungen zu öffnen. Der Zugang schließt nach fünf Minuten.",
       "open": "Elterneinstellungen öffnen",
       "back": "Zurück zum Kind"
+    },
+    "account": {
+      "title": "Kontoeinstellungen",
+      "back": "Zurück",
+      "menuLabel": "Konto von {name}",
+      "home": "Startseite",
+      "settings": "Kontoeinstellungen",
+      "profileTitle": "Dein Profil",
+      "nameLabel": "Anzeigename",
+      "saveName": "Namen speichern",
+      "nameSaved": "Name gespeichert.",
+      "saving": "Wird gespeichert …",
+      "email": "E-Mail-Adresse",
+      "role": "Kontoart",
+      "roles": {
+        "parent": "Elternteil",
+        "teacher": "Lehrkraft",
+        "platform_admin": "Plattform-Administration"
+      },
+      "passwordTitle": "Passwort ändern",
+      "passwordHint": "Danach bist du auf allen anderen Geräten abgemeldet. Hier bleibst du angemeldet.",
+      "currentPassword": "Aktuelles Passwort",
+      "newPassword": "Neues Passwort",
+      "confirmPassword": "Neues Passwort wiederholen",
+      "changePassword": "Passwort ändern",
+      "passwordChanged": "Passwort geändert. Andere Geräte sind abgemeldet."
     }
   }
 }

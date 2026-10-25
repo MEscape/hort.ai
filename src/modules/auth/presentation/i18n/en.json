@@ -169,6 +169,32 @@
       "intro": "Enter your account password to open parent settings. Access closes after five minutes.",
       "open": "Open parent settings",
       "back": "Return to the child"
+    },
+    "account": {
+      "title": "Account settings",
+      "back": "Back",
+      "menuLabel": "Account of {name}",
+      "home": "Home",
+      "settings": "Account settings",
+      "profileTitle": "Your profile",
+      "nameLabel": "Display name",
+      "saveName": "Save name",
+      "nameSaved": "Name saved.",
+      "saving": "Saving …",
+      "email": "Email address",
+      "role": "Account type",
+      "roles": {
+        "parent": "Parent",
+        "teacher": "Teacher",
+        "platform_admin": "Platform administration"
+      },
+      "passwordTitle": "Change password",
+      "passwordHint": "Your other devices are signed out afterwards. You stay signed in here.",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Repeat new password",
+      "changePassword": "Change password",
+      "passwordChanged": "Password changed. Other devices are signed out."
     }
   }
 }

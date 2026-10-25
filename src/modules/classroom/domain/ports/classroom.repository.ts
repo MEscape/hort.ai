@@ -4,7 +4,7 @@ import type { ConflictAppError, InfrastructureAppError, NotFoundAppError } from 
 import type { AppResultAsync } from '@lib/result';
 
 import type { Classroom, ClassroomDraft } from '../models/classroom';
-import type { ChildProfileId, ClassroomId } from '../models/ids';
+import type { ChildProfileId, ClassMembershipId, ClassroomId } from '../models/ids';
 
 export interface ClassroomOwnerScope {
   readonly tenantId: TenantId;
@@ -17,17 +17,31 @@ export interface NewClassroom {
   readonly ownerId: ActorId;
   readonly draft: ClassroomDraft;
   readonly inviteCodeHash: string;
+  /** The code sealed by `InviteCodeVault`, or `null`/absent when only the hash is kept. */
+  readonly sealedInviteCode?: string | null;
+}
+
+/** A newly issued code as stored: its hash, and the code sealed by `InviteCodeVault` (or `null`). */
+export interface StoredInviteCode {
+  readonly hash: string;
+  readonly sealed: string | null;
 }
 
 export interface NewMembership {
   readonly tenantId: TenantId;
   readonly classroomId: ClassroomId;
   readonly childProfileId: ChildProfileId;
+  /** The hash of the code the parent entered; checked again under the class's row lock. */
+  readonly inviteCodeHash: string;
 }
 
-/** A child as its teacher sees it: the display name and nothing else (#32). */
+/**
+ * A child as its teacher sees it, for managing the class: display name and join date, nothing
+ * else (#32; learning data only as class aggregates). `memberId` is the membership's own id, so
+ * the child profile id never leaves the learner side.
+ */
 export interface ClassMember {
-  readonly childProfileId: ChildProfileId;
+  readonly memberId: ClassMembershipId;
   readonly displayName: string;
   readonly joinedAt: Date;
 }
@@ -52,7 +66,10 @@ export interface ClassroomRepository {
     tenantId: TenantId,
   ): AppResultAsync<Classroom | null, InfrastructureAppError>;
 
-  /** The ACTIVE class whose current code has this hash; an archived class or a replaced code is `null`. */
+  /**
+   * The ACTIVE class whose current code has this hash and was issued at most
+   * `INVITE_CODE_VALIDITY_DAYS` ago; an archived class, a replaced or an expired code is `null`.
+   */
   findActiveByInviteCodeHash(
     inviteCodeHash: string,
     tenantId: TenantId,
@@ -73,12 +90,21 @@ export interface ClassroomRepository {
     name: string,
   ): AppResultAsync<Classroom, NotFoundAppError | InfrastructureAppError>;
 
-  /** Stores the hash of a new code; the old code stops working with the same write. */
+  /**
+   * Stores the hash of a new code; the old code stops working with the same write. The sealed code
+   * is replaced in the same write too, so an old code is never shown again.
+   */
   replaceInviteCode(
     id: ClassroomId,
     scope: ClassroomOwnerScope,
-    inviteCodeHash: string,
+    code: StoredInviteCode,
   ): AppResultAsync<Classroom, NotFoundAppError | InfrastructureAppError>;
+
+  /** The sealed current code of one of the owner's classes, or `null` (hash-only or not theirs). */
+  findSealedInviteCode(
+    id: ClassroomId,
+    scope: ClassroomOwnerScope,
+  ): AppResultAsync<string | null, InfrastructureAppError>;
 
   /** Marks the class archived and ends every membership, in one transaction. */
   archive(
@@ -95,10 +121,13 @@ export interface ClassroomRepository {
   /**
    * Adds the child and returns when it joined. Refused with `childAlreadyInClassroom` when the
    * child already has a class (unique key), which also settles two joins racing each other, and
-   * with `classroomArchived` when the class is no longer active at that moment (a join racing an
-   * archive must not leave a member in an archived class).
+   * with `inviteCodeInvalid` when, under the class's row lock, the class is no longer active or
+   * its current code is no longer this unexpired one (a join racing an archive or a new code must
+   * not admit the child).
    */
-  addMember(input: NewMembership): AppResultAsync<Date, ConflictAppError | InfrastructureAppError>;
+  addMember(
+    input: NewMembership,
+  ): AppResultAsync<Date, NotFoundAppError | ConflictAppError | InfrastructureAppError>;
 
   /** Idempotent: whether a membership was removed. */
   removeMemberOfChild(
@@ -106,7 +135,7 @@ export interface ClassroomRepository {
     tenantId: TenantId,
   ): AppResultAsync<boolean, InfrastructureAppError>;
 
-  /** Display names only, oldest member first. Bounded. */
+  /** Display names and join dates only, oldest member first. Bounded. */
   listMembers(
     classroomId: ClassroomId,
     scope: ClassroomOwnerScope,

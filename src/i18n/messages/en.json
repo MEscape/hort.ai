@@ -30,7 +30,8 @@
     },
     "continue": {
       "heading": "Continue: {title}",
-      "detail": "{area}, last step: {step} · {time}"
+      "detail": "{area}, last step: {step} · {time}",
+      "hints": "{count, plural, =0 {no hint yet} one {# hint} other {# hints}}"
     },
     "teacher": {
       "title": "From my teacher",
@@ -73,7 +74,11 @@
       "wrong": "Not quite. Please try again.",
       "close": "Close",
       "areaTitle": "Grown-ups area"
-    }
+    },
+    "teacherDescription": "Your teacher account is ready. Post assignments for your class here.",
+    "teacherAssignments": "Go to assignments",
+    "startHomework": "Open homework help",
+    "continueHelp": "Continue: {task}"
   },
   "metadata": {
     "description": "An AI-powered, child-friendly learning companion that turns learning into an interactive journey."
@@ -116,20 +121,25 @@
       "title": "What's your task?",
       "label": "Your task",
       "placeholder": "Write your homework task here …",
-      "note": "Up to {limit} characters. Your text stays on this page and is not saved.",
+      "note": "Up to {limit} characters.",
       "empty": "Write your task here first.",
       "review": "Done",
       "clear": "Clear text",
       "unavailableTitle": "Help is coming soon",
-      "unavailableBody": "Your task was not sent or saved. You can keep editing it here."
+      "unavailableBody": "Your task was not sent or saved. You can keep editing it here.",
+      "sending": "Starting …",
+      "failed": "That did not work just now. Please try again."
     },
     "school": {
       "title": "School tasks",
-      "body": "Tasks from your teacher aren't available here yet."
+      "body": "Tasks from your teacher aren't available here yet.",
+      "startHelp": "Start with this task",
+      "failed": "That didn't work just now. Please try again."
     },
     "resume": {
       "title": "Continue",
-      "body": "Saved tasks aren't available here yet."
+      "body": "Saved tasks aren't available here yet.",
+      "continue": "Go to help"
     }
   },
   "world": {

@@ -16,6 +16,65 @@
       "tooLong": "This value is too long.",
       "numberInvalid": "Enter a grade from 1 to 4.",
       "optionUnknown": "Choose one of the available options."
+    },
+    "create": {
+      "nameLabel": "Class name",
+      "nameHint": "For example “3b”. Up to 80 characters.",
+      "gradeLabel": "Grade",
+      "scopeNote": "Hort.ai currently supports mathematics in Hessen.",
+      "submit": "Create class",
+      "submitting": "Creating …"
+    },
+    "join": {
+      "title": "Class",
+      "body": "Enter the invite code from {name}’s teacher. Then {name} sees the class tasks under “School tasks”.",
+      "codeLabel": "Invite code",
+      "codeHint": "For example ABCD-EFGH, as the teacher gave it to you.",
+      "submit": "Join class",
+      "submitting": "Joining …",
+      "current": "{name} is in class {classroom} (grade {grade}).",
+      "leave": "Leave class",
+      "leaveTitle": "Leave class {classroom}?",
+      "leaveBody": "{name} will no longer see this class’s tasks. You can join again with the teacher’s current code.",
+      "leaveKeep": "Stay in the class",
+      "leaveConfirm": "Leave class",
+      "leaving": "Leaving …"
+    },
+    "dialog": {
+      "close": "Close"
+    },
+    "code": {
+      "label": "Invite code",
+      "copy": "Copy code",
+      "copied": "Copied.",
+      "copyFailed": "Copying did not work. You can write the code down instead."
+    },
+    "created": {
+      "title": "Class {name} is ready",
+      "grade": "Grade {grade}",
+      "share": "Give this code to the parents of your class, for example in a letter home. They enter it on their home page so their child sees your assignments.",
+      "done": "Done"
+    },
+    "add": {
+      "open": "Add class",
+      "title": "New class",
+      "description": "Your assignments in the class you have selected stay as they are."
+    },
+    "details": {
+      "open": "Details of {name}",
+      "codeUnavailable": "Code unavailable",
+      "codeUnavailableHint": "Only a one-way checksum is stored for this class, so nobody can show the old code again. You can generate a new one.",
+      "codeValidUntil": "Valid until {date}.",
+      "codeExpired": "This code has expired. Generate a new one so more children can join.",
+      "regenerate": "Generate new code",
+      "regenerateTitle": "Generate a new code?",
+      "regenerateBody": "The current code stops working at once. Children who are already in the class stay in it.",
+      "regenerateKeep": "Cancel",
+      "regenerateConfirm": "Generate new code",
+      "regenerating": "Generating …",
+      "membersTitle": "{count, plural, =0 {Children} one {# child} other {# children}}",
+      "membersEmpty": "No child has joined yet.",
+      "joined": "since {date}"
     }
   }
 }

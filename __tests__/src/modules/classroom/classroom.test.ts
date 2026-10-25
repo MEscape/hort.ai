@@ -12,14 +12,16 @@ import { LeaveClassroom } from '@modules/classroom/application/commands/leave-cl
 import { RegenerateInviteCode } from '@modules/classroom/application/commands/regenerate-invite-code';
 import { RenameClassroom } from '@modules/classroom/application/commands/rename-classroom';
 import { GetChildClassroom } from '@modules/classroom/application/queries/get-child-classroom';
+import { GetClassroomDetails } from '@modules/classroom/application/queries/get-classroom-details';
 import { ListClassroomMembers } from '@modules/classroom/application/queries/list-classroom-members';
 import { ListClassrooms } from '@modules/classroom/application/queries/list-classrooms';
 import { CLASSROOM_ERROR_CODES } from '@modules/classroom/domain/errors/classroom-errors';
 import type { Classroom } from '@modules/classroom/domain/models/classroom';
-import { toChildProfileId, toClassroomId } from '@modules/classroom/domain/models/ids';
+import { toClassMembershipId, toClassroomId } from '@modules/classroom/domain/models/ids';
 import type { ChildProfileAccess } from '@modules/classroom/domain/ports/child-profile-access.port';
 import type { ClassroomEvent } from '@modules/classroom/domain/ports/classroom-audit-log.port';
 import type { ClassroomRepository } from '@modules/classroom/domain/ports/classroom.repository';
+import { createAesGcmInviteCodeVault } from '@modules/classroom/infrastructure/security/aes-gcm-invite-code-vault';
 import { cryptoInviteCodeIssuer } from '@modules/classroom/infrastructure/security/crypto-invite-code-issuer';
 
 import { forbiddenError, infrastructureError, notFoundError } from '@lib/errors';
@@ -42,6 +44,11 @@ interface Child {
   grade: number;
 }
 
+/** A test key (32 bytes, base64); the vault behaves exactly as with a real one. */
+const TEST_INVITE_KEY = Buffer.alloc(32, 7).toString('base64');
+
+type StoredRoom = Classroom & { inviteCodeHash: string; sealed?: string | null };
+
 /** A world the use cases run in: one signed-in actor at a time, in-memory storage. */
 function world() {
   let current: Actor = TEACHER;
@@ -50,7 +57,7 @@ function world() {
   };
   const currentActor: CurrentActorProvider = { getCurrentActor: () => okAsync(current) };
 
-  const rooms: Array<Classroom & { inviteCodeHash: string }> = [];
+  const rooms: StoredRoom[] = [];
   const members: Array<{ classroomId: string; childProfileId: string; joinedAt: Date }> = [];
   const children = new Map<string, Child>([
     [
@@ -63,11 +70,10 @@ function world() {
     ],
   ]);
   let next = 1;
-  const strip = ({ inviteCodeHash: _hash, ...room }: Classroom & { inviteCodeHash: string }) =>
-    room;
-  const patch = (id: string, change: Partial<Classroom & { inviteCodeHash: string }>) => {
+  const strip = ({ inviteCodeHash: _hash, sealed: _sealed, ...room }: StoredRoom) => room;
+  const patch = (id: string, change: Partial<StoredRoom>) => {
     const index = rooms.findIndex((room) => room.id === id);
-    rooms[index] = { ...rooms[index], ...change } as Classroom & { inviteCodeHash: string };
+    rooms[index] = { ...rooms[index], ...change } as StoredRoom;
     return okAsync(strip(rooms[index]));
   };
 
@@ -89,7 +95,7 @@ function world() {
           .slice(0, limit)
           .map(strip),
       ),
-    create: ({ tenantId, ownerId, draft, inviteCodeHash }) => {
+    create: ({ tenantId, ownerId, draft, inviteCodeHash, sealedInviteCode }) => {
       const room = {
         id: toClassroomId(`class-${String(next++)}`),
         tenantId,
@@ -97,6 +103,7 @@ function world() {
         ...draft,
         status: 'active' as const,
         inviteCodeHash,
+        sealed: sealedInviteCode ?? null,
         inviteCodeIssuedAt: NOW,
         createdAt: NOW,
         updatedAt: NOW,
@@ -105,7 +112,10 @@ function world() {
       return okAsync(strip(room));
     },
     rename: (id, _scope, name) => patch(id, { name }),
-    replaceInviteCode: (id, _scope, inviteCodeHash) => patch(id, { inviteCodeHash }),
+    replaceInviteCode: (id, _scope, code) =>
+      patch(id, { inviteCodeHash: code.hash, sealed: code.sealed }),
+    findSealedInviteCode: (id, scope) =>
+      okAsync(rooms.find((row) => row.id === id && row.ownerId === scope.ownerId)?.sealed ?? null),
     archive: (id) => {
       for (let index = members.length - 1; index >= 0; index -= 1) {
         if (members[index]!.classroomId === id) {
@@ -119,7 +129,11 @@ function world() {
       const room = member && rooms.find((row) => row.id === member.classroomId);
       return okAsync(member && room ? { classroom: strip(room), joinedAt: member.joinedAt } : null);
     },
-    addMember: ({ classroomId, childProfileId }) => {
+    addMember: ({ classroomId, childProfileId, inviteCodeHash }) => {
+      const room = rooms.find((row) => row.id === classroomId);
+      if (room?.status !== 'active' || room.inviteCodeHash !== inviteCodeHash) {
+        return errAsync(notFoundError(CLASSROOM_ERROR_CODES.inviteCodeInvalid, ''));
+      }
       if (members.some((row) => row.childProfileId === childProfileId)) {
         return errAsync({
           kind: 'conflict',
@@ -143,7 +157,7 @@ function world() {
           .filter((row) => row.classroomId === classroomId)
           .slice(0, limit)
           .map((row) => ({
-            childProfileId: toChildProfileId(row.childProfileId),
+            memberId: toClassMembershipId(`membership-${row.childProfileId}`),
             displayName: children.get(row.childProfileId)!.displayName,
             joinedAt: row.joinedAt,
           })),
@@ -177,10 +191,12 @@ function world() {
     authorization: createAuthorizationService({ currentActor, audit: recordingAudit() }),
     classrooms,
     inviteCodes: cryptoInviteCodeIssuer,
+    inviteCodeVault: createAesGcmInviteCodeVault(TEST_INVITE_KEY),
     childProfiles,
     audit: { record: (event) => events.push(event) },
     rateLimiter: createTestRateLimiter(),
     clientAddress: clientAt('203.0.113.7'),
+    clock: { now: () => NOW },
     ...overrides,
   });
   const base = deps();
@@ -202,6 +218,7 @@ function world() {
     leave: new LeaveClassroom(base),
     list: new ListClassrooms(base),
     listMembers: new ListClassroomMembers(base),
+    details: new GetClassroomDetails(base),
     childClassroom: new GetChildClassroom(base),
   };
 }
@@ -298,7 +315,7 @@ describe('joining with an invite code', () => {
     expect((await w.childClassroom.execute('child-1'))._unsafeUnwrap()?.classroomId).toBe(id);
   });
 
-  it('shows the teacher only the display names of the children in their own class', async () => {
+  it('shows the teacher only display name and join date of the children in their own class', async () => {
     const w = world();
     const { id, code } = await classWithCode(w);
     const foreign = await classWithCode(w, OTHER_TEACHER);
@@ -309,9 +326,42 @@ describe('joining with an invite code', () => {
 
     w.as(TEACHER);
     const listed = (await w.listMembers.execute(id))._unsafeUnwrap();
-    expect(listed).toEqual([{ childProfileId: 'child-1', displayName: 'Lina', joinedAt: NOW }]);
-    expect(Object.keys(listed[0]!)).toEqual(['childProfileId', 'displayName', 'joinedAt']);
+    expect(listed).toEqual([
+      { memberId: 'membership-child-1', displayName: 'Lina', joinedAt: NOW },
+    ]);
+    expect(Object.keys(listed[0]!)).toEqual(['memberId', 'displayName', 'joinedAt']);
+    expect(JSON.stringify(listed)).not.toContain('"child-1"');
     expect((await w.listMembers.execute(foreign.id))._unsafeUnwrapErr().kind).toBe('not_found');
+  });
+
+  it('refuses a code replaced between the lookup and the membership write', async () => {
+    const w = world();
+    const { id, code } = await classWithCode(w);
+    const { classrooms } = w.deps();
+    // The teacher issues a new code right after the parent's code was looked up.
+    const racing = new JoinClassroom(
+      w.deps({
+        classrooms: {
+          ...classrooms,
+          findActiveByInviteCodeHash: (hash, tenantId) =>
+            classrooms.findActiveByInviteCodeHash(hash, tenantId).andThen((found) => {
+              const room = w.rooms.find((row) => row.id === id)!;
+              room.inviteCodeHash = 'f'.repeat(64);
+              return okAsync(found);
+            }),
+        },
+      }),
+    );
+    w.as(MARA);
+
+    const result = await racing.execute({ childProfileId: 'child-1', inviteCode: code });
+
+    expect(result._unsafeUnwrapErr().code).toBe(CLASSROOM_ERROR_CODES.inviteCodeInvalid);
+    expect(w.members).toHaveLength(0);
+    expect(w.children.get('child-1')).toMatchObject({ federalState: 'by', grade: 2 });
+    expect(w.events).toContainEqual(
+      expect.objectContaining({ type: 'classroom.join_refused', reason: 'invite_code_invalid' }),
+    );
   });
 
   it('rejects an unknown or malformed code, and audits it without the code', async () => {
@@ -448,5 +498,83 @@ describe('the join budget', () => {
 
     expect(result._unsafeUnwrapErr().code).toBe(CLASSROOM_ERROR_CODES.rateLimiterFailed);
     expect(w.members).toHaveLength(0);
+  });
+});
+
+describe('classroom details and invite code visibility', () => {
+  it('shows the current code again to its teacher, with expiry and children by name only', async () => {
+    const w = world();
+    const { id, code } = await classWithCode(w);
+    w.as(MARA);
+    (await w.join.execute({ childProfileId: 'child-1', inviteCode: code }))._unsafeUnwrap();
+
+    w.as(TEACHER);
+    const details = (await w.details.execute(id))._unsafeUnwrap();
+    expect(details.inviteCode).toBe(code);
+    expect(details.inviteCodeExpiresAt).toEqual(new Date('2026-11-07T12:00:00.000Z'));
+    expect(details.members.map(({ displayName }) => displayName)).toEqual(['Lina']);
+    expect(details.members[0]).not.toHaveProperty('childProfileId');
+    // The stored value is ciphertext, never the code itself.
+    expect(w.rooms[0]!.sealed).toMatch(/^v1\./);
+    expect(w.rooms[0]!.sealed).not.toContain(code.replace('-', ''));
+  });
+
+  it('shows the replacement after a new code, and never the old one', async () => {
+    const w = world();
+    const { id, code } = await classWithCode(w);
+    const replaced = (await w.regenerate.execute({ id }))._unsafeUnwrap().inviteCode;
+    const details = (await w.details.execute(id))._unsafeUnwrap();
+    expect(details.inviteCode).toBe(replaced);
+    expect(details.inviteCode).not.toBe(code);
+  });
+
+  it("refuses another teacher's class and every parent", async () => {
+    const w = world();
+    const { id } = await classWithCode(w);
+    w.as(OTHER_TEACHER);
+    expect((await w.details.execute(id))._unsafeUnwrapErr().kind).toBe('not_found');
+    w.as(MARA);
+    expect((await w.details.execute(id))._unsafeUnwrapErr().code).toBe('auth.permission_denied');
+  });
+
+  it('reports a hash-only code as unavailable and lets a new code be issued', async () => {
+    const w = world();
+    const noKey = createAesGcmInviteCodeVault(undefined);
+    const create = new CreateClassroom(w.deps({ inviteCodeVault: noKey }));
+    const created = (await create.execute(CLASS_3A))._unsafeUnwrap();
+    const details = new GetClassroomDetails(w.deps({ inviteCodeVault: noKey }));
+
+    expect((await details.execute(created.classroom.id))._unsafeUnwrap().inviteCode).toBeNull();
+    expect(w.rooms[0]!.sealed).toBeNull();
+    const replaced = (await w.regenerate.execute({ id: created.classroom.id }))._unsafeUnwrap();
+    expect((await w.details.execute(created.classroom.id))._unsafeUnwrap().inviteCode).toBe(
+      replaced.inviteCode,
+    );
+  });
+});
+
+describe('AES-GCM invite code vault', () => {
+  const owner = { tenantId: TEACHER.tenantId, ownerId: TEACHER.id };
+  const code = 'ACDEFHJK' as Parameters<ReturnType<typeof createAesGcmInviteCodeVault>['seal']>[0];
+
+  it('opens what it sealed, with a fresh nonce every time', () => {
+    const vault = createAesGcmInviteCodeVault(TEST_INVITE_KEY);
+    const first = vault.seal(code, owner)!;
+    expect(vault.open(first, owner)).toBe(code);
+    expect(vault.seal(code, owner)).not.toBe(first);
+  });
+
+  it('opens nothing for another owner, another key, or a damaged value', () => {
+    const vault = createAesGcmInviteCodeVault(TEST_INVITE_KEY);
+    const sealed = vault.seal(code, owner)!;
+    expect(vault.open(sealed, { ...owner, ownerId: OTHER_TEACHER.id })).toBeNull();
+    const other = createAesGcmInviteCodeVault(Buffer.alloc(32, 9).toString('base64'));
+    expect(other.open(sealed, owner)).toBeNull();
+    expect(vault.open(`${sealed.slice(0, -2)}AA`, owner)).toBeNull();
+    expect(vault.open('garbage', owner)).toBeNull();
+  });
+
+  it('seals nothing without a key', () => {
+    expect(createAesGcmInviteCodeVault(undefined).seal(code, owner)).toBeNull();
   });
 });

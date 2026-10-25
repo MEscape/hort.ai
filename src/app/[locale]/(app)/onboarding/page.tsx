@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 
-import { requireSignedIn } from '@modules/auth';
+import { requireSignedIn, TEACHER_ROLE } from '@modules/auth';
 import {
   OnboardingFlow,
   OnboardingShell,
@@ -11,9 +11,9 @@ import {
 import { I18nProvider } from '@components/providers/i18n-provider';
 import { Skeleton } from '@components/ui/skeleton';
 
-import { requireLocale } from '@i18n';
+import { redirect, requireLocale } from '@i18n';
 
-import { getTranslations } from '@i18n/server';
+import { getLocale, getTranslations } from '@i18n/server';
 
 import { buildPrivateMetadata } from '@lib/seo';
 
@@ -30,7 +30,11 @@ export async function generateMetadata({
 }
 
 async function ParentOnboarding() {
-  await requireSignedIn(learnerRoutes.onboarding());
+  const actor = await requireSignedIn(learnerRoutes.onboarding());
+  // A teacher has no child to set up; the home page leads them to their classes instead.
+  if (actor.roles.includes(TEACHER_ROLE)) {
+    redirect({ href: learnerRoutes.home(), locale: await getLocale() });
+  }
   const state = await requireOnboarding();
   // A fresh key per server render: the browser keeps the state of a page it left (the router
   // restores it), so without this a reset or a second visit could show the screen of the last visit.

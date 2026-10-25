@@ -25,11 +25,30 @@ export interface ClassroomWithInviteCodeView {
   readonly inviteCode: string;
 }
 
-/** A child as its teacher sees it: the display name only (#32). */
+/**
+ * A child as its teacher sees it, for managing the class: display name and join date (#32).
+ * `memberId` names the membership, never the child profile.
+ */
 export interface ClassMemberView {
-  readonly childProfileId: string;
+  readonly memberId: string;
   readonly displayName: string;
   readonly joinedAt: Date;
+}
+
+/**
+ * One of the teacher's own classes with what its details dialog shows. `inviteCode` is `null` when
+ * only its hash is stored (a class from before codes were sealed, or no key configured): such a code
+ * cannot be recovered, only replaced.
+ */
+export interface ClassroomDetailsView {
+  readonly classroom: ClassroomView;
+  /** `ABCD-EFGH`, or `null` when unavailable. */
+  readonly inviteCode: string | null;
+  /** When the current code stops admitting children, whether or not it can be shown. */
+  readonly inviteCodeExpiresAt: Date;
+  /** Whether the current code no longer admits children (`INVITE_CODE_VALIDITY_DAYS`). */
+  readonly isInviteCodeExpired: boolean;
+  readonly members: readonly ClassMemberView[];
 }
 
 /** The class a child is in, for its parent (and, later, the child's own screens: #29, #33). */

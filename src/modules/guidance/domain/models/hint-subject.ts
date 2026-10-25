@@ -14,7 +14,12 @@ export type HintSubject = (typeof HINT_SUBJECTS)[number];
 
 const isHintSubject = literalGuard(HINT_SUBJECTS);
 
-/** A subject that arrived from a request; anything outside the list is refused. */
+/**
+ * A subject that arrived from a request or was read back from a stored session; anything outside the
+ * list is refused.
+ *
+ * @keep The help-session repository (#17) builds a session's subject with it.
+ */
 export function parseHintSubject(raw: string): AppResult<HintSubject, ValidationAppError> {
   return isHintSubject(raw)
     ? ok(raw)

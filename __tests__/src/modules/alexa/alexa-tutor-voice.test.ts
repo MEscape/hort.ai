@@ -1,11 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { TutorVoice } from '@modules/alexa/application/contracts/tutor-voice-model';
+import { toTutorId } from '@modules/alexa/domain/models/ids';
 import { connectionTestTutor } from '@modules/alexa/infrastructure/connection-test/connection-test-tutor';
+import { catalogTutorIntroductions } from '@modules/alexa/infrastructure/tutors/catalog-tutor-introductions';
 import { createAlexaEndpoint } from '@modules/alexa/presentation/routes';
+import { tutorCatalog } from '@modules/tutors';
 
 import { infrastructureError } from '@lib/errors';
-import { errAsync, okAsync, ResultAsync } from '@lib/result';
+import { errAsync, ok, okAsync, ResultAsync } from '@lib/result';
 
 const SKILL_ID = 'amzn1.ask.skill.00000000-0000-0000-0000-000000000000';
 const TEST_SENTENCE = 'Lennart wann holen wir uns draußen Suppe';
@@ -39,8 +42,10 @@ function launch(supportedInterfaces?: Record<string, unknown>, type = 'LaunchReq
   });
 }
 
-function voiceAnswering(url: string): TutorVoice & { audioUrl: ReturnType<typeof vi.fn> } {
-  return { audioUrl: vi.fn(() => okAsync(url)) };
+function voiceAnswering(
+  url: string,
+): TutorVoice & { audioUrl: ReturnType<typeof vi.fn>; greetingUrl: ReturnType<typeof vi.fn> } {
+  return { audioUrl: vi.fn(() => okAsync(url)), greetingUrl: vi.fn(() => okAsync(url)) };
 }
 
 function endpoint(voice: TutorVoice | null, extra: { voiceDeadlineMs?: number } = {}) {
@@ -62,7 +67,7 @@ const PLAIN_TEST_SENTENCE = {
 };
 
 describe('Alexa tutor voice', () => {
-  it('answers the launch with an APL for Audio clip of the test sentence', async () => {
+  it('voices a tutor reply as an APL for Audio clip (launch without introductions)', async () => {
     const voice = voiceAnswering(CLIP_URL);
     const { handle, onVoiceFallback } = endpoint(voice);
 
@@ -107,6 +112,7 @@ describe('Alexa tutor voice', () => {
   it('falls back to the standard voice and reports only the error code when the voice fails', async () => {
     const voice: TutorVoice = {
       audioUrl: () => errAsync(infrastructureError('speech.quota_exceeded', 'Quota used up.')),
+      greetingUrl: () => okAsync(CLIP_URL),
     };
     const { handle, onVoiceFallback } = endpoint(voice);
 
@@ -120,6 +126,7 @@ describe('Alexa tutor voice', () => {
   it('falls back to the standard voice when the voice misses the deadline', async () => {
     const hanging: TutorVoice = {
       audioUrl: () => new ResultAsync(new Promise(() => undefined)),
+      greetingUrl: () => okAsync(CLIP_URL),
     };
     const { handle, onVoiceFallback } = endpoint(hanging, { voiceDeadlineMs: 30 });
     const started = performance.now();
@@ -134,6 +141,7 @@ describe('Alexa tutor voice', () => {
   it('falls back to the standard voice when the voice adapter throws', async () => {
     const throwing: TutorVoice = {
       audioUrl: () => new ResultAsync(Promise.reject(new Error('boom'))),
+      greetingUrl: () => okAsync(CLIP_URL),
     };
     const { handle, onVoiceFallback } = endpoint(throwing);
 
@@ -183,5 +191,166 @@ describe('Alexa tutor voice', () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ version: '1.0', response: {} });
     expect(onVoiceFallback).toHaveBeenCalledExactlyOnceWith('apla_runtime_error');
+  });
+});
+
+describe('Alexa tutor introductions on launch', () => {
+  const INTROS = [
+    { tutorId: toTutorId('max'), text: 'Wuff, hallo! Ich bin Max.' },
+    { tutorId: toTutorId('lili'), text: 'Hallo, ich bin Lili.' },
+    { tutorId: toTutorId('fina'), text: 'Hallo, ich bin Fina!' },
+  ] as const;
+  const clip = (id: string) => `https://clips.example/speech-clips/${id}.mp3?sig=x`;
+  const ALL_PLAIN = {
+    version: '1.0',
+    response: {
+      outputSpeech: { type: 'PlainText', text: INTROS.map((intro) => intro.text).join(' ') },
+      shouldEndSession: true,
+    },
+  };
+
+  function introEndpoint(
+    greetingUrl: TutorVoice['greetingUrl'] | null,
+    extra: { voiceDeadlineMs?: number } = {},
+  ) {
+    const onVoiceFallback = vi.fn<(reason: string) => void>();
+    const audioUrl = vi.fn(() => okAsync(CLIP_URL));
+    const tutorRespond = vi.fn(connectionTestTutor.respond);
+    const handle = createAlexaEndpoint({
+      skillId: SKILL_ID,
+      verify: () => okAsync(undefined),
+      tutor: { respond: tutorRespond },
+      introductions: INTROS,
+      voice: greetingUrl ? { audioUrl, greetingUrl } : null,
+      onVoiceFallback,
+      ...extra,
+    });
+    return { handle, onVoiceFallback, audioUrl, tutorRespond };
+  }
+
+  it('lets every tutor greet in its own voice, in catalog order, in one APLA sequencer', async () => {
+    const greetingUrl = vi.fn((id: string) => okAsync(clip(id)));
+    const { handle, onVoiceFallback, audioUrl, tutorRespond } = introEndpoint(greetingUrl);
+
+    const response = await handle(launch());
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      version: '1.0',
+      response: {
+        directives: [
+          {
+            type: 'Alexa.Presentation.APLA.RenderDocument',
+            token: 'tutor-intros',
+            document: {
+              type: 'APLA',
+              version: '0.91',
+              mainTemplate: {
+                item: {
+                  type: 'Sequencer',
+                  items: [
+                    { type: 'Audio', source: clip('max') },
+                    { type: 'Audio', source: clip('lili') },
+                    { type: 'Audio', source: clip('fina') },
+                  ],
+                },
+              },
+            },
+          },
+        ],
+        shouldEndSession: true,
+      },
+    });
+    expect(greetingUrl.mock.calls.map(([id]) => id)).toEqual(['max', 'lili', 'fina']);
+    expect(audioUrl).not.toHaveBeenCalled();
+    expect(tutorRespond).not.toHaveBeenCalled();
+    expect(onVoiceFallback).not.toHaveBeenCalled();
+  });
+
+  it('speaks only the failing greeting in the standard voice and keeps the others', async () => {
+    const greetingUrl = (id: string) =>
+      id === 'lili'
+        ? errAsync(infrastructureError('speech.quota_exceeded', 'Quota used up.'))
+        : okAsync(clip(id));
+    const { handle, onVoiceFallback } = introEndpoint(greetingUrl);
+
+    const body = await (await handle(launch())).json();
+
+    expect(body.response.directives[0].document.mainTemplate.item.items).toEqual([
+      { type: 'Audio', source: clip('max') },
+      { type: 'Speech', content: INTROS[1].text },
+      { type: 'Audio', source: clip('fina') },
+    ]);
+    expect(body.response.outputSpeech).toBeUndefined();
+    expect(onVoiceFallback).toHaveBeenCalledExactlyOnceWith('speech.quota_exceeded');
+  });
+
+  it('fetches all clips in parallel under one deadline; a late one falls back alone', async () => {
+    const greetingUrl = (id: string) =>
+      id === 'fina'
+        ? new ResultAsync<string, never>(
+            new Promise(() => {
+              /* never settles */
+            }),
+          )
+        : new ResultAsync<string, never>(
+            new Promise((resolve) =>
+              setTimeout(() => {
+                resolve(ok(clip(id)));
+              }, 40),
+            ),
+          );
+    const { handle, onVoiceFallback } = introEndpoint(greetingUrl, { voiceDeadlineMs: 100 });
+    const started = performance.now();
+
+    const body = await (await handle(launch())).json();
+
+    // Sequential waiting would take 40 + 40 + 100 ms; parallel stays near the single deadline.
+    expect(performance.now() - started).toBeLessThan(180);
+    expect(body.response.directives[0].document.mainTemplate.item.items).toEqual([
+      { type: 'Audio', source: clip('max') },
+      { type: 'Audio', source: clip('lili') },
+      { type: 'Speech', content: INTROS[2].text },
+    ]);
+    expect(onVoiceFallback).toHaveBeenCalledExactlyOnceWith('timeout');
+  });
+
+  it('falls back to plain text when no greeting clip is available', async () => {
+    const { handle, onVoiceFallback } = introEndpoint(
+      () => new ResultAsync(Promise.reject(new Error('boom'))),
+    );
+
+    expect(await (await handle(launch())).json()).toEqual(ALL_PLAIN);
+    expect(onVoiceFallback).toHaveBeenCalledTimes(INTROS.length);
+  });
+
+  it('greets in plain text with the voice switched off', async () => {
+    const { handle, tutorRespond } = introEndpoint(null);
+
+    expect(await (await handle(launch())).json()).toEqual(ALL_PLAIN);
+    expect(tutorRespond).not.toHaveBeenCalled();
+  });
+
+  it('reads the greetings of all ready tutors from the catalog, in catalog order', () => {
+    const ready = tutorCatalog.tutoren.filter((tutor) => tutor.status === 'bereit');
+
+    expect(catalogTutorIntroductions()).toEqual(
+      ready.map((tutor) => ({ tutorId: tutor.id, text: tutor.begruessung })),
+    );
+    expect(catalogTutorIntroductions().map((intro) => intro.tutorId)).toEqual([
+      'max',
+      'lili',
+      'fina',
+    ]);
+    const drafts = ready.map((tutor) => ({
+      ...tutor,
+      id: `${tutor.id}-neu`,
+      status: 'entwurf' as const,
+    }));
+    expect(
+      catalogTutorIntroductions({ ...tutorCatalog, tutoren: [...drafts, ...ready] }).map(
+        (intro) => intro.tutorId,
+      ),
+    ).toEqual(['max', 'lili', 'fina']);
   });
 });

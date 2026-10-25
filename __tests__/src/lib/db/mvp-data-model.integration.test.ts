@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import type { db as Db } from '@lib/db';
+import type { dateToInstant as DateToInstant, db as Db } from '@lib/db';
 
 /**
  * The invariants of the MVP data model (#8) that only the database can guarantee, against the real
@@ -17,6 +17,7 @@ describe.skipIf(!isEnabled)('MVP data model constraints against Postgres', () =>
   const tenantId = `it-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
   let db: typeof Db;
   let disconnect: () => Promise<void>;
+  let dateToInstant: typeof DateToInstant;
   let sequence = 0;
 
   const unique = (prefix: string) => {
@@ -24,10 +25,11 @@ describe.skipIf(!isEnabled)('MVP data model constraints against Postgres', () =>
     return `${prefix}${String(sequence)}`;
   };
 
+  // One parent per profile: a parent may hold only one unfinished profile (#63 constraint).
   function childProfile() {
     return db.orm.public.ChildProfile.create({
       tenantId,
-      ownerId: 'parent-1',
+      ownerId: unique('parent-'),
       displayName: 'Mia',
       federalState: 'HE',
       grade: 3,
@@ -50,6 +52,7 @@ describe.skipIf(!isEnabled)('MVP data model constraints against Postgres', () =>
     const database = await import('@lib/db');
     db = database.db;
     disconnect = database.disconnectDb;
+    dateToInstant = database.dateToInstant;
   });
 
   afterAll(async () => {
@@ -92,6 +95,7 @@ describe.skipIf(!isEnabled)('MVP data model constraints against Postgres', () =>
       ownerId: 'parent-1',
       childProfileId: child.id,
       taskText: 'Rechne 23 + 19.',
+      subject: 'MATH',
     });
     const event = {
       sessionId: session.id,
@@ -108,13 +112,15 @@ describe.skipIf(!isEnabled)('MVP data model constraints against Postgres', () =>
 
   it('accepts the same idempotency key in another session', async () => {
     const child = await childProfile();
+    const other = await childProfile();
     const sessions = await Promise.all(
-      [1, 2].map(() =>
+      [child, other].map((profile) =>
         db.orm.public.HelpSession.create({
           tenantId,
           ownerId: 'parent-1',
-          childProfileId: child.id,
+          childProfileId: profile.id,
           taskText: 'Rechne 23 + 19.',
+          subject: 'MATH',
         }),
       ),
     );
@@ -136,15 +142,17 @@ describe.skipIf(!isEnabled)('MVP data model constraints against Postgres', () =>
 
   it('refuses an assessment that points at an answer of another session', async () => {
     const child = await childProfile();
-    const newSession = () =>
+    const other = await childProfile();
+    const newSession = (childProfileId: string) =>
       db.orm.public.HelpSession.create({
         tenantId,
         ownerId: 'parent-1',
-        childProfileId: child.id,
+        childProfileId,
         taskText: 'Rechne 23 + 19.',
+        subject: 'MATH',
       });
-    const own = await newSession();
-    const foreign = await newSession();
+    const own = await newSession(child.id);
+    const foreign = await newSession(other.id);
     const answer = await db.orm.public.ChildAnswer.create({
       sessionId: foreign.id,
       idempotencyKey: 'answer-x',
@@ -154,6 +162,7 @@ describe.skipIf(!isEnabled)('MVP data model constraints against Postgres', () =>
       answerId: answer.id,
       idempotencyKey: 'assess-1',
       result: 'CORRECT',
+      assessedBy: 'SOLUTION_KEY',
       text: 'Stimmt, 23 + 19 = 42.',
     } as const;
 
@@ -164,6 +173,78 @@ describe.skipIf(!isEnabled)('MVP data model constraints against Postgres', () =>
     await expect(
       db.orm.public.AnswerAssessment.create({ ...assessment, sessionId: foreign.id }),
     ).resolves.toMatchObject({ answerId: answer.id });
+  });
+
+  it('refuses a second active help session for the same child', async () => {
+    const child = await childProfile();
+    const session = {
+      tenantId,
+      ownerId: 'parent-1',
+      childProfileId: child.id,
+      taskText: 'Rechne 23 + 19.',
+      subject: 'MATH',
+    } as const;
+    await db.orm.public.HelpSession.create(session);
+
+    await expect(db.orm.public.HelpSession.create(session)).rejects.toThrow(
+      /HelpSession_one_active_per_child/,
+    );
+    // An ended session does not count.
+    await expect(
+      db.orm.public.HelpSession.create({
+        ...session,
+        status: 'COMPLETED',
+        endedAt: dateToInstant(new Date()),
+      }),
+    ).resolves.toMatchObject({ status: 'COMPLETED' });
+  });
+
+  it('stores a hint either as text or as the reason for the predefined prompt', async () => {
+    const child = await childProfile();
+    const session = await db.orm.public.HelpSession.create({
+      tenantId,
+      ownerId: 'parent-1',
+      childProfileId: child.id,
+      taskText: 'Rechne 23 + 19.',
+      subject: 'MATH',
+    });
+    const hint = { sessionId: session.id, level: 'NEXT_STEP' } as const;
+
+    await expect(
+      db.orm.public.HintEvent.create({
+        ...hint,
+        idempotencyKey: 'fallback',
+        fallbackReason: 'unavailable',
+      }),
+    ).resolves.toMatchObject({ text: null });
+    await expect(
+      db.orm.public.HintEvent.create({ ...hint, idempotencyKey: 'neither' }),
+    ).rejects.toThrow(/HintEvent_text_or_fallback_rule/);
+  });
+
+  it('refuses an assessment with a result but nobody who decided it', async () => {
+    const child = await childProfile();
+    const session = await db.orm.public.HelpSession.create({
+      tenantId,
+      ownerId: 'parent-1',
+      childProfileId: child.id,
+      taskText: 'Rechne 23 + 19.',
+      subject: 'MATH',
+    });
+    const answer = await db.orm.public.ChildAnswer.create({
+      sessionId: session.id,
+      idempotencyKey: 'answer-1',
+      text: '42',
+    });
+
+    await expect(
+      db.orm.public.AnswerAssessment.create({
+        sessionId: session.id,
+        answerId: answer.id,
+        idempotencyKey: 'answer-1',
+        result: 'CORRECT',
+      }),
+    ).rejects.toThrow(/AnswerAssessment_assessed_rule/);
   });
 
   it('refuses a grade outside 1 to 4 even from a writer that skips the domain', async () => {

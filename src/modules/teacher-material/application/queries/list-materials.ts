@@ -25,6 +25,7 @@ export class ListMaterials {
                 contentType: row.contentType,
                 sizeBytes: row.sizeBytes,
                 status: row.status,
+                createdAt: row.createdAt?.toISOString() ?? null,
               })),
             ),
         ),

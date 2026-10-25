@@ -1,17 +1,35 @@
 {
   "assignments": {
+    "page": {
+      "title": "Aufgaben",
+      "classLabel": "Klasse",
+      "classGrade": "Klasse {grade}",
+      "teachersOnlyTitle": "Nur für Lehrkräfte",
+      "teachersOnlyBody": "Aufgaben stellen Lehrkräfte ein. Melde dich mit einem Lehrkraft-Konto an, um Aufgaben für deine Klasse zu stellen.",
+      "noClassTitle": "Lege deine erste Klasse an",
+      "noClassBody": "Aufgaben gehören zu einer Klasse. Lege eine Klasse an und gib ihren Einladungscode an die Eltern weiter.",
+      "classDetails": "Details zu Klasse {name}"
+    },
     "overview": {
-      "title": "Meine Aufgaben",
+      "title": "Aufgaben für {classroom}",
       "create": "Neue Aufgabe",
       "emptyTitle": "Noch keine Aufgaben",
-      "emptyBody": "Hier erscheinen später die Aufgaben für deine Klasse, sobald das Speichern verbunden ist."
+      "emptyBody": "Stelle die erste Aufgabe für diese Klasse ein. Die Kinder sehen sie auf ihrem Startbildschirm.",
+      "due": "Abgabe: {date}",
+      "noDue": "Kein Abgabedatum",
+      "hasSolution": "Lösungsschlüssel gespeichert",
+      "edit": "Bearbeiten",
+      "editLabel": "„{title}“ bearbeiten",
+      "delete": "Löschen",
+      "deleteLabel": "„{title}“ löschen"
     },
-    "development": {
-      "title": "Entwicklungsvorschau",
-      "body": "Speichern ist noch nicht verbunden. Entwürfe bleiben nur auf dieser Seite. Bitte nur Beispieltexte verwenden, keine privaten Daten."
+    "status": {
+      "saved": "Aufgabe gespeichert.",
+      "deleted": "Aufgabe gelöscht."
     },
     "form": {
       "title": "Neue Aufgabe",
+      "editTitle": "Aufgabe bearbeiten",
       "requiredNote": "Titel und Aufgabentext sind Pflichtfelder.",
       "titleLabel": "Titel der Aufgabe",
       "titleHint": "Bis zu {limit} Zeichen.",
@@ -21,22 +39,46 @@
       "dueHint": "Ein Kalendertag ohne Uhrzeit.",
       "teacherOnly": "Nur für die Lehrkraft",
       "solutionLabel": "Lösungsschlüssel (optional)",
-      "solutionHint": "Wird in der Kindervorschau nicht gezeigt. Bis zu {limit} Zeichen.",
+      "solutionHint": "Wird Kindern nie angezeigt. Bis zu {limit} Zeichen.",
       "cancel": "Abbrechen",
-      "preview": "Kindervorschau ansehen"
+      "preview": "Kindervorschau ansehen",
+      "save": "Aufgabe speichern",
+      "saving": "Wird gespeichert …"
     },
     "preview": {
       "title": "Kindervorschau",
-      "description": "Eine vorübergehende Vorschau. Diese Aufgabe wurde nicht gespeichert.",
+      "description": "So sehen die Kinder deiner Klasse die Aufgabe. Gespeichert wird sie erst mit „Aufgabe speichern“.",
       "edit": "Weiter bearbeiten",
       "overview": "Zur Übersicht"
     },
-    "child": { "due": "Abgabe: {date}" },
+    "child": {
+      "due": "Abgabe: {date}",
+      "listTitle": "Aufgaben von deiner Lehrkraft",
+      "empty": "Deine Lehrkraft hat noch keine Aufgaben gestellt.",
+      "backToList": "Alle Aufgaben",
+      "helpSoonTitle": "Hilfe bei Schulaufgaben kommt bald",
+      "helpSoonBody": "Du kannst die Aufgabe hier lesen. Hort kann dabei noch nicht helfen, und es wurde nichts gesendet."
+    },
     "discard": {
-      "title": "Entwurf verwerfen?",
-      "body": "Dein Text geht verloren. Es wurde nichts gespeichert.",
-      "keep": "Entwurf behalten",
-      "confirm": "Entwurf verwerfen"
+      "title": "Änderungen verwerfen?",
+      "body": "Dein nicht gespeicherter Text geht verloren.",
+      "keep": "Weiter bearbeiten",
+      "confirm": "Änderungen verwerfen"
+    },
+    "delete": {
+      "title": "„{title}“ löschen?",
+      "body": "Die Kinder dieser Klasse sehen die Aufgabe danach nicht mehr. Das kann nicht rückgängig gemacht werden.",
+      "keep": "Aufgabe behalten",
+      "confirm": "Aufgabe löschen",
+      "deleting": "Wird gelöscht …"
+    },
+    "errors": {
+      "notFound": "Diese Aufgabe gibt es nicht mehr. Lade die Seite neu, um die aktuelle Liste zu sehen.",
+      "validation": "Bitte prüfe die markierten Felder.",
+      "infrastructure": "Die Aufgabe konnte wegen eines Dienstfehlers nicht gespeichert werden. Bitte versuche es noch einmal.",
+      "invalidId": "Diese Aufgabe wurde nicht gefunden.",
+      "classroomArchived": "Diese Klasse ist archiviert und nimmt keine neuen Aufgaben an.",
+      "unexpected": "Etwas ist schiefgelaufen. Bitte versuche es noch einmal."
     },
     "validation": {
       "titleRequired": "Bitte gib einen Titel ein.",
@@ -44,8 +86,13 @@
       "taskRequired": "Bitte gib einen Aufgabentext ein.",
       "taskTooLong": "Der Aufgabentext darf höchstens 4.000 Zeichen enthalten.",
       "dateInvalid": "Bitte wähle ein gültiges Datum.",
-      "invalid": "Bitte prüfe diese Eingabe.",
       "solutionTooLong": "Der Lösungsschlüssel darf höchstens 4.000 Zeichen enthalten."
+    },
+    "switch": {
+      "title": "Klasse wechseln und Änderungen verwerfen?",
+      "body": "Dein nicht gespeicherter Aufgabentext geht verloren. Speichere ihn zuerst, wenn du ihn behalten möchtest.",
+      "keep": "Weiter bearbeiten",
+      "confirm": "Verwerfen und Klasse wechseln"
     }
   }
 }

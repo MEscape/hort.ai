@@ -32,7 +32,8 @@ export interface TaskRecord {
     readonly competencyCode: string | null;
   }>;
   readonly childAnswers: ReadonlyArray<{ readonly id: string }>;
-  readonly answerAssessments: ReadonlyArray<{ readonly result: string }>;
+  // An assessment still being judged has no result yet (null).
+  readonly answerAssessments: ReadonlyArray<{ readonly result: string | null }>;
   readonly comprehensionQuestions: ReadonlyArray<{ readonly repliedAt: InstantRecord | null }>;
 }
 
