@@ -44,7 +44,11 @@ export async function giveNextHint(
   }
   const level = nextHintLevel(session.state);
   const competencies = await groundInCurriculum(deps, session, level);
-  const outcome = await deps.hints.suggest({ task: session.state.task, level, competencies });
+  const outcome = await deps.hints.suggest(
+    { task: session.state.task, level, competencies },
+    // TODO(#33): a session on a teacher's assignment brings its solution key; a child's own task has none.
+    null,
+  );
   const recorded = await deps.sessions.recordHint(session.ref, { requestId, ...outcome });
   if (recorded.isErr()) {
     deps.audit.record({

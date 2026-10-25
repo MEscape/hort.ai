@@ -11,6 +11,7 @@ import {
   CHILD_SAFETY_VALIDATION_CODES as SAFETY,
   GUIDANCE_ERROR_CODES as ERRORS,
   GUIDANCE_VALIDATION_CODES as VALIDATION,
+  SOLUTION_LEAK_VALIDATION_CODES as LEAK,
 } from '../../application/contracts/guidance-constraints';
 
 import type { GuidanceCode } from '../../application/contracts/guidance-constraints';
@@ -24,7 +25,7 @@ export const GENERIC_ERROR_MESSAGE_KEY = fieldPath('errors', 'unexpected');
 
 /**
  * Codes -> translation keys, relative to the `guidance` namespace. `satisfies Record<...>` makes a
- * new code fail to compile until it has a message. AI output and child-safety codes never reach the
+ * new code fail to compile until it has a message. AI output, child-safety and solution-leak codes never reach the
  * child (a rejected AI text becomes the predefined prompt), so they get the generic message.
  */
 export const MESSAGE_KEY_BY_CODE = {
@@ -65,6 +66,11 @@ export const MESSAGE_KEY_BY_CODE = {
   [SAFETY.asksForSecrecy]: GENERIC_ERROR_MESSAGE_KEY,
   [SAFETY.inappropriateContent]: GENERIC_ERROR_MESSAGE_KEY,
   [SAFETY.discouraging]: GENERIC_ERROR_MESSAGE_KEY,
+  [LEAK.statesResult]: GENERIC_ERROR_MESSAGE_KEY,
+  [LEAK.announcesResult]: GENERIC_ERROR_MESSAGE_KEY,
+  [LEAK.dictatesAnswer]: GENERIC_ERROR_MESSAGE_KEY,
+  [LEAK.worksTheTask]: GENERIC_ERROR_MESSAGE_KEY,
+  [LEAK.revealsKeyText]: GENERIC_ERROR_MESSAGE_KEY,
 } as const satisfies Record<GuidanceCode, ValidKeys>;
 
 export type MessageKey =
