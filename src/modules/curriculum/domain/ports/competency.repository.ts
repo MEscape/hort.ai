@@ -15,6 +15,13 @@ export interface CompetencyFilter {
   readonly grade: number;
 }
 
+/** One competency of one document version, as a view code names it. */
+export interface CompetencyRef {
+  readonly sourceKey: string;
+  readonly version: string;
+  readonly code: string;
+}
+
 /**
  * Official curriculum documents and their competencies. The data is public curriculum text, not
  * owned by a tenant: there is nothing to scope by owner.
@@ -36,5 +43,10 @@ export interface CompetencyRepository {
   listCandidates(
     filter: CompetencyFilter,
     limit: number,
+  ): AppResultAsync<readonly Competency[], InfrastructureAppError>;
+
+  /** The stored competencies `refs` name, of exactly the named versions; unknown refs are left out. */
+  findByCodes(
+    refs: readonly CompetencyRef[],
   ): AppResultAsync<readonly Competency[], InfrastructureAppError>;
 }

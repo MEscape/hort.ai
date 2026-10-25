@@ -4,6 +4,7 @@ import { getAccessControl } from '@modules/auth';
 import { classroomQueries } from '@modules/classroom';
 
 import { IngestCurriculumDocument } from './application/commands/ingest-curriculum-document';
+import { DescribeCompetencies } from './application/queries/describe-competencies';
 import { FindRelevantCompetencies } from './application/queries/find-relevant-competencies';
 import { extractStatements } from './domain/parsing/extract-statements';
 import { loggerCurriculumAuditLog } from './infrastructure/audit/logger-curriculum-audit-log';
@@ -40,6 +41,7 @@ export const curriculumCommands = {
 
 export const curriculumQueries = {
   findRelevantCompetencies: new FindRelevantCompetencies(dependencies),
+  describeCompetencies: new DescribeCompetencies(dependencies),
 } as const;
 
 /**

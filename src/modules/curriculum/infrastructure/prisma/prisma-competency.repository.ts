@@ -2,6 +2,7 @@ import { db, createPersistenceFailures, instantToDate } from '@lib/db';
 import type { InfrastructureAppError } from '@lib/errors';
 import { fromThrowableAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
+import { unique } from '@lib/utils';
 
 import { CURRICULUM_ERROR_CODES } from '../../domain/errors/curriculum-errors';
 
@@ -22,6 +23,7 @@ import type { CurriculumDocumentRecord } from './competency-record-mapper';
 import type { Competency, CurriculumDocumentDraft } from '../../domain/models/competency';
 import type {
   CompetencyFilter,
+  CompetencyRef,
   CompetencyRepository,
   CurriculumStoreOutcome,
 } from '../../domain/ports/competency.repository';
@@ -143,5 +145,41 @@ export class PrismaCompetencyRepository implements CompetencyRepository {
         return document ? [toCompetency(record, document)] : [];
       });
     }, failures.infraOnly('listCandidates'));
+  }
+
+  findByCodes(
+    refs: readonly CompetencyRef[],
+  ): AppResultAsync<readonly Competency[], InfrastructureAppError> {
+    return fromThrowableAsync(async () => {
+      const documents = (
+        await db.orm.public.CurriculumDocument.select(...CURRICULUM_DOCUMENT_SELECT)
+          .where((row) => row.sourceKey.in(unique(refs.map((ref) => ref.sourceKey))))
+          .limit(DOCUMENTS_MAX)
+          .all()
+      ).filter((document) =>
+        refs.some(
+          (ref) => ref.sourceKey === document.sourceKey && ref.version === document.version,
+        ),
+      );
+      if (documents.length === 0) {
+        return [];
+      }
+      const byId = new Map(documents.map((document) => [document.id, document]));
+      const records = await db.orm.public.Competency.select(...COMPETENCY_SELECT)
+        .where((row) => row.documentId.in([...byId.keys()]))
+        .where((row) => row.code.in(unique(refs.map((ref) => ref.code))))
+        .limit(refs.length * documents.length)
+        .all();
+      return records.flatMap((record) => {
+        const document = byId.get(record.documentId);
+        const named = refs.some(
+          (ref) =>
+            ref.code === record.code &&
+            ref.sourceKey === document?.sourceKey &&
+            ref.version === document.version,
+        );
+        return document && named ? [toCompetency(record, document)] : [];
+      });
+    }, failures.infraOnly('findByCodes'));
   }
 }

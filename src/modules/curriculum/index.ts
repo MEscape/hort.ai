@@ -8,6 +8,7 @@ export { curriculumCommands, curriculumQueries, curriculumText } from './composi
 
 export type { RelevantCompetenciesRequest } from './application/contracts/curriculum-inputs';
 export type {
+  CompetencyDescription,
   CurriculumIngestReport,
   RelevantCompetenciesView,
   RelevantCompetencyView,

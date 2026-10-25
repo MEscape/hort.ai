@@ -29,6 +29,12 @@ export interface RelevantCompetenciesView {
   readonly usedFallback: boolean;
 }
 
+/** What an official competency says, for showing a stored topic; public curriculum text. */
+export interface CompetencyDescription {
+  readonly section: string | null;
+  readonly text: string;
+}
+
 /** What one ingest stored. */
 export interface CurriculumIngestReport {
   readonly sourceKey: string;

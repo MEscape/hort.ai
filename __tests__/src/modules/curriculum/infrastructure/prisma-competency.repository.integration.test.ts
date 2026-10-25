@@ -137,4 +137,22 @@ describe.skipIf(!isEnabled)('PrismaCompetencyRepository against Postgres', () =>
       otherGrade._unsafeUnwrap().filter((c) => c.document.sourceKey.startsWith(runId)),
     ).toEqual([]);
   });
+
+  it('finds competencies by source, exact version and code, leaving unknown refs out', async () => {
+    const found = await repository.findByCodes([
+      { sourceKey: stateKey, version: 'v1', code: 's01-01' },
+      { sourceKey: stateKey, version: 'v2', code: 's01-01' },
+      { sourceKey: stateKey, version: 'v9', code: 's01-01' },
+      { sourceKey: fallbackKey, version: '1', code: 's09-09' },
+    ]);
+    expect(
+      found._unsafeUnwrap().map((c) => [c.document.sourceKey, c.document.version, c.text]),
+    ).toEqual(
+      expect.arrayContaining([
+        [stateKey, 'v1', 'Alte Fassung nachgeladen'],
+        [stateKey, 'v2', 'Neue Fassung'],
+      ]),
+    );
+    expect(found._unsafeUnwrap()).toHaveLength(2);
+  });
 });
