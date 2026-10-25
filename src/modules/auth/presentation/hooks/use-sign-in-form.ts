@@ -59,6 +59,8 @@ export function useSignInForm(returnTo: string | undefined): SignInFormState {
     startTransition(async () => {
       const result = await signInAction({ ...values, returnTo });
       if (result.ok) {
+        // Navigation can preserve this form in the DOM; discard the credential before leaving.
+        form.resetField('password');
         // The action revalidated the layout, so the destination is fetched fresh: no extra refresh.
         router.push(result.data.redirectTo);
         return;

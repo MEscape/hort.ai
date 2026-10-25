@@ -9,6 +9,9 @@ export type ChildProfileId = Brand<string, 'ChildProfileId'>;
 /** A tutor of the tutors module's catalog, by its stable id. */
 export type TutorId = Brand<string, 'TutorId'>;
 
+/** One help session of the child, as the parent view addresses it. */
+export type ParentTaskId = Brand<string, 'ParentTaskId'>;
+
 /** The parent who owns a profile. Same brand as the auth module's own, so values cross without mapping. */
 export type ActorId = Brand<string, 'ActorId'>;
 
@@ -29,6 +32,11 @@ export function toTutorId(raw: string): TutorId {
   return raw as TutorId; // Brand constructor: the cast is only permitted here.
 }
 
+/** Brands a help-session id read from storage. */
+export function toParentTaskId(raw: string): ParentTaskId {
+  return raw as ParentTaskId; // Brand constructor: the cast is only permitted here.
+}
+
 /** Brands an id read from storage or handed over by a module that already checked it. */
 export function toActorId(raw: string): ActorId {
   return raw as ActorId; // Brand constructor: the cast is only permitted here.
@@ -44,6 +52,13 @@ export const parseChildProfileId = createIdParser({
   isValid: isValidId,
   brand: toChildProfileId,
   mapError: () => fieldValidationFailed('profileId', LEARNER_VALIDATION_CODES.idInvalid),
+});
+
+/** Brands a task id from the parent task URL, after checking its shape. */
+export const parseParentTaskId = createIdParser({
+  isValid: isValidId,
+  brand: toParentTaskId,
+  mapError: () => fieldValidationFailed('taskId', LEARNER_VALIDATION_CODES.idInvalid),
 });
 
 /** @keep Every branded id has a request parser (brand rule); no request names an owner or tenant today. */

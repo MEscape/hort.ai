@@ -1,7 +1,8 @@
 import 'server-only';
 
 import { withAuditTrail } from '@modules/audit';
-import { getAccessControl } from '@modules/auth';
+import { getAccessControl, getParentAreaServices } from '@modules/auth';
+import type { AuthorizationService } from '@modules/auth';
 
 import { systemClock } from '@lib/clock';
 import { serverEnv } from '@lib/config/server';
@@ -18,14 +19,18 @@ import { SaveChildInterests } from './application/commands/save-child-interests'
 import { SaveControls } from './application/commands/save-controls';
 import { SaveInterests } from './application/commands/save-interests';
 import { SetVoiceConsent } from './application/commands/set-voice-consent';
+import { UpdateParentControls } from './application/commands/update-parent-controls';
 import { GetChildProfileById } from './application/queries/get-child-profile-by-id';
 import { GetOnboardingState } from './application/queries/get-onboarding-state';
+import { GetParentLearning } from './application/queries/get-parent-learning';
+import { GetParentTask } from './application/queries/get-parent-task';
 import {
   LEVEL_BY_EVENT,
   TRAIL_BY_EVENT,
   loggerLearnerAuditLog,
 } from './infrastructure/audit/logger-learner-audit-log';
 import { PrismaChildProfileRepository } from './infrastructure/prisma/prisma-child-profile.repository';
+import { PrismaParentLearningRepository } from './infrastructure/prisma/prisma-parent-learning.repository';
 import { createCatalogTutors } from './infrastructure/tutors/catalog-tutor-catalog';
 
 import type { LearnerDependencies } from './application/learner-dependencies';
@@ -60,14 +65,25 @@ const getDependencies = once((): LearnerDependencies => ({
 
 export const getLearnerCommands = once(() => {
   const dependencies = getDependencies();
+  const parentAuthorization: AuthorizationService = {
+    requireInTenant: (permission) =>
+      dependencies.authorization.requireInTenant(permission).andThen((actor) =>
+        getParentAreaServices()
+          .require.execute()
+          .map(() => actor),
+      ),
+    requireOnResource: (permission, scope) =>
+      dependencies.authorization.requireOnResource(permission, scope),
+  };
+  const parentDependencies = { ...dependencies, authorization: parentAuthorization };
   return {
     createChildProfile: new CreateChildProfile(dependencies),
     saveInterests: new SaveInterests(dependencies),
     chooseTutor: new ChooseTutor(dependencies),
     saveControls: new SaveControls(dependencies),
     completeSetup: new CompleteSetup(dependencies),
-    resetOnboarding: new ResetOnboarding(dependencies),
-    setVoiceConsent: new SetVoiceConsent(dependencies),
+    resetOnboarding: new ResetOnboarding(parentDependencies),
+    setVoiceConsent: new SetVoiceConsent(parentDependencies),
     adoptSchoolSettings: new AdoptSchoolSettings(dependencies),
     saveChildInterests: new SaveChildInterests(dependencies),
     chooseChildTutor: new ChooseChildTutor(dependencies),
@@ -80,5 +96,34 @@ export const getLearnerQueries = once(() => {
   return {
     getOnboardingState: new GetOnboardingState(dependencies),
     getChildProfileById: new GetChildProfileById(dependencies),
+  };
+});
+
+/** Every adult read and write rechecks the short-lived password proof before accessing child data. */
+export const getParentLearnerServices = once(() => {
+  const dependencies = getDependencies();
+  const authorization: AuthorizationService = {
+    requireInTenant: (permission) =>
+      dependencies.authorization.requireInTenant(permission).andThen((actor) =>
+        getParentAreaServices()
+          .require.execute()
+          .map(() => actor),
+      ),
+    requireOnResource: (permission, scope) =>
+      dependencies.authorization.requireOnResource(permission, scope).andThen((actor) =>
+        getParentAreaServices()
+          .require.execute()
+          .map(() => actor),
+      ),
+  };
+  const parentDependencies = {
+    ...dependencies,
+    authorization,
+    learning: new PrismaParentLearningRepository(),
+  };
+  return {
+    getLearning: new GetParentLearning(parentDependencies),
+    getTask: new GetParentTask(parentDependencies),
+    updateControls: new UpdateParentControls(parentDependencies),
   };
 });

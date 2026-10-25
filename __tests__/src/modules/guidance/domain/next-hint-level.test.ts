@@ -27,6 +27,7 @@ const state = (
   task: REQUEST.task,
   assignmentId: null,
   subject: 'math',
+  competencyCode: null,
   hints: levels.map(hint),
   answers,
 });

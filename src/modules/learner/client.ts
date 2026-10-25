@@ -6,8 +6,15 @@ export {
   INTERESTS,
   LEARNER_ERROR_CODES,
   LEARNER_LIMITS,
+  LOW_TIME_MINUTES,
+  computeScreenTime,
 } from './application/contracts/learner-constraints';
-export type { Interest } from './application/contracts/learner-constraints';
+export type {
+  Interest,
+  ScreenTime,
+  ScreenTimeStatus,
+  ScreenTimeUsage,
+} from './application/contracts/learner-constraints';
 export type { ChildProfileDto } from './presentation/dto/learner-dto';
 export { learnerRoutes } from './presentation/routes';
 export { INTEREST_ICONS } from './presentation/components/interest-icons';

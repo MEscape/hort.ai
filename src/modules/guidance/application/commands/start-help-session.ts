@@ -48,7 +48,6 @@ export type StartHelpSessionError =
  * new task stores a session and is classified once by intent and curriculum topic (#92), so it
  * spends the child's `sessionStart` budget once the child is known to be the parent's own. The
  * classification decides the session's opening (clarify, redirect or none); it never fails the start.
- * The distress check of #90 belongs before it.
  */
 export class StartHelpSession {
   constructor(private readonly deps: HelpSessionDependencies) {}

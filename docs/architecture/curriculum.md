@@ -93,4 +93,12 @@ never from the request.
   `DATABASE_URL='<that environment's database URL>' npm run curriculum:ingest` from a checkout of
   the deployed commit (a variable set in the shell wins over `.env`). The command is idempotent and
   prints only keys, versions and counts, never the URL. Production needs the operator's approval
-  like any production write.
+  like any production write. Use the ingest command, not `db:seed`, in production; the seed is
+  deliberately blocked there.
+- Both npm commands preload `scripts/lib/server-runtime.ts` under Node 24. It resolves only the
+  `server-only` marker to its empty server implementation. Do not run these entry points with
+  `--conditions=react-server`: Node evaluates next-intl's client imports too (unlike Next's
+  bundler), and globally selecting React's server build removes hooks those imports need (#100).
+  No loader stub or workaround outside the repository is needed. `npm run test:scripts` covers
+  the configured command lines and loads both import graphs in a real Node/tsx subprocess without
+  a database connection or writes.

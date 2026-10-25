@@ -7,7 +7,7 @@
         "description": "Create a parent account and start a safe, playful learning adventure with your child."
       },
       "title": "Welcome to the learning adventure!",
-      "description": "Together we discover a world full of knowledge, fun and exciting tasks. First, create an account for yourself.",
+      "description": "Hort.ai helps your child with their homework, with thinking prompts instead of ready-made answers. First, create your parent account.",
       "signUp": "Register",
       "haveAccount": "Already have an account?",
       "signIn": "Sign in"
@@ -41,7 +41,7 @@
       "roleParent": "Parent",
       "roleParentHint": "You set up profiles for your children.",
       "roleTeacher": "Teacher",
-      "roleTeacherHint": "You manage classes, material and assignments. Teachers are not verified in the MVP.",
+      "roleTeacherHint": "You manage classes, material and assignments. Teacher accounts are not verified yet.",
       "email": "Email address",
       "password": "Password",
       "confirmPassword": "Repeat password",
@@ -165,8 +165,14 @@
       "tip": "Tip: four or more unrelated words make a strong password that is easy to remember.",
       "match": "The passwords match"
     },
+    "parentAccess": {
+      "intro": "Enter your account password to open parent settings. Access closes after five minutes.",
+      "open": "Open parent settings",
+      "back": "Return to the child"
+    },
     "account": {
       "title": "Account settings",
+      "back": "Back",
       "menuLabel": "Account of {name}",
       "home": "Home",
       "settings": "Account settings",

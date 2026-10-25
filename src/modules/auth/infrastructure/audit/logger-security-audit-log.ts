@@ -17,6 +17,8 @@ export const LEVEL_BY_EVENT = {
   'authentication.session_revoked': 'info',
   'authentication.account_created': 'info',
   'authentication.password_reset_completed': 'info',
+  'authentication.parent_area_opened': 'info',
+  'authentication.parent_area_open_failed': 'warn',
   'account.password_changed': 'info',
   'account.display_name_changed': 'info',
 } as const satisfies Record<SecurityEvent['type'], 'info' | 'warn'>;
@@ -40,6 +42,8 @@ export const TRAIL_BY_EVENT = {
   'authentication.session_revoked': 'member',
   'authentication.account_created': 'member',
   'authentication.password_reset_completed': 'member',
+  'authentication.parent_area_opened': 'member',
+  'authentication.parent_area_open_failed': 'member',
   'account.password_changed': 'member',
   'account.display_name_changed': 'member',
 } as const satisfies AuditTrailPolicy<SecurityEvent['type']>;
