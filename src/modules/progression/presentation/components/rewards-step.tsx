@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@components/ui/button';
-import { ArrowRight } from '@components/ui/icons';
 
 import { useFocusOnMount } from '@hooks/use-focus-on-mount';
 
@@ -44,14 +43,15 @@ export function RewardsStep({ initial, companion, onContinue }: RewardsStepProps
         />
       </div>
       <div className="sticky bottom-0 z-20 flex justify-center pt-2 pb-safe">
+        {/* Same look as the welcome's StepButton on every other step, so "on" never moves or changes colour. */}
         <Button
           type="button"
           size="lg"
+          variant="accent"
           className="h-16 w-full max-w-md rounded-full px-10 text-2xl shadow-lift active:translate-y-0.5"
           onClick={onContinue}
         >
           {t('feed.continue')}
-          <ArrowRight aria-hidden="true" />
         </Button>
       </div>
     </section>

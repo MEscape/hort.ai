@@ -1,3 +1,5 @@
+'use client';
+
 import { useRef, useState, type ChangeEvent, type Ref, type SubmitEvent } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert';

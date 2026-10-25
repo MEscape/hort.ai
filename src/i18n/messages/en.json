@@ -1,7 +1,79 @@
 {
   "home": {
-    "title": "You’re signed in!",
-    "description": "Your parent account is ready. Your family’s learning adventure will start here."
+    "title": "Home",
+    "heading": "Hi {name}!",
+    "status": {
+      "label": "Your day",
+      "left": "{minutes} min left",
+      "learned": "Learned today: {minutes} min",
+      "unavailable": "Time is not shown yet",
+      "low": "Almost break time: {minutes} min left",
+      "closedLimit": "Break time for today",
+      "closedWindow": "Back at {time}",
+      "offline": "No internet right now",
+      "parentArea": "Grown-ups area"
+    },
+    "session": {
+      "back": "Go back to {task}",
+      "state": {
+        "listening": "listening",
+        "typing": "typing",
+        "paused": "paused"
+      },
+      "chip": "{task}: {state}"
+    },
+    "task": {
+      "title": "I have a task",
+      "photo": "Take a photo",
+      "type": "Enter my task",
+      "typingOnly": "Typing only"
+    },
+    "continue": {
+      "heading": "Continue: {title}",
+      "detail": "{area}, last step: {step} · {time}"
+    },
+    "teacher": {
+      "title": "From my teacher",
+      "new": "{count} new",
+      "none": "Nothing new right now.",
+      "soon": "Not here yet."
+    },
+    "world": {
+      "title": "{owner} World",
+      "preview": "Look around {owner} world.",
+      "explore": "Look around"
+    },
+    "closed": {
+      "limit": "{name} is taking a break today.",
+      "window": "{name} is sleeping until {time}.",
+      "still": "You can still feed {name} and see your world.",
+      "ask": "Ask a grown-up"
+    },
+    "guide": {
+      "hello": "Hello! I am glad you are here.",
+      "welcomeBack": "Welcome back! Shall we keep going?",
+      "photoSoon": "Photos are coming soon!",
+      "voiceOff": "I only read what you type.",
+      "teacherNone": "Nothing new from your teacher.",
+      "teacherNew": "New tasks from your teacher!",
+      "teacherSoon": "Teacher tasks are coming soon.",
+      "stripTime": "This is how much time is left.",
+      "stripUnavailable": "I cannot count the time yet.",
+      "closedLimit": "I need a break. See you tomorrow!",
+      "closedWindow": "I am sleeping now. See you later!",
+      "low": "Almost break time. Finish this step!",
+      "offline": "No internet. I will wait for you."
+    },
+    "gate": {
+      "title": "Grown-ups only",
+      "intro": "Please solve this to open the grown-ups area.",
+      "question": "What is {a} × {b}?",
+      "answer": "Your answer",
+      "open": "Open",
+      "wrong": "Not quite. Please try again.",
+      "close": "Close",
+      "areaTitle": "Grown-ups area"
+    }
   },
   "metadata": {
     "description": "An AI-powered, child-friendly learning companion that turns learning into an interactive journey."
@@ -59,5 +131,921 @@
       "title": "Continue",
       "body": "Saved tasks aren't available here yet."
     }
+  },
+  "world": {
+    "map": {
+      "metadataTitle": "Island world",
+      "title": "Your island world",
+      "description": "Every homework task belongs to an island. Tap an island and look around.",
+      "backHome": "Back home"
+    },
+    "subjects": {
+      "deutsch": "German",
+      "mathe": "Maths",
+      "natur": "Nature and technology",
+      "gesellschaft": "People and places",
+      "sprachenKunst": "Languages, art and sport",
+      "zusammenleben": "Living together",
+      "lernen": "Learning and surprises"
+    },
+    "island": {
+      "backToMap": "All islands",
+      "landmark": "Landmark: {name}",
+      "placesLabel": "Places on {island}",
+      "pickPlace": "Tap a place on the island to see which homework belongs there.",
+      "noPlaces": "There is still a lot to discover here.",
+      "start": "Start a homework task"
+    },
+    "explore": {
+      "title": "Explore the world",
+      "hint": "Drag the map to look around, or pick a subject.",
+      "jump": "Where to?",
+      "home": "Start"
+    },
+    "areas": {
+      "buchstabenberg": {
+        "name": "Letter Mountain",
+        "landmark": "Letter Peak",
+        "locations": {
+          "lautquelle": {
+            "name": "Sound Spring",
+            "about": "For listening closely to the sounds in words."
+          },
+          "buchstabenhoehle": {
+            "name": "Letter Cave",
+            "about": "For recognising, naming and writing letters."
+          },
+          "lesepfad": {
+            "name": "Reading Trail",
+            "about": "For learning to read syllables and first words."
+          }
+        }
+      },
+      "maerchenwald": {
+        "name": "Story Forest",
+        "landmark": "Book Tree",
+        "locations": {
+          "leselichtung": {
+            "name": "Reading Clearing",
+            "about": "For reading your own school texts."
+          },
+          "fragenbruecke": {
+            "name": "Question Bridge",
+            "about": "For understanding what a text says and means."
+          },
+          "geschichtenhuette": {
+            "name": "Story Hut",
+            "about": "For homework about fairy tales and stories."
+          }
+        }
+      },
+      "federsee": {
+        "name": "Feather Lake",
+        "landmark": "Great Quill",
+        "locations": {
+          "schreibsteg": {
+            "name": "Writing Jetty",
+            "about": "For writing your own text."
+          },
+          "geschichtenboot": {
+            "name": "Story Boat",
+            "about": "For stories you imagine and write down."
+          },
+          "briefhaeuschen": {
+            "name": "Letter House",
+            "about": "For writing a letter."
+          }
+        }
+      },
+      "rechtschreib-werkstatt": {
+        "name": "Spelling Workshop",
+        "landmark": "Word Workshop",
+        "locations": {
+          "regelwerkbank": {
+            "name": "Rule Workbench",
+            "about": "For homework about spelling rules."
+          },
+          "diktatzelt": {
+            "name": "Dictation Tent",
+            "about": "For preparing or correcting a school dictation."
+          },
+          "lernwoerterkiste": {
+            "name": "Word Chest",
+            "about": "For the spelling words from your school."
+          }
+        }
+      },
+      "wortbaumhaus": {
+        "name": "Word Treehouse",
+        "landmark": "Word Treehouse",
+        "locations": {
+          "nomen-nest": {
+            "name": "Noun Nest",
+            "about": "For nouns: names for things, animals and people."
+          },
+          "adjektivbeet": {
+            "name": "Adjective Garden",
+            "about": "For adjectives that describe things."
+          },
+          "verbenschaukel": {
+            "name": "Verb Swing",
+            "about": "For verbs that tell what happens."
+          },
+          "satzleiter": {
+            "name": "Sentence Ladder",
+            "about": "For sentences and grammar."
+          }
+        }
+      },
+      "reimtal": {
+        "name": "Rhyme Valley",
+        "landmark": "Rhyme Arch",
+        "locations": {
+          "gedichtbank": {
+            "name": "Poetry Bench",
+            "about": "For reading, understanding and remembering poems."
+          },
+          "liederkreis": {
+            "name": "Song Circle",
+            "about": "For homework about songs and their words."
+          },
+          "reimbach": {
+            "name": "Rhyming Brook",
+            "about": "For finding words that rhyme."
+          }
+        }
+      },
+      "sprechbuehne": {
+        "name": "Speaking Stage",
+        "landmark": "Great Stage",
+        "locations": {
+          "erzaehlfeuer": {
+            "name": "Story Fire",
+            "about": "For retelling something in your own words."
+          },
+          "vortragsturm": {
+            "name": "Presentation Tower",
+            "about": "For preparing a talk for your class."
+          },
+          "sprechstufen": {
+            "name": "Speaking Steps",
+            "about": "For speaking clearly and in your own words."
+          }
+        }
+      },
+      "zahlenwald": {
+        "name": "Number Forest",
+        "landmark": "Counting Tower",
+        "locations": {
+          "zaehlbruecke": {
+            "name": "Counting Bridge",
+            "about": "For counting and counting out objects."
+          },
+          "plus-mulde": {
+            "name": "Addition Hollow",
+            "about": "For addition, in your head or on paper."
+          },
+          "zahlenpfad": {
+            "name": "Number Trail",
+            "about": "For ordering and comparing numbers."
+          },
+          "minus-lichtung": {
+            "name": "Subtraction Clearing",
+            "about": "For subtraction, in your head or on paper."
+          }
+        }
+      },
+      "malmuehle": {
+        "name": "Times-table Mill",
+        "landmark": "Multiplication Mill",
+        "locations": {
+          "einmaleins-feld": {
+            "name": "Times-table Field",
+            "about": "For multiplication homework."
+          },
+          "teilkarren": {
+            "name": "Sharing Cart",
+            "about": "For division and sharing fairly."
+          },
+          "kornspeicher": {
+            "name": "Grain Store",
+            "about": "For learning your times tables."
+          }
+        }
+      },
+      "formenberge": {
+        "name": "Shape Mountains",
+        "landmark": "Pyramid Peak",
+        "locations": {
+          "spiegelteich": {
+            "name": "Mirror Pond",
+            "about": "For symmetry and lines of reflection."
+          },
+          "wuerfeltreppe": {
+            "name": "Cube Steps",
+            "about": "For solids such as cubes, cuboids and spheres."
+          },
+          "formengarten": {
+            "name": "Shape Garden",
+            "about": "For circles, triangles and other shapes."
+          }
+        }
+      },
+      "messwerkstatt": {
+        "name": "Measuring Workshop",
+        "landmark": "Scale Tower",
+        "locations": {
+          "laengentisch": {
+            "name": "Length Table",
+            "about": "For metres and centimetres."
+          },
+          "krugregal": {
+            "name": "Jug Shelf",
+            "about": "For litres and millilitres."
+          },
+          "gewichtsplatz": {
+            "name": "Weighing Place",
+            "about": "For kilograms and grams."
+          },
+          "umrechnungsschild": {
+            "name": "Unit Signpost",
+            "about": "For changing between units."
+          }
+        }
+      },
+      "zeithaus": {
+        "name": "Time House",
+        "landmark": "Clock Tower",
+        "locations": {
+          "sonnenuhrgarten": {
+            "name": "Sundial Garden",
+            "about": "For reading and setting a clock."
+          },
+          "kalenderhaus": {
+            "name": "Calendar House",
+            "about": "For days, weeks and months."
+          },
+          "sanduhrweg": {
+            "name": "Hourglass Trail",
+            "about": "For working out how long something takes."
+          }
+        }
+      },
+      "geldmarkt": {
+        "name": "Money Market",
+        "landmark": "Market Square",
+        "locations": {
+          "muenzbrunnen": {
+            "name": "Coin Fountain",
+            "about": "For euros and cents."
+          },
+          "spielzeugladen": {
+            "name": "Toy Shop",
+            "about": "For shopping problems about prices and money left over."
+          },
+          "wechselgeldkarren": {
+            "name": "Change Cart",
+            "about": "For paying and working out change."
+          }
+        }
+      },
+      "obstgarten": {
+        "name": "Orchard",
+        "landmark": "Great Apple Tree",
+        "locations": {
+          "koerbchenstand": {
+            "name": "Basket Stand",
+            "about": "For sharing things fairly."
+          },
+          "kuchenhuette": {
+            "name": "Cake Hut",
+            "about": "For fractions such as halves and quarters."
+          },
+          "sachaufgabenpfad": {
+            "name": "Word-problem Trail",
+            "about": "For understanding your school word problems."
+          }
+        }
+      },
+      "mustertal": {
+        "name": "Pattern Valley",
+        "landmark": "Spiral Hedge",
+        "locations": {
+          "folgenzaun": {
+            "name": "Sequence Fence",
+            "about": "For continuing a sequence."
+          },
+          "knobelhof": {
+            "name": "Puzzle Yard",
+            "about": "For school puzzles and logic problems."
+          },
+          "musterbeete": {
+            "name": "Pattern Garden",
+            "about": "For spotting and continuing patterns."
+          }
+        }
+      },
+      "diagrammdorf": {
+        "name": "Chart Village",
+        "landmark": "Column Houses",
+        "locations": {
+          "tabellengarten": {
+            "name": "Table Garden",
+            "about": "For homework with tables."
+          },
+          "zufallszelt": {
+            "name": "Chance Tent",
+            "about": "For deciding what is certain, possible or impossible."
+          },
+          "diagrammplatz": {
+            "name": "Chart Square",
+            "about": "For reading and drawing charts."
+          }
+        }
+      },
+      "tierwiese": {
+        "name": "Animal Meadow",
+        "landmark": "Red Farm",
+        "locations": {
+          "weide": {
+            "name": "Pasture",
+            "about": "For homework about farm animals."
+          },
+          "haustierecke": {
+            "name": "Pet Corner",
+            "about": "For pets and how to care for them."
+          },
+          "ententeich": {
+            "name": "Duck Pond",
+            "about": "For animals and how they live."
+          }
+        }
+      },
+      "waldwichtel-wald": {
+        "name": "Woodland Forest",
+        "landmark": "Woodland Tree",
+        "locations": {
+          "fuchsbau": {
+            "name": "Fox Den",
+            "about": "For animal habitats."
+          },
+          "waldstockwerke": {
+            "name": "Forest Layers",
+            "about": "For the forest and its different layers."
+          },
+          "nahrungspfad": {
+            "name": "Food-chain Trail",
+            "about": "For learning who eats what in nature."
+          }
+        }
+      },
+      "blumenwiese": {
+        "name": "Flower Meadow",
+        "landmark": "Giant Sunflower",
+        "locations": {
+          "gewaechshaus": {
+            "name": "Greenhouse",
+            "about": "For how plants grow."
+          },
+          "samenbeet": {
+            "name": "Seed Bed",
+            "about": "For seeds and how they sprout."
+          },
+          "pflanzenpfad": {
+            "name": "Plant Trail",
+            "about": "For plants and their different parts."
+          }
+        }
+      },
+      "jahreszeitenhain": {
+        "name": "Season Grove",
+        "landmark": "Four-season Tree",
+        "locations": {
+          "monatskreis": {
+            "name": "Month Circle",
+            "about": "For months and the changing year."
+          },
+          "erntewagen": {
+            "name": "Harvest Cart",
+            "about": "For how nature changes through the year."
+          },
+          "winterecke": {
+            "name": "Winter Corner",
+            "about": "For the four seasons."
+          }
+        }
+      },
+      "wetterhuegel": {
+        "name": "Weather Hill",
+        "landmark": "Weather Station",
+        "locations": {
+          "drachenwiese": {
+            "name": "Kite Meadow",
+            "about": "For homework about wind."
+          },
+          "regenmesser": {
+            "name": "Rain Gauge",
+            "about": "For homework about rain."
+          },
+          "wolkenausguck": {
+            "name": "Cloud Lookout",
+            "about": "For clouds and weather."
+          }
+        }
+      },
+      "wasserteich": {
+        "name": "Water Pond",
+        "landmark": "Waterfall",
+        "locations": {
+          "wasserrad": {
+            "name": "Water Wheel",
+            "about": "For homework about water."
+          },
+          "schwimmsteg": {
+            "name": "Floating Jetty",
+            "about": "For things that float or sink."
+          },
+          "regentonne": {
+            "name": "Rain Barrel",
+            "about": "For the water cycle."
+          }
+        }
+      },
+      "steinhoehle": {
+        "name": "Stone Cave",
+        "landmark": "Crystal Cave",
+        "locations": {
+          "magnettisch": {
+            "name": "Magnet Table",
+            "about": "For homework about magnets."
+          },
+          "stoffsammlung": {
+            "name": "Material Collection",
+            "about": "For different substances and materials."
+          },
+          "forscherecke": {
+            "name": "Explorer Corner",
+            "about": "For simple school experiments."
+          }
+        }
+      },
+      "echoschlucht": {
+        "name": "Echo Canyon",
+        "landmark": "Echo Rock",
+        "locations": {
+          "rufhorn": {
+            "name": "Calling Horn",
+            "about": "For sound and hearing."
+          },
+          "schattenzelt": {
+            "name": "Shadow Tent",
+            "about": "For light and shadow."
+          },
+          "windspiel": {
+            "name": "Wind Chimes",
+            "about": "For homework about air."
+          }
+        }
+      },
+      "feuerwache": {
+        "name": "Fire Station",
+        "landmark": "Fire Station",
+        "locations": {
+          "feuerstelle": {
+            "name": "Fireplace",
+            "about": "For what fire needs to burn."
+          },
+          "notrufturm": {
+            "name": "Emergency Tower",
+            "about": "For making an emergency call."
+          },
+          "uebungshof": {
+            "name": "Practice Yard",
+            "about": "For fire safety and what to do."
+          }
+        }
+      },
+      "strom-werkstatt": {
+        "name": "Electricity Workshop",
+        "landmark": "Wind Turbine",
+        "locations": {
+          "stromkreistisch": {
+            "name": "Circuit Table",
+            "about": "For electrical circuits."
+          },
+          "hebelplatz": {
+            "name": "Lever Place",
+            "about": "For levers, pulleys and gears."
+          },
+          "erfinderhuette": {
+            "name": "Inventor Hut",
+            "about": "For technology in everyday life."
+          }
+        }
+      },
+      "roboterbucht": {
+        "name": "Robot Bay",
+        "landmark": "Robot Lighthouse",
+        "locations": {
+          "kachelfeld": {
+            "name": "Tile Field",
+            "about": "For giving instructions step by step."
+          },
+          "roboterwerft": {
+            "name": "Robot Dockyard",
+            "about": "For robots and how they work."
+          },
+          "pfeilpfad": {
+            "name": "Arrow Trail",
+            "about": "For instructions a computer follows step by step."
+          }
+        }
+      },
+      "himmelsturm": {
+        "name": "Sky Tower",
+        "landmark": "Observatory",
+        "locations": {
+          "sonnengarten": {
+            "name": "Sun Garden",
+            "about": "For homework about the Sun."
+          },
+          "mondteich": {
+            "name": "Moon Pond",
+            "about": "For the Moon and its phases."
+          },
+          "raketenplatz": {
+            "name": "Rocket Place",
+            "about": "For planets and space."
+          }
+        }
+      },
+      "koerperhaus": {
+        "name": "Body House",
+        "landmark": "Body House",
+        "locations": {
+          "sinnesgarten": {
+            "name": "Sense Garden",
+            "about": "For the five senses."
+          },
+          "haengemattenhain": {
+            "name": "Hammock Grove",
+            "about": "For sleep and rest."
+          },
+          "zahnputzbrunnen": {
+            "name": "Toothbrush Fountain",
+            "about": "For teeth and caring for them."
+          },
+          "koerperpfad": {
+            "name": "Body Trail",
+            "about": "For your body and how it works."
+          }
+        }
+      },
+      "kuechengarten": {
+        "name": "Kitchen Garden",
+        "landmark": "Garden Kitchen",
+        "locations": {
+          "huehnerstall": {
+            "name": "Henhouse",
+            "about": "For finding out where our food comes from."
+          },
+          "regenbogenstand": {
+            "name": "Rainbow Stand",
+            "about": "For healthy food."
+          },
+          "backhaeuschen": {
+            "name": "Bakehouse",
+            "about": "For how grain becomes bread."
+          }
+        }
+      },
+      "kartenland": {
+        "name": "Map Land",
+        "landmark": "Compass Tower",
+        "locations": {
+          "wegweiserhuegel": {
+            "name": "Signpost Hill",
+            "about": "For compass directions and finding the way."
+          },
+          "landschaftsmodell": {
+            "name": "Landscape Model",
+            "about": "For Germany and its federal states."
+          },
+          "kartentisch": {
+            "name": "Map Table",
+            "about": "For maps, including maps of Europe."
+          }
+        }
+      },
+      "heimatstadt": {
+        "name": "Home Town",
+        "landmark": "Town Hall",
+        "locations": {
+          "ladenzeile": {
+            "name": "Shopping Street",
+            "about": "For shops in your town."
+          },
+          "baustelle": {
+            "name": "Building Site",
+            "about": "For buildings and how they are built."
+          },
+          "berufeplatz": {
+            "name": "Job Square",
+            "about": "For homework about jobs."
+          },
+          "nachbarschaftspark": {
+            "name": "Neighbourhood Park",
+            "about": "For your home town and neighbourhood."
+          }
+        }
+      },
+      "verkehrsstrasse": {
+        "name": "Traffic Street",
+        "landmark": "Traffic Lights",
+        "locations": {
+          "fahrradparcours": {
+            "name": "Cycling Course",
+            "about": "For preparing for a cycling test."
+          },
+          "bushaltestelle": {
+            "name": "Bus Stop",
+            "about": "For getting to school safely."
+          },
+          "zebrastreifen": {
+            "name": "Zebra Crossing",
+            "about": "For traffic rules."
+          }
+        }
+      },
+      "zeitreise-tal": {
+        "name": "Time-travel Valley",
+        "landmark": "Knight Castle",
+        "locations": {
+          "steinzeithoehle": {
+            "name": "Stone-age Cave",
+            "about": "For homework about the Stone Age."
+          },
+          "ritterhof": {
+            "name": "Castle Yard",
+            "about": "For knights and castles."
+          },
+          "zeitpfad": {
+            "name": "Time Trail",
+            "about": "For comparing the past and today."
+          }
+        }
+      },
+      "umweltpark": {
+        "name": "Environment Park",
+        "landmark": "Solar Pavilion",
+        "locations": {
+          "muelltrennplatz": {
+            "name": "Recycling Place",
+            "about": "For sorting and recycling rubbish."
+          },
+          "energieecke": {
+            "name": "Energy Corner",
+            "about": "For saving energy."
+          },
+          "insektenhotel": {
+            "name": "Insect Hotel",
+            "about": "For protecting the environment."
+          }
+        }
+      },
+      "medienhuette": {
+        "name": "Media Hut",
+        "landmark": "Media Hut",
+        "locations": {
+          "kinozelt": {
+            "name": "Cinema Tent",
+            "about": "For homework about television and games."
+          },
+          "surfsteg": {
+            "name": "Surfing Jetty",
+            "about": "For homework about the internet."
+          },
+          "sicherheitsbank": {
+            "name": "Safety Bench",
+            "about": "For using media safely."
+          }
+        }
+      },
+      "kinderrathaus": {
+        "name": "Children's Town Hall",
+        "landmark": "Children's Town Hall",
+        "locations": {
+          "ratstisch": {
+            "name": "Council Table",
+            "about": "For your class council."
+          },
+          "wahlhaeuschen": {
+            "name": "Voting House",
+            "about": "For voting and democracy."
+          },
+          "kinderrechtepfad": {
+            "name": "Rights Trail",
+            "about": "For children's rights."
+          }
+        }
+      },
+      "hafen": {
+        "name": "Harbour",
+        "landmark": "Lighthouse",
+        "locations": {
+          "bojenhuette": {
+            "name": "Buoy Hut",
+            "about": "For English homework about colours."
+          },
+          "segelboot": {
+            "name": "Sailing Boat",
+            "about": "For new words in English."
+          },
+          "muschelstrand": {
+            "name": "Shell Beach",
+            "about": "For English homework about numbers."
+          },
+          "kai": {
+            "name": "Quayside",
+            "about": "For simple sentences in English."
+          }
+        }
+      },
+      "weltreise-hafen": {
+        "name": "World Harbour",
+        "landmark": "World-travel Ship",
+        "locations": {
+          "ballonwiese": {
+            "name": "Balloon Meadow",
+            "about": "For other countries and how children live there."
+          },
+          "globushalle": {
+            "name": "Globe Hall",
+            "about": "For exploring the world in your homework."
+          },
+          "sprachensteg": {
+            "name": "Language Jetty",
+            "about": "For homework about other languages."
+          }
+        }
+      },
+      "musikwiese": {
+        "name": "Music Meadow",
+        "landmark": "Music Pavilion",
+        "locations": {
+          "xylofonweg": {
+            "name": "Xylophone Trail",
+            "about": "For musical instruments and notes."
+          },
+          "trommelkreis": {
+            "name": "Drum Circle",
+            "about": "For homework about rhythm."
+          },
+          "glockenreihe": {
+            "name": "Bell Row",
+            "about": "For homework about music."
+          }
+        }
+      },
+      "farbtal": {
+        "name": "Colour Valley",
+        "landmark": "Colour Waterfall",
+        "locations": {
+          "staffeleihuegel": {
+            "name": "Easel Hill",
+            "about": "For homework about drawing."
+          },
+          "palettenhuette": {
+            "name": "Palette Hut",
+            "about": "For homework about painting."
+          },
+          "farbbecken": {
+            "name": "Colour Pool",
+            "about": "For colours and how to mix them."
+          }
+        }
+      },
+      "bastelwerkstatt": {
+        "name": "Craft Workshop",
+        "landmark": "Craft Barn",
+        "locations": {
+          "webstuhl": {
+            "name": "Loom",
+            "about": "For fabric, wool and needlework."
+          },
+          "pappburg": {
+            "name": "Cardboard Castle",
+            "about": "For building something for school."
+          },
+          "faltkorb": {
+            "name": "Folding Basket",
+            "about": "For paper crafts with scissors."
+          }
+        }
+      },
+      "sportwiese": {
+        "name": "Sports Meadow",
+        "landmark": "Sports Field",
+        "locations": {
+          "schwimmbecken": {
+            "name": "Swimming Pool",
+            "about": "For homework about swimming."
+          },
+          "klettergeruest": {
+            "name": "Climbing Frame",
+            "about": "For movement and fitness."
+          },
+          "regeltafel": {
+            "name": "Rule Board",
+            "about": "For sports and their rules."
+          }
+        }
+      },
+      "freundschaftsdorf": {
+        "name": "Friendship Village",
+        "landmark": "Village Linden",
+        "locations": {
+          "freundschaftsbruecke": {
+            "name": "Friendship Bridge",
+            "about": "For homework about friendship."
+          },
+          "ruhegarten": {
+            "name": "Quiet Garden",
+            "about": "For homework about feelings."
+          },
+          "treffpunkt-steine": {
+            "name": "Meeting Stones",
+            "about": "For disagreements and making up."
+          },
+          "dorfwegweiser": {
+            "name": "Village Signpost",
+            "about": "For rules about living together."
+          }
+        }
+      },
+      "festetal": {
+        "name": "Festival Valley",
+        "landmark": "Festival Tent",
+        "locations": {
+          "festtafel": {
+            "name": "Celebration Table",
+            "about": "For festivals and celebrations."
+          },
+          "laternenweg": {
+            "name": "Lantern Trail",
+            "about": "For traditions and customs."
+          },
+          "gespraechskreis": {
+            "name": "Talking Circle",
+            "about": "For values, religion and ethics."
+          }
+        }
+      },
+      "merkberg": {
+        "name": "Memory Mountain",
+        "landmark": "Memory Peak",
+        "locations": {
+          "stiller-teich": {
+            "name": "Quiet Pond",
+            "about": "For concentration and calm."
+          },
+          "planungshuegel": {
+            "name": "Planning Hill",
+            "about": "For planning your homework."
+          },
+          "merkkisten": {
+            "name": "Memory Chests",
+            "about": "For memory tips and ideas that help you learn."
+          }
+        }
+      },
+      "ueberraschungsinsel": {
+        "name": "Surprise Island",
+        "landmark": "Surprise Chest",
+        "locations": {
+          "ballonplatz": {
+            "name": "Balloon Place",
+            "about": "For homework that could belong to several islands."
+          },
+          "muschelhaus": {
+            "name": "Shell House",
+            "about": "For working out together what your task is about."
+          },
+          "geheimtuer": {
+            "name": "Secret Door",
+            "about": "For homework that does not fit another island."
+          }
+        }
+      }
+    }
+  },
+  "parent": {
+    "title": "Grown-ups area",
+    "controls": "Settings for {name}",
+    "noLimit": "Daily limit: none",
+    "limit": "Daily limit: {minutes} minutes",
+    "anyTime": "Learning window: any time",
+    "window": "Learning window: {from}?{until}",
+    "unavailable": "Parent access requires authentication to be enabled."
   }
 }
