@@ -55,7 +55,7 @@ export function renderLogo(styles: Styles): string {
 
 /** Said above the printed link, for a client that blocks buttons. */
 const LINK_HINT: Localized = {
-  de: 'Funktioniert die Schaltfläche nicht? Öffnen Sie diesen Link:',
+  de: 'Funktioniert die Schaltfläche nicht? Öffne diesen Link:',
   en: 'Button not working? Open this link:',
 };
 
