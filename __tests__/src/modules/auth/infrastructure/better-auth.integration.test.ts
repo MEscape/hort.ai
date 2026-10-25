@@ -100,6 +100,7 @@ describe.skipIf(!isEnabled)('Better Auth adapters against the auth database', ()
           api,
           getHeaders: () => Promise.resolve(new Headers(cookie ? { cookie } : {})),
           paths: PATHS,
+          localize: (pathname) => Promise.resolve(pathname),
         }),
       actorFor: (cookie?: string) =>
         new BetterAuthCurrentActorProvider({
