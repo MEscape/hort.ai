@@ -63,7 +63,7 @@ const welcomePending = ({ id, ownerId, tenantId }: Owner & { readonly id: ChildP
   });
 
 /** The columns a step's patch writes; a part the patch leaves out is not touched. */
-function columnsOf({ interests, tutorId, controls, guardian }: ProfilePatch) {
+function columnsOf({ interests, tutorId, controls, guardian, voiceNotice }: ProfilePatch) {
   return {
     ...(interests === undefined ? {} : { interests: [...interests] }),
     ...(tutorId === undefined ? {} : { tutorId }),
@@ -81,6 +81,13 @@ function columnsOf({ interests, tutorId, controls, guardian }: ProfilePatch) {
       : {
           guardianConfirmedAt: dateToInstant(guardian.confirmedAt),
           guardianConsentVersion: guardian.consentVersion,
+        }),
+    ...(voiceNotice === undefined
+      ? {}
+      : {
+          voiceNoticeVersion: voiceNotice?.version ?? null,
+          voiceNoticeConfirmedAt:
+            voiceNotice === null ? null : dateToInstant(voiceNotice.confirmedAt),
         }),
   };
 }
@@ -143,17 +150,27 @@ async function saveUnfinished(input: UnfinishedProfileInput): Promise<SavedProfi
  * parent's own id and tenant; failures are infrastructure only and logged once, here.
  */
 export class PrismaChildProfileRepository implements ChildProfileRepository {
-  updateParentControls(profile: ChildProfile, controls: Omit<ChildProfile['controls'], 'voiceEnabled'>) {
+  updateParentControls(
+    profile: ChildProfile,
+    controls: Omit<ChildProfile['controls'], 'voiceEnabled'>,
+  ) {
     const { id, ownerId, tenantId } = profile;
     return fromThrowableAsync(async () => {
-      const changed = await db.orm.public.ChildProfile.where({ id, ownerId, tenantId, setupStep: 'done' }).updateAndCount({
+      const changed = await db.orm.public.ChildProfile.where({
+        id,
+        ownerId,
+        tenantId,
+        setupStep: 'done',
+      }).updateAndCount({
         dailyLimitMinutes: controls.dailyLimitMinutes,
         allowedFromMinute: controls.allowedWindow?.fromMinute ?? null,
         allowedUntilMinute: controls.allowedWindow?.untilMinute ?? null,
         learningInsights: controls.learningInsights,
       });
       return changed > 0 ? profiles().where({ id, ownerId, tenantId }).first() : null;
-    }, failures.infraOnly('updateParentControls')).map((record) => record === null ? null : toChildProfile(record));
+    }, failures.infraOnly('updateParentControls')).map((record) =>
+      record === null ? null : toChildProfile(record),
+    );
   }
 
   findOwned(

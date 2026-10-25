@@ -4,10 +4,10 @@
     "welcome": {
       "metadata": {
         "title": "Willkommen im Lernabenteuer",
-        "description": "Erstelle ein Elternkonto und starte mit deinem Kind ein sicheres, spielerisches Lernabenteuer."
+        "description": "Richte dein Konto als Elternteil oder Lehrkraft ein und begleite Kinder bei ihren Hausaufgaben."
       },
       "title": "Willkommen im Lernabenteuer!",
-      "description": "Hort.ai hilft deinem Kind bei den Hausaufgaben: mit Denkanstößen statt fertigen Lösungen. Erstelle zuerst dein Elternkonto.",
+      "description": "Hort.ai hilft deinem Kind bei den Hausaufgaben: mit Denkanstößen statt fertigen Lösungen. Richte zuerst dein Konto als Elternteil oder Lehrkraft ein.",
       "signUp": "Registrieren",
       "haveAccount": "Schon ein Konto?",
       "signIn": "Anmelden"
@@ -15,10 +15,10 @@
     "signIn": {
       "metadata": {
         "title": "Anmelden",
-        "description": "Melde dich mit deinem Elternkonto an und sieh, wie es deinem Kind geht."
+        "description": "Melde dich mit deinem Eltern- oder Lehrkraftkonto an."
       },
       "title": "Schön, dass du wieder da bist!",
-      "description": "Hier beginnt das nächste Lernabenteuer für deine Familie.",
+      "description": "Melde dich als Elternteil oder Lehrkraft an.",
       "email": "E-Mail-Adresse",
       "password": "Passwort",
       "submit": "Anmelden",
@@ -26,7 +26,7 @@
       "forgotPassword": "Passwort vergessen?",
       "continueNotice": "Melde dich an, dann geht es direkt auf der Seite weiter, die du geöffnet hast.",
       "noAccount": "Neu hier?",
-      "createAccount": "Elternkonto einrichten"
+      "createAccount": "Konto einrichten"
     },
     "signUp": {
       "metadata": {
@@ -173,6 +173,7 @@
     "account": {
       "title": "Kontoeinstellungen",
       "back": "Zurück",
+      "languageTitle": "Sprache",
       "menuLabel": "Konto von {name}",
       "home": "Startseite",
       "settings": "Kontoeinstellungen",
@@ -186,7 +187,8 @@
       "roles": {
         "parent": "Elternteil",
         "teacher": "Lehrkraft",
-        "platform_admin": "Plattform-Administration"
+        "platform_admin": "Plattform-Administration",
+        "child_channel": "Kind-Sprachkanal"
       },
       "passwordTitle": "Passwort ändern",
       "passwordHint": "Danach bist du auf allen anderen Geräten abgemeldet. Hier bleibst du angemeldet.",

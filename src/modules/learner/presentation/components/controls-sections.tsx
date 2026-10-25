@@ -12,7 +12,10 @@ import { Switch } from '@components/ui/switch';
 
 import { useTranslations } from '@i18n/client';
 
-import { GUARDIAN_CONSENT_VERSION } from '../../application/contracts/learner-constraints';
+import {
+  GUARDIAN_CONSENT_VERSION,
+  VOICE_NOTICE_VERSION,
+} from '../../application/contracts/learner-constraints';
 
 import { SettingRow } from './setting-row';
 import { SettingsGroup } from './settings-group';
@@ -53,11 +56,16 @@ export function VoiceSetting({
               checked={field.value}
               onCheckedChange={field.onChange}
               aria-labelledby={`${id}-title`}
-              aria-describedby={`${id}-description`}
+              aria-describedby={`${id}-description ${id}-notice`}
             />
           </SettingRow>
         )}
       />
+      {/* The same notice the voice switch on the home shows: switching on here confirms it (#98). */}
+      <div id={`${id}-notice`} className="space-y-2 px-4 pb-4 text-sm text-copy-muted">
+        <p>{t('voiceConsent.notice', { name })}</p>
+        <p>{t('voiceConsent.version', { version: VOICE_NOTICE_VERSION })}</p>
+      </div>
     </SettingsGroup>
   );
 }

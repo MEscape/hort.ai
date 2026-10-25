@@ -3,52 +3,278 @@
     "languageModel": {
       "invocationName": "hort",
       "intents": [
-        { "name": "AMAZON.CancelIntent", "samples": [] },
-        { "name": "AMAZON.HelpIntent", "samples": [] },
-        { "name": "AMAZON.StopIntent", "samples": [] },
-        { "name": "AMAZON.NavigateHomeIntent", "samples": [] },
-        { "name": "AMAZON.FallbackIntent", "samples": [] },
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.FallbackIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.YesIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NoIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.RepeatIntent",
+          "samples": []
+        },
+        {
+          "name": "FuetternIntent",
+          "samples": [
+            "füttern",
+            "futter",
+            "snack",
+            "gib ihm was zu essen",
+            "gib ihr was zu essen",
+            "ich will füttern"
+          ]
+        },
+        {
+          "name": "LevelIntent",
+          "samples": [
+            "welches level habe ich",
+            "wie viele sterne habe ich",
+            "auf welchem level bin ich"
+          ]
+        },
+        {
+          "name": "SchulaufgabenIntent",
+          "samples": [
+            "was habe ich auf",
+            "welche hausaufgaben habe ich",
+            "aufgaben von der schule",
+            "was hat meine lehrerin aufgegeben"
+          ]
+        },
+        {
+          "name": "AufgabeIntent",
+          "slots": [
+            {
+              "name": "aufgabe",
+              "type": "FREITEXT"
+            }
+          ],
+          "samples": [
+            "meine aufgabe ist {aufgabe}",
+            "ich habe eine aufgabe {aufgabe}",
+            "die aufgabe lautet {aufgabe}"
+          ]
+        },
+        {
+          "name": "NeueAufgabeIntent",
+          "samples": ["ich habe eine hausaufgabe", "neue aufgabe", "ich habe eine neue aufgabe"]
+        },
+        {
+          "name": "TippIntent",
+          "samples": [
+            "tipp",
+            "einen tipp bitte",
+            "ich brauche einen tipp",
+            "hilf mir",
+            "ich komme nicht weiter",
+            "ich weiß es nicht",
+            "das ist zu schwer",
+            "ich verstehe das nicht"
+          ]
+        },
+        {
+          "name": "AntwortIntent",
+          "slots": [
+            {
+              "name": "antwort",
+              "type": "FREITEXT"
+            }
+          ],
+          "samples": [
+            "die antwort ist {antwort}",
+            "meine antwort ist {antwort}",
+            "ich glaube {antwort}",
+            "das ergebnis ist {antwort}"
+          ]
+        },
+        {
+          "name": "AufgabeVorlesenIntent",
+          "samples": ["lies die aufgabe vor", "wie war die aufgabe", "nochmal die aufgabe"]
+        },
+        {
+          "name": "WeitermachenIntent",
+          "samples": ["weitermachen", "weiter", "die aufgabe von vorhin"]
+        },
+        {
+          "name": "PauseIntent",
+          "samples": ["später weitermachen", "pause", "ich mache später weiter"]
+        },
+        {
+          "name": "AuswahlIntent",
+          "slots": [
+            {
+              "name": "position",
+              "type": "AMAZON.Ordinal"
+            },
+            {
+              "name": "zahl",
+              "type": "AMAZON.NUMBER"
+            }
+          ],
+          "samples": ["die {position}", "nimm die {position}", "nummer {zahl}"]
+        },
         {
           "name": "FreieEingabeIntent",
-          "slots": [{ "name": "eingabe", "type": "FREITEXT" }],
-          "samples": [
-            "{eingabe}",
-            "ich glaube {eingabe}",
-            "die antwort ist {eingabe}",
-            "ich habe eine frage {eingabe}",
-            "meine frage ist {eingabe}"
-          ]
+          "slots": [
+            {
+              "name": "eingabe",
+              "type": "FREITEXT"
+            }
+          ],
+          "samples": ["{eingabe}", "ich habe eine frage {eingabe}", "meine frage ist {eingabe}"]
         }
       ],
       "types": [
         {
           "name": "FREITEXT",
           "values": [
-            { "name": { "value": "neun" } },
-            { "name": { "value": "zwölf" } },
-            { "name": { "value": "hundertvierundzwanzig" } },
-            { "name": { "value": "ja" } },
-            { "name": { "value": "nein" } },
-            { "name": { "value": "ich weiß es nicht" } },
-            { "name": { "value": "kannst du mir einen tipp geben" } },
-            { "name": { "value": "noch eine aufgabe bitte" } },
-            { "name": { "value": "was ist sechs mal sieben" } },
-            { "name": { "value": "wie viel ist sechsunddreißig geteilt durch vier" } },
-            { "name": { "value": "warum ist der himmel blau" } },
-            { "name": { "value": "wie schreibt man fahrrad" } },
-            { "name": { "value": "was bedeutet das wort vergangenheit" } },
-            { "name": { "value": "ich habe meine hausaufgaben fertig" } },
-            { "name": { "value": "erklär mir das bitte noch einmal" } },
-            { "name": { "value": "das ist zu schwer" } },
-            { "name": { "value": "ich verstehe die aufgabe nicht" } },
-            { "name": { "value": "das ergebnis ist zweiundvierzig" } },
-            { "name": { "value": "können wir mit deutsch weitermachen" } },
-            { "name": { "value": "ich möchte lieber mathe üben" } },
-            { "name": { "value": "lennart wann holen wir uns draußen suppe" } },
-            { "name": { "value": "wie viele beine hat eine spinne" } },
-            { "name": { "value": "ist das richtig" } },
-            { "name": { "value": "ich habe eine andere idee" } },
-            { "name": { "value": "acht plus fünf ist dreizehn" } }
+            {
+              "name": {
+                "value": "neun"
+              }
+            },
+            {
+              "name": {
+                "value": "zwölf"
+              }
+            },
+            {
+              "name": {
+                "value": "hundertvierundzwanzig"
+              }
+            },
+            {
+              "name": {
+                "value": "ja"
+              }
+            },
+            {
+              "name": {
+                "value": "nein"
+              }
+            },
+            {
+              "name": {
+                "value": "ich weiß es nicht"
+              }
+            },
+            {
+              "name": {
+                "value": "kannst du mir einen tipp geben"
+              }
+            },
+            {
+              "name": {
+                "value": "noch eine aufgabe bitte"
+              }
+            },
+            {
+              "name": {
+                "value": "was ist sechs mal sieben"
+              }
+            },
+            {
+              "name": {
+                "value": "wie viel ist sechsunddreißig geteilt durch vier"
+              }
+            },
+            {
+              "name": {
+                "value": "warum ist der himmel blau"
+              }
+            },
+            {
+              "name": {
+                "value": "wie schreibt man fahrrad"
+              }
+            },
+            {
+              "name": {
+                "value": "was bedeutet das wort vergangenheit"
+              }
+            },
+            {
+              "name": {
+                "value": "ich habe meine hausaufgaben fertig"
+              }
+            },
+            {
+              "name": {
+                "value": "erklär mir das bitte noch einmal"
+              }
+            },
+            {
+              "name": {
+                "value": "das ist zu schwer"
+              }
+            },
+            {
+              "name": {
+                "value": "ich verstehe die aufgabe nicht"
+              }
+            },
+            {
+              "name": {
+                "value": "das ergebnis ist zweiundvierzig"
+              }
+            },
+            {
+              "name": {
+                "value": "können wir mit deutsch weitermachen"
+              }
+            },
+            {
+              "name": {
+                "value": "ich möchte lieber mathe üben"
+              }
+            },
+            {
+              "name": {
+                "value": "lennart wann holen wir uns draußen suppe"
+              }
+            },
+            {
+              "name": {
+                "value": "wie viele beine hat eine spinne"
+              }
+            },
+            {
+              "name": {
+                "value": "ist das richtig"
+              }
+            },
+            {
+              "name": {
+                "value": "ich habe eine andere idee"
+              }
+            },
+            {
+              "name": {
+                "value": "acht plus fünf ist dreizehn"
+              }
+            }
           ]
         }
       ]

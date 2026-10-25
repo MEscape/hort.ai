@@ -32,6 +32,8 @@ export interface ProfilePatch {
   readonly tutorId?: TutorId;
   readonly controls?: ParentControls;
   readonly guardian?: GuardianConfirmation;
+  /** Goes with `controls`: `null` clears it, so voice off leaves no confirmation behind (#98). */
+  readonly voiceNotice?: VoiceNoticeConfirmation | null;
 }
 
 /** The school data a class decides for its children. */
@@ -65,7 +67,10 @@ export interface SavedProfile {
  */
 export interface ChildProfileRepository {
   /** Updates the finished profile's time and notes controls without writing voice, companion or interests. */
-  updateParentControls(profile: ChildProfile, controls: Omit<ParentControls, 'voiceEnabled'>): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
+  updateParentControls(
+    profile: ChildProfile,
+    controls: Omit<ParentControls, 'voiceEnabled'>,
+  ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
 
   /** The parent's own profile, or `null` for an unknown id and for another parent's alike. */
   findOwned(
