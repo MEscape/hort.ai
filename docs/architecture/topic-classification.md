@@ -107,16 +107,18 @@ Jev answers probabilities only (yes/no "noul" questions on `POST /v1/systemone`)
 - A missed deadline is `timeout`; any other failure is `unavailable`, with the HTTP status at most, never the key or the text.
 - Jev cannot propose an open label; only a text model can. A `GeminiTopicClassifier` for that is the optional step 12 of #92 and not built.
 
-The questions are in English, Jev's strongest language; German messages are rated less accurately. The thresholds above are the starting values from #92 and have **not yet** been tuned against Jev. Before the demo, run this matrix once against Jev and record the result here:
+The questions are in English, Jev's strongest language; German messages are rated less accurately. The thresholds above are the starting values from #92. They were checked once against Jev (`jev-1.14.0`, 25 Oct 2026) with this matrix, picked subject `math` and five fixed candidates (four basic-arithmetic, measurement and pattern statements of the KMK standards, one of them the intended match). All six messages were decided as expected, so the starting values stay:
 
-| Message                                               | Expected              |
-| ----------------------------------------------------- | --------------------- |
-| Ich muss 23 + 24 rechnen                              | homework, addition    |
-| Tim verteilt 12 Äpfel gerecht an 3 Kinder             | homework, division    |
-| Wie spät ist es in 45 Minuten, wenn es 15:45 Uhr ist? | homework, time spans  |
-| Warum ist der Himmel blau?                            | curiosity → redirect  |
-| Hallo Max, wie geht's dir?                            | small talk → redirect |
-| Hilfe                                                 | clarify               |
+| Message                                               | Expected              | Intent (score)    | Topic (score)                  | Decision                |
+| ----------------------------------------------------- | --------------------- | ----------------- | ------------------------------ | ----------------------- |
+| Ich muss 23 + 24 rechnen                              | homework, addition    | homework (0.75)   | operations competency (0.77)   | `help` with competency  |
+| Tim verteilt 12 Äpfel gerecht an 3 Kinder             | homework, division    | homework (0.65)   | word-problem competency (0.83) | `help` with competency  |
+| Wie spät ist es in 45 Minuten, wenn es 15:45 Uhr ist? | homework, time spans  | homework (0.85)   | time-span competency (0.81)    | `help` with competency  |
+| Warum ist der Himmel blau?                            | curiosity → redirect  | curiosity (0.94)  | none                           | `redirect` (curiosity)  |
+| Hallo Max, wie geht's dir?                            | small talk → redirect | small talk (0.98) | none                           | `redirect` (small talk) |
+| Hilfe                                                 | clarify               | homework (0.39)   | operations competency (0.27)   | `clarify`               |
+
+The margin is thin for one message: the division word problem scores 0.65 as homework, 0.05 above the `0.6` intent threshold. A shorter or less school-like German text can fall below it and then gets the one fixed clarifying question, which is the intended safe direction. Six messages are a smoke test, not a calibration; widen the matrix before raising or lowering a threshold.
 
 ## Logging
 
