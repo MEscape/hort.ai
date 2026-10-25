@@ -20,6 +20,7 @@ export async function saveControlsAction(input: unknown): Promise<ActionResult<C
       .saveControls.execute({
         profileId: values.profileId,
         voiceEnabled: values.voiceEnabled,
+        voiceNoticeVersion: values.voiceNoticeVersion,
         dailyLimitMinutes:
           values.dailyLimitMinutes === NO_LIMIT ? null : Number(values.dailyLimitMinutes),
         allowedWindow: values.windowEnabled

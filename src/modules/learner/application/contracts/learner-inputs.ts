@@ -28,6 +28,11 @@ export interface ChooseTutorInput {
 export interface SaveControlsInput {
   readonly profileId: string;
   readonly voiceEnabled: boolean;
+  /**
+   * The voice notice version the parent was shown with the voice switch. With voice on it must be
+   * the current one, else nothing is stored (`learner.voice_notice_outdated`, #98).
+   */
+  readonly voiceNoticeVersion: string | null;
   /** Minutes, one of `DAILY_LIMIT_MINUTES`; `null` for no limit. */
   readonly dailyLimitMinutes: number | null;
   /** Minutes since midnight in `LEARNER_TIME_ZONE`; `null` for any time. */

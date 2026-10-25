@@ -63,8 +63,12 @@ export type ControlsForm = z.infer<typeof controlsSchema>;
 
 export const saveInterestsActionSchema = interestsSchema.extend({ profileId: profileIdSchema });
 export const chooseTutorActionSchema = tutorSchema.extend({ profileId: profileIdSchema });
+/** The notice version travels beside the form: the hook sends the one the voice switch showed. */
 export const saveControlsActionSchema = controlsSchema.and(
-  z.object({ profileId: profileIdSchema }),
+  z.object({
+    profileId: profileIdSchema,
+    voiceNoticeVersion: z.string().max(PROFILE_ID_MAX_LENGTH).nullable().default(null),
+  }),
 );
 export const completeSetupActionSchema = z.object({ profileId: profileIdSchema });
 /** The parent's speech-to-text switch on the home; the use case checks the notice version. */
