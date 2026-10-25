@@ -21,6 +21,8 @@ import { ROLE_LABEL_KEYS } from '../account/role-label-keys';
 import { useSignOut } from '../hooks/use-sign-out';
 import { authRoutes } from '../routes';
 
+import { LanguageToggle } from './language-toggle';
+
 import type { Role } from '../../application/contracts/auth-views';
 
 interface AccountMenuProps {
@@ -30,7 +32,8 @@ interface AccountMenuProps {
 }
 
 /**
- * The signed-in person's name in the corner, opening Home, Account settings and Sign out. The
+ * The signed-in person's name in the corner, opening the language toggle, Home, Account settings
+ * and Sign out. The
  * initial in the circle is decoration; the button's name is the person's name and the menu purpose.
  */
 export function AccountMenu({ name, role }: AccountMenuProps) {
@@ -60,10 +63,13 @@ export function AccountMenu({ name, role }: AccountMenuProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>
-          <span className="block truncate font-semibold text-copy">{name}</span>
-          <span className="block">{t(ROLE_LABEL_KEYS[role])}</span>
-        </DropdownMenuLabel>
+        <div className="flex items-center justify-between gap-2">
+          <DropdownMenuLabel className="min-w-0">
+            <span className="block truncate font-semibold text-copy">{name}</span>
+            <span className="block">{t(ROLE_LABEL_KEYS[role])}</span>
+          </DropdownMenuLabel>
+          <LanguageToggle />
+        </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href={authRoutes.home()}>

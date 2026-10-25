@@ -1,21 +1,13 @@
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 
 import {
+  AccountControl,
   ReturnToChildButton,
-  SignOutButton,
-  authRoutes,
   getParentAreaServices,
-  isAuthEnabled,
   requireSignedIn,
 } from '@modules/auth';
 import { ParentDashboard, requireOnboarded } from '@modules/learner';
 import type { ChildProfileDto, ParentRange, ParentSection } from '@modules/learner';
-
-import { Button } from '@components/ui/button';
-
-import { Link } from '@i18n';
-
-import { getTranslations } from '@i18n/server';
 
 import { systemClock } from '@lib/clock';
 import { escalate } from '@lib/errors/escalate';
@@ -44,7 +36,6 @@ export async function ParentFrame({
     return <ParentGate />;
   }
   const child = await requireOnboarded();
-  const t = await getTranslations('auth');
   return (
     <ParentDashboard
       name={child.displayName}
@@ -54,12 +45,10 @@ export async function ParentFrame({
       actions={
         <>
           <ReturnToChildButton />
-          {isAuthEnabled && (
-            <Button asChild variant="outline">
-              <Link href={authRoutes.settings(authRoutes.parent())}>{t('account.settings')}</Link>
-            </Button>
-          )}
-          {isAuthEnabled && <SignOutButton />}
+          {/* Language, settings and sign-out live in the shared account menu. */}
+          <Suspense fallback={null}>
+            <AccountControl />
+          </Suspense>
         </>
       }
     >
