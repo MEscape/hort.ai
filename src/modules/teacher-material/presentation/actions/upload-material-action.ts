@@ -20,8 +20,9 @@ function titleOf(file: File): string {
 
 /** @keep Class page upload: `classroomId` and `file` from a form; the file never leaves the server. */
 export async function uploadMaterialAction(
-  formData: FormData,
+  input: unknown,
 ): Promise<ActionResult<{ readonly materialId: string }>> {
+  const formData = input instanceof FormData ? input : new FormData();
   const file = formData.get('file');
   const result = await parseTeacherMaterialInput(materialFormUploadSchema, {
     classroomId: formData.get('classroomId'),

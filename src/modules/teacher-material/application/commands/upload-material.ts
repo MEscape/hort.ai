@@ -15,6 +15,7 @@ import type { MaterialDependencies } from '../material-dependencies';
  * The class page's upload: the file reaches the server, which runs the same begin/complete
  * lifecycle and writes the staging object itself. The storage account allows no browser PUT
  * (CORS), and no signed URL ever reaches the client this way.
+ * @audit-exempt The delegated BeginMaterialUpload and CompleteMaterialUpload emit both lifecycle events.
  */
 export class UploadMaterial {
   private readonly begin: BeginMaterialUpload;
