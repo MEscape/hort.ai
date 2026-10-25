@@ -112,10 +112,10 @@ describe('GeminiProvider', () => {
     const assessment = { ...ANSWER, kind: 'answer_assessment', result: 'not_yet' };
     const text = JSON.stringify(assessment);
     const { fetch } = scriptedFetch(
-      reply('```json\n' + text + '\n```'),
-      reply('```\n' + text + '\n```\n'),
+      reply(`\`\`\`json\n${text}\n\`\`\``),
+      reply(`\`\`\`\n${text}\n\`\`\`\n`),
       reply(`[${text}]`),
-      reply('```json\n[' + text + ']\n```'),
+      reply(`\`\`\`json\n[${text}]\n\`\`\``),
       reply(`Hier ist die Bewertung:\n${text}\nViel Erfolg!`),
     );
     const gemini = provider(fetch);
