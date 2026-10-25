@@ -21,6 +21,24 @@ Both use cases (`SynthesizeSpeech`, `TranscribeSpeech`) require the signed-in pa
 a budget of 30 calls per parent in ten minutes (`application/rate-limits.ts`, denies when the
 limiter store is down), and only then call the provider.
 
+## Hosted speech (server channels)
+
+`getHostedSpeech()` (exported from `index.ts`, use case `GetHostedSpeech`) is for server-side channels that play
+audio from a link instead of receiving bytes; today only Alexa. It has no actor (`@authorization system`): the
+caller authenticates its own requests (Alexa: Amazon's signature). Because there is no actor, there is no ticket
+and no consent to check, so it speaks **only fixed lines**: a catalog line of the tutor (`{ kind: 'phrase' }`) or a
+channel sentence that matches `infrastructure/catalog/channel-lines.json` exactly (`{ kind: 'channel-line' }`).
+Any other text (a child's words, a generated answer) is refused with `voice.validation.free_text_refused`, and the
+channel falls back to its own voice. A new channel line is a reviewed edit of that file and must never name or
+describe a child: the URL is fetched by a third party (Amazon).
+
+Equal text in an equal voice is synthesized once: the clip is stored in the **private** container as
+`speech-clips/<sha256>.mp3` (no text in the key) and returned as a 15-minute read-only SAS URL. Only a synthesis
+spends the global budget `voice.hosted-synthesize` (60 per 10 minutes, denies when the limiter store is down); a
+stored clip costs a HEAD. Concurrent requests for the same clip share one lookup and synthesis (in-memory single
+flight per instance). The upload uses the store's signed one-object PUT (2 s timeout). Without a private container
+it answers `voice.hosting_disabled`; a storage failure is `voice.clip_failed`.
+
 ## Rules
 
 - **Text**: trimmed, not empty, at most `SPEECH_LIMITS.maxTextLength` (400) characters. Longer text
@@ -91,6 +109,8 @@ interface falls back to text, as it must when the microphone is refused.
 | `voice.rate_limited`            | 429    | Budget spent; `Retry-After` says when to try again      |
 | `voice.disabled`                | 502    | No `ELEVENLABS_API_KEY`                                 |
 | `voice.rate_limiter_failed`     | 502    | The limiter store is down                               |
+| `voice.hosting_disabled`        | -      | Hosted speech without a private storage container       |
+| `voice.clip_failed`             | -      | Hosted speech: storing or signing the clip failed       |
 | `speech.unavailable`            | 502    | Provider timeout, 5xx or network failure: retry later   |
 | `speech.throttled`              | 502    | Provider 429 (too many concurrent requests): retry soon |
 | `speech.quota_exceeded`         | 502    | Plan quota used up or the voice needs another plan      |

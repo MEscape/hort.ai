@@ -10,14 +10,18 @@ import { serverEnv } from '@lib/config/server';
 import { logger } from '@lib/logger';
 import { getRateLimiter } from '@lib/rate-limit';
 import { getSpeechProvider } from '@lib/speech/server';
+import { getObjectStore } from '@lib/storage/server';
 import { once } from '@lib/utils';
 
+import { GetHostedSpeech } from './application/queries/get-hosted-speech';
 import { IssueSpeechTicket } from './application/queries/issue-speech-ticket';
 import { SynthesizeSpeech } from './application/queries/synthesize-speech';
 import { TranscribeSpeech } from './application/queries/transcribe-speech';
+import { catalogChannelLines } from './infrastructure/catalog/catalog-channel-lines';
 import { catalogSpeakerVoices } from './infrastructure/catalog/catalog-speaker-voices';
 import { catalogSystemPhrases } from './infrastructure/catalog/catalog-system-phrases';
 import { learnerChildVoiceConsent } from './infrastructure/learner/learner-child-voice-consent';
+import { objectStoreSpeechClips } from './infrastructure/storage/object-store-speech-clips';
 import { hmacSpokenTextTickets } from './infrastructure/tickets/hmac-spoken-text-tickets';
 import { createVoiceRouteHandlers } from './presentation/http/voice-route-handlers';
 
@@ -47,6 +51,26 @@ export const getVoiceQueries = once(() => {
     transcribeSpeech: new TranscribeSpeech(dependencies),
     issueSpeechTicket: new IssueSpeechTicket(dependencies),
   } as const;
+});
+
+/**
+ * Speech behind a short-lived URL for server-side channels (Alexa), for fixed lines only. Without
+ * `ELEVENLABS_API_KEY` or a private storage container it answers `voice.disabled` /
+ * `voice.hosting_disabled`, and the channel keeps its own voice. Needs no auth wiring: it has no actor.
+ */
+export const getHostedSpeech = once(() => {
+  const store = getObjectStore();
+  return new GetHostedSpeech({
+    rateLimiter: getRateLimiter(),
+    speech: getSpeechProvider(),
+    voices: catalogSpeakerVoices(),
+    phrases: catalogSystemPhrases(),
+    channelLines: catalogChannelLines(),
+    clips:
+      store?.supports('private') === true
+        ? objectStoreSpeechClips(store, { clock: systemClock })
+        : null,
+  });
 });
 
 /**

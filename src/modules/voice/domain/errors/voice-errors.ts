@@ -32,6 +32,10 @@ export const VOICE_ERROR_CODES = {
   validationFailed: 'voice.validation_failed',
   rateLimited: 'voice.rate_limited',
   rateLimiterFailed: 'voice.rate_limiter_failed',
+  /** Hosted speech (a clip behind a URL) needs `STORAGE_AZURE_PRIVATE_CONTAINER`. */
+  hostingDisabled: 'voice.hosting_disabled',
+  /** Storing or signing a clip failed. */
+  clipFailed: 'voice.clip_failed',
 } as const;
 
 /** Field-level codes, carried in `fieldErrors`. */
@@ -104,4 +108,21 @@ export function fromRateLimitFailure(
         'Speech is temporarily unavailable.',
         failure.cause,
       );
+}
+
+/** Hosted speech needs object storage; without it a channel speaks with its own voice. */
+export function speechHostingDisabled(): InfrastructureAppError {
+  return infrastructureError(
+    VOICE_ERROR_CODES.hostingDisabled,
+    'Hosted speech needs private object storage.',
+  );
+}
+
+/** A clip could not be stored or signed; the cause stays in `cause`, never a URL. */
+export function speechClipFailed(cause: unknown): InfrastructureAppError {
+  return infrastructureError(
+    VOICE_ERROR_CODES.clipFailed,
+    'The speech clip could not be stored.',
+    cause,
+  );
 }
