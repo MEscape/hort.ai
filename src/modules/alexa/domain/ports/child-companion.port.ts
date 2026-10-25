@@ -82,7 +82,11 @@ export interface ChildLearning {
   /** Starts (or continues) the session and says its opening or first hint. */
   startHelp(task: NewTask, requestId: RetryRef): AppResultAsync<TutorText>;
   nextHint(sessionId: StoredRef, requestId: RetryRef): AppResultAsync<TutorText>;
-  checkAnswer(sessionId: StoredRef, requestId: RetryRef, answer: string): AppResultAsync<AnswerChecked>;
+  checkAnswer(
+    sessionId: StoredRef,
+    requestId: RetryRef,
+    answer: string,
+  ): AppResultAsync<AnswerChecked>;
   replyToQuestion(
     sessionId: StoredRef,
     reply: string,
