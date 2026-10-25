@@ -230,6 +230,15 @@ describe('findSolutionLeaks on money and clock times (S3, S4 of docs/product/mvp
     expect(leaksOf(hint(text, 'similar_example'), context)).toEqual([]);
   });
 
+  it.each(['next_step', 'similar_example'] as const)(
+    'rejects worked steps on the written euros and cents at %s',
+    (level) => {
+      expect(leaksOf(hint('2 · 3 = 6 Euro, 50 · 3 = 150 Cent.', level), MONEY)).toContain(
+        CODES.worksTheTask,
+      );
+    },
+  );
+
   it('keeps "20:10" without a time word a division', () => {
     const division: SolutionContext = { task: 'Rechne: 20:10', solutionKey: null, answer: null };
 

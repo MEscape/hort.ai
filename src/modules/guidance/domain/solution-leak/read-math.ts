@@ -125,29 +125,18 @@ function minutesSinceMidnight(hours = '0', minutes = '0'): string {
   return String(Number(hours) * MINUTES_PER_HOUR + Number(minutes));
 }
 
-/**
- * Lower case, number words as digits, money and clock times as one number each, decimal comma as
- * point and every operator as `+ - * /`, so the patterns below see one notation.
- */
-export function readMath(text: string): string {
+function withNumberWords(text: string): string {
   return text
     .normalize('NFKC')
     .toLowerCase()
     .replace(/\p{L}+/gu, (word) => {
       const value = numberWord(word);
       return value === null ? word : String(value);
-    })
-    .replace(
-      EURO_AND_CENT,
-      (_match, euros: string, cents: string) => `${euros},${cents.padStart(2, '0')} €`,
-    )
-    .replace(
-      CLOCK_TIME,
-      (_match, ...[byWord, byWordMinutes, byUhr, byUhrMinutes]: Array<string | undefined>) =>
-        byWord === undefined
-          ? minutesSinceMidnight(byUhr, byUhrMinutes)
-          : minutesSinceMidnight(byWord, byWordMinutes),
-    )
+    });
+}
+
+function withOneNotation(math: string): string {
+  return math
     .replace(/(\d),(\d)/g, '$1.$2')
     .replace(/\bgeteilt durch\b|\bdurch\b|÷/g, ' / ')
     .replace(/\bplus\b/g, ' + ')
@@ -155,6 +144,36 @@ export function readMath(text: string): string {
     .replace(/\bmal\b|[·×]/g, ' * ')
     .replace(/(\d)\s*:\s*(?=\d)/g, '$1 / ')
     .replace(/(\d)\s*x\s*(?=\d)/g, '$1 * ');
+}
+
+/**
+ * Lower case, number words as digits, money and clock times as one number each, decimal comma as
+ * point and every operator as `+ - * /`, so the patterns below see one notation.
+ */
+export function readMath(text: string): string {
+  return withOneNotation(
+    withNumberWords(text)
+      .replace(
+        EURO_AND_CENT,
+        (_match, euros: string, cents: string) => `${euros},${cents.padStart(2, '0')} €`,
+      )
+      .replace(
+        CLOCK_TIME,
+        (_match, ...[byWord, byWordMinutes, byUhr, byUhrMinutes]: Array<string | undefined>) =>
+          byWord === undefined
+            ? minutesSinceMidnight(byUhr, byUhrMinutes)
+            : minutesSinceMidnight(byWord, byWordMinutes),
+      ),
+  );
+}
+
+/**
+ * Like `readMath`, but euros and cents and the parts of a clock time stay separate numbers
+ * ("2 € 50 ct" is 2 and 50): a hint that works on those parts ("50 · 3 = 150 Cent") still works
+ * the child's task.
+ */
+export function readMathAsWritten(text: string): string {
+  return withOneNotation(withNumberWords(text));
 }
 
 /** A number rounded so that equal values compare equal in a `Set`. */
