@@ -159,7 +159,7 @@ export function useHelpConversation(childProfileId: string, initial: HelpSession
       return;
     }
     if (step !== 'hint' && draft.trim().length === 0) {
-      setFailure({ code: 'empty', retryAfterSeconds: null });
+      setFailure({ code: 'empty', retryAfterSeconds: null, pause: null });
       return;
     }
     setFailure(null);
