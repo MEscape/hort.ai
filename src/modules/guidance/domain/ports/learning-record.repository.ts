@@ -16,7 +16,7 @@ export interface InsightReadBounds {
  * Read-only learning data of help sessions for the summaries (#35): ids, statuses, hint rungs and
  * whether the comprehension question was answered. It never reads a task, answer, reply or AI text.
  */
-export interface LearningRecordStore {
+export interface LearningRecordRepository {
   /** The parent's own child's sessions started since `since`, newest first. */
   listChildSessions(
     owner: HelpSessionOwner,

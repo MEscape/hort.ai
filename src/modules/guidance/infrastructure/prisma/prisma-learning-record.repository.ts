@@ -11,7 +11,7 @@ import type { ClassSessionRecord } from '../../domain/insights/class-overview';
 import type { SessionLearningRecord } from '../../domain/insights/learning-summary';
 import type { HelpSessionStatus } from '../../domain/models/help-session';
 import type { HintLevel } from '../../domain/models/hint-level';
-import type { LearningRecordStore } from '../../domain/ports/learning-record-store.port';
+import type { LearningRecordRepository } from '../../domain/ports/learning-record.repository';
 
 const failures = createPersistenceFailures({
   module: 'guidance.persistence',
@@ -43,8 +43,8 @@ interface ChildSessionRow {
  * The summaries' reads (#35). Only ids, statuses, timestamps and hint rungs are selected: the task
  * text, the child's answers and replies and every AI text stay out of these queries.
  */
-export class PrismaLearningRecordRepository implements LearningRecordStore {
-  listChildSessions: LearningRecordStore['listChildSessions'] = (
+export class PrismaLearningRecordRepository implements LearningRecordRepository {
+  listChildSessions: LearningRecordRepository['listChildSessions'] = (
     owner,
     childProfileId,
     since,
@@ -105,7 +105,7 @@ export class PrismaLearningRecordRepository implements LearningRecordStore {
       });
     }, failures.infraOnly('listChildSessions'));
 
-  listAssignmentSessions: LearningRecordStore['listAssignmentSessions'] = (
+  listAssignmentSessions: LearningRecordRepository['listAssignmentSessions'] = (
     assignmentIds,
     bounds,
   ) => {

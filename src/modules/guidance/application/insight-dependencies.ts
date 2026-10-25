@@ -7,7 +7,7 @@ import type {
   InsightAssignments,
   LearningInsightsConsent,
 } from '../domain/ports/insight-sources.port';
-import type { LearningRecordStore } from '../domain/ports/learning-record-store.port';
+import type { LearningRecordRepository } from '../domain/ports/learning-record.repository';
 
 /** What the learning summaries (#35) are built from. None of them calls an AI provider. */
 export interface InsightDependencies {
@@ -16,5 +16,5 @@ export interface InsightDependencies {
   readonly consent: LearningInsightsConsent;
   readonly assignments: InsightAssignments;
   readonly competencies: CompetencyLabels;
-  readonly records: LearningRecordStore;
+  readonly records: LearningRecordRepository;
 }

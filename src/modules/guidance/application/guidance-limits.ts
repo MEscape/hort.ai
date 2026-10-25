@@ -1,4 +1,4 @@
-import type { InsightReadBounds } from '../domain/ports/learning-record-store.port';
+import type { InsightReadBounds } from '../domain/ports/learning-record.repository';
 
 /**
  * Bounds of the learning-summary reads (#35, performance.md): far above one child's 14 days or one
