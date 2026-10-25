@@ -1,16 +1,14 @@
-import { createPersistenceFailures, dateToInstant, db, instantToDate } from '@lib/db';
-import type { InstantRecord } from '@lib/db';
+import { createPersistenceFailures, dateToInstant, db } from '@lib/db';
 import { fromThrowableAsync, okAsync } from '@lib/result';
 import { groupBy } from '@lib/utils';
 
 import { GUIDANCE_ERROR_CODES } from '../../domain/errors/guidance-errors';
 
-import { LEVEL_RECORD, STATUS_RECORD } from './help-session-record-mapper';
+import { toSessionLearningRecord, toSessionStatus } from './learning-record-record-mapper';
 
+import type { ChildSessionRow } from './learning-record-record-mapper';
 import type { ClassSessionRecord } from '../../domain/insights/class-overview';
 import type { SessionLearningRecord } from '../../domain/insights/learning-summary';
-import type { HelpSessionStatus } from '../../domain/models/help-session';
-import type { HintLevel } from '../../domain/models/hint-level';
 import type { LearningRecordRepository } from '../../domain/ports/learning-record.repository';
 
 const failures = createPersistenceFailures({
@@ -18,26 +16,6 @@ const failures = createPersistenceFailures({
   code: GUIDANCE_ERROR_CODES.sessionStoreFailed,
   subject: 'HelpSession',
 });
-
-const STATUS_BY_RECORD = new Map<string, HelpSessionStatus>(
-  (Object.keys(STATUS_RECORD) as HelpSessionStatus[]).map((status) => [
-    STATUS_RECORD[status],
-    status,
-  ]),
-);
-const LEVEL_BY_RECORD = new Map<string, HintLevel>(
-  (Object.keys(LEVEL_RECORD) as HintLevel[]).map((level) => [LEVEL_RECORD[level], level]),
-);
-
-/** The columns of a child's session the summary reads; no text column among them. */
-interface ChildSessionRow {
-  readonly id: string;
-  readonly assignmentId: string | null;
-  readonly competencyCode: string | null;
-  readonly openTopicLabel: string | null;
-  readonly status: string;
-  readonly startedAt: InstantRecord;
-}
 
 /**
  * The summaries' reads (#35). Only ids, statuses, timestamps and hint rungs are selected: the task
@@ -84,24 +62,12 @@ export class PrismaLearningRecordRepository implements LearningRecordRepository 
       const hintsBySession = groupBy(hints, ({ sessionId }) => sessionId);
       const answered = new Set(questions.map(({ sessionId }) => sessionId));
       return sessions.flatMap((session: ChildSessionRow): SessionLearningRecord[] => {
-        const status = STATUS_BY_RECORD.get(session.status);
-        if (status === undefined) {
-          return [];
-        }
-        return [
-          {
-            assignmentId: session.assignmentId,
-            competencyCode: session.competencyCode,
-            openTopicLabel: session.openTopicLabel,
-            status,
-            startedAt: instantToDate(session.startedAt),
-            hintLevels: (hintsBySession.get(session.id) ?? []).flatMap(({ level }) => {
-              const known = LEVEL_BY_RECORD.get(level);
-              return known === undefined ? [] : [known];
-            }),
-            comprehensionAnswered: answered.has(session.id),
-          },
-        ];
+        const record = toSessionLearningRecord(
+          session,
+          hintsBySession.get(session.id) ?? [],
+          answered.has(session.id),
+        );
+        return record === null ? [] : [record];
       });
     }, failures.infraOnly('listChildSessions'));
 
@@ -131,7 +97,7 @@ export class PrismaLearningRecordRepository implements LearningRecordRepository 
         .aggregate((aggregate) => ({ count: aggregate.count() }));
       const hintCounts = new Map(hints.map(({ sessionId, count }) => [sessionId, count]));
       return sessions.flatMap((session): ClassSessionRecord[] => {
-        const status = STATUS_BY_RECORD.get(session.status);
+        const status = toSessionStatus(session.status);
         return status === undefined || session.assignmentId === null
           ? []
           : [
