@@ -421,8 +421,20 @@ describe('GetOpenHelpSession', () => {
         { kind: 'fallback', level: 'next_step', reason: 'timeout' },
       ],
       answerChecks: [
-        { result: 'not_yet', assessedBy: 'ai', hintLevel: 'next_step' },
-        { result: 'correct', assessedBy: 'ai', hintLevel: 'next_step' },
+        {
+          result: 'not_yet',
+          assessedBy: 'ai',
+          hintLevel: 'next_step',
+          feedbackText: null,
+          questionText: null,
+        },
+        {
+          result: 'correct',
+          assessedBy: 'ai',
+          hintLevel: 'next_step',
+          feedbackText: null,
+          questionText: null,
+        },
       ],
       openQuestion: { kind: 'predefined', feedback: 'comprehension_question', reason: null },
       opening: null,

@@ -36,6 +36,8 @@ export const VOICE_ERROR_CODES = {
   hostingDisabled: 'voice.hosting_disabled',
   /** Storing or signing a clip failed. */
   clipFailed: 'voice.clip_failed',
+  /** The child has no such companion message (no open session, or no hint at that place). */
+  messageNotFound: 'voice.message_not_found',
 } as const;
 
 /** Field-level codes, carried in `fieldErrors`. */
@@ -80,6 +82,14 @@ export function unknownPhrase(): NotFoundAppError {
  */
 export function childProfileNotFound(): NotFoundAppError {
   return notFoundError(VOICE_ERROR_CODES.childProfileNotFound, 'This child profile was not found.');
+}
+
+/** Nothing the companion said matches the named message: there is nothing to read aloud. */
+export function messageNotFound(): NotFoundAppError {
+  return notFoundError(
+    VOICE_ERROR_CODES.messageNotFound,
+    'There is no such message to read aloud.',
+  );
 }
 
 /** Sending a recording to the provider leaves the session, so it needs the parent's consent. */

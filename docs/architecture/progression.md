@@ -30,7 +30,7 @@ A caller's learning key is 1 to 55 characters of `[A-Za-z0-9:_-]`: the `learning
 All authorize first (`requireInTenant`, then ownership of the child), take no tenant, owner or role from input, and answer another parent's child exactly like an unknown id (`progression.not_found`) without reading or writing anything.
 
 - `GetProgress { childProfileId }` (query, `progression.read`): the `ProgressView`. Writes nothing.
-- `ClaimDailyReward { childProfileId }` (command, `progression.update`): one insert under `daily:<Berlin day of now>`; `granted` or `already_claimed`, `leveledUp` (true only for the call that crossed a threshold) and the new progress. The unique index decides, so two claims at once still grant once; no read-then-write.
+- `ClaimDailyReward { childProfileId }` (command, `progression.daily_reward`): one insert under `daily:<Berlin day of now>`; `granted` or `already_claimed`, `leveledUp` (true only for the call that crossed a threshold) and the new progress. The unique index decides, so two claims at once still grant once; no read-then-write.
 - `AwardLearningXp { childProfileId, event, eventKey }` (command, `progression.update`): the idempotent entry point for XP from learning events (`granted` or `duplicate`). No caller exists yet; the help sessions (#34) will be the first. Not exposed as a Server Action.
 
 Time comes from the `Clock` port. Audit events (`progression.daily_reward_claimed` `{xp, level}`, `progression.xp_awarded` `{event, xp, level}`) are written only when a row was inserted. None of the use cases is rate limited: each is owner-scoped, idempotent and bounded by the unique key, so repeating a request changes nothing.
@@ -51,7 +51,7 @@ The companion's face (`CompanionAvatar`) uses the shared face overlay (`Characte
 
 ## Errors
 
-`progression.not_found`, `progression.validation_failed`, `progression.persistence_failed`; field codes `progression.validation.id_invalid`, `.event_invalid`, `.event_key_invalid`. Permissions `progression.read` and `progression.update` are held by the parent (and the platform admin) like `learner.*`. The audit trail source is `progression`.
+`progression.not_found`, `progression.validation_failed`, `progression.persistence_failed`; field codes `progression.validation.id_invalid`, `.event_invalid`, `.event_key_invalid`. Permissions `progression.read`, `progression.update` and `progression.daily_reward` are held by the parent (and the platform admin) like `learner.*`; the Alexa child channel holds `progression.read` and `progression.daily_reward` only, never learning XP. The audit trail source is `progression`.
 
 ## Tests
 

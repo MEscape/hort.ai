@@ -17,7 +17,6 @@ import {
   classroomQueries,
   CreateClassroomForm,
 } from '@modules/classroom';
-import { TeacherMaterialPanel } from '@modules/teacher-material';
 
 import { I18nProvider } from '@components/providers/i18n-provider';
 import { Skeleton } from '@components/ui/skeleton';
@@ -91,7 +90,6 @@ function Overview({
         assignments={overview.assignments}
         classroomActions={<AddClassroomDialog />}
       />
-      <TeacherMaterialPanel key={`material-${selected.id}`} classroomId={selected.id} />
       {detailsClassroomId !== undefined && (
         <ClassroomDetails
           selectedClassroomId={selected.id}
@@ -132,10 +130,7 @@ export default async function TeacherAssignmentsPage({
 }: TeacherAssignmentsPageProps) {
   const locale = requireLocale((await params).locale);
   return (
-    <I18nProvider
-      locale={locale}
-      namespaces={['assignments', 'classroom', 'auth', 'teacherMaterial']}
-    >
+    <I18nProvider locale={locale} namespaces={['assignments', 'classroom', 'auth']}>
       <main className="min-h-dvh bg-canvas px-5 py-6 text-copy sm:px-8 sm:py-8">
         <div className="mx-auto max-w-5xl space-y-6">
           <Suspense fallback={<Skeleton className="h-12 w-full rounded-token-lg" />}>

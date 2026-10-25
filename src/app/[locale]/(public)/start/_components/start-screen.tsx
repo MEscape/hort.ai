@@ -21,10 +21,15 @@ interface StartScreenProps {
   /** The child's class's assignments (child-safe views), or `null` when none can be shown. */
   readonly schoolAssignments: readonly ChildAssignmentView[] | null;
   readonly childProfileId?: string | null;
+  readonly voiceConsent?: boolean;
 }
 
 /** Drafts live only in this mounted route; leaving or reloading it clears them. */
-export function StartScreen({ schoolAssignments, childProfileId }: StartScreenProps) {
+export function StartScreen({
+  schoolAssignments,
+  childProfileId,
+  voiceConsent = false,
+}: StartScreenProps) {
   const t = useTranslations('app');
   const [view, setView] = useState<StartView>('home');
   const [draft, setDraft] = useState('');
@@ -67,6 +72,7 @@ export function StartScreen({ schoolAssignments, childProfileId }: StartScreenPr
           onDraftChange={setDraft}
           headingRef={headingRef}
           childProfileId={childProfileId ?? null}
+          voiceConsent={voiceConsent}
         />
       )}
       {view === 'school' && schoolAssignments !== null && (
