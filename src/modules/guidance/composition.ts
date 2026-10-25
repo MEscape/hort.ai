@@ -25,8 +25,8 @@ import { curriculumCompetencyLabels } from './infrastructure/curriculum/curricul
 import { curriculumCompetencyRetrieval } from './infrastructure/curriculum/curriculum-competency-retrieval';
 import { GeminiProvider } from './infrastructure/gemini/gemini-provider';
 import { learnerChildProfileAccess } from './infrastructure/learner/learner-child-profile-access';
-import { learnerLearningTimePolicy } from './infrastructure/learner/learner-learning-time-policy';
 import { learnerInsightsConsent } from './infrastructure/learner/learner-insights-consent';
+import { learnerLearningTimePolicy } from './infrastructure/learner/learner-learning-time-policy';
 import { PrismaHelpSessionRepository } from './infrastructure/prisma/prisma-help-session.repository';
 import { PrismaLearningRecordRepository } from './infrastructure/prisma/prisma-learning-record.repository';
 import { progressionSessionReward } from './infrastructure/progression/progression-session-reward';
