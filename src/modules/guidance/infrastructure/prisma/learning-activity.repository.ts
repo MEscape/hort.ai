@@ -1,11 +1,11 @@
 import { createPersistenceFailures, dateToInstant, db, instantToDate } from '@lib/db';
+import type { InstantRecord } from '@lib/db';
 import type { InfrastructureAppError } from '@lib/errors';
 import { fromThrowableAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
 import { ACTIVITY_SESSION_LIMIT, ACTIVITY_STEP_LIMIT } from '../../application/guidance-limits';
 import { GUIDANCE_ERROR_CODES } from '../../domain/errors/guidance-errors';
-
 
 import type { ChildProfileId } from '../../domain/models/ids';
 import type { HelpSessionOwner } from '../../domain/ports/help-session.repository';
@@ -20,6 +20,10 @@ const failures = createPersistenceFailures({
   subject: 'HelpSession',
 });
 
+const SESSION_SELECT = ['id', 'startedAt'] as const;
+const OCCURRED_SELECT = ['occurredAt'] as const;
+const REPLIED_SELECT = ['repliedAt'] as const;
+
 async function read(
   owner: HelpSessionOwner,
   childProfileId: ChildProfileId,
@@ -33,7 +37,7 @@ async function read(
     ownerId: owner.ownerId,
     childProfileId,
   })
-    .select('id', 'startedAt')
+    .select(...SESSION_SELECT)
     .where((row) => row.updatedAt.gte(from))
     .limit(ACTIVITY_SESSION_LIMIT)
     .all();
@@ -44,33 +48,33 @@ async function read(
   const [hints, answers, replies] = await Promise.all([
     // @owner-scope derived Sessions were read above with tenant, owner and child.
     db.orm.public.HintEvent.where((row) => row.sessionId.in(ids))
-      .select('occurredAt')
+      .select(...OCCURRED_SELECT)
       .where((row) => row.occurredAt.gte(from))
       .limit(ACTIVITY_STEP_LIMIT)
       .all(),
     // @owner-scope derived Sessions were read above with tenant, owner and child.
     db.orm.public.ChildAnswer.where((row) => row.sessionId.in(ids))
-      .select('occurredAt')
+      .select(...OCCURRED_SELECT)
       .where((row) => row.occurredAt.gte(from))
       .limit(ACTIVITY_STEP_LIMIT)
       .all(),
     // @owner-scope derived Sessions were read above with tenant, owner and child.
     db.orm.public.ComprehensionQuestion.where((row) => row.sessionId.in(ids))
-      .select('repliedAt')
+      .select(...REPLIED_SELECT)
       .where((row) => row.repliedAt.gte(from))
       .limit(ACTIVITY_STEP_LIMIT)
       .all(),
   ]);
   const instants: Date[] = [];
   for (const { startedAt } of sessions) {
-    instants.push(instantToDate(startedAt));
+    instants.push(instantToDate(startedAt as InstantRecord));
   }
   for (const { occurredAt } of [...hints, ...answers]) {
-    instants.push(instantToDate(occurredAt));
+    instants.push(instantToDate(occurredAt as InstantRecord));
   }
   for (const { repliedAt } of replies) {
     if (repliedAt !== null) {
-      instants.push(instantToDate(repliedAt));
+      instants.push(instantToDate(repliedAt as InstantRecord));
     }
   }
   return instants;

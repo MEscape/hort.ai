@@ -62,7 +62,9 @@ export function usedMinutesToday(
   const now = clock.now();
   return sessions
     .learningActivity(owner, child.id, new Date(now.getTime() - LEARNING_LOOKBACK_MS))
-    .map((instants) => countLearningMinutes(instants, now, (instant) => learningTime.calendarDay(instant)));
+    .map((instants) =>
+      countLearningMinutes(instants, now, (instant) => learningTime.calendarDay(instant)),
+    );
 }
 
 /**
