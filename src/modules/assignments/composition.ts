@@ -26,6 +26,7 @@ const dependencies: AssignmentsDependencies = {
   assignments: new PrismaAssignmentRepository(systemClock),
   classrooms: new ClassroomModuleAccess(classroomQueries),
   audit: loggerAssignmentAuditLog,
+  clock: systemClock,
 };
 
 export const assignmentsQueries = {

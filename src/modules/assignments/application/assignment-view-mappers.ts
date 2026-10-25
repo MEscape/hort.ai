@@ -1,3 +1,6 @@
+import type { Clock } from '@lib/clock';
+import { calendarDayIn } from '@lib/utils';
+
 import type {
   AssignmentFieldsInput,
   AssignmentForHelpView,
@@ -43,4 +46,11 @@ export function toDraftInput(input: AssignmentFieldsInput): AssignmentDraftInput
     dueDate: input.dueDate,
     solutionKey: input.solutionKey,
   };
+}
+
+/** The school's time zone: due dates are calendar days there (see `I18N_CONFIG.defaultTimeZone`). */
+const SCHOOL_TIME_ZONE = 'Europe/Berlin';
+
+export function schoolToday(clock: Clock): string {
+  return calendarDayIn(clock.now(), SCHOOL_TIME_ZONE);
 }
