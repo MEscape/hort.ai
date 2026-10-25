@@ -13,6 +13,9 @@ import { learnerChildVoiceConsent } from '@modules/voice/infrastructure/learner/
 import { PARENT_A, PARENT_B, build, profileOf } from '../../learner/fakes';
 import { fakeSpeech, voiceDependencies } from '../fakes';
 
+/** The start of a `MediaRecorder` WebM recording: the EBML header (#75 checks the signature). */
+const WEBM = new Uint8Array([0x1a, 0x45, 0xdf, 0xa3, 0x9f, 0x42, 0x86, 0x81]);
+
 const confirmedAt = new Date('2026-10-20T00:00:00.000Z');
 
 const finished = (overrides: Parameters<typeof profileOf>[0] = {}) =>
@@ -40,7 +43,7 @@ function wire(...profiles: ChildProfile[]) {
   const record = (childProfileId: string) =>
     transcribe.execute({
       childProfileId,
-      audio: new Uint8Array([1, 2, 3]),
+      audio: WEBM,
       contentType: 'audio/webm',
     });
   return { setConsent: new SetVoiceConsent(deps), speech, record };
