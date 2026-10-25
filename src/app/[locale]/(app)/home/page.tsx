@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 
-import { assignmentRoutes } from '@modules/assignments';
+import { assignmentRoutes, assignmentsQueries } from '@modules/assignments';
 import { AccountHeader, AuthShell, requireSignedIn, TEACHER_ROLE } from '@modules/auth';
 import { classroomQueries } from '@modules/classroom';
 import { loadOpenHelpSession } from '@modules/guidance';
@@ -20,7 +20,7 @@ import { getLocale, getMessages, getTranslations } from '@i18n/server';
 import { systemClock } from '@lib/clock';
 import { serverEnv } from '@lib/config/server';
 import { buildPrivateMetadata } from '@lib/seo';
-import { isDefined } from '@lib/utils';
+import { isDefined, truncate } from '@lib/utils';
 
 import { buildTutorOptions, preloadTutorPictures } from '../onboarding/tutor-options';
 
@@ -35,6 +35,22 @@ const PREVIEW_AREA_IDS = [FALLBACK_AREA_ID, 'zahlenwald', 'maerchenwald'] as con
 const TASK_PREVIEW_LIMIT = 48;
 
 type OpenHelpSession = NonNullable<Awaited<ReturnType<typeof loadOpenHelpSession>>>;
+
+/**
+ * How many assignments the child's class has, as the teacher card writes it. The query authorizes
+ * the signed-in parent and the child's class membership itself; a refusal keeps the card's "not here
+ * yet" (`null`), an infrastructure failure reaches the error boundary like on "/start".
+ */
+async function teacherNewCountOf(childProfileId: string): Promise<number | null> {
+  const result = await assignmentsQueries.listChildAssignments.execute(childProfileId);
+  if (result.isOk()) {
+    return result.value.length;
+  }
+  if (result.error.kind === 'infrastructure') {
+    throw new Error(result.error.code, { cause: result.error });
+  }
+  return null;
+}
 
 export async function generateMetadata({
   params,
@@ -66,9 +82,10 @@ async function unfinishedOf(session: OpenHelpSession | null): Promise<Unfinished
     general_studies: t('world.subjects.natur'),
   } as const satisfies Record<OpenHelpSession['subject'], string>;
   return {
-    title: session.task.slice(0, TASK_PREVIEW_LIMIT),
+    title: truncate(session.task.replace(/\s+/g, ' ').trim(), TASK_PREVIEW_LIMIT),
     area: subjects[session.subject],
-    lastStep: t('home.continue.hints', { count: session.hints.length }),
+    // The opening thinking prompt is not a hint the child asked for (the conversation counts the same way).
+    lastStep: t('home.continue.hints', { count: Math.max(0, session.hints.length - 1) }),
     updatedAt: session.updatedAt,
     href: '/help',
   };
@@ -100,10 +117,10 @@ async function ChildHome() {
         serverNow: now.toISOString(),
         // Nothing measures learning time yet, so a daily limit shows "time not available".
         usedMinutes: null,
-        // The time strip's live session (#17) and teacher assignment counts (#33) are not wired yet.
+        // The time strip's live session (#17) is not wired yet.
         session: null,
         unfinished: await unfinishedOf(await loadOpenHelpSession(child.id)),
-        teacherNewCount: null,
+        teacherNewCount: await teacherNewCountOf(child.id),
         world: await previewIslands(),
         // The voices speak German and only while the parent's voice control is on; otherwise the
         // lines stay text.

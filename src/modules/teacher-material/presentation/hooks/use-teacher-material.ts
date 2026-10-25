@@ -9,7 +9,11 @@ import { useAppFormatters, useTranslations } from '@i18n/client';
 
 import { deleteMaterialAction } from '../actions/delete-material-action';
 import { uploadMaterialAction } from '../actions/upload-material-action';
-import { MATERIAL_FORM_MAX_BYTES } from '../schemas/material-upload-schema';
+import {
+  MATERIAL_FORM_CONTENT_TYPES,
+  MATERIAL_FORM_MAX_BYTES,
+  materialFormContentType,
+} from '../schemas/material-upload-schema';
 
 import type { MaterialView } from '../../application/contracts/material-views';
 
@@ -27,8 +31,8 @@ function errorKeyFor(code: string, rateLimited: boolean): ErrorKey {
   return rateLimited ? 'rateLimited' : 'generic';
 }
 
-function isTextFile(file: File): boolean {
-  return file.type === 'text/plain' || (file.type === '' && /\.txt$/i.test(file.name));
+function isSupportedFile(file: File): boolean {
+  return MATERIAL_FORM_CONTENT_TYPES.some((type) => type === materialFormContentType(file));
 }
 
 /** File lifecycle and feedback for one class; signed storage URLs stay on the server. */
@@ -51,7 +55,7 @@ export function useTeacherMaterial(classroomId: string) {
       setError('noFile');
       return;
     }
-    if (!isTextFile(file)) {
+    if (!isSupportedFile(file)) {
       setError('wrongType');
       return;
     }

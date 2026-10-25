@@ -16,7 +16,7 @@
 | Photo task                            | Out of the MVP scope in `docs/product/vision.md` and no upload backend: the camera button only has the companion say so.                  |
 | "Type or say it"                      | Links to the existing task entry at `/start`.                                                                                             |
 
-Enforcement of a closed day (limit reached, outside the allowed hours) must be done by the use cases that start a task; this screen only reflects it. `computeScreenTime` is the one function both should call.
+Enforcement of a closed day (limit reached, outside the allowed hours) is done by the guidance use cases that start or continue a task (#88); this screen only reflects it. `computeScreenTime` is the one function both call.
 
 ## The guide
 

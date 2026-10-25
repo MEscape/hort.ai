@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- the one HTTP boundary: body, verification, deadline and routing stay together */
 import { z } from 'zod';
 
 import type { UnauthorizedAppError } from '@lib/errors';
@@ -32,6 +33,8 @@ const HTTP = {
 /** Intent and slot names of alexa/skill-package/interactionModels/custom/de-DE.json. */
 const FREE_INPUT_INTENT = 'FreieEingabeIntent';
 const FREE_INPUT_SLOT = 'eingabe';
+/** The child channel's free text: the catch-all, the task, the answer, or a spoken position. */
+const CHILD_TEXT_SLOTS = [FREE_INPUT_SLOT, 'aufgabe', 'antwort', 'position', 'zahl'] as const;
 const STOP_INTENTS = new Set([
   'AMAZON.StopIntent',
   'AMAZON.CancelIntent',
@@ -246,7 +249,9 @@ function answerChild(
     {
       type: request.type === 'LaunchRequest' ? 'LaunchRequest' : 'IntentRequest',
       intent: request.intent?.name,
-      utterance: request.intent?.slots?.[FREE_INPUT_SLOT]?.value,
+      utterance: CHILD_TEXT_SLOTS.map((slot) => request.intent?.slots?.[slot]?.value?.trim()).find(
+        (value) => value !== undefined && value.length > 0,
+      ),
       attributes: envelope.session?.attributes,
     },
     {
@@ -375,3 +380,4 @@ async function collectBody(
   }
   return Buffer.concat(chunks).toString('utf8');
 }
+/* eslint-enable max-lines */

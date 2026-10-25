@@ -9,7 +9,12 @@ import {
   type SubmitEvent,
 } from 'react';
 
-import { startHelpSessionAction } from '@modules/guidance/client';
+import {
+  LearningPauseNote,
+  learningPauseOf,
+  startHelpSessionAction,
+} from '@modules/guidance/client';
+import type { LearningPause } from '@modules/guidance/client';
 import { VoiceInputButton } from '@modules/voice/client';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert';
@@ -48,6 +53,7 @@ export function TaskEntry({
   const t = useTranslations('app');
   const router = useRouter();
   const [status, setStatus] = useState<'editing' | 'invalid' | 'unavailable' | 'failed'>('editing');
+  const [pause, setPause] = useState<LearningPause | null>(null);
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -63,6 +69,7 @@ export function TaskEntry({
       return;
     }
     setStatus('editing');
+    setPause(null);
     startTransition(async () => {
       const result = await startHelpSessionAction({
         childProfileId,
@@ -72,7 +79,9 @@ export function TaskEntry({
       if (result?.ok) {
         router.push('/help');
       } else {
-        setStatus('failed');
+        const learningPause = learningPauseOf(result?.error);
+        setPause(learningPause);
+        setStatus(learningPause === null ? 'failed' : 'editing');
       }
     });
   }
@@ -151,6 +160,7 @@ export function TaskEntry({
               <AlertDescription>{t('start.entry.unavailableBody')}</AlertDescription>
             </Alert>
           )}
+          {pause !== null && <LearningPauseNote pause={pause} />}
           {status === 'failed' && (
             <p role="alert" className="text-nudge">
               {t('start.entry.failed')}

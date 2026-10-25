@@ -62,8 +62,44 @@ function failureOf(thrown: unknown): HintProviderFailure {
     : { kind: 'unavailable', cause: new Error(`Gemini call could not be completed: ${name}`) };
 }
 
+/** A whole answer wrapped in one Markdown code fence, with or without a `json` tag. */
+const CODE_FENCE = /^```[a-z]*\s*([\s\S]*?)\s*```$/i;
+
+function parsed(text: string): unknown {
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return undefined;
+  }
+}
+
+const isObject = (value: unknown): boolean =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
 /**
- * The model's JSON answer, still untrusted. Text that is not JSON is returned as it is, so the
+ * Removes the packaging smaller models put around the one JSON object despite JSON mode: a code
+ * fence, a one-element array, or a sentence before or after it. Only the packaging goes; the object
+ * itself is returned untouched, so the output contract and the safety and leak checks judge it in
+ * full. Anything else (two objects, no object) stays as it was and is rejected by the contract.
+ */
+function unwrapped(text: string): unknown {
+  const trimmed = text.trim();
+  const inner = CODE_FENCE.exec(trimmed)?.[1] ?? trimmed;
+  const value = parsed(inner);
+  if (Array.isArray(value)) {
+    return value.length === 1 && isObject(value[0]) ? value[0] : value;
+  }
+  if (value !== undefined) {
+    return value;
+  }
+  const start = inner.indexOf('{');
+  const end = inner.lastIndexOf('}');
+  const embedded = start >= 0 && end > start ? parsed(inner.slice(start, end + 1)) : undefined;
+  return isObject(embedded) ? embedded : text;
+}
+
+/**
+ * The model's JSON answer, still untrusted. Text without a JSON object is returned as it is, so the
  * output contract rejects it as invalid output; no text at all (a blocked answer) is `undefined`.
  */
 function answerOf(body: unknown): unknown {
@@ -72,14 +108,7 @@ function answerOf(body: unknown): unknown {
   }
   const parts = body.candidates?.[0]?.content?.parts ?? [];
   const text = parts.map((part) => part.text ?? '').join('');
-  if (text === '') {
-    return undefined;
-  }
-  try {
-    return JSON.parse(text) as unknown;
-  } catch {
-    return text;
-  }
+  return text === '' ? undefined : unwrapped(text);
 }
 
 /**

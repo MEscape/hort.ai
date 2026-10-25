@@ -14,12 +14,13 @@
       "idInvalid": "The identifier is invalid.",
       "required": "This field is required.",
       "tooLong": "This value is too long.",
+      "nameInvalid": "Use a digit from 1 to 4 followed by one letter, for example “3b”.",
       "numberInvalid": "Enter a grade from 1 to 4.",
       "optionUnknown": "Choose one of the available options."
     },
     "create": {
       "nameLabel": "Class name",
-      "nameHint": "For example “3b”. Up to 80 characters.",
+      "nameHint": "For example “3b”: a grade from 1 to 4 and one letter.",
       "gradeLabel": "Grade",
       "scopeNote": "Hort.ai currently supports mathematics in Hessen.",
       "submit": "Create class",

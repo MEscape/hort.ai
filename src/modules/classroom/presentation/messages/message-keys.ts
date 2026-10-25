@@ -28,6 +28,7 @@ export const MESSAGE_KEY_BY_CODE = {
   [VALIDATION.idInvalid]: fieldPath('validation', 'idInvalid'),
   [VALIDATION.required]: fieldPath('validation', 'required'),
   [VALIDATION.tooLong]: fieldPath('validation', 'tooLong'),
+  [VALIDATION.nameInvalid]: fieldPath('validation', 'nameInvalid'),
   [VALIDATION.numberInvalid]: fieldPath('validation', 'numberInvalid'),
   [VALIDATION.optionUnknown]: fieldPath('validation', 'optionUnknown'),
 } as const satisfies Record<ClassroomCode, ValidKeys>;

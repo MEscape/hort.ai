@@ -13,7 +13,9 @@ const CODES = CLASSROOM_VALIDATION_CODES;
 
 /** Field bounds, repeated by the database checks (`Classroom_*_rule`). */
 export const CLASSROOM_LIMITS = {
+  /** The database allows up to 80 characters (older classes); new names are `3b`: 2 (#124). */
   nameMax: 80,
+  nameLength: 2,
   gradeMin: 1,
   gradeMax: 4,
 } as const;
@@ -89,11 +91,19 @@ function isValidGrade(value: number): boolean {
   );
 }
 
-function nameProblem(value: string): typeof CODES.required | typeof CODES.tooLong | null {
+/** A primary-school class is named by its grade and a letter: `3b` (#124). */
+export const CLASSROOM_NAME_PATTERN = /^[1-4][a-z]$/;
+
+/** `3B` and `3b` are the same class: the name is stored in lower case. */
+function normalizeName(raw: string): string {
+  return raw.trim().toLowerCase();
+}
+
+function nameProblem(value: string): typeof CODES.required | typeof CODES.nameInvalid | null {
   if (value.length === 0) {
     return CODES.required;
   }
-  return value.length > CLASSROOM_LIMITS.nameMax ? CODES.tooLong : null;
+  return CLASSROOM_NAME_PATTERN.test(value) ? null : CODES.nameInvalid;
 }
 
 /** The only way a new classroom enters the system. Reports every invalid field. */
@@ -101,7 +111,7 @@ export function createClassroomDraft(
   input: ClassroomDraftInput,
 ): AppResult<ClassroomDraft, ValidationAppError> {
   const bag = createClassroomErrorBag();
-  const name = input.name.trim();
+  const name = normalizeName(input.name);
   const problem = nameProblem(name);
   if (problem !== null) {
     bag.add('name', problem);
@@ -124,7 +134,7 @@ export function createClassroomDraft(
 
 /** Validates a new name for a class. */
 export function parseClassroomName(raw: string): AppResult<string, ValidationAppError> {
-  const name = raw.trim();
+  const name = normalizeName(raw);
   const problem = nameProblem(name);
   if (problem === null) {
     return ok(name);

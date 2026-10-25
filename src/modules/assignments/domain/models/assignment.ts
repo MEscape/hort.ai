@@ -18,6 +18,29 @@ export const ASSIGNMENT_LIMITS = { title: 120, taskText: 4000, solutionKey: 4000
 /** `YYYY-MM-DD`, the shape `Assignment_due_date_rule` stores; the calendar check follows. */
 const CALENDAR_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
+/** Line and paragraph separators of word processors and PDFs: a line break for the child. */
+/* eslint-disable no-control-regex -- matching control characters is the point of these checks */
+const SEPARATORS = /[\u000B\u000C\u0085\u2028\u2029]/g;
+
+/** Control, zero-width, soft-hyphen and direction characters that arrive with copied text and are invisible. */
+const INVISIBLE =
+  /[\u0000-\u0008\u000E-\u001F\u007F-\u009F\u00AD\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/g;
+/* eslint-enable no-control-regex -- end of the character checks */
+
+/**
+ * The task text as the child's help accepts it. Text pasted from a document or a PDF often carries
+ * invisible characters; the help refuses those, so they are cleaned here rather than failing the
+ * child's session later on a text the teacher could not see anything wrong with.
+ */
+function cleanTaskText(raw: string): string {
+  return raw
+    .normalize('NFC')
+    .replace(/\r\n?/g, '\n')
+    .replace(SEPARATORS, '\n')
+    .replace(INVISIBLE, '')
+    .trim();
+}
+
 /** Internal teacher record. Never serialize this record into a child-facing response. */
 export interface Assignment extends AssignmentDraft {
   readonly id: AssignmentId;
@@ -86,13 +109,23 @@ function isCalendarDate(value: string): boolean {
   return date.toISOString().startsWith(value);
 }
 
+/**
+ * Context for the due-date rule: `today` is the school's current calendar day. `currentDueDate` is
+ * the saved date of an assignment being edited, so changing its title does not fail on an old date.
+ */
+export interface AssignmentDraftContext {
+  readonly today: string;
+  readonly currentDueDate?: string | null;
+}
+
 /** The only way teacher input becomes an assignment. Reports every invalid field. */
 export function createAssignmentDraft(
   input: AssignmentDraftInput,
+  context: AssignmentDraftContext,
 ): AppResult<AssignmentDraft, ValidationAppError> {
   const bag = createAssignmentErrorBag();
   const title = input.title.trim();
-  const text = input.text.trim();
+  const text = cleanTaskText(input.text);
   const dueDate = trimToNull(input.dueDate);
   const solutionKey = trimToNull(input.solutionKey);
 
@@ -102,7 +135,14 @@ export function createAssignmentDraft(
   if (bag.expect(text.length > 0, 'taskText', CODES.taskRequired)) {
     bag.expect(text.length <= ASSIGNMENT_LIMITS.taskText, 'taskText', CODES.taskTooLong);
   }
-  bag.expect(dueDate === null || isCalendarDate(dueDate), 'dueDate', CODES.dateInvalid);
+  if (bag.expect(dueDate === null || isCalendarDate(dueDate), 'dueDate', CODES.dateInvalid)) {
+    // `YYYY-MM-DD` sorts like the dates it spells. A kept, already saved date stays allowed.
+    bag.expect(
+      dueDate === null || dueDate >= context.today || dueDate === context.currentDueDate,
+      'dueDate',
+      CODES.datePast,
+    );
+  }
   bag.expect(
     solutionKey === null || solutionKey.length <= ASSIGNMENT_LIMITS.solutionKey,
     'solutionKey',

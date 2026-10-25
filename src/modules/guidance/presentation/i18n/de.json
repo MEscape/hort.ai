@@ -35,7 +35,9 @@
       "assignmentNotFound": "Diese Schulaufgabe gibt es nicht mehr. Such dir eine andere aus oder frag deine Lehrerin oder deinen Lehrer.",
       "rateLimited": "Mach kurz eine Pause und versuch es gleich noch einmal.",
       "infrastructure": "Gerade klappt etwas nicht. Bitte versuch es gleich noch einmal.",
-      "unexpected": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal."
+      "unexpected": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal.",
+      "learningWindowClosed": "Gerade ist Lernpause. Frag deine Eltern, wann es weitergeht.",
+      "dailyLimitReached": "Für heute ist Pause. Morgen bin ich wieder da."
     },
     "conversation": {
       "label": "Gespräch mit deinem Begleiter",
@@ -57,6 +59,16 @@
       "emptyTitle": "Gerade ist keine Aufgabe offen",
       "emptyBody": "Starte eine neue Aufgabe, dann helfe ich dir beim Nachdenken.",
       "newTask": "Neue Aufgabe"
+    },
+    "pause": {
+      "window": {
+        "at": "Gerade ist Pause. {day, select, today {Heute} other {Morgen}} ab {time} Uhr bin ich wieder da.",
+        "anyTime": "Gerade ist Pause. {day, select, today {Gleich} other {Morgen}} bin ich wieder da."
+      },
+      "limit": {
+        "at": "Für heute ist Pause. Morgen ab {time} Uhr bin ich wieder da.",
+        "anyTime": "Für heute ist Pause. Morgen bin ich wieder da."
+      }
     },
     "insights": {
       "parent": {

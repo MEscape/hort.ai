@@ -35,6 +35,11 @@ const log = logger.withContext({ module: 'voice' });
 /** Size of the per-process key used when no `AUTH_SECRET` is set. */
 const TICKET_KEY_BYTES = 32;
 
+/** One ticket signer for every use case, so a ticket issued by one redeems in another. */
+const speechTickets = once(() =>
+  hmacSpokenTextTickets({ secret: ticketSecret(), clock: systemClock }),
+);
+
 /**
  * The module's composition root. Built on first use, so a build that imports a voice route needs
  * no speech configuration; without `ELEVENLABS_API_KEY` the use cases answer `voice.disabled`.
@@ -53,7 +58,7 @@ export const getVoiceQueries = once(() => {
     speech,
     voices: catalogSpeakerVoices(),
     phrases: catalogSystemPhrases(),
-    tickets: hmacSpokenTextTickets({ secret: ticketSecret(), clock: systemClock }),
+    tickets: speechTickets(),
     consent: learnerChildVoiceConsent((id) => getLearnerQueries().getChildProfileById.execute(id)),
   };
   return {
@@ -74,13 +79,15 @@ export const getVoiceQueries = once(() => {
 });
 
 /**
- * Speech behind a short-lived URL for server-side channels (Alexa), for fixed lines only. Without
- * `ELEVENLABS_API_KEY` or a private storage container it answers `voice.disabled` /
- * `voice.hosting_disabled`, and the channel keeps its own voice. Needs no auth wiring: it has no actor.
+ * Speech behind a short-lived URL for server-side channels (Alexa): fixed lines, and read-aloud
+ * tickets redeemed by a channel acting for a child. Without `ELEVENLABS_API_KEY` or a private storage
+ * container it answers `voice.disabled` / `voice.hosting_disabled`, and the channel keeps its own voice.
  */
 export const getHostedSpeech = once(() => {
   const store = getObjectStore();
   return new GetHostedSpeech({
+    authorization: getAccessControl(),
+    tickets: speechTickets(),
     rateLimiter: getRateLimiter(),
     speech: getSpeechProvider(),
     voices: catalogSpeakerVoices(),

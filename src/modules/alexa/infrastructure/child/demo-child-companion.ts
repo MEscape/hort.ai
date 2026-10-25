@@ -4,6 +4,9 @@ import type { AppResult, AppResultAsync } from '@lib/result';
 
 import { parseTutorId } from '../../domain/models/ids';
 
+import { guidanceChildLearning } from './guidance-child-learning';
+
+import type { ChannelRunner } from './guidance-child-learning';
 import type { TutorId } from '../../domain/models/ids';
 import type { ChildCompanion, ChildHome } from '../../domain/ports/child-companion.port';
 
@@ -23,8 +26,8 @@ export interface DemoChildBinding {
  * The child-app use cases for the ONE configured child, each run as the child channel of its guardian
  * (auth's `runAsChildChannel`), so the use cases authorize every call as they do for the web, and auth
  * keeps the channel to this one child and to the child-side permissions (no sibling, no parent operation,
- * no learning XP; only the daily reward is written). The modules are loaded on the first call, not with the route, so
- * request verification stays cheap.
+ * no learning XP; only the daily reward and the help session's steps are written). The modules are
+ * loaded on the first call, not with the route, so request verification stays cheap.
  */
 export function demoChildCompanion(binding: DemoChildBinding): ChildCompanion {
   const { childProfileId } = binding;
@@ -34,6 +37,7 @@ export function demoChildCompanion(binding: DemoChildBinding): ChildCompanion {
     childProfileId,
   });
   return {
+    ...guidanceChildLearning(inChannel, childProfileId),
     companion: () =>
       inChannel(async () => {
         const { getLearnerQueries } = await import('@modules/learner');
@@ -111,7 +115,7 @@ function channelRunner(channel: {
   readonly channel: string;
   readonly guardianId: string;
   readonly childProfileId: string;
-}) {
+}): ChannelRunner {
   // An async `work` resolves the use case's ResultAsync to its Result inside the scope.
   return <T>(work: () => Promise<AppResult<T>>): AppResultAsync<T> =>
     fromThrowableAsync(

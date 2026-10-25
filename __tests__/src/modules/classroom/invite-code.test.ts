@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { CLASSROOM_VALIDATION_CODES } from '@modules/classroom/domain/errors/classroom-errors';
 import {
   createClassroomDraft,
   parseClassroomName,
@@ -68,8 +69,35 @@ describe('classroom rules', () => {
     ]);
   });
 
-  it('refuses a name longer than 80 characters', () => {
-    expect(parseClassroomName('x'.repeat(81)).isErr()).toBe(true);
+  it('takes a grade from 1 to 4 and one letter, in either case', () => {
+    expect(parseClassroomName('3b')._unsafeUnwrap()).toBe('3b');
+    expect(parseClassroomName(' 4A ')._unsafeUnwrap()).toBe('4a');
+  });
+
+  it.each([
+    '0a',
+    '5a',
+    '9z',
+    '10a',
+    '99999a',
+    '3',
+    'b',
+    '3bb',
+    '3-b',
+    'a3',
+    'Klasse 3b',
+    '３ａ',
+    '3ä',
+  ])('refuses the name %j', (raw) => {
+    expect(parseClassroomName(raw)._unsafeUnwrapErr().fieldErrors).toEqual({
+      name: [CLASSROOM_VALIDATION_CODES.nameInvalid],
+    });
+  });
+
+  it('asks for a name when there is none', () => {
+    expect(parseClassroomName('  ')._unsafeUnwrapErr().fieldErrors).toEqual({
+      name: [CLASSROOM_VALIDATION_CODES.required],
+    });
   });
 });
 

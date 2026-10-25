@@ -37,6 +37,20 @@ describe('findSolutionLeaks on the examples of the AI output contract', () => {
     expect(leaksOf(hint(text), WORD_PROBLEM)).not.toEqual([]);
   });
 
+  it('reads a result with or without the German thousands dot as the same number', () => {
+    const task: SolutionContext = {
+      task: 'Rechne: 1.000 + 2.000 = ?',
+      solutionKey: null,
+      answer: null,
+    };
+
+    expect(leaksOf(hint('Zusammen sind das 3000 Stück.'), task)).not.toEqual([]);
+    expect(leaksOf(hint('Zusammen sind das 3.000 Stück.'), task)).not.toEqual([]);
+    expect(
+      leaksOf(hint('Denk an 1.000 und 2.000: was passiert, wenn du sie zusammenlegst?'), task),
+    ).toEqual([]);
+  });
+
   it('rejects an assessment that reveals the expected answer', () => {
     const assessment: AiOutput = {
       version: 1,

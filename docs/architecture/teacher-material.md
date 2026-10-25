@@ -19,6 +19,15 @@ Retrieval through `curriculumQueries.findRelevantCompetencies` additionally acce
 
 The read-only curriculum projection intentionally reads MaterialSection and classroom membership through relations; it starts from an owner/tenant-scoped child profile. Mutations remain in the owning teacher-material module. This avoids a circular runtime dependency between curriculum and teacher-material.
 
+## Word and PowerPoint files (#126)
+
+The class page also takes `.docx` and `.pptx`. `UploadMaterial` reads such a file to text **before** anything is stored (`MaterialDocumentConverter`, adapter `infrastructure/office/`): from there on the material is the extracted UTF-8 text with content type `text/plain`, so the begin/complete lifecycle, the byte checks, the statement extraction and the stored object are exactly those of a text upload. The original file is not kept; the owner's read URL serves the extracted text. No schema change and no new dependency.
+
+- Output uses the curriculum text format: Word headings (`Heading n`/`Überschrift n`, `Title`) become `# …` sections, numbered/bulleted paragraphs `- …`, other paragraphs separate statements. Slides become `[Seite n]` (presentation order, not file order) with the title placeholder as `# …` section; slide-number/date/footer placeholders are skipped. Only the main body is read: no headers, footers, notes, comments or tracked deletions.
+- `ZipArchive` is a small in-memory reader on `node:zlib`. Only the requested XML parts are inflated, each with its declared size as hard output limit (a lying header cannot expand further), at most 16 MiB per part and 48 MiB in total. ZIP64, encrypted or duplicate entries, other compression methods and damaged archives yield "file could not be read". The XML is scanned as a tag stream (no XML parser, no DTD/entity expansion), so there is no XXE or entity-bomb surface.
+- The class page posts the file to a Server Action (1 MB body cap), so the raw file is limited to 900 KB; the extracted text is bounded by the usual 10 MiB / 1,000 statements.
+- Legacy binary `.doc`/`.ppt`, `.docm`/`.pptm`, PDFs and images are not read; the UI says to save old files as `.docx`/`.pptx`. Text in images, charts, SmartArt and embedded objects is not extracted.
+
 ## Lifecycle and concurrency
 
 UPLOADED is also the pending upload state because #8 has no separate PENDING status. PROCESSED is published using atomic `updateAndCount WHERE status=UPLOADED` in the same transaction as section creation. Deletion cannot be undone by a late completion. Failed extraction marks FAILED and attempts object cleanup. Deleted metadata is retained for cleanup retries and audit traceability; file bytes and derived sections are removed.
@@ -27,6 +36,6 @@ An already issued SAS cannot be revoked individually: it can be replayed until i
 
 ## Explicit limitations / verification
 
-- **PDF extraction is not implemented.** No PDF parser is present in the existing node_modules; dependencies must not be added for this task. PDF is rejected before upload rather than silently treated as text. Only UTF-8 TXT is supported in this PR.
+- **PDF extraction is not implemented.** No PDF parser is present in the existing node_modules; dependencies must not be added for this task. PDF is rejected before upload rather than silently treated as text. This PR supports UTF-8 TXT only; Word/PowerPoint were added in #126 (see above).
 - No real Azurite/Postgres upload was possible on this host: `docker` is not installed. Storage and repository integration need a configured local/CI environment; unit tests use port fakes and the real curriculum extraction/ranking pipeline.
 - Vercel-Prüfung und Integration des gesamten Stapels in main übernimmt der Lead. Frühere `BUILD_FAILED: Resource provisioning failed`-Meldungen traten vor dem Build auf und sind kein Beleg für einen Codefehler oder einen erfolgreichen Build.

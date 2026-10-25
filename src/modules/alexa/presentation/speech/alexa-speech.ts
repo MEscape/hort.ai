@@ -110,3 +110,19 @@ function repromptPart(isOpen: boolean, reply: TutorReply, ending: SpeechEnding) 
   const text = ending.reprompt ?? reply.speech;
   return isOpen ? { reprompt: { outputSpeech: { type: 'PlainText', text } } } : {};
 }
+
+/** Signs a speech engine would read out or skip, as German words (`36 : 4` is "36 geteilt durch 4"). */
+const SPOKEN_SIGNS: ReadonlyArray<readonly [RegExp, string]> = [
+  [/(\d)\s*[:÷/]\s*(?=\d)/gu, '$1 geteilt durch '],
+  [/(\d)\s*[×·*]\s*(?=\d)/gu, '$1 mal '],
+  [/(\d)\s*\+\s*(?=\d)/gu, '$1 plus '],
+  [/(\d)\s*[−–-]\s*(?=\d)/gu, '$1 minus '],
+  [/\s*=\s*/gu, ' ist '],
+  [/[·•/\\|_*#~<>{}[\]]/gu, ' '],
+  [/\s{2,}/gu, ' '],
+];
+
+/** A dynamic text as Alexa should say it: arithmetic signs as words, no symbols read aloud. */
+export function speakable(text: string): string {
+  return SPOKEN_SIGNS.reduce((spoken, [sign, words]) => spoken.replace(sign, words), text).trim();
+}

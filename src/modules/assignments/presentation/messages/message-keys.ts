@@ -27,6 +27,7 @@ export const MESSAGE_KEY_BY_CODE = {
   [VALIDATION.taskRequired]: fieldPath('validation', 'taskRequired'),
   [VALIDATION.taskTooLong]: fieldPath('validation', 'taskTooLong'),
   [VALIDATION.dateInvalid]: fieldPath('validation', 'dateInvalid'),
+  [VALIDATION.datePast]: fieldPath('validation', 'datePast'),
   [VALIDATION.solutionTooLong]: fieldPath('validation', 'solutionTooLong'),
 } as const satisfies Record<AssignmentCode, ValidKeys>;
 

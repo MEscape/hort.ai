@@ -2,7 +2,12 @@
 
 import { useTransition, useState } from 'react';
 
-import { startHelpSessionAction } from '@modules/guidance/client';
+import {
+  LearningPauseNote,
+  learningPauseOf,
+  startHelpSessionAction,
+} from '@modules/guidance/client';
+import type { LearningPause } from '@modules/guidance/client';
 
 import { Button } from '@components/ui/button';
 
@@ -26,6 +31,7 @@ export function StartAssignmentHelp({ childProfileId, assignmentId }: StartAssig
   const t = useTranslations('app');
   const router = useRouter();
   const [failed, setFailed] = useState(false);
+  const [pause, setPause] = useState<LearningPause | null>(null);
   const [isPending, startTransition] = useTransition();
   return (
     <div className="space-y-3">
@@ -35,6 +41,7 @@ export function StartAssignmentHelp({ childProfileId, assignmentId }: StartAssig
         disabled={isPending}
         onClick={() => {
           setFailed(false);
+          setPause(null);
           startTransition(async () => {
             const result = await startHelpSessionAction({
               childProfileId,
@@ -44,13 +51,16 @@ export function StartAssignmentHelp({ childProfileId, assignmentId }: StartAssig
             if (result?.ok === true) {
               router.push('/help');
             } else {
-              setFailed(true);
+              const learningPause = learningPauseOf(result?.error);
+              setPause(learningPause);
+              setFailed(learningPause === null);
             }
           });
         }}
       >
         {isPending ? t('start.entry.sending') : t('start.school.startHelp')}
       </Button>
+      {pause !== null && <LearningPauseNote pause={pause} />}
       {failed && (
         <p role="alert" className="text-nudge">
           {t('start.school.failed')}

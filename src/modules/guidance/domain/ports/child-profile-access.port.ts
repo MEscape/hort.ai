@@ -11,6 +11,10 @@ export interface OwnChildProfile {
   /** ISO 3166-2:DE suffix as the learner module stores it, e.g. `BY`. */
   readonly federalState: string;
   readonly grade: number;
+  readonly controls: {
+    readonly dailyLimitMinutes: number | null;
+    readonly allowedWindow: { readonly fromMinute: number; readonly untilMinute: number } | null;
+  };
 }
 
 export type ChildProfileAccessError =

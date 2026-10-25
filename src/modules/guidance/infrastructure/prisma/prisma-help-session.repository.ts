@@ -24,6 +24,7 @@ import {
   toTopicRecord,
   toHelpSession,
 } from './help-session-record-mapper';
+import { loadLearningActivity } from './learning-activity.repository';
 
 import type { LevelValue } from './help-session-record-mapper';
 import type { HelpSession } from '../../domain/models/help-session';
@@ -192,6 +193,8 @@ export class PrismaHelpSessionRepository implements HelpSessionRepository {
               error.kind === 'not_found' ? okAsync(null) : errAsync(error),
           ),
     );
+
+  learningActivity: HelpSessionRepository['learningActivity'] = loadLearningActivity;
 
   loadSession: HelpSessionRepository['loadSession'] = (ref, includeCompleted = false) =>
     this.read(ref, includeCompleted);

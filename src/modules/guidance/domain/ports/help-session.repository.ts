@@ -30,6 +30,13 @@ export interface NewHelpSession extends HelpSessionSource {
  * that does not exist. A step is written only while the session is active, once per request id.
  */
 export interface HelpSessionRepository extends HintSessionStore {
+  /** Only server-recorded activity instants, owner-scoped; no task or answer text. */
+  learningActivity(
+    owner: HelpSessionOwner,
+    childProfileId: ChildProfileId,
+    since: Date,
+  ): AppResultAsync<readonly Date[], InfrastructureAppError>;
+
   /**
    * Starts a session. The database holds at most one active session per child, so a concurrent
    * twin start returns the session that won (`created: false`) instead of a second one.

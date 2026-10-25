@@ -22,6 +22,7 @@ import {
   OWN_CHILD,
   fakeAssignments,
   fakeCompetencies,
+  learningTime,
   ownChildren,
   recordingAuditLog,
   task,
@@ -90,6 +91,16 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
       sessions.set(session.id, session);
       return okAsync({ session, created: true });
     },
+    learningActivity: (_owner, childProfileId, since) =>
+      okAsync(
+        [...sessions.values()]
+          .filter((session) => session.childProfileId === childProfileId)
+          .flatMap((session) => [
+            session.startedAt,
+            ...session.answerChecks.map(({ occurredAt }) => occurredAt),
+          ])
+          .filter((instant) => instant.getTime() >= since.getTime()),
+      ),
     findOpen: (_owner, childProfileId) => okAsync(active(childProfileId)),
     loadSession: (ref, includeCompleted = false) => {
       const stored = sessions.get(ref.sessionId);
@@ -179,6 +190,7 @@ export function helpSessionDependencies(
       sessions: repository,
       audit,
       competencies: fakeCompetencies().retrieval,
+      ...learningTime(),
       ...(classifier === undefined ? {} : { classifier }),
     },
     events,

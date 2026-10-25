@@ -8,7 +8,11 @@ import { Button } from '@components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@components/ui/card';
 import { Eye, Lock, TriangleAlert } from '@components/ui/icons';
 
+import { I18N_CONFIG } from '@i18n';
+
 import { useTranslations } from '@i18n/client';
+
+import { calendarDayIn } from '@lib/utils';
 
 import { useFocusOnMount } from '@/hooks/use-focus-on-mount';
 
@@ -77,6 +81,7 @@ export function AssignmentForm({ state }: AssignmentFormProps) {
               <TextField
                 id={`${id}-due`}
                 type="date"
+                min={calendarDayIn(new Date(), I18N_CONFIG.defaultTimeZone)}
                 label={t('form.dueLabel')}
                 hint={t('form.dueHint')}
                 error={errorText(errors.dueDate?.message)}

@@ -38,6 +38,8 @@ export const MESSAGE_KEY_BY_CODE = {
   [ERRORS.sessionStoreFailed]: fieldPath('errors', 'infrastructure'),
   [ERRORS.noOpenQuestion]: fieldPath('errors', 'noOpenQuestion'),
   [ERRORS.assignmentNotFound]: fieldPath('errors', 'assignmentNotFound'),
+  [ERRORS.learningWindowClosed]: fieldPath('errors', 'learningWindowClosed'),
+  [ERRORS.dailyLimitReached]: fieldPath('errors', 'dailyLimitReached'),
   [VALIDATION.childProfileIdInvalid]: VALIDATION_KEY,
   [VALIDATION.subjectInvalid]: VALIDATION_KEY,
   [VALIDATION.sessionIdInvalid]: VALIDATION_KEY,
