@@ -19,5 +19,11 @@ const speakerId = z.string().regex(SPEAKER_ID_PATTERN);
  */
 export const synthesizeSpeechSchema = z.union([
   z.object({ speakerId, phrase: z.enum(SYSTEM_PHRASES) }).strict(),
-  z.object({ speakerId, ticket: z.string().min(1).max(MAX_TICKET_LENGTH) }).strict(),
+  z
+    .object({
+      speakerId,
+      childProfileId: z.string().min(1).max(128).optional(),
+      ticket: z.string().min(1).max(MAX_TICKET_LENGTH),
+    })
+    .strict(),
 ]);

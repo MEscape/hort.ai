@@ -46,6 +46,10 @@ import { BetterAuthParentAccess } from './infrastructure/better-auth/better-auth
 import { sessionSourceFrom } from './infrastructure/better-auth/better-auth-session-source';
 import { createAuth } from './infrastructure/better-auth/create-auth';
 import { createAuthRouteHandlers } from './infrastructure/better-auth/create-auth-route-handlers';
+import {
+  runInChildChannel,
+  withChildChannelScope,
+} from './infrastructure/channel/child-channel-scope';
 import { DevCurrentActorProvider } from './infrastructure/dev/dev-current-actor-provider';
 import { TransactionalAuthMailer } from './infrastructure/mail/transactional-auth-mailer';
 import { UnconfiguredAuthMailer } from './infrastructure/mail/unconfigured-auth-mailer';
@@ -216,8 +220,29 @@ function buildCurrentActorProvider(): CurrentActorProvider {
   });
 }
 
-/** One memoized provider per process, shared by authorization and the actor query. */
-const getCurrentActorProvider = once(() => memoizePerRequest(buildCurrentActorProvider()));
+/**
+ * One memoized provider per process, shared by authorization and the actor query. The channel scope
+ * sits outside the per-request memo, so a channel actor is never cached for a session request.
+ */
+const getCurrentActorProvider = once(() =>
+  withChildChannelScope(memoizePerRequest(buildCurrentActorProvider())),
+);
+
+/**
+ * Runs `work` as `channel` acting for the one child `childProfileId` of `guardianId` (see
+ * `CHILD_CHANNEL_ROLE`). Only for a server-verified channel request whose binding comes from server
+ * configuration, never from the request: the Alexa composition is the one caller.
+ */
+export function runAsChildChannel<T>(
+  binding: {
+    readonly channel: string;
+    readonly guardianId: string;
+    readonly childProfileId: string;
+  },
+  work: () => Promise<T>,
+): Promise<T> {
+  return runInChildChannel({ ...binding, tenantId: getTenantId() }, work);
+}
 
 /** What use cases of other modules receive. Per-request state lives in `headers()`. */
 export const getAccessControl = once<AuthorizationService>(() =>

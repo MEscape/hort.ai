@@ -58,7 +58,8 @@ The MVP records deduplicated learning events (competencies, attempts, hint level
 - Exercises, lessons or learning content created by Hort.ai.
 - Streaks, leaderboards, grading, loss of XP, and any reward beyond the small progression described under Principles.
 - Photo or worksheet recognition (after the MVP).
-- School administration integrations, Alexa, a full subject library.
+- School administration integrations, a full subject library.
+- Alexa beyond its development stage. Alexa is a second channel onto the same session and the same use cases, at development stage with one demo profile only ([alexa/README.md](../../alexa/README.md)); the team must confirm. No publication, no account linking, no real child profiles.
 
 ## After the MVP
 

@@ -70,6 +70,30 @@ it answers `voice.hosting_disabled`; a storage failure is `voice.clip_failed`.
     from `AUTH_SECRET`, bound to the parent (tenant and actor) and valid for 30 minutes. Forged,
     expired or foreign tickets answer `voice.validation.ticket_invalid`. Nothing is stored.
 
+## Child UI in the help session (#34)
+
+Browser controls live in `client.ts`; both take the server-stored `voiceConsent` as `allowed`, and the
+server checks it again (fail closed).
+
+- `VoiceInputButton` (`childProfileId`, `allowed`, `onTranscript`): tap to start and tap again, or hold
+  and let go. Records with `MediaRecorder` (WebM, MP4 or Ogg, at most 30 s), posts once to
+  `/api/voice/transcription` and hands the transcript to `onTranscript`; the caller puts it into the
+  field, where the child corrects it before sending. A refused microphone, a browser without
+  `MediaRecorder` or a missing consent leave typing as it is, with a short child-friendly line.
+- `ReadAloudButton` (`childProfileId`, `message`, `allowed`): renders nothing without consent. On a
+  press, the Server Action `readAloudAction` (use case `IssueReadAloudTicket`) gets a ticket for a
+  message the browser only **names**: `{ kind: 'hint', index }` of the child's open help session,
+  `{ kind: 'question' }` (the waiting comprehension question) or `{ kind: 'feedback', feedback }` (a
+  fixed line: `praise`, `partly_correct`, `not_yet`, `unassessed`). The words come from the stored,
+  validated session or, for predefined texts, from the guidance catalog in the exact wording the child
+  sees. The ticket names the child's companion as speaker (the narrator while none is chosen) and is
+  redeemed at `/api/voice/speech`, which spends the parent's speech budget. The audio is kept for the
+  life of the button, so listening again costs no characters; key the button by its message.
+
+Validated praise/encouragement and questions are also looked up from the stored answer check via
+`{ kind: 'answer_feedback', index }` / `{ kind: 'answer_question', index }`. Only companion text is
+exposed to the voice lookup; the child’s own answer/reply remains private in the store.
+
 ## Fixed screen lines (`UI_LINES`)
 
 Besides its own greeting, praise and tip, every ready tutor says the same short **screen lines** of the child's
