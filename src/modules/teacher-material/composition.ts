@@ -13,6 +13,7 @@ import { getObjectStore } from '@lib/storage/server';
 import { BeginMaterialUpload } from './application/commands/begin-material-upload';
 import { CompleteMaterialUpload } from './application/commands/complete-material-upload';
 import { DeleteMaterial } from './application/commands/delete-material';
+import { UploadMaterial } from './application/commands/upload-material';
 import { GetMaterialReadUrl } from './application/queries/get-material-read-url';
 import { ListMaterials } from './application/queries/list-materials';
 import { loggerMaterialAuditLog } from './infrastructure/audit/logger-material-audit-log';
@@ -53,6 +54,7 @@ export const materialCommands = {
   beginMaterialUpload: new BeginMaterialUpload(dependencies),
   completeMaterialUpload: new CompleteMaterialUpload(dependencies),
   deleteMaterial: new DeleteMaterial(dependencies),
+  uploadMaterial: new UploadMaterial(dependencies),
 };
 export const materialQueries = {
   listMaterials: new ListMaterials(dependencies),
