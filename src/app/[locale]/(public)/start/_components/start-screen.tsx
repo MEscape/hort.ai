@@ -9,6 +9,7 @@ import { Button } from '@components/ui/button';
 
 import { useTranslations } from '@i18n/client';
 
+import { StartAssignmentHelp } from './start-assignment-help';
 import { StartChoices } from './start-choices';
 import { StartEmptyState } from './start-empty-state';
 import { TaskEntry } from './task-entry';
@@ -69,7 +70,19 @@ export function StartScreen({ schoolAssignments, childProfileId }: StartScreenPr
         />
       )}
       {view === 'school' && schoolAssignments !== null && (
-        <ChildSchoolTasks assignments={schoolAssignments} />
+        <ChildSchoolTasks
+          assignments={schoolAssignments}
+          startHelp={
+            childProfileId === null || childProfileId === undefined
+              ? undefined
+              : (assignment) => (
+                  <StartAssignmentHelp
+                    childProfileId={childProfileId}
+                    assignmentId={assignment.id}
+                  />
+                )
+          }
+        />
       )}
       {((view === 'school' && schoolAssignments === null) || view === 'continue') && (
         <StartEmptyState kind={view} headingRef={headingRef} />

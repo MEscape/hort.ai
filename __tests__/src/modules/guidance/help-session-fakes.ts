@@ -10,11 +10,13 @@ import type {
 } from '@modules/guidance/domain/ports/help-session.repository';
 
 import { notFoundError } from '@lib/errors';
+import type { RateLimiter } from '@lib/rate-limit';
 import { errAsync, okAsync } from '@lib/result';
 
+import { createTestRateLimiter } from '../../support/rate-limiting';
 import { parent, recordingAudit as recordingSecurityAudit, signedInAs } from '../auth/fakes';
 
-import { OWN_CHILD, ownChildren, recordingAuditLog, task } from './fakes';
+import { OWN_CHILD, fakeAssignments, ownChildren, recordingAuditLog, task } from './fakes';
 
 const UPDATED_AT = new Date('2026-10-25T08:00:00.000Z');
 
@@ -23,6 +25,7 @@ export function storedSession(overrides: Partial<HelpSession> = {}): HelpSession
   return {
     id: toHelpSessionId('session-1'),
     childProfileId: OWN_CHILD,
+    assignmentId: null,
     task: task('Rechne 23 + 19.'),
     subject: 'math',
     status: 'active',
@@ -40,7 +43,7 @@ const notFound = () =>
 
 /**
  * An in-memory store with the port's contract: one active session per child, scoped to the owner
- * that started it, steps once per request id. It keeps what it was asked, for the assertions.
+ * that started it, hints and answer checks once per request id. It keeps what it was asked, for the assertions.
  */
 export function inMemorySessions(initial: readonly HelpSession[] = []) {
   const sessions = new Map(initial.map((session) => [session.id as string, session]));
@@ -69,6 +72,7 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
       const session = storedSession({
         id: toHelpSessionId(`session-new-${String(created)}`),
         childProfileId: start.childProfileId,
+        assignmentId: start.assignmentId,
         task: start.task,
         subject: start.subject,
       });
@@ -138,6 +142,8 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
 export function helpSessionDependencies(
   repository: HelpSessionRepository,
   actor: Actor = parent(),
+  rateLimiter: RateLimiter = createTestRateLimiter(),
+  assignments: ReturnType<typeof fakeAssignments> = fakeAssignments(),
 ): {
   readonly deps: HelpSessionDependencies;
   readonly events: ReturnType<typeof recordingAuditLog>['events'];
@@ -150,6 +156,8 @@ export function helpSessionDependencies(
         audit: recordingSecurityAudit(),
       }),
       childProfiles: ownChildren(),
+      rateLimiter,
+      assignments: assignments.access,
       sessions: repository,
       audit,
     },

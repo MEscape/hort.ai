@@ -16,7 +16,7 @@ import { messageKeyForCode } from '../messages/message-keys';
 
 import { ConversationLines } from './conversation-lines';
 
-import type { HelpSessionDto } from '../dto/help-session-dto';
+import type { HelpSessionDto } from '../dto/guidance-dto';
 import type { HelpConversationState } from '../hooks/use-help-conversation';
 
 const DRAFT_MAX_LENGTH = 1000;

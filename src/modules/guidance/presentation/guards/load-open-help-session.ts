@@ -1,9 +1,9 @@
 import 'server-only';
 
 import { getHelpSessionQueries } from '../../composition';
-import { toHelpSessionDto } from '../dto/help-session-dto';
+import { toHelpSessionDto } from '../dto/guidance-dto';
 
-import type { HelpSessionDto } from '../dto/help-session-dto';
+import type { HelpSessionDto } from '../dto/guidance-dto';
 
 /**
  * For pages ("Continue", #17): the child's open help session read from storage, or `null`. A

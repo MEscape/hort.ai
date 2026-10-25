@@ -59,7 +59,9 @@
     },
     "school": {
       "title": "School tasks",
-      "body": "Tasks from your teacher aren't available here yet."
+      "body": "Tasks from your teacher aren't available here yet.",
+      "startHelp": "Start with this task",
+      "failed": "That didn't work just now. Please try again."
     },
     "resume": {
       "title": "Continue",

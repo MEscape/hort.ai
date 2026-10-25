@@ -25,6 +25,7 @@
       "childInputInvalid": "Please write your answer again.",
       "sessionNotFound": "This task is no longer open. Please start it again.",
       "noOpenQuestion": "There is no question to answer right now.",
+      "assignmentNotFound": "This school task is not available any more. Pick another one or ask your teacher.",
       "rateLimited": "Take a short break and try again in a moment.",
       "infrastructure": "Something is not working right now. Please try again in a moment.",
       "unexpected": "Something went wrong. Please try again."

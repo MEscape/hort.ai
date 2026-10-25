@@ -24,8 +24,8 @@ vi.mock('@modules/guidance/presentation/actions/request-hint-action', () => ({
 vi.mock('@modules/guidance/presentation/actions/check-answer-action', () => ({
   checkAnswerAction: actions.checkAnswer,
 }));
-vi.mock('@modules/guidance/presentation/actions/reply-to-comprehension-question-action', () => ({
-  replyToComprehensionQuestionAction: actions.reply,
+vi.mock('@modules/guidance/presentation/actions/reply-comprehension-action', () => ({
+  replyComprehensionAction: actions.reply,
 }));
 vi.mock('@modules/guidance/presentation/actions/start-help-session-action', () => ({
   startHelpSessionAction: vi.fn(),
@@ -48,11 +48,15 @@ const companion = {
 function session(overrides: Partial<HelpSessionDto> = {}): HelpSessionDto {
   return {
     sessionId: 'session-1',
+    assignmentId: null,
     task: 'What is 2 + 3?',
+    subject: 'math',
     status: 'working',
+    hintLevel: 'understand_task',
     hints: [{ kind: 'fallback', level: 'understand_task', reason: 'provider_unavailable' }],
-    answerChecks: 0,
+    answerChecks: [],
     openQuestion: null,
+    updatedAt: '2026-10-25T08:00:00.000Z',
     ...overrides,
   };
 }

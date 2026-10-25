@@ -59,7 +59,9 @@
     },
     "school": {
       "title": "Schulaufgaben",
-      "body": "Aufgaben von deiner Lehrkraft sind hier noch nicht verfügbar."
+      "body": "Aufgaben von deiner Lehrkraft sind hier noch nicht verfügbar.",
+      "startHelp": "Mit dieser Aufgabe anfangen",
+      "failed": "Das hat gerade nicht geklappt. Versuch es bitte noch einmal."
     },
     "resume": {
       "title": "Weiter",

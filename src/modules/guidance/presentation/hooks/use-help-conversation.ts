@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 
 import { checkAnswerAction } from '../actions/check-answer-action';
-import { replyToComprehensionQuestionAction } from '../actions/reply-to-comprehension-question-action';
+import { replyComprehensionAction } from '../actions/reply-comprehension-action';
 import { requestHintAction } from '../actions/request-hint-action';
 
 import type { FeedbackText } from '../../application/contracts/answer-views';
 import type { HintOutcome } from '../../application/contracts/hint-views';
-import type { HelpSessionDto } from '../dto/help-session-dto';
+import type { HelpSessionDto } from '../dto/guidance-dto';
 
 /** One line of the conversation, built only from what the backend returned. */
 export type ConversationLine =
@@ -130,7 +130,7 @@ export function useHelpConversation(childProfileId: string, initial: HelpSession
 
   const sendReply = (requestId: string, reply: string) => {
     startTransition(async () => {
-      const result = await replyToComprehensionQuestionAction({
+      const result = await replyComprehensionAction({
         childProfileId,
         sessionId,
         reply,
