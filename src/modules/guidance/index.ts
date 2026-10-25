@@ -6,8 +6,11 @@
  */
 
 export { createHintOrchestrator, getGuidanceCommands } from './composition';
+export type { CheckAnswerError } from './application/commands/check-answer';
 export type { RequestHintError } from './application/commands/request-hint';
-export type { RequestHintInput } from './application/contracts/hint-inputs';
+export type { CheckAnswerInput, RequestHintInput } from './application/contracts/hint-inputs';
+
+export type { AnswerFeedback, FeedbackText } from './application/contracts/answer-views';
 
 export type { HintFallbackReason, HintOutcome } from './application/contracts/hint-views';
 export {
