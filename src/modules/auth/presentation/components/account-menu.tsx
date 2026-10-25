@@ -29,6 +29,8 @@ interface AccountMenuProps {
   /** The display name chosen at sign-up (or changed in the settings); never an id. */
   readonly name: string;
   readonly role: Role;
+  /** False in the parent area, where only "Return to the child" may leave (it closes access). */
+  readonly showHome?: boolean;
 }
 
 /**
@@ -36,7 +38,7 @@ interface AccountMenuProps {
  * and Sign out. The
  * initial in the circle is decoration; the button's name is the person's name and the menu purpose.
  */
-export function AccountMenu({ name, role }: AccountMenuProps) {
+export function AccountMenu({ name, role, showHome = true }: AccountMenuProps) {
   const t = useTranslations('auth');
   const signOut = useSignOut();
   // The settings page's back arrow returns here; the page re-checks it is a same-site path.
@@ -71,12 +73,14 @@ export function AccountMenu({ name, role }: AccountMenuProps) {
           <LanguageToggle />
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href={authRoutes.home()}>
-            <House aria-hidden="true" />
-            {t('account.home')}
-          </Link>
-        </DropdownMenuItem>
+        {showHome && (
+          <DropdownMenuItem asChild>
+            <Link href={authRoutes.home()}>
+              <House aria-hidden="true" />
+              {t('account.home')}
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem asChild>
           <Link href={authRoutes.settings(here)}>
             <Settings aria-hidden="true" />

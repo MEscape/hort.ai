@@ -47,7 +47,7 @@ export async function ParentFrame({
           <ReturnToChildButton />
           {/* Language, settings and sign-out live in the shared account menu. */}
           <Suspense fallback={null}>
-            <AccountControl />
+            <AccountControl showHome={false} />
           </Suspense>
         </>
       }
