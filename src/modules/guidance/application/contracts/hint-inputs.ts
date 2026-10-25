@@ -14,3 +14,9 @@ export interface RequestHintInput {
    */
   readonly level: HintLevel;
 }
+
+/** Checking the child's own answer to the same task (#14); checked like the task itself. */
+export interface CheckAnswerInput extends RequestHintInput {
+  /** The answer as the child typed or dictated it. */
+  readonly answer: string;
+}

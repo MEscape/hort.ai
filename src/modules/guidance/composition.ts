@@ -6,7 +6,9 @@ import { getRateLimiter } from '@lib/rate-limit';
 import { errAsync } from '@lib/result';
 import { once } from '@lib/utils';
 
+import { CheckAnswer } from './application/commands/check-answer';
 import { RequestHint } from './application/commands/request-hint';
+import { AnswerCoach } from './application/services/answer-coach';
 import { HintOrchestrator } from './application/services/hint-orchestrator';
 import { loggerGuidanceAuditLog } from './infrastructure/audit/logger-guidance-audit-log';
 import { curriculumCompetencyRetrieval } from './infrastructure/curriculum/curriculum-competency-retrieval';
@@ -14,16 +16,21 @@ import { GeminiProvider } from './infrastructure/gemini/gemini-provider';
 import { learnerChildProfileAccess } from './infrastructure/learner/learner-child-profile-access';
 import { JevSafetyClassifier } from './infrastructure/typesafe/jev-safety-classifier';
 
+import type { FeedbackProvider } from './domain/ports/feedback-provider.port';
 import type { HintProvider } from './domain/ports/hint-provider.port';
 import type { SafetyClassifier } from './domain/ports/safety-classifier.port';
 
-/** While the AI is off, every call is "unavailable", so the child gets the predefined prompt. */
-const switchedOffProvider: HintProvider = {
+/** One AI model words both the hints and the feedback on the child's answer. */
+type AiProvider = HintProvider & FeedbackProvider;
+
+/** While the AI is off, every call is "unavailable", so the child gets the predefined text. */
+const switchedOffProvider: AiProvider = {
   suggest: () => errAsync({ kind: 'unavailable' }),
+  word: () => errAsync({ kind: 'unavailable' }),
 };
 
 /** Gemini when `GEMINI_API_KEY` is set, otherwise the switched-off provider. Built on first use. */
-const getHintProvider = once((): HintProvider => {
+const getAiProvider = once((): AiProvider => {
   const env = serverEnv;
   if (env.GEMINI_API_KEY === undefined) {
     return switchedOffProvider;
@@ -64,14 +71,21 @@ export function createHintOrchestrator(
   });
 }
 
-/** The guidance use cases, over the configured AI provider. */
-export const getGuidanceCommands = once(() => ({
-  requestHint: new RequestHint({
+/** The guidance use cases, over the configured AI provider and safety classifier. */
+export const getGuidanceCommands = once(() => {
+  const safety = getSafetyClassifier();
+  const deps = {
     authorization: getAccessControl(),
     childProfiles: learnerChildProfileAccess,
     competencies: curriculumCompetencyRetrieval,
     rateLimiter: getRateLimiter(),
-    hints: createHintOrchestrator(getHintProvider(), getSafetyClassifier()),
+    hints: createHintOrchestrator(getAiProvider(), safety),
+    answers: new AnswerCoach({
+      provider: getAiProvider(),
+      audit: loggerGuidanceAuditLog,
+      ...(safety === undefined ? {} : { safety }),
+    }),
     audit: loggerGuidanceAuditLog,
-  }),
-}));
+  };
+  return { requestHint: new RequestHint(deps), checkAnswer: new CheckAnswer(deps) };
+});

@@ -1,5 +1,6 @@
 import type { ActorId, TenantId } from '@modules/auth';
 
+import type { AssessmentResult } from '../ai-output/ai-output';
 import type { FeedbackKind } from '../models/feedback-request';
 import type { HintFallbackReason } from '../models/hint-fallback-reason';
 import type { HintLevel } from '../models/hint-level';
@@ -35,6 +36,16 @@ export type GuidanceEvent =
       readonly childProfileId: ChildProfileId;
       readonly level: HintLevel;
       readonly outcome: 'generated' | 'fallback';
+    }
+  | {
+      readonly type: 'guidance.answer_checked';
+      readonly tenantId: TenantId;
+      readonly actorId: ActorId;
+      readonly childProfileId: ChildProfileId;
+      readonly level: HintLevel;
+      /** `null`: no key and the AI could not assess. */
+      readonly result: AssessmentResult | null;
+      readonly assessedBy: 'solution_key' | 'ai' | null;
     };
 
 /** Append-only. `record` is synchronous and MUST NOT throw or block. */
