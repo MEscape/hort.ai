@@ -45,7 +45,10 @@ it answers `voice.hosting_disabled`; a storage failure is `voice.clip_failed`.
   is refused (`voice.validation.text_too_long`), never cut: the caller splits a reply into short
   pieces. Every character is billed (Starter: 40,000 a month).
 - **Recording**: at most 4 MiB, one of `audio/webm`, `audio/ogg`, `audio/mp4`, `audio/mpeg`,
-  `audio/wav` (`codecs=` parameters are stripped). Transcribed as German (`deu`, model
+  `audio/wav` (`codecs=` parameters are stripped). The declared type comes from the client, so the
+  bytes must carry that format's signature (WebM/EBML `1A 45 DF A3`, Ogg `OggS`, MP4 `ftyp` at
+  offset 4, MP3 `ID3` or an MPEG frame sync, WAV `RIFF....WAVE`); otherwise
+  `voice.validation.recording_content_mismatch` and nothing reaches the provider. Transcribed as German (`deu`, model
   `scribe_v1`, audio-event tags off). The recording is held in memory for the one request and
   never stored, neither by us nor as a file.
 - **Consent**: a recording leaves the session only for the signed-in parent's own child (checked by
