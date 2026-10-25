@@ -23,7 +23,7 @@ export class ArchiveClassroom {
         if (classroom.status === 'archived') {
           return okAsync(classroom);
         }
-        return classrooms.archive(classroom.id, actor.tenantId).map((archived) => {
+        return classrooms.archive(classroom.id, actor.tenantId, actor.id).map((archived) => {
           audit.record({
             type: 'classroom.archived',
             actorId: actor.id,

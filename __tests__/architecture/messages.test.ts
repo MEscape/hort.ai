@@ -21,6 +21,17 @@ const domainErrorModules = import.meta.glob<Record<string, unknown>>(
   '../../src/modules/*/domain/errors/*.ts',
 );
 
+interface MessageKeyModule {
+  MESSAGE_KEY_BY_CODE: Record<string, string>;
+  GENERIC_ERROR_MESSAGE_KEY: string;
+  messageKeyForCode: (code: string) => string;
+}
+
+/** Glob for the same reason; a template-literal import also compiles to a cached module list that misses new modules. */
+const messageKeyModules = import.meta.glob<MessageKeyModule>(
+  '../../src/modules/*/presentation/messages/message-keys.ts',
+);
+
 const readCatalog = (moduleName: string, locale: string) =>
   (
     JSON.parse(
@@ -38,13 +49,12 @@ describe('module message maps', () => {
 
   for (const moduleName of modulesWithMessages) {
     it(`${moduleName}: every error and validation code has a key that exists in every locale`, async () => {
-      const keys = (await import(
-        `../../src/modules/${moduleName}/presentation/messages/message-keys.ts`
-      )) as {
-        MESSAGE_KEY_BY_CODE: Record<string, string>;
-        GENERIC_ERROR_MESSAGE_KEY: string;
-        messageKeyForCode: (code: string) => string;
-      };
+      const messageKeysPath = `src/modules/${moduleName}/presentation/messages/message-keys.ts`;
+      const loadKeys = messageKeyModules[`../../${messageKeysPath}`];
+      if (loadKeys === undefined) {
+        throw new Error(`${messageKeysPath} is not covered by the message-keys glob.`);
+      }
+      const keys = await loadKeys();
       const codes: string[] = [];
       for (const file of project
         .moduleFiles(moduleName)

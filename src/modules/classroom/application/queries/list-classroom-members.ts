@@ -18,7 +18,11 @@ export class ListClassroomMembers {
   execute(classroomId: string): AppResultAsync<readonly ClassMemberView[], LoadClassroomError> {
     return loadAuthorizedClassroom(this.deps, classroomId, 'classroom.read')
       .andThen(({ actor, classroom }) =>
-        this.deps.classrooms.listMembers(classroom.id, actor.tenantId, MAX_CLASS_MEMBER_LIST_LIMIT),
+        this.deps.classrooms.listMembers(
+          classroom.id,
+          { tenantId: actor.tenantId, ownerId: actor.id },
+          MAX_CLASS_MEMBER_LIST_LIMIT,
+        ),
       )
       .map((members) => members.map(toClassMemberView));
   }

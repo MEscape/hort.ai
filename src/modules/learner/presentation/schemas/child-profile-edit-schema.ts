@@ -18,5 +18,3 @@ export const childProfileEditSchema = z.object({
   companion: childProfileCompanionSchema.nullable().optional(),
   voiceConsent: childProfileVoiceConsentSchema.optional(),
 });
-
-export type ChildProfileEdit = z.infer<typeof childProfileEditSchema>;

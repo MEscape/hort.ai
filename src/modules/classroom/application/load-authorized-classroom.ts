@@ -31,7 +31,7 @@ export interface AuthorizedClassroom {
  *
  *  1. `requireInTenant` FIRST, so a caller without the permission learns nothing about which ids
  *     exist.
- *  2. Look the classroom up by (id, actor.tenantId).
+ *  2. Look the classroom up by (id, actor.tenantId, actor.id); foreign classes are not found.
  *  3. `requireOnResource` against the STORED tenant and owner: another teacher's class is refused.
  */
 export function loadAuthorizedClassroom(
@@ -43,7 +43,7 @@ export function loadAuthorizedClassroom(
 
   return authorization.requireInTenant(permission).andThen((actor) =>
     parseClassroomId(rawId)
-      .asyncAndThen((id) => classrooms.findById(id, actor.tenantId))
+      .asyncAndThen((id) => classrooms.findById(id, actor.id, actor.tenantId))
       .andThen((classroom): AppResultAsync<Classroom, NotFoundAppError> =>
         classroom === null ? errAsync(classroomNotFound()) : okAsync(classroom),
       )

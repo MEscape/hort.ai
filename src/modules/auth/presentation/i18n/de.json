@@ -8,7 +8,7 @@
       },
       "title": "Willkommen im Lernabenteuer!",
       "description": "Gemeinsam entdecken wir eine Welt voller Wissen, Spaß und spannender Aufgaben. Erstelle zuerst ein Konto für dich.",
-      "signUp": "Als Eltern registrieren",
+      "signUp": "Registrieren",
       "haveAccount": "Schon ein Konto?",
       "signIn": "Anmelden"
     },
@@ -30,11 +30,11 @@
     },
     "signUp": {
       "metadata": {
-        "title": "Elternkonto einrichten",
-        "description": "Richte dein Elternkonto ein: Es hält Einstellungen, Sicherheit und Fortschritt deines Kindes an einem Ort."
+        "title": "Konto einrichten",
+        "description": "Richte dein Konto als Elternteil oder Lehrkraft ein."
       },
-      "title": "Elternkonto einrichten",
-      "description": "Mit deinem Konto verwaltest du die Einstellungen, Sicherheit und den Fortschritt deines Kindes.",
+      "title": "Konto einrichten",
+      "description": "Als Elternteil verwaltest du die Einstellungen und den Fortschritt deines Kindes, als Lehrkraft deine Klassen und Aufgaben.",
       "name": "Wie dürfen wir dich nennen?",
       "nameHint": "So begrüßen wir dich in unseren E-Mails.",
       "role": "Ich registriere mich als",
