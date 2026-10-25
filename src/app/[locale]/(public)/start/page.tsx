@@ -1,17 +1,26 @@
+import { Suspense } from 'react';
+
 import type { Metadata } from 'next';
 
-import { HortaiLogo } from '@components/brand/hortai-logo';
+import { assignmentsQueries, parseChildTasksPageParams } from '@modules/assignments';
+import type { ChildAssignmentView } from '@modules/assignments';
+import { requireSignedIn } from '@modules/auth';
+
+import { I18nProvider } from '@components/providers/i18n-provider';
 
 import { requireLocale } from '@i18n';
 
 import { getTranslations } from '@i18n/server';
 
 import { buildPrivateMetadata } from '@lib/seo';
+import { buildQueryString } from '@lib/utils';
 
+import { StartPageShell } from './_components/start-page-shell';
 import { StartScreen } from './_components/start-screen';
 
 interface StartPageProps {
   readonly params: Promise<{ locale: string }>;
+  readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export async function generateMetadata({ params }: StartPageProps): Promise<Metadata> {
@@ -20,17 +29,43 @@ export async function generateMetadata({ params }: StartPageProps): Promise<Meta
   return buildPrivateMetadata(t('start.metaTitle'));
 }
 
-export default async function StartPage({ params }: StartPageProps) {
-  requireLocale((await params).locale);
+/**
+ * The assignments of the named child's class, or `null` when there is no child to show them for.
+ * The query authorizes the signed-in parent and the child's membership itself; a child that is not
+ * theirs (or a teacher, who has no children) gets the plain "not available" state, nothing more.
+ */
+async function loadSchoolAssignments(
+  searchParams: StartPageProps['searchParams'],
+): Promise<readonly ChildAssignmentView[] | null> {
+  const { childProfileId } = parseChildTasksPageParams(await searchParams);
+  if (childProfileId === undefined) {
+    return null;
+  }
+  await requireSignedIn(`/start${buildQueryString({ child: childProfileId })}`);
+  const result = await assignmentsQueries.listChildAssignments.execute(childProfileId);
+  if (result.isOk()) {
+    return result.value;
+  }
+  if (result.error.kind === 'infrastructure') {
+    throw new Error(result.error.code, { cause: result.error });
+  }
+  return null;
+}
+
+async function StartContent({ searchParams }: Pick<StartPageProps, 'searchParams'>) {
+  return <StartScreen schoolAssignments={await loadSchoolAssignments(searchParams)} />;
+}
+
+export default async function StartPage({ params, searchParams }: StartPageProps) {
+  const locale = requireLocale((await params).locale);
 
   return (
-    <main className="min-h-dvh bg-canvas text-copy">
-      <div className="mx-auto max-w-6xl px-5 py-5 sm:px-8 sm:py-7">
-        <header>
-          <HortaiLogo className="h-10 sm:h-12" />
-        </header>
-        <StartScreen />
-      </div>
-    </main>
+    <StartPageShell>
+      <I18nProvider locale={locale} namespaces={['assignments']}>
+        <Suspense fallback={<StartScreen schoolAssignments={null} />}>
+          <StartContent searchParams={searchParams} />
+        </Suspense>
+      </I18nProvider>
+    </StartPageShell>
   );
 }

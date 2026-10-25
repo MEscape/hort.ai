@@ -1,23 +1,23 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { GetAssignmentById } from '@modules/assignments/application/queries/get-assignment-by-id';
-import { createAuthorizationService } from '@modules/auth/application/authorization-service';
 
 import { okAsync } from '@lib/result';
 
-import { parent, recordingAudit, signedInAs } from '../../auth/fakes';
+import { parent } from '../../auth/fakes';
+import { createWorld } from '../fakes';
 
 function setup(teacher: boolean) {
   const actor = parent({ roles: [teacher ? 'teacher' : 'parent'] });
   const findById = vi.fn(() => okAsync(null));
-  const authorization = createAuthorizationService({
-    currentActor: signedInAs(actor),
-    audit: recordingAudit(),
-  });
+  const world = createWorld();
   return {
     actor,
     findById,
-    query: new GetAssignmentById({ authorization, assignments: { findById } }),
+    query: new GetAssignmentById({
+      ...world.dependenciesFor(actor),
+      assignments: { ...world.repository, findById },
+    }),
   };
 }
 

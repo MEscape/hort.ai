@@ -7,23 +7,19 @@ import { useFocusOnMount } from '@/hooks/use-focus-on-mount';
 
 import { ChildAssignmentPreview } from './child-assignment-preview';
 
-import type { ChildAssignmentView } from '../dto/child-assignment-dto';
+import type { ChildAssignmentContent } from '../dto/child-assignment-dto';
+import type { AssignmentEditorState } from '../hooks/use-assignment-editor';
 
 interface AssignmentPreviewPanelProps {
-  readonly assignment: ChildAssignmentView;
-  readonly onEdit: () => void;
-  readonly onBack: () => void;
-  readonly isDiscarding: boolean;
+  /** Only the child projection of the draft; the solution key never reaches this panel. */
+  readonly assignment: ChildAssignmentContent;
+  readonly editor: AssignmentEditorState;
 }
 
-export function AssignmentPreviewPanel({
-  assignment,
-  onEdit,
-  onBack,
-  isDiscarding,
-}: AssignmentPreviewPanelProps) {
+export function AssignmentPreviewPanel({ assignment, editor }: AssignmentPreviewPanelProps) {
   const t = useTranslations('assignments');
   const headingRef = useFocusOnMount<HTMLHeadingElement>(true);
+  const isBlocked = editor.isDiscarding || editor.isSaving;
 
   return (
     <section className="mx-auto max-w-3xl space-y-6">
@@ -35,13 +31,33 @@ export function AssignmentPreviewPanel({
       </div>
       <ChildAssignmentPreview assignment={assignment} />
       <div className="flex flex-wrap justify-between gap-3">
-        <Button type="button" variant="ghost" onClick={onBack}>
+        <Button
+          type="button"
+          variant="ghost"
+          disabled={editor.isSaving}
+          onClick={editor.requestOverview}
+        >
           {t('preview.overview')}
         </Button>
-        <Button type="button" variant="outline" disabled={isDiscarding} onClick={onEdit}>
-          <ArrowLeft aria-hidden="true" />
-          {t('preview.edit')}
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isBlocked}
+            onClick={editor.returnToEditor}
+          >
+            <ArrowLeft aria-hidden="true" />
+            {t('preview.edit')}
+          </Button>
+          <Button
+            type="button"
+            disabled={isBlocked}
+            aria-busy={editor.isSaving}
+            onClick={editor.onSave}
+          >
+            {editor.isSaving ? t('form.saving') : t('form.save')}
+          </Button>
+        </div>
       </div>
     </section>
   );
