@@ -1,6 +1,7 @@
 import { enAssignments as assignments } from '@modules/assignments';
 import { enAuth as auth } from '@modules/auth';
 import { enClassroom as classroom } from '@modules/classroom';
+import { enGuidance as guidance } from '@modules/guidance';
 import { enLearner as learner } from '@modules/learner';
 import { enProgression as progression } from '@modules/progression';
 import { enTeacherMaterial as teacherMaterial } from '@modules/teacher-material';
@@ -18,6 +19,7 @@ const messages = {
   assignments: assignments.assignments,
   auth: auth.auth,
   classroom: classroom.classroom,
+  guidance: guidance.guidance,
   learner: learner.learner,
   progression: progression.progression,
   teacherMaterial: teacherMaterial.teacherMaterial,

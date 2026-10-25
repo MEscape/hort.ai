@@ -7,12 +7,16 @@ export const GUIDANCE_ERROR_CODES = {
   validationFailed: 'guidance.validation_failed',
   rateLimited: 'guidance.rate_limited',
   rateLimiterFailed: 'guidance.rate_limiter_failed',
+  sessionNotFound: 'guidance.session_not_found',
+  sessionStoreFailed: 'guidance.session_store_failed',
 } as const;
 
 /** Field-level codes, carried in `fieldErrors`. */
 export const GUIDANCE_VALIDATION_CODES = {
   childProfileIdInvalid: 'guidance.validation.child_profile_id_invalid',
   subjectInvalid: 'guidance.validation.subject_invalid',
+  sessionIdInvalid: 'guidance.validation.session_id_invalid',
+  requestIdInvalid: 'guidance.validation.request_id_invalid',
 } as const;
 
 export type GuidanceValidationCode =

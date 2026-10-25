@@ -14,6 +14,7 @@ import { loggerGuidanceAuditLog } from './infrastructure/audit/logger-guidance-a
 import { curriculumCompetencyRetrieval } from './infrastructure/curriculum/curriculum-competency-retrieval';
 import { GeminiProvider } from './infrastructure/gemini/gemini-provider';
 import { learnerChildProfileAccess } from './infrastructure/learner/learner-child-profile-access';
+import { noHelpSessionStore } from './infrastructure/sessions/no-help-session-store';
 import { JevSafetyClassifier } from './infrastructure/typesafe/jev-safety-classifier';
 
 import type { FeedbackProvider } from './domain/ports/feedback-provider.port';
@@ -79,6 +80,7 @@ export const getGuidanceCommands = once(() => {
     childProfiles: learnerChildProfileAccess,
     competencies: curriculumCompetencyRetrieval,
     rateLimiter: getRateLimiter(),
+    sessions: noHelpSessionStore,
     hints: createHintOrchestrator(getAiProvider(), safety),
     answers: new AnswerCoach({
       provider: getAiProvider(),
