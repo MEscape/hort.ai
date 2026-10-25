@@ -17,6 +17,7 @@ import {
   classroomQueries,
   CreateClassroomForm,
 } from '@modules/classroom';
+import { ClassLearningOverview } from '@modules/guidance';
 import { TeacherMaterialPanel } from '@modules/teacher-material';
 
 import { I18nProvider } from '@components/providers/i18n-provider';
@@ -92,6 +93,7 @@ function Overview({
         classroomActions={<AddClassroomDialog />}
       />
       <TeacherMaterialPanel key={`material-${selected.id}`} classroomId={selected.id} />
+      <ClassLearningOverview key={`insights-${selected.id}`} classroomId={selected.id} />
       {detailsClassroomId !== undefined && (
         <ClassroomDetails
           selectedClassroomId={selected.id}

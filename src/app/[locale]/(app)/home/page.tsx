@@ -10,7 +10,7 @@ import {
   TEACHER_ROLE,
 } from '@modules/auth';
 import { ChildClassroomPanel, classroomQueries } from '@modules/classroom';
-import { loadOpenHelpSession } from '@modules/guidance';
+import { LearningSummaryCard, loadOpenHelpSession } from '@modules/guidance';
 import {
   ResetOnboardingButton,
   VoiceConsentSwitch,
@@ -126,6 +126,7 @@ async function ParentHome() {
         />
         {isDevResetAvailable() && <ResetOnboardingButton />}
       </HomeCard>
+      <LearningSummaryCard childProfileId={child.id} childName={child.displayName} />
     </div>
   );
 }

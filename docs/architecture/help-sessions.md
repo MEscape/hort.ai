@@ -51,3 +51,12 @@ A child can work on an assignment their teacher posted for the class. The softwa
 - At most the latest 100 hints and 100 answer checks are read back per session.
 - Steps are ordered by their timestamp from the application clock.
 - A session on an assignment keeps the assignment's text from its start; a later edit by the teacher shows in a new session only. If the teacher deletes the assignment, the session's `assignmentId` becomes `null` (`ON DELETE SET NULL`) and it goes on as a task without a key.
+
+## Learning summaries (#35)
+
+Two read-only queries over the stored sessions; neither calls an AI provider and neither reads a task, answer, reply or AI text (`PrismaLearningRecordStore` selects ids, statuses, timestamps and hint rungs only).
+
+- **Parents** (`GetLearningSummary`, card on `/home`): the learner module confirms the child is the parent's own and reads the learning-notes switch (`ChildProfile.learningInsights`); with it off nothing is read. The last 14 days, at most 10 sessions, newest first. A topic is named by the assignment's title (assignments module, the child's current class), else the competency's curriculum text (curriculum module, `describeCompetencies`), else the open topic label, else "own task". Per session: status in friendly words, number of hints, highest rung, whether the comprehension question was answered; plus "needed many hints" (3 or more hints, or a similar example) and "understood" (completed with the question answered). The rules are in `domain/insights/learning-summary.ts`.
+- **Teachers** (`GetClassLearningOverview`, section on the class page): `assignment.read`, then the assignments module lists the assignments of the teacher's own class (an id that is not theirs has no overview). Per assignment: children with a help session, of them children who finished it, the median of the hints per child. Only numbers over at least 3 children leave the query (`CLASS_MIN_GROUP`); zero to two children read the same, so no single child can be singled out. No child id, name or text is in the view. A child can only start a session on an assignment while a member of its class (#33). The rules are in `domain/insights/class-overview.ts`.
+
+The events these read are already stored server-side, once and in UTC: every step carries its request id under `(sessionId, idempotencyKey)` unique indexes, and timestamps come from the application clock as UTC instants.
