@@ -8,6 +8,8 @@ import type {
   HelpSessionRepository,
   NewHelpSession,
 } from '@modules/guidance/domain/ports/help-session.repository';
+import type { TopicClassifier } from '@modules/guidance/domain/ports/topic-classifier.port';
+import { UNCLASSIFIED_TOPIC } from '@modules/guidance/domain/topic/session-topic';
 
 import { notFoundError } from '@lib/errors';
 import type { RateLimiter } from '@lib/rate-limit';
@@ -16,7 +18,14 @@ import { errAsync, okAsync } from '@lib/result';
 import { createTestRateLimiter } from '../../support/rate-limiting';
 import { parent, recordingAudit as recordingSecurityAudit, signedInAs } from '../auth/fakes';
 
-import { OWN_CHILD, fakeAssignments, ownChildren, recordingAuditLog, task } from './fakes';
+import {
+  OWN_CHILD,
+  fakeAssignments,
+  fakeCompetencies,
+  ownChildren,
+  recordingAuditLog,
+  task,
+} from './fakes';
 
 const UPDATED_AT = new Date('2026-10-25T08:00:00.000Z');
 
@@ -34,6 +43,7 @@ export function storedSession(overrides: Partial<HelpSession> = {}): HelpSession
     updatedAt: UPDATED_AT,
     hints: [],
     answerChecks: [],
+    topic: UNCLASSIFIED_TOPIC,
     ...overrides,
   };
 }
@@ -75,6 +85,7 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
         assignmentId: start.assignmentId,
         task: start.task,
         subject: start.subject,
+        topic: start.topic,
       });
       sessions.set(session.id, session);
       return okAsync({ session, created: true });
@@ -144,6 +155,7 @@ export function helpSessionDependencies(
   actor: Actor = parent(),
   rateLimiter: RateLimiter = createTestRateLimiter(),
   assignments: ReturnType<typeof fakeAssignments> = fakeAssignments(),
+  classifier?: TopicClassifier,
 ): {
   readonly deps: HelpSessionDependencies;
   readonly events: ReturnType<typeof recordingAuditLog>['events'];
@@ -160,6 +172,8 @@ export function helpSessionDependencies(
       assignments: assignments.access,
       sessions: repository,
       audit,
+      competencies: fakeCompetencies().retrieval,
+      ...(classifier === undefined ? {} : { classifier }),
     },
     events,
   };

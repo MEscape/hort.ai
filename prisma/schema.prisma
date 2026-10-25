@@ -115,6 +115,25 @@ enum HelpSessionStatus {
 }
 
 /// The hint ladder of the guidance module (`HINT_LEVELS`), lowest help first.
+/// What the child's message at the start of a help session is (#92).
+enum MessageIntent {
+  HOMEWORK
+  CURIOSITY
+  SMALL_TALK
+}
+
+/// How a help session opens (#92): one fixed clarifying question, or a fixed redirect without a hint.
+enum SessionOpening {
+  CLARIFY
+  REDIRECT
+}
+
+/// Who classified the session's task (#92); FALLBACK when no classification could be used.
+enum TopicClassifiedBy {
+  JEV
+  FALLBACK
+}
+
 enum HintLevel {
   UNDERSTAND_TASK
   ACTIVATE_PRIOR_KNOWLEDGE
@@ -384,6 +403,13 @@ model HelpSession {
   subject          Subject
   status           HelpSessionStatus @default(ACTIVE)
   currentHintLevel HintLevel?
+  /// The topic classification at the start (#92). `competencyCode` is one of the request's
+  /// candidates; `openTopicLabel` is stored only and never counts as a competency.
+  intent           MessageIntent?
+  opening          SessionOpening?
+  competencyCode   String?
+  openTopicLabel   String?
+  classifiedBy     TopicClassifiedBy?
   version          Int               @default(1)
   startedAt        DateTime          @default(now())
   updatedAt        DateTime          @default(now())
@@ -401,6 +427,9 @@ model HelpSession {
   @@index([childProfileId], where: sql`("status" = 'ACTIVE')`, unique: true, name: "HelpSession_one_active_per_child")
   @@check(expression: sql`char_length("taskText") BETWEEN 1 AND 4000`, name: "HelpSession_task_text_rule")
   @@check(expression: sql`"version" >= 1`, name: "HelpSession_version_rule")
+  @@check(expression: sql`"openTopicLabel" IS NULL OR char_length("openTopicLabel") BETWEEN 2 AND 40`, name: "HelpSession_open_topic_label_rule")
+  @@check(expression: sql`"competencyCode" IS NULL OR char_length("competencyCode") BETWEEN 1 AND 300`, name: "HelpSession_competency_code_rule")
+  @@check(expression: sql`"opening" IS DISTINCT FROM 'REDIRECT' OR "intent" IN ('CURIOSITY', 'SMALL_TALK')`, name: "HelpSession_redirect_rule")
   @@check(expression: sql`("status" = 'ACTIVE') = ("endedAt" IS NULL)`, name: "HelpSession_ended_rule")
 }
 

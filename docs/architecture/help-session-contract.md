@@ -209,7 +209,7 @@ Fallback wording lives in the guidance module's i18n catalog, keyed by level or 
 
 ## Open points
 
-- The `opening` field (#92) is a proposal until #17 and #83 ship it: the decision comes from [`topic-classification.md`](topic-classification.md), the UI maps `kind` and `intent` to the catalog keys proposed there, and the child's reply to a clarifying question goes in through the start action again (same session).
+- The `opening` field (#92) is returned by the start and "Continue": the decision comes from [`topic-classification.md`](topic-classification.md), the UI maps `kind` and `intent` to `guidance.opening.clarify` or `guidance.opening.redirect.<intent>`, and the child's reply to a clarifying question goes in through the start action again, as the task with the explanation added.
 
 - Whether starting a session also returns the first thinking prompt, or the UI asks for the first rung (`understand_task`) right after start. This document assumes the latter, so the start stays cheap and the ladder has one entry point (#30 decides).
 - The reply action does not grant any progression. Whether a finished task earns anything is open: the product direction drops XP and streaks unless re-confirmed, and only the small progression the [vision](../product/vision.md) allows may follow, granted by the backend, never by the UI.
