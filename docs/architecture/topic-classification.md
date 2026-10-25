@@ -8,19 +8,19 @@ The classification never solves or explains anything. It only decides whether Ho
 
 ## Two classifications, in a fixed order
 
-|             | 1. Safety                                                                        | 2. Topic (this document)                              |
-| ----------- | -------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| Categories  | closed, fixed groups with fixed actions                                          | open, the model sorts in                              |
-| Who decides | backend (word lists, then Jev); the model may only make it stricter              | the model proposes, the backend validates and decides |
-| Where       | `checkChildSafeText`, `JevSafetyClassifier` (#11); distress on child input (#90) | `classifyTopic`                                       |
-| On failure  | the text is not used (safe fallback)                                             | today's flow: homework, no competency                 |
+|             | 1. Safety                                                           | 2. Topic (this document)                              |
+| ----------- | ------------------------------------------------------------------- | ----------------------------------------------------- |
+| Categories  | closed, fixed groups with fixed actions                             | open, the model sorts in                              |
+| Who decides | backend (word lists, then Jev); the model may only make it stricter | the model proposes, the backend validates and decides |
+| Where       | `checkChildSafeText`, `JevSafetyClassifier` (#11)                   | `classifyTopic`                                       |
+| On failure  | the text is not used (safe fallback)                                | today's flow: homework, no competency                 |
 
-The session start of #17 calls the service `classifyTopic` once on the task text, after the safety checks and the distress check of #90, and once more on the child's reply to a clarifying question (the reply appended to the task text). A text that safety stopped never reaches it, and its result can never unblock anything safety blocked: the service returns only a `TopicDecision`, which has no way to express a safety outcome.
+The session start of #17 calls the service `classifyTopic` once on the task text, after the safety checks, and once more on the child's reply to a clarifying question (the reply appended to the task text). A text that safety stopped never reaches it, and its result can never unblock anything safety blocked: the service returns only a `TopicDecision`, which has no way to express a safety outcome.
 
 ## Flow
 
 ```text
-session start (#17), after safety (#11) and distress (#90)
+session start (#17), after safety (#11)
   └─ findRelevantCompetencies (#28): at most five candidates of the child's own state, grade and class
       └─ classifyTopic
           └─ TopicClassifier.classify({ task, subject, candidates })   untrusted, `unknown`
@@ -138,7 +138,7 @@ The child's reply to a clarifying question goes in through `startHelpSessionActi
 
 **Grounding on the stored competency (#35).** Every hint and every answer check of a session with a stored `competencyCode` is grounded in that competency alone (`groundInCurriculum` in `application/services/session-step.ts`). The code is not trusted on its own: the step retrieves the child's current candidates as before and uses the code only when it is still one of them, so a code of another state, grade or an older curriculum never reaches the AI. When it is not (or retrieval fails), the step is grounded exactly as an unclassified session is, and a missing code is logged as `guidance.stored_competency_unavailable` (`warn`, level only). An open topic label never grounds anything.
 
-Still open: the distress check (#90) must run before the classification, so a stopped text never reaches it; learning events do not aggregate on `competencyCode` yet (#35).
+Still open: learning events do not aggregate on `competencyCode` yet (#35).
 
 ## Changing the contract
 

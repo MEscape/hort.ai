@@ -20,6 +20,10 @@ command (or `none`), and every command names the convention it automates.
 
 `npm run brand:generate` exports the canonical owl and wordmark SVG sources to the app, browser, Apple, manifest, email and social formats. Generated files are checked in. The script uses Sharp from Next.js's installed dependencies; it calls no network service. See [branding](../docs/architecture/branding.md) for the asset inventory and editing workflow.
 
+## Island pictures
+
+`npm run world:assets -- --dir <folder>` writes a generation prompt for every island asset into `<folder>/<areaId>/` (a working folder outside the repository), checks every generated master there (transparent, at least 1024 × 768) and cuts the delivered 512 and 1024 px WebP files. It uploads nothing and calls no network service. See [the island world](../docs/architecture/world.md#art-direction-and-pictures).
+
 ## Dead code
 
 `npm run dead-code` is not a generator but the same kind of repository tool: it fails (exit 1) on

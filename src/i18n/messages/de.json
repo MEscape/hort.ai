@@ -1,9 +1,85 @@
 {
   "home": {
-    "title": "Du bist angemeldet!",
-    "description": "Dein Elternkonto ist bereit. Hier startet bald das Lernabenteuer für deine Familie.",
+    "title": "Zuhause",
+    "heading": "Hallo {name}!",
+    "status": {
+      "label": "Dein Tag",
+      "left": "{minutes} Min übrig",
+      "learned": "Heute gelernt: {minutes} Min",
+      "unavailable": "Die Zeit wird noch nicht angezeigt",
+      "low": "Gleich Pause: noch {minutes} Min",
+      "closedLimit": "Heute ist Pause",
+      "closedWindow": "Wieder da um {time}",
+      "offline": "Gerade kein Internet",
+      "parentArea": "Elternbereich"
+    },
+    "session": {
+      "back": "Zurück zu {task}",
+      "state": {
+        "listening": "hört zu",
+        "typing": "tippt",
+        "paused": "Pause"
+      },
+      "chip": "{task}: {state}"
+    },
+    "task": {
+      "title": "Ich habe eine Aufgabe",
+      "photo": "Foto machen",
+      "type": "Meine Aufgabe eingeben",
+      "typingOnly": "Nur Tippen"
+    },
+    "continue": {
+      "heading": "Weiter: {title}",
+      "detail": "{area}, letzter Schritt: {step} · {time}",
+      "hints": "{count, plural, =0 {noch kein Tipp} one {# Tipp} other {# Tipps}}"
+    },
+    "teacher": {
+      "title": "Von meiner Lehrkraft",
+      "new": "{count} neu",
+      "none": "Gerade nichts Neues.",
+      "soon": "Noch nicht da."
+    },
+    "world": {
+      "title": "{owner} Welt",
+      "preview": "Schau dich in {owner} Welt um.",
+      "explore": "Schau dich um"
+    },
+    "closed": {
+      "limit": "{name} macht heute Pause.",
+      "window": "{name} schläft bis {time}.",
+      "still": "Du kannst {name} noch füttern und deine Welt ansehen.",
+      "ask": "Frag einen Erwachsenen"
+    },
+    "guide": {
+      "hello": "Hallo! Schön, dass du da bist.",
+      "welcomeBack": "Willkommen zurück! Machen wir weiter?",
+      "photoSoon": "Fotos kommen bald!",
+      "voiceOff": "Ich lese nur, was du tippst.",
+      "teacherNone": "Nichts Neues von deiner Lehrkraft.",
+      "teacherNew": "Neue Aufgaben von deiner Lehrkraft!",
+      "teacherSoon": "Aufgaben von deiner Lehrkraft kommen bald.",
+      "stripTime": "So viel Zeit ist noch übrig.",
+      "stripUnavailable": "Die Zeit kann ich noch nicht zählen.",
+      "closedLimit": "Ich brauche Pause. Bis morgen!",
+      "closedWindow": "Ich schlafe gerade. Bis später!",
+      "low": "Gleich Pause. Mach den Schritt fertig!",
+      "offline": "Kein Internet. Ich warte auf dich."
+    },
+    "gate": {
+      "title": "Nur für Erwachsene",
+      "intro": "Löse bitte diese Aufgabe, um den Elternbereich zu öffnen.",
+      "question": "Was ist {a} × {b}?",
+      "answer": "Deine Antwort",
+      "open": "Öffnen",
+      "wrong": "Nicht ganz. Bitte versuche es noch einmal.",
+      "close": "Schließen",
+      "areaTitle": "Elternbereich"
+    },
     "teacherDescription": "Dein Lehrkraft-Konto ist bereit. Hier stellst du Aufgaben für deine Klasse ein.",
     "teacherAssignments": "Zu den Aufgaben",
+    "teacherClassrooms": "Deine Klassen",
+    "teacherClassroom": "Klasse {name} (Jahrgangsstufe {grade})",
+    "teacherNoClassroom": "Du hast noch keine Klasse. Lege sie unter „Zu den Aufgaben“ an.",
     "startHomework": "Zur Hausaufgabenhilfe",
     "continueHelp": "Weiter: {task}"
   },
@@ -68,5 +144,921 @@
       "body": "Gespeicherte Aufgaben sind hier noch nicht verfügbar.",
       "continue": "Zur Hilfe"
     }
+  },
+  "world": {
+    "map": {
+      "metadataTitle": "Inselwelt",
+      "title": "Deine Inselwelt",
+      "description": "Jede Hausaufgabe gehört zu einer Insel. Tippe auf eine Insel und schau dich um.",
+      "backHome": "Zurück nach Hause"
+    },
+    "subjects": {
+      "deutsch": "Deutsch",
+      "mathe": "Mathe",
+      "natur": "Natur und Technik",
+      "gesellschaft": "Menschen und Orte",
+      "sprachenKunst": "Sprachen, Kunst und Sport",
+      "zusammenleben": "Zusammenleben",
+      "lernen": "Lernen und Überraschungen"
+    },
+    "island": {
+      "backToMap": "Alle Inseln",
+      "landmark": "Wahrzeichen: {name}",
+      "placesLabel": "Orte auf der Insel {island}",
+      "pickPlace": "Tippe auf einen Ort auf der Insel, dann siehst du, welche Hausaufgaben dorthin gehören.",
+      "noPlaces": "Hier gibt es noch viel zu entdecken.",
+      "start": "Hausaufgabe starten"
+    },
+    "explore": {
+      "title": "Die Welt erkunden",
+      "hint": "Ziehe die Karte, um dich umzusehen, oder wähle ein Fach.",
+      "jump": "Wohin?",
+      "home": "Start"
+    },
+    "areas": {
+      "buchstabenberg": {
+        "name": "Buchstabenberg",
+        "landmark": "Buchstabengipfel",
+        "locations": {
+          "lautquelle": {
+            "name": "Lautquelle",
+            "about": "Für Aufgaben, bei denen du genau hinhörst: Welcher Laut steckt im Wort?"
+          },
+          "buchstabenhoehle": {
+            "name": "Buchstabenhöhle",
+            "about": "Für Aufgaben zu Buchstaben: erkennen, benennen und schreiben."
+          },
+          "lesepfad": {
+            "name": "Lesepfad",
+            "about": "Für Aufgaben zum Lesenlernen: Silben und erste Wörter."
+          }
+        }
+      },
+      "maerchenwald": {
+        "name": "Märchenwald",
+        "landmark": "Buchbaum",
+        "locations": {
+          "leselichtung": {
+            "name": "Leselichtung",
+            "about": "Für Aufgaben, bei denen du einen Text liest."
+          },
+          "fragenbruecke": {
+            "name": "Fragenbrücke",
+            "about": "Für Fragen zu einem Text: Was steht drin, und was bedeutet es?"
+          },
+          "geschichtenhuette": {
+            "name": "Geschichtenhütte",
+            "about": "Für Aufgaben rund um Märchen und Geschichten."
+          }
+        }
+      },
+      "federsee": {
+        "name": "Federsee",
+        "landmark": "Großer Federkiel",
+        "locations": {
+          "schreibsteg": {
+            "name": "Schreibsteg",
+            "about": "Für Aufgaben, bei denen du einen eigenen Text schreibst."
+          },
+          "geschichtenboot": {
+            "name": "Geschichtenboot",
+            "about": "Für Geschichten, die du dir ausdenkst und aufschreibst."
+          },
+          "briefhaeuschen": {
+            "name": "Briefhäuschen",
+            "about": "Für Aufgaben, bei denen du einen Brief schreibst."
+          }
+        }
+      },
+      "rechtschreib-werkstatt": {
+        "name": "Rechtschreib-Werkstatt",
+        "landmark": "Wörterwerkstatt",
+        "locations": {
+          "regelwerkbank": {
+            "name": "Regel-Werkbank",
+            "about": "Für Aufgaben zu Rechtschreibregeln."
+          },
+          "diktatzelt": {
+            "name": "Diktatzelt",
+            "about": "Wenn du für ein Diktat übst oder eines verbessern sollst."
+          },
+          "lernwoerterkiste": {
+            "name": "Lernwörterkiste",
+            "about": "Für deine Lernwörter aus der Schule."
+          }
+        }
+      },
+      "wortbaumhaus": {
+        "name": "Wortbaumhaus",
+        "landmark": "Wortbaumhaus",
+        "locations": {
+          "nomen-nest": {
+            "name": "Nomen-Nest",
+            "about": "Für Aufgaben zu Nomen: Namen für Dinge, Tiere und Menschen."
+          },
+          "adjektivbeet": {
+            "name": "Adjektivbeet",
+            "about": "Für Aufgaben zu Adjektiven, den Wiewörtern."
+          },
+          "verbenschaukel": {
+            "name": "Verbenschaukel",
+            "about": "Für Aufgaben zu Verben, den Tuwörtern."
+          },
+          "satzleiter": {
+            "name": "Satzleiter",
+            "about": "Für Aufgaben zu Sätzen und Grammatik."
+          }
+        }
+      },
+      "reimtal": {
+        "name": "Reimtal",
+        "landmark": "Reimbogen",
+        "locations": {
+          "gedichtbank": {
+            "name": "Gedichtbank",
+            "about": "Für Aufgaben zu Gedichten: lesen, verstehen, auswendig lernen."
+          },
+          "liederkreis": {
+            "name": "Liederkreis",
+            "about": "Für Aufgaben zu Liedern und ihren Texten."
+          },
+          "reimbach": {
+            "name": "Reimbach",
+            "about": "Für Aufgaben, bei denen du Reimwörter findest."
+          }
+        }
+      },
+      "sprechbuehne": {
+        "name": "Sprechbühne",
+        "landmark": "Große Bühne",
+        "locations": {
+          "erzaehlfeuer": {
+            "name": "Erzählfeuer",
+            "about": "Für Aufgaben, bei denen du etwas nacherzählst."
+          },
+          "vortragsturm": {
+            "name": "Vortragsturm",
+            "about": "Für Referate und Vorträge vor der Klasse."
+          },
+          "sprechstufen": {
+            "name": "Sprechstufen",
+            "about": "Für Aufgaben zum deutlichen und freien Sprechen."
+          }
+        }
+      },
+      "zahlenwald": {
+        "name": "Zahlenwald",
+        "landmark": "Zählturm",
+        "locations": {
+          "zaehlbruecke": {
+            "name": "Zählbrücke",
+            "about": "Für Aufgaben zum Zählen und Abzählen."
+          },
+          "plus-mulde": {
+            "name": "Plus-Mulde",
+            "about": "Für Plusaufgaben, im Kopf oder schriftlich."
+          },
+          "zahlenpfad": {
+            "name": "Zahlenpfad",
+            "about": "Für Aufgaben im Zahlenraum: Zahlen ordnen und vergleichen."
+          },
+          "minus-lichtung": {
+            "name": "Minus-Lichtung",
+            "about": "Für Minusaufgaben, im Kopf oder schriftlich."
+          }
+        }
+      },
+      "malmuehle": {
+        "name": "Malmühle",
+        "landmark": "Malmühle",
+        "locations": {
+          "einmaleins-feld": {
+            "name": "Einmaleins-Feld",
+            "about": "Für Malaufgaben."
+          },
+          "teilkarren": {
+            "name": "Teilkarren",
+            "about": "Für Geteiltaufgaben: gerecht aufteilen."
+          },
+          "kornspeicher": {
+            "name": "Kornspeicher",
+            "about": "Wenn du Einmaleins-Reihen lernst."
+          }
+        }
+      },
+      "formenberge": {
+        "name": "Formenberge",
+        "landmark": "Pyramidenspitze",
+        "locations": {
+          "spiegelteich": {
+            "name": "Spiegelteich",
+            "about": "Für Aufgaben zu Symmetrie und Spiegelachsen."
+          },
+          "wuerfeltreppe": {
+            "name": "Würfeltreppe",
+            "about": "Für Aufgaben zu Körpern wie Würfel, Quader und Kugel."
+          },
+          "formengarten": {
+            "name": "Formengarten",
+            "about": "Für Aufgaben zu Formen wie Kreis, Dreieck und Viereck."
+          }
+        }
+      },
+      "messwerkstatt": {
+        "name": "Messwerkstatt",
+        "landmark": "Waagenturm",
+        "locations": {
+          "laengentisch": {
+            "name": "Längentisch",
+            "about": "Für Aufgaben mit Metern und Zentimetern."
+          },
+          "krugregal": {
+            "name": "Krugregal",
+            "about": "Für Aufgaben mit Litern und Millilitern."
+          },
+          "gewichtsplatz": {
+            "name": "Gewichtsplatz",
+            "about": "Für Aufgaben mit Kilogramm und Gramm."
+          },
+          "umrechnungsschild": {
+            "name": "Umrechnungsschild",
+            "about": "Für Aufgaben, bei denen du Einheiten umrechnest."
+          }
+        }
+      },
+      "zeithaus": {
+        "name": "Zeithaus",
+        "landmark": "Uhrenturm",
+        "locations": {
+          "sonnenuhrgarten": {
+            "name": "Sonnenuhrgarten",
+            "about": "Für Aufgaben zur Uhr: Uhrzeiten lesen und einstellen."
+          },
+          "kalenderhaus": {
+            "name": "Kalenderhaus",
+            "about": "Für Aufgaben zu Tagen, Wochen und Monaten."
+          },
+          "sanduhrweg": {
+            "name": "Sanduhrweg",
+            "about": "Für Aufgaben zu Zeitspannen: Wie lange dauert etwas?"
+          }
+        }
+      },
+      "geldmarkt": {
+        "name": "Geldmarkt",
+        "landmark": "Marktplatz",
+        "locations": {
+          "muenzbrunnen": {
+            "name": "Münzbrunnen",
+            "about": "Für Aufgaben mit Euro und Cent."
+          },
+          "spielzeugladen": {
+            "name": "Spielzeugladen",
+            "about": "Für Einkaufsaufgaben: Was kostet es, was bleibt übrig?"
+          },
+          "wechselgeldkarren": {
+            "name": "Wechselgeldkarren",
+            "about": "Für Aufgaben zum Bezahlen und zum Wechselgeld."
+          }
+        }
+      },
+      "obstgarten": {
+        "name": "Obstgarten",
+        "landmark": "Großer Apfelbaum",
+        "locations": {
+          "koerbchenstand": {
+            "name": "Körbchenstand",
+            "about": "Für Aufgaben, bei denen gerecht geteilt wird."
+          },
+          "kuchenhuette": {
+            "name": "Kuchenhütte",
+            "about": "Für Aufgaben mit Brüchen wie einem Halben oder einem Viertel."
+          },
+          "sachaufgabenpfad": {
+            "name": "Sachaufgabenpfad",
+            "about": "Für Sachaufgaben: Rechengeschichten verstehen und lösen."
+          }
+        }
+      },
+      "mustertal": {
+        "name": "Mustertal",
+        "landmark": "Spiralhecke",
+        "locations": {
+          "folgenzaun": {
+            "name": "Folgenzaun",
+            "about": "Für Aufgaben, bei denen du eine Folge fortsetzt."
+          },
+          "knobelhof": {
+            "name": "Knobelhof",
+            "about": "Für Knobelaufgaben und Logikrätsel."
+          },
+          "musterbeete": {
+            "name": "Musterbeete",
+            "about": "Für Aufgaben zu Mustern: erkennen und fortsetzen."
+          }
+        }
+      },
+      "diagrammdorf": {
+        "name": "Diagrammdorf",
+        "landmark": "Säulenhäuser",
+        "locations": {
+          "tabellengarten": {
+            "name": "Tabellengarten",
+            "about": "Für Aufgaben mit Tabellen."
+          },
+          "zufallszelt": {
+            "name": "Zufallszelt",
+            "about": "Für Aufgaben zum Zufall: sicher, möglich oder unmöglich?"
+          },
+          "diagrammplatz": {
+            "name": "Diagrammplatz",
+            "about": "Für Aufgaben mit Diagrammen: ablesen und zeichnen."
+          }
+        }
+      },
+      "tierwiese": {
+        "name": "Tierwiese",
+        "landmark": "Roter Bauernhof",
+        "locations": {
+          "weide": {
+            "name": "Weide",
+            "about": "Für Aufgaben zu Tieren auf dem Bauernhof."
+          },
+          "haustierecke": {
+            "name": "Haustierecke",
+            "about": "Für Aufgaben zu Haustieren und wie man sie pflegt."
+          },
+          "ententeich": {
+            "name": "Ententeich",
+            "about": "Für Aufgaben zu Tieren und wie sie leben."
+          }
+        }
+      },
+      "waldwichtel-wald": {
+        "name": "Waldwichtel-Wald",
+        "landmark": "Wichtelbaum",
+        "locations": {
+          "fuchsbau": {
+            "name": "Fuchsbau",
+            "about": "Für Aufgaben zu Lebensräumen von Tieren."
+          },
+          "waldstockwerke": {
+            "name": "Waldstockwerke",
+            "about": "Für Aufgaben zum Wald und seinen Stockwerken."
+          },
+          "nahrungspfad": {
+            "name": "Nahrungspfad",
+            "about": "Für Aufgaben zu Nahrungsketten: Wer frisst wen?"
+          }
+        }
+      },
+      "blumenwiese": {
+        "name": "Blumenwiese",
+        "landmark": "Riesensonnenblume",
+        "locations": {
+          "gewaechshaus": {
+            "name": "Gewächshaus",
+            "about": "Für Aufgaben dazu, wie Pflanzen wachsen."
+          },
+          "samenbeet": {
+            "name": "Samenbeet",
+            "about": "Für Aufgaben zu Samen und wie sie keimen."
+          },
+          "pflanzenpfad": {
+            "name": "Pflanzenpfad",
+            "about": "Für Aufgaben zu Pflanzen und ihren Teilen."
+          }
+        }
+      },
+      "jahreszeitenhain": {
+        "name": "Jahreszeitenhain",
+        "landmark": "Vier-Zeiten-Baum",
+        "locations": {
+          "monatskreis": {
+            "name": "Monatskreis",
+            "about": "Für Aufgaben zu den Monaten und dem Jahreskreis."
+          },
+          "erntewagen": {
+            "name": "Erntewagen",
+            "about": "Für Aufgaben dazu, wie sich die Natur im Jahr verändert."
+          },
+          "winterecke": {
+            "name": "Winterecke",
+            "about": "Für Aufgaben zu den vier Jahreszeiten."
+          }
+        }
+      },
+      "wetterhuegel": {
+        "name": "Wetterhügel",
+        "landmark": "Wetterwarte",
+        "locations": {
+          "drachenwiese": {
+            "name": "Drachenwiese",
+            "about": "Für Aufgaben zum Wind."
+          },
+          "regenmesser": {
+            "name": "Regenmesser",
+            "about": "Für Aufgaben zu Regen."
+          },
+          "wolkenausguck": {
+            "name": "Wolkenausguck",
+            "about": "Für Aufgaben zu Wolken und zum Wetter."
+          }
+        }
+      },
+      "wasserteich": {
+        "name": "Wasserteich",
+        "landmark": "Wasserfall",
+        "locations": {
+          "wasserrad": {
+            "name": "Wasserrad",
+            "about": "Für Aufgaben rund ums Wasser."
+          },
+          "schwimmsteg": {
+            "name": "Schwimmsteg",
+            "about": "Für Aufgaben zu Schwimmen und Sinken."
+          },
+          "regentonne": {
+            "name": "Regentonne",
+            "about": "Für Aufgaben zum Kreislauf des Wassers."
+          }
+        }
+      },
+      "steinhoehle": {
+        "name": "Steinhöhle",
+        "landmark": "Kristallhöhle",
+        "locations": {
+          "magnettisch": {
+            "name": "Magnettisch",
+            "about": "Für Aufgaben zu Magneten."
+          },
+          "stoffsammlung": {
+            "name": "Stoffsammlung",
+            "about": "Für Aufgaben zu Stoffen und Materialien."
+          },
+          "forscherecke": {
+            "name": "Forscherecke",
+            "about": "Für Aufgaben zu einfachen Versuchen."
+          }
+        }
+      },
+      "echoschlucht": {
+        "name": "Echoschlucht",
+        "landmark": "Echofelsen",
+        "locations": {
+          "rufhorn": {
+            "name": "Rufhorn",
+            "about": "Für Aufgaben zu Schall und zum Hören."
+          },
+          "schattenzelt": {
+            "name": "Schattenzelt",
+            "about": "Für Aufgaben zu Licht und Schatten."
+          },
+          "windspiel": {
+            "name": "Windspiel",
+            "about": "Für Aufgaben zur Luft."
+          }
+        }
+      },
+      "feuerwache": {
+        "name": "Feuerwache",
+        "landmark": "Feuerwache",
+        "locations": {
+          "feuerstelle": {
+            "name": "Feuerstelle",
+            "about": "Für Aufgaben dazu, was Feuer zum Brennen braucht."
+          },
+          "notrufturm": {
+            "name": "Notrufturm",
+            "about": "Für Aufgaben zum Notruf und was man dabei sagt."
+          },
+          "uebungshof": {
+            "name": "Übungshof",
+            "about": "Für Aufgaben zum Brandschutz und zum richtigen Verhalten."
+          }
+        }
+      },
+      "strom-werkstatt": {
+        "name": "Strom-Werkstatt",
+        "landmark": "Windrad",
+        "locations": {
+          "stromkreistisch": {
+            "name": "Stromkreistisch",
+            "about": "Für Aufgaben zum Stromkreis."
+          },
+          "hebelplatz": {
+            "name": "Hebelplatz",
+            "about": "Für Aufgaben zu Hebel, Rolle und Zahnrad."
+          },
+          "erfinderhuette": {
+            "name": "Erfinderhütte",
+            "about": "Für Aufgaben zu Technik im Alltag."
+          }
+        }
+      },
+      "roboterbucht": {
+        "name": "Roboterbucht",
+        "landmark": "Roboterleuchtturm",
+        "locations": {
+          "kachelfeld": {
+            "name": "Kachelfeld",
+            "about": "Für Aufgaben, bei denen du Schritt für Schritt Befehle gibst."
+          },
+          "roboterwerft": {
+            "name": "Roboterwerft",
+            "about": "Für Aufgaben zu Robotern und wie sie arbeiten."
+          },
+          "pfeilpfad": {
+            "name": "Pfeilpfad",
+            "about": "Für Aufgaben zu Abläufen, die ein Computer Schritt für Schritt befolgt."
+          }
+        }
+      },
+      "himmelsturm": {
+        "name": "Himmelsturm",
+        "landmark": "Sternwarte",
+        "locations": {
+          "sonnengarten": {
+            "name": "Sonnengarten",
+            "about": "Für Aufgaben zur Sonne."
+          },
+          "mondteich": {
+            "name": "Mondteich",
+            "about": "Für Aufgaben zum Mond und seinen Phasen."
+          },
+          "raketenplatz": {
+            "name": "Raketenplatz",
+            "about": "Für Aufgaben zu Planeten und dem Weltall."
+          }
+        }
+      },
+      "koerperhaus": {
+        "name": "Körperhaus",
+        "landmark": "Körperhaus",
+        "locations": {
+          "sinnesgarten": {
+            "name": "Sinnesgarten",
+            "about": "Für Aufgaben zu den fünf Sinnen."
+          },
+          "haengemattenhain": {
+            "name": "Hängemattenhain",
+            "about": "Für Aufgaben zu Schlaf und Erholung."
+          },
+          "zahnputzbrunnen": {
+            "name": "Zahnputzbrunnen",
+            "about": "Für Aufgaben zu Zähnen und Zahnpflege."
+          },
+          "koerperpfad": {
+            "name": "Körperpfad",
+            "about": "Für Aufgaben zum Körper und wie er funktioniert."
+          }
+        }
+      },
+      "kuechengarten": {
+        "name": "Küchengarten",
+        "landmark": "Gartenküche",
+        "locations": {
+          "huehnerstall": {
+            "name": "Hühnerstall",
+            "about": "Für Aufgaben dazu, woher unser Essen kommt."
+          },
+          "regenbogenstand": {
+            "name": "Regenbogenstand",
+            "about": "Für Aufgaben zu gesundem Essen."
+          },
+          "backhaeuschen": {
+            "name": "Backhäuschen",
+            "about": "Für Aufgaben dazu, wie aus Korn Brot wird."
+          }
+        }
+      },
+      "kartenland": {
+        "name": "Kartenland",
+        "landmark": "Kompassturm",
+        "locations": {
+          "wegweiserhuegel": {
+            "name": "Wegweiserhügel",
+            "about": "Für Aufgaben zu Himmelsrichtungen und Wegen."
+          },
+          "landschaftsmodell": {
+            "name": "Landschaftsmodell",
+            "about": "Für Aufgaben zu Deutschland und seinen Ländern."
+          },
+          "kartentisch": {
+            "name": "Kartentisch",
+            "about": "Für Aufgaben mit Karten, auch von Europa."
+          }
+        }
+      },
+      "heimatstadt": {
+        "name": "Heimatstadt",
+        "landmark": "Rathaus",
+        "locations": {
+          "ladenzeile": {
+            "name": "Ladenzeile",
+            "about": "Für Aufgaben zu Geschäften in deinem Ort."
+          },
+          "baustelle": {
+            "name": "Baustelle",
+            "about": "Für Aufgaben zu Gebäuden und wie sie gebaut werden."
+          },
+          "berufeplatz": {
+            "name": "Berufeplatz",
+            "about": "Für Aufgaben zu Berufen."
+          },
+          "nachbarschaftspark": {
+            "name": "Nachbarschaftspark",
+            "about": "Für Aufgaben zu deinem Wohnort und deiner Nachbarschaft."
+          }
+        }
+      },
+      "verkehrsstrasse": {
+        "name": "Verkehrsstraße",
+        "landmark": "Ampelkreuzung",
+        "locations": {
+          "fahrradparcours": {
+            "name": "Fahrradparcours",
+            "about": "Für Aufgaben zur Fahrradprüfung."
+          },
+          "bushaltestelle": {
+            "name": "Bushaltestelle",
+            "about": "Für Aufgaben zum sicheren Schulweg."
+          },
+          "zebrastreifen": {
+            "name": "Zebrastreifen",
+            "about": "Für Aufgaben zu Verkehrsregeln."
+          }
+        }
+      },
+      "zeitreise-tal": {
+        "name": "Zeitreise-Tal",
+        "landmark": "Ritterburg",
+        "locations": {
+          "steinzeithoehle": {
+            "name": "Steinzeithöhle",
+            "about": "Für Aufgaben zur Steinzeit."
+          },
+          "ritterhof": {
+            "name": "Ritterhof",
+            "about": "Für Aufgaben zu Rittern und Burgen."
+          },
+          "zeitpfad": {
+            "name": "Zeitpfad",
+            "about": "Für Aufgaben zu früher und heute."
+          }
+        }
+      },
+      "umweltpark": {
+        "name": "Umweltpark",
+        "landmark": "Sonnendach-Pavillon",
+        "locations": {
+          "muelltrennplatz": {
+            "name": "Mülltrennplatz",
+            "about": "Für Aufgaben zu Müll, Trennen und Wiederverwerten."
+          },
+          "energieecke": {
+            "name": "Energieecke",
+            "about": "Für Aufgaben zum Energiesparen."
+          },
+          "insektenhotel": {
+            "name": "Insektenhotel",
+            "about": "Für Aufgaben zum Schutz der Umwelt."
+          }
+        }
+      },
+      "medienhuette": {
+        "name": "Medienhütte",
+        "landmark": "Medienhütte",
+        "locations": {
+          "kinozelt": {
+            "name": "Kinozelt",
+            "about": "Für Aufgaben zu Fernsehen und Spielen."
+          },
+          "surfsteg": {
+            "name": "Surfsteg",
+            "about": "Für Aufgaben zum Internet."
+          },
+          "sicherheitsbank": {
+            "name": "Sicherheitsbank",
+            "about": "Für Aufgaben zum sicheren Umgang mit Medien."
+          }
+        }
+      },
+      "kinderrathaus": {
+        "name": "Kinderrathaus",
+        "landmark": "Kinderrathaus",
+        "locations": {
+          "ratstisch": {
+            "name": "Ratstisch",
+            "about": "Für Aufgaben zum Klassenrat."
+          },
+          "wahlhaeuschen": {
+            "name": "Wahlhäuschen",
+            "about": "Für Aufgaben zu Wahlen und Demokratie."
+          },
+          "kinderrechtepfad": {
+            "name": "Kinderrechtepfad",
+            "about": "Für Aufgaben zu den Kinderrechten."
+          }
+        }
+      },
+      "hafen": {
+        "name": "Hafen",
+        "landmark": "Leuchtturm",
+        "locations": {
+          "bojenhuette": {
+            "name": "Bojenhütte",
+            "about": "Für Englischaufgaben zu Farben."
+          },
+          "segelboot": {
+            "name": "Segelboot",
+            "about": "Für Englischaufgaben mit neuen Wörtern."
+          },
+          "muschelstrand": {
+            "name": "Muschelstrand",
+            "about": "Für Englischaufgaben zu Zahlen."
+          },
+          "kai": {
+            "name": "Kai",
+            "about": "Für Englischaufgaben mit einfachen Sätzen."
+          }
+        }
+      },
+      "weltreise-hafen": {
+        "name": "Weltreise-Hafen",
+        "landmark": "Weltreiseschiff",
+        "locations": {
+          "ballonwiese": {
+            "name": "Ballonwiese",
+            "about": "Für Aufgaben über andere Länder und wie Kinder dort leben."
+          },
+          "globushalle": {
+            "name": "Globushalle",
+            "about": "Für Aufgaben, bei denen du die Welt erkundest."
+          },
+          "sprachensteg": {
+            "name": "Sprachensteg",
+            "about": "Für Aufgaben zu anderen Sprachen."
+          }
+        }
+      },
+      "musikwiese": {
+        "name": "Musikwiese",
+        "landmark": "Musikpavillon",
+        "locations": {
+          "xylofonweg": {
+            "name": "Xylofonweg",
+            "about": "Für Aufgaben zu Instrumenten und Noten."
+          },
+          "trommelkreis": {
+            "name": "Trommelkreis",
+            "about": "Für Aufgaben zum Rhythmus."
+          },
+          "glockenreihe": {
+            "name": "Glockenreihe",
+            "about": "Für Aufgaben zur Musik."
+          }
+        }
+      },
+      "farbtal": {
+        "name": "Farbtal",
+        "landmark": "Farbenwasserfall",
+        "locations": {
+          "staffeleihuegel": {
+            "name": "Staffeleihügel",
+            "about": "Für Aufgaben zum Zeichnen."
+          },
+          "palettenhuette": {
+            "name": "Palettenhütte",
+            "about": "Für Aufgaben zum Malen."
+          },
+          "farbbecken": {
+            "name": "Farbbecken",
+            "about": "Für Aufgaben zu Farben und wie man sie mischt."
+          }
+        }
+      },
+      "bastelwerkstatt": {
+        "name": "Bastelwerkstatt",
+        "landmark": "Bastelscheune",
+        "locations": {
+          "webstuhl": {
+            "name": "Webstuhl",
+            "about": "Für Aufgaben mit Stoff, Wolle und Nadel."
+          },
+          "pappburg": {
+            "name": "Pappburg",
+            "about": "Für Aufgaben, bei denen du etwas baust."
+          },
+          "faltkorb": {
+            "name": "Faltkorb",
+            "about": "Für Bastelaufgaben mit Papier und Schere."
+          }
+        }
+      },
+      "sportwiese": {
+        "name": "Sportwiese",
+        "landmark": "Sportplatz",
+        "locations": {
+          "schwimmbecken": {
+            "name": "Schwimmbecken",
+            "about": "Für Aufgaben zum Schwimmen."
+          },
+          "klettergeruest": {
+            "name": "Klettergerüst",
+            "about": "Für Aufgaben zu Bewegung und Fitness."
+          },
+          "regeltafel": {
+            "name": "Regeltafel",
+            "about": "Für Aufgaben zu Sportarten und ihren Regeln."
+          }
+        }
+      },
+      "freundschaftsdorf": {
+        "name": "Freundschaftsdorf",
+        "landmark": "Dorflinde",
+        "locations": {
+          "freundschaftsbruecke": {
+            "name": "Freundschaftsbrücke",
+            "about": "Für Aufgaben zu Freundschaft."
+          },
+          "ruhegarten": {
+            "name": "Ruhegarten",
+            "about": "Für Aufgaben zu Gefühlen."
+          },
+          "treffpunkt-steine": {
+            "name": "Treffpunkt-Steine",
+            "about": "Für Aufgaben zu Streit und Versöhnung."
+          },
+          "dorfwegweiser": {
+            "name": "Dorfwegweiser",
+            "about": "Für Aufgaben zu Regeln im Zusammenleben."
+          }
+        }
+      },
+      "festetal": {
+        "name": "Festetal",
+        "landmark": "Festzelt",
+        "locations": {
+          "festtafel": {
+            "name": "Festtafel",
+            "about": "Für Aufgaben zu Festen und Feiern."
+          },
+          "laternenweg": {
+            "name": "Laternenweg",
+            "about": "Für Aufgaben zu Bräuchen."
+          },
+          "gespraechskreis": {
+            "name": "Gesprächskreis",
+            "about": "Für Aufgaben zu Werten, Religion und Ethik."
+          }
+        }
+      },
+      "merkberg": {
+        "name": "Merkberg",
+        "landmark": "Gedächtnisgipfel",
+        "locations": {
+          "stiller-teich": {
+            "name": "Stiller Teich",
+            "about": "Für Aufgaben zu Konzentration und Ruhe."
+          },
+          "planungshuegel": {
+            "name": "Planungshügel",
+            "about": "Für Aufgaben zum Planen deiner Hausaufgaben."
+          },
+          "merkkisten": {
+            "name": "Merkkisten",
+            "about": "Für Merktricks und gute Ideen zum Lernen."
+          }
+        }
+      },
+      "ueberraschungsinsel": {
+        "name": "Überraschungsinsel",
+        "landmark": "Überraschungskiste",
+        "locations": {
+          "ballonplatz": {
+            "name": "Ballonplatz",
+            "about": "Für Aufgaben, die zu vielen Inseln passen könnten."
+          },
+          "muschelhaus": {
+            "name": "Muschelhaus",
+            "about": "Für Aufgaben, bei denen wir gemeinsam schauen, worum es geht."
+          },
+          "geheimtuer": {
+            "name": "Geheimtür",
+            "about": "Für alles, was auf keine andere Insel passt."
+          }
+        }
+      }
+    }
+  },
+  "parent": {
+    "title": "Elternbereich",
+    "controls": "Einstellungen für {name}",
+    "noLimit": "Tageslimit: keines",
+    "limit": "Tageslimit: {minutes} Minuten",
+    "anyTime": "Lernzeit: jederzeit",
+    "window": "Lernzeit: {from}–{until}",
+    "unavailable": "Für den Elternbereich muss die Anmeldung aktiviert sein."
   }
 }

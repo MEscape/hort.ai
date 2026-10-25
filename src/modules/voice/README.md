@@ -70,6 +70,17 @@ it answers `voice.hosting_disabled`; a storage failure is `voice.clip_failed`.
     from `AUTH_SECRET`, bound to the parent (tenant and actor) and valid for 30 minutes. Forged,
     expired or foreign tickets answer `voice.validation.ticket_invalid`. Nothing is stored.
 
+## Fixed screen lines (`UI_LINES`)
+
+Besides its own greeting, praise and tip, every ready tutor says the same short **screen lines** of the child's
+home screen (a hello, "photos are coming soon", "I only read what you type", and so on) in its own voice. They are
+`phrase` values like the others (`{ speakerId, phrase: 'photoSoon' }`), the words are in
+`infrastructure/catalog/ui-lines.json` (German), they hold no name or anything about the child, and a test keeps them
+equal to the German screen text (`app.home.guide.*`). The browser plays them with `useSpokenLine` (`@modules/voice/client`):
+the clip of a line is fetched once per page load and kept in memory, one voice plays at a time, and a refused request,
+a network failure or a browser that blocks sound before the first tap ends quietly in text only. Add a line by editing the
+closed list in `domain/models/system-phrase.ts`, the JSON and the screen messages together.
+
 ## Speakers and voices
 
 A speaker is a tutor that is `bereit` with `stimme.tts.provider: "elevenlabs"` in
