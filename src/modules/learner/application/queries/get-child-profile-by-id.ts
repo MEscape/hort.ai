@@ -1,7 +1,7 @@
 import type { AppResultAsync } from '@lib/result';
 
-import { loadAuthorizedChildProfile } from '../load-authorized-child-profile';
 import { toChildProfileView } from '../learner-view-mappers';
+import { loadAuthorizedChildProfile } from '../load-authorized-child-profile';
 
 import type { ChildProfileView } from '../contracts/learner-views';
 import type { LearnerDependencies } from '../learner-dependencies';
