@@ -189,6 +189,20 @@ describe('teacher assignment workspace', () => {
     expect(window.sessionStorage.length).toBe(0);
   });
 
+  it('does not restore a stale draft after all changes were reverted to the baseline', async () => {
+    const first = renderWorkspace();
+    fireEvent.click(screen.getByRole('button', { name: 'New assignment' }));
+    await fill('Assignment title', 'Temporary title');
+    expect(window.sessionStorage.length).toBe(1);
+    await fill('Assignment title', '');
+    expect(window.sessionStorage.length).toBe(0);
+    first.unmount();
+
+    renderWorkspace();
+    expect(screen.getByRole('heading', { name: 'No assignments yet' })).toBeVisible();
+    expect(screen.queryByLabelText('Assignment title')).not.toBeInTheDocument();
+  });
+
   it('edits a saved assignment with its stored values', async () => {
     renderWorkspace([SAVED]);
     expect(screen.getByText('Solution key saved')).toBeInTheDocument();

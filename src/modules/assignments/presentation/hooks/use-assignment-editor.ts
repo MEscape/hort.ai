@@ -128,8 +128,14 @@ export function useAssignmentEditor({ classroomId, onSaved }: AssignmentEditorOp
   }, []);
 
   useEffect(() => {
-    if (view !== 'overview' && isDirty && isDraft(values)) {
+    if (view === 'overview') {
+      return;
+    }
+    if (isDirty && isDraft(values)) {
       store.write({ id: editingId, baseline: baseline.current, values });
+    } else if (!isDirty) {
+      // Reverting every field to the baseline must not resurrect an older stored draft.
+      store.clear();
     }
   }, [store, view, isDirty, values, editingId]);
 
