@@ -69,9 +69,20 @@ export class CompleteMaterialUpload {
               .andThen((statements) => materials.process(row, statements))
               .andThen((processed) => {
                 if (!processed) {
-                  return errAsync(
-                    conflictError('teacher_material.not_pending', 'Material is not pending.'),
-                  );
+                  // A delete or failure retired the row meanwhile: our late write must not
+                  // outlive it. A PROCESSED winner keeps its copy.
+                  return materials
+                    .find(row.id, row.ownerId, row.tenantId)
+                    .andThen((current) =>
+                      current?.status === 'PROCESSED'
+                        ? okAsync(undefined)
+                        : store.delete(published).andThen(() => store.delete(upload)),
+                    )
+                    .andThen(() =>
+                      errAsync(
+                        conflictError('teacher_material.not_pending', 'Material is not pending.'),
+                      ),
+                    );
                 }
                 audit.record({ type: 'material.processed', materialId: row.id });
                 return store.delete(upload);

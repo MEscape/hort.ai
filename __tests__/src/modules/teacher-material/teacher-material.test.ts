@@ -205,6 +205,25 @@ it('never overwrites a published copy when two completions read different upload
   expect(w.sections.get('material-1')?.map((s) => s.text)).toEqual([served.replace(/^- /, '')]);
 });
 
+it('removes its late copy when the material was deleted during the completion', async () => {
+  const w = world();
+  await new BeginMaterialUpload(w.deps).execute(w.input);
+  const read = w.deps.textReader.read;
+  w.deps.textReader.read = (location, max) =>
+    read(location, max).andThen((bytes) =>
+      // The teacher deletes the material after the check, before the copy is written.
+      new DeleteMaterial(w.deps).execute('material-1').map(() => bytes),
+    );
+  w.deletedKeys.length = 0;
+
+  expect((await new CompleteMaterialUpload(w.deps).execute('material-1')).isErr()).toBe(true);
+
+  expect(w.rows[0]?.status).toBe('DELETED');
+  // The delete removed both objects first; the copy written afterwards is removed again.
+  expect(w.written.has(PUBLISHED_KEY)).toBe(true);
+  expect(w.deletedKeys).toEqual([PUBLISHED_KEY, UPLOAD_KEY, PUBLISHED_KEY, UPLOAD_KEY]);
+});
+
 it('bounds upload attempts per teacher and refuses a broken limiter', async () => {
   const w = world();
   const begin = new BeginMaterialUpload(w.deps);
