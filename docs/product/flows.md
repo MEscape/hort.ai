@@ -124,6 +124,8 @@ stateDiagram-v2
   Hidden --> [*]: Session ends
 ```
 
+**Direction (2026-10-25):** the chosen companion (Max, Lili or Fina) appears at the edge of the screen while it guides and leaves while the child works alone.
+
 **Product requirements:** assistance cannot depend on animation or sound, praise must reflect actual work, and mistakes are not punished. Reduced-motion users need an equivalent interaction. The exact states, trigger thresholds and animation timing are proposals, not an approved state machine. Automatic detection of frustration is outside the MVP. Related work: #12, #30 and #34.
 
 ## 7. Consistent requirements across channels

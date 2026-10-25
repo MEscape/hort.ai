@@ -4,7 +4,7 @@ import { createHintOrchestrator } from '@modules/guidance';
 import { HintOrchestrator } from '@modules/guidance/application/services/hint-orchestrator';
 import { HINT_LEVELS } from '@modules/guidance/domain/models/hint-level';
 
-import { REQUEST, fakeHintProvider, fakeSafetyClassifier, recordingAuditLog } from '../fakes';
+import { REQUEST, fakeHintProvider, fakeSafetyClassifier, recordingAuditLog, task } from '../fakes';
 
 import type { ProviderScript } from '../fakes';
 
@@ -157,6 +157,61 @@ describe('HintOrchestrator child safety (#11)', () => {
     await orchestrator.suggest(REQUEST);
 
     expect(events).toEqual([]);
+  });
+});
+
+describe('HintOrchestrator solution-leak guard (#31)', () => {
+  const SOLUTION_LEAKED = { kind: 'fallback', level: 'next_step', reason: 'solution_leaked' };
+
+  it.each([
+    ['the result', 'Das Ergebnis ist 7.'],
+    ['the result spelled out', 'Dann hat Lisa sieben Äpfel.'],
+    ['a dictated answer', 'Schreib: Lisa hat jetzt viele Äpfel.'],
+  ])('falls back instead of showing a hint that states %s', async (_case, text) => {
+    const { orchestrator } = build({ answer: hint({ text }) });
+
+    expect(await orchestrator.suggest(REQUEST)).toEqual(SOLUTION_LEAKED);
+  });
+
+  it('checks the hint against the teacher’s solution key', async () => {
+    const request = { ...REQUEST, task: task('Aufgabe 4 auf dem Arbeitsblatt') };
+    const { orchestrator } = build({ answer: hint({ text: 'Kommt vielleicht 42 heraus?' }) });
+
+    expect(await orchestrator.suggest(request, '42')).toEqual(SOLUTION_LEAKED);
+    expect(await orchestrator.suggest(request)).toMatchObject({ kind: 'generated' });
+  });
+
+  it('logs the leak codes, never the text, the task or the solution', async () => {
+    const { orchestrator, events } = build({ answer: hint({ text: 'Das Ergebnis ist 7.' }) });
+
+    await orchestrator.suggest(REQUEST);
+
+    expect(events).toEqual([
+      {
+        type: 'guidance.hint_fallback_used',
+        level: 'next_step',
+        reason: 'solution_leaked',
+        codes: [
+          'guidance.ai_output.solution_leaked',
+          'guidance.solution_leak.states_result',
+          'guidance.solution_leak.announces_result',
+        ],
+      },
+    ]);
+    expect(JSON.stringify(events)).not.toMatch(/Ergebnis|Äpfel|7/);
+  });
+
+  it('never hands a leaking hint to the safety classifier', async () => {
+    const { provider } = fakeHintProvider({ answer: hint({ text: 'Das Ergebnis ist 7.' }) });
+    const { safety, texts } = fakeSafetyClassifier({ scores: {} });
+    const orchestrator = new HintOrchestrator({
+      provider,
+      audit: recordingAuditLog().audit,
+      safety,
+    });
+
+    expect(await orchestrator.suggest(REQUEST)).toEqual(SOLUTION_LEAKED);
+    expect(texts).toEqual([]);
   });
 });
 

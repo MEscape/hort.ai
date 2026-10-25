@@ -11,6 +11,12 @@ export { classroomQueries } from './composition';
 
 export { classroomRoutes } from './presentation/routes';
 
+/** A teacher's first class, rendered by the assignment screen when the teacher has none yet (#33). */
+export { CreateClassroomForm } from './presentation/components/create-classroom-form';
+
+/** A parent's view of their child's class: join with a code, see it, leave it (#32, #33). */
+export { ChildClassroomPanel } from './presentation/components/child-classroom-panel';
+
 export { default as enClassroom } from './presentation/i18n/en.json';
 export { default as deClassroom } from './presentation/i18n/de.json';
 

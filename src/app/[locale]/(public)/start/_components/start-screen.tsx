@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import { ChildSchoolTasks } from '@modules/assignments/client';
+import type { ChildAssignmentView } from '@modules/assignments/client';
+
 import { Button } from '@components/ui/button';
 
 import { useTranslations } from '@i18n/client';
@@ -13,8 +16,13 @@ import { TaskEntry } from './task-entry';
 type StartView = 'home' | 'task' | 'school' | 'continue';
 const BACK_ARROW = '←';
 
+interface StartScreenProps {
+  /** The child's class's assignments (child-safe views), or `null` when none can be shown. */
+  readonly schoolAssignments: readonly ChildAssignmentView[] | null;
+}
+
 /** Drafts live only in this mounted route; leaving or reloading it clears them. */
-export function StartScreen() {
+export function StartScreen({ schoolAssignments }: StartScreenProps) {
   const t = useTranslations('app');
   const [view, setView] = useState<StartView>('home');
   const [draft, setDraft] = useState('');
@@ -51,9 +59,13 @@ export function StartScreen() {
         <span aria-hidden="true">{BACK_ARROW}</span>
         {t('start.back')}
       </Button>
-      {view === 'task' ? (
+      {view === 'task' && (
         <TaskEntry draft={draft} onDraftChange={setDraft} headingRef={headingRef} />
-      ) : (
+      )}
+      {view === 'school' && schoolAssignments !== null && (
+        <ChildSchoolTasks assignments={schoolAssignments} />
+      )}
+      {((view === 'school' && schoolAssignments === null) || view === 'continue') && (
         <StartEmptyState kind={view} headingRef={headingRef} />
       )}
     </div>

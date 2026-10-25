@@ -5,7 +5,7 @@ import type { InstantRecord } from '@lib/db';
 
 import { toAssignmentId, toClassroomId } from '../../domain/models/ids';
 
-import type { Assignment, AssignmentDraft } from '../../domain/models/assignment';
+import type { Assignment, AssignmentDraft, ChildAssignment } from '../../domain/models/assignment';
 
 export interface AssignmentRecord {
   readonly id: string;
@@ -45,6 +45,30 @@ export function toAssignment(record: AssignmentRecord): Assignment {
     solutionKey: record.solutionKey,
     createdAt: instantToDate(record.createdAt),
     updatedAt: instantToDate(record.updatedAt),
+  };
+}
+
+/** The child read selects only these columns: the solution key is never even loaded. */
+export const CHILD_ASSIGNMENT_SELECT = [
+  'id',
+  'classroomId',
+  'title',
+  'taskText',
+  'dueDate',
+] as const satisfies ReadonlyArray<keyof AssignmentRecord>;
+
+export type ChildAssignmentRecord = Pick<
+  AssignmentRecord,
+  (typeof CHILD_ASSIGNMENT_SELECT)[number]
+>;
+
+export function toChildAssignmentRecord(record: ChildAssignmentRecord): ChildAssignment {
+  return {
+    id: toAssignmentId(record.id),
+    classroomId: toClassroomId(record.classroomId),
+    title: record.title,
+    text: record.taskText,
+    dueDate: record.dueDate,
   };
 }
 

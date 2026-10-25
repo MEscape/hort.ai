@@ -39,7 +39,8 @@ export class LearnerChildProfileAccess implements ChildProfileAccess {
     return this.learner.adoptSchoolSettings
       .execute({
         profileId: childProfileId,
-        federalState: settings.federalState,
+        // This module stores `he`; the learner module accepts only the official code `HE`.
+        federalState: settings.federalState.toUpperCase(),
         grade: settings.grade,
       })
       .map(() => undefined);

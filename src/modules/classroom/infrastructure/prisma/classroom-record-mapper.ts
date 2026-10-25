@@ -3,7 +3,7 @@ import { toActorId, toTenantId } from '@modules/auth';
 import { dateToInstant, instantToDate } from '@lib/db';
 import type { InstantRecord } from '@lib/db';
 
-import { toChildProfileId, toClassroomId } from '../../domain/models/ids';
+import { toClassMembershipId, toClassroomId } from '../../domain/models/ids';
 
 import type {
   Classroom,
@@ -154,17 +154,17 @@ export function instantOf(now: Date) {
 
 /** A membership row with only the child's display name: what a teacher may see (#32). */
 export interface ClassMemberRecord {
-  readonly childProfileId: string;
+  readonly id: string;
   readonly joinedAt: InstantRecord;
   readonly childProfile: { readonly displayName: string } | null;
 }
 
-export const CLASS_MEMBER_SELECT = ['id', 'childProfileId', 'joinedAt'] as const;
+export const CLASS_MEMBER_SELECT = ['id', 'joinedAt'] as const;
 export const CHILD_DISPLAY_NAME_SELECT = ['displayName'] as const;
 
 export function toClassMember(record: ClassMemberRecord): ClassMember {
   return {
-    childProfileId: toChildProfileId(record.childProfileId),
+    memberId: toClassMembershipId(record.id),
     displayName: record.childProfile?.displayName ?? '',
     joinedAt: instantToDate(record.joinedAt),
   };
