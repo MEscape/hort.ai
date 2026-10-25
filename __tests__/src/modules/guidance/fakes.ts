@@ -18,6 +18,10 @@ import type {
   HintProvider,
   HintProviderFailure,
 } from '@modules/guidance/domain/ports/hint-provider.port';
+import type {
+  SafetyClassifier,
+  SafetyScores,
+} from '@modules/guidance/domain/ports/safety-classifier.port';
 
 import { infrastructureError, notFoundError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
@@ -52,6 +56,20 @@ export function fakeHintProvider(script: ProviderScript) {
     },
   };
   return { provider, requests };
+}
+
+/** A stand-in for the safety classifier: it scores as scripted and keeps the texts it rated. */
+export function fakeSafetyClassifier(
+  script: { readonly scores: SafetyScores } | { readonly fails: true },
+) {
+  const texts: string[] = [];
+  const safety: SafetyClassifier = {
+    classify(text) {
+      texts.push(text);
+      return 'fails' in script ? errAsync({ kind: 'timeout' }) : okAsync(script.scores);
+    },
+  };
+  return { safety, texts };
 }
 
 /** Keeps every event the orchestration logs, so a test can check what operations would see. */

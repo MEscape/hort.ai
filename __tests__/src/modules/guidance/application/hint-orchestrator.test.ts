@@ -4,7 +4,7 @@ import { createHintOrchestrator } from '@modules/guidance';
 import { HintOrchestrator } from '@modules/guidance/application/services/hint-orchestrator';
 import { HINT_LEVELS } from '@modules/guidance/domain/models/hint-level';
 
-import { REQUEST, fakeHintProvider, recordingAuditLog } from '../fakes';
+import { REQUEST, fakeHintProvider, fakeSafetyClassifier, recordingAuditLog } from '../fakes';
 
 import type { ProviderScript } from '../fakes';
 
@@ -165,5 +165,59 @@ describe('createHintOrchestrator', () => {
     const { provider } = fakeHintProvider({ answer: hint({ kind: 'solution' }) });
 
     expect(await createHintOrchestrator(provider).suggest(REQUEST)).toEqual(INVALID_OUTPUT);
+  });
+});
+
+describe('HintOrchestrator with the safety classifier (#11)', () => {
+  const ANSWER = hint();
+
+  function withSafety(classifier: Parameters<typeof fakeSafetyClassifier>[0]) {
+    const { provider } = fakeHintProvider({ answer: ANSWER });
+    const { audit, events } = recordingAuditLog();
+    const { safety, texts } = fakeSafetyClassifier(classifier);
+    return { orchestrator: new HintOrchestrator({ provider, audit, safety }), events, texts };
+  }
+
+  it('lets a hint through that the classifier rates safe, and rates exactly the text shown', async () => {
+    const { orchestrator, texts } = withSafety({
+      scores: { 'guidance.child_safety.asks_for_secrecy': 0.02 },
+    });
+
+    expect(await orchestrator.suggest(REQUEST)).toMatchObject({ kind: 'generated' });
+    expect(texts).toEqual([VALID_TEXT]);
+  });
+
+  it('falls back on a flagged rule and logs its code, never the text', async () => {
+    const { orchestrator, events } = withSafety({
+      scores: { 'guidance.child_safety.discouraging': 0.8 },
+    });
+
+    expect(await orchestrator.suggest(REQUEST)).toEqual({
+      kind: 'fallback',
+      level: 'next_step',
+      reason: 'unsafe_output',
+    });
+    expect(events[0]).toMatchObject({ codes: ['guidance.child_safety.discouraging'] });
+    expect(JSON.stringify(events)).not.toContain('Äpfel');
+  });
+
+  it('keeps the text from the child when the classifier cannot answer', async () => {
+    const { orchestrator, events } = withSafety({ fails: true });
+
+    expect(await orchestrator.suggest(REQUEST)).toMatchObject({
+      kind: 'fallback',
+      reason: 'provider_unavailable',
+    });
+    expect(events[0]).toMatchObject({ codes: ['guidance.child_safety.classifier_unavailable'] });
+  });
+
+  it('does not ask the classifier about an answer the word lists already rejected', async () => {
+    const { provider } = fakeHintProvider({ answer: hint({ text: 'Wo wohnst du?' }) });
+    const { audit } = recordingAuditLog();
+    const { safety, texts } = fakeSafetyClassifier({ scores: {} });
+
+    await new HintOrchestrator({ provider, audit, safety }).suggest(REQUEST);
+
+    expect(texts).toEqual([]);
   });
 });

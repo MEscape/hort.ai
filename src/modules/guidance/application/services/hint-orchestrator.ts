@@ -3,11 +3,14 @@ import { judgeAiAnswer } from './judge-ai-answer';
 import type { HintRequest } from '../../domain/models/hint-request';
 import type { GuidanceAuditLog } from '../../domain/ports/guidance-audit-log.port';
 import type { HintProvider } from '../../domain/ports/hint-provider.port';
+import type { SafetyClassifier } from '../../domain/ports/safety-classifier.port';
 import type { HintOutcome } from '../contracts/hint-views';
 
 export interface HintOrchestratorDependencies {
   readonly provider: HintProvider;
   readonly audit: GuidanceAuditLog;
+  /** The second safety check (#11); without one only the word lists apply. */
+  readonly safety?: SafetyClassifier;
 }
 
 /**
@@ -22,10 +25,11 @@ export class HintOrchestrator {
 
   async suggest(request: HintRequest): Promise<HintOutcome> {
     const { level } = request;
-    const verdict = await judgeAiAnswer(() => this.deps.provider.suggest(request), {
-      kind: 'hint',
-      hintLevel: level,
-    });
+    const verdict = await judgeAiAnswer(
+      () => this.deps.provider.suggest(request),
+      { kind: 'hint', hintLevel: level },
+      this.deps.safety,
+    );
     if ('output' in verdict) {
       return { kind: 'generated', level, text: verdict.output.text };
     }

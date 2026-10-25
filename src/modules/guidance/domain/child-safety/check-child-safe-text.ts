@@ -1,6 +1,7 @@
 import { CHILD_SAFETY_VALIDATION_CODES } from '../errors/child-safety-errors';
 
 import type { ChildSafetyValidationCode } from '../errors/child-safety-errors';
+import type { SafetyScores } from '../ports/safety-classifier.port';
 
 /**
  * A homework companion never needs to know who or where the child is. These catch the AI asking for
@@ -70,4 +71,24 @@ export function checkChildSafeText(text: string): ChildSafetyValidationCode[] {
     codes.push(CHILD_SAFETY_VALIDATION_CODES.discouraging);
   }
   return codes;
+}
+
+/**
+ * A classifier score at or above this flags the rule. Low on purpose: a false positive only costs
+ * one fallback prompt, a false negative reaches a child.
+ */
+const SAFETY_FLAG_THRESHOLD = 0.5;
+
+/**
+ * The rules a safety classifier flags. A score outside 0 to 1 (or not a number) is untrusted
+ * output and flags the rule too.
+ */
+export function flaggedBySafetyScores(scores: SafetyScores): ChildSafetyValidationCode[] {
+  return Object.values(CHILD_SAFETY_VALIDATION_CODES).filter((code) => {
+    const score = scores[code];
+    if (score === undefined) {
+      return false;
+    }
+    return !(Number.isFinite(score) && score >= 0 && score <= 1) || score >= SAFETY_FLAG_THRESHOLD;
+  });
 }

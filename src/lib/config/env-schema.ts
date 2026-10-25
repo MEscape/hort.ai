@@ -104,6 +104,12 @@ const productionRules: ReadonlyArray<EnvRule<ServerEnvShape>> = [
     message: 'GEMINI_API_URL must be an https URL in production.',
   },
   {
+    path: 'TYPESAFE_API_URL',
+    // Every request carries TYPESAFE_API_KEY and AI text meant for a child.
+    violated: (env) => isProduction(env) && new URL(env.TYPESAFE_API_URL).protocol !== 'https:',
+    message: 'TYPESAFE_API_URL must be an https URL in production.',
+  },
+  {
     path: 'ELEVENLABS_API_URL',
     // Every request carries ELEVENLABS_API_KEY and a child's recorded voice.
     violated: (env) => isProduction(env) && new URL(env.ELEVENLABS_API_URL).protocol !== 'https:',

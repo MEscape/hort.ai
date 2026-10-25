@@ -142,6 +142,9 @@ describe('serverEnvSchema', () => {
       'GEMINI_API_URL: GEMINI_API_URL must be an https URL in production.',
     ]);
     expect(problems({ ...development, GEMINI_API_URL: 'http://localhost:9001' })).toEqual([]);
+    expect(problems({ ...production, TYPESAFE_API_URL: 'http://jev.example.org' })).toEqual([
+      'TYPESAFE_API_URL: TYPESAFE_API_URL must be an https URL in production.',
+    ]);
   });
 
   it('does not require https for storage URLs outside production', () => {

@@ -12,6 +12,7 @@ provider adapter (infrastructure, #10)
       └─ validateAiOutput(raw, { kind, hintLevel })   ← this contract (domain)
           └─ solution-leak guard (#31)                ← needs the task and its solution
               └─ safety checks on the text (#11)
+                  └─ safety classifier, when configured (Jev)
                   └─ shown to the child
 ```
 
@@ -26,6 +27,10 @@ The adapter is `GeminiProvider` (`infrastructure/gemini/`): Gemini 3.8 Flash (`g
 **For the hackathon demo only.** The Gemini API terms exclude services likely to be used by people under 18 (and so do Google Cloud's terms for Vertex AI), and on the free tier Google uses prompts and answers to improve its products. The provider must be re-assessed before any test with children; the port keeps it replaceable.
 
 Without `GEMINI_API_KEY` the AI is off and every hint is the predefined prompt of its level. Configuration (`src/lib/config/ai-env-schema.ts`, `.env.example` section 8): `GEMINI_API_KEY` (from Google AI Studio, server-only secret), `GEMINI_API_URL`, `GEMINI_MODEL_ID`, `GEMINI_TIMEOUT_MS` (default 8000). Tests use fakes only; no test reaches Google.
+
+### Second safety check: Jev
+
+With `TYPESAFE_API_KEY` set, every text that passed the word lists is also rated by TypeSafe's Jev decision model (`infrastructure/typesafe/jev-safety-classifier.ts`, `SafetyClassifier` port). One `POST /v1/systemone` asks one yes/no question per child-safety rule (personal data, secrecy, inappropriate content, discouraging), with the AI text as the state only; Jev answers with probabilities, never text. `flaggedBySafetyScores` (domain) flags a rule at 0.5 or above, and any score that is not a probability; a rule Jev did not answer counts as flagged. A flagged text falls back with reason `unsafe_output` and the rule's code. If Jev cannot answer in `TYPESAFE_TIMEOUT_MS` (default 3000), the text is not shown either (`guidance.child_safety.classifier_unavailable`): the predefined prompt is always safe. The questions are in English, Jev's strongest language; German texts are handled but less accurately, so the word lists stay the first check. Jev costs $0.042 per million input tokens, output is free; the model is pinned (`TYPESAFE_MODEL_ID`, default `jev-1.14.0`).
 
 The contract is a domain function built on the `@lib/utils` shape guards, not a Zod schema. [`validation.md`](../rules/validation.md) reserves Zod for the presentation boundary, and AI output arrives in infrastructure. A domain function can be called from the provider adapter and tested without a provider.
 

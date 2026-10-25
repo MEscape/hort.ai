@@ -11,3 +11,6 @@ export const CHILD_SAFETY_VALIDATION_CODES = {
 
 export type ChildSafetyValidationCode =
   (typeof CHILD_SAFETY_VALIDATION_CODES)[keyof typeof CHILD_SAFETY_VALIDATION_CODES];
+
+/** The safety classifier could not rate the text, so it is not shown (fail closed). */
+export const SAFETY_CLASSIFIER_UNAVAILABLE = 'guidance.child_safety.classifier_unavailable';
