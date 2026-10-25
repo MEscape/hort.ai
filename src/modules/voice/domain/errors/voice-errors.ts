@@ -46,6 +46,8 @@ export const VOICE_VALIDATION_CODES = {
   recordingRequired: 'voice.validation.recording_required',
   recordingTooLarge: 'voice.validation.recording_too_large',
   recordingTypeUnsupported: 'voice.validation.recording_type_unsupported',
+  /** The bytes do not carry the format signature of the declared audio type. */
+  recordingContentMismatch: 'voice.validation.recording_content_mismatch',
   /** The request carried words to speak; only catalog lines and validated hints are spoken. */
   freeTextRefused: 'voice.validation.free_text_refused',
   /** The ticket is forged, expired or was issued to another parent. */
