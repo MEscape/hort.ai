@@ -23,11 +23,7 @@
       "gradeLabel": "Jahrgangsstufe",
       "scopeNote": "Hort.ai unterstützt derzeit Mathematik in Hessen.",
       "submit": "Klasse anlegen",
-      "submitting": "Wird angelegt …",
-      "createdTitle": "Deine Klasse ist angelegt",
-      "codeLabel": "Einladungscode:",
-      "codeHint": "Gib diesen Einladungscode an die Eltern deiner Klasse weiter. Er wird nur jetzt angezeigt; später kannst du einen neuen erzeugen.",
-      "continue": "Weiter zu den Aufgaben"
+      "submitting": "Wird angelegt …"
     },
     "join": {
       "title": "Klasse",
@@ -43,6 +39,42 @@
       "leaveKeep": "In der Klasse bleiben",
       "leaveConfirm": "Klasse verlassen",
       "leaving": "Wird verlassen …"
+    },
+    "dialog": {
+      "close": "Schließen"
+    },
+    "code": {
+      "label": "Einladungscode",
+      "copy": "Code kopieren",
+      "copied": "Kopiert.",
+      "copyFailed": "Kopieren hat nicht geklappt. Du kannst den Code abschreiben."
+    },
+    "created": {
+      "title": "Klasse {name} ist angelegt",
+      "grade": "Jahrgangsstufe {grade}",
+      "share": "Gib diesen Code an die Eltern deiner Klasse weiter, zum Beispiel per Elternbrief. Sie geben ihn auf ihrer Startseite ein, damit ihr Kind deine Aufgaben sieht.",
+      "done": "Fertig"
+    },
+    "add": {
+      "open": "Klasse hinzufügen",
+      "title": "Neue Klasse",
+      "description": "Deine Aufgaben in der gerade gewählten Klasse bleiben dabei unverändert."
+    },
+    "details": {
+      "open": "Details zu {name}",
+      "codeUnavailable": "Code nicht verfügbar",
+      "codeUnavailableHint": "Für diese Klasse ist nur eine Prüfsumme gespeichert. Den alten Code kann niemand mehr anzeigen; du kannst einen neuen erzeugen.",
+      "codeValidUntil": "Gültig bis {date}.",
+      "codeExpired": "Dieser Code ist abgelaufen. Erzeuge einen neuen, damit weitere Kinder beitreten können.",
+      "regenerate": "Neuen Code erzeugen",
+      "regenerateTitle": "Neuen Code erzeugen?",
+      "regenerateBody": "Der bisherige Code funktioniert danach nicht mehr. Kinder, die schon in der Klasse sind, bleiben in der Klasse.",
+      "regenerateKeep": "Abbrechen",
+      "regenerateConfirm": "Neuen Code erzeugen",
+      "regenerating": "Wird erzeugt …",
+      "membersTitle": "{count, plural, =0 {Kinder} one {# Kind} other {# Kinder}}",
+      "membersEmpty": "Noch ist kein Kind beigetreten.",
+      "joined": "seit {date}"
     }
   }
 }

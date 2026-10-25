@@ -45,6 +45,18 @@ export type SecurityEvent =
       readonly tenantId: TenantId;
     }
   | {
+      /** The person changed their own password while signed in; other sessions were revoked. */
+      readonly type: 'account.password_changed';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+    }
+  | {
+      /** The person changed their own display name; the name itself is not recorded. */
+      readonly type: 'account.display_name_changed';
+      readonly actorId: ActorId;
+      readonly tenantId: TenantId;
+    }
+  | {
       readonly type: 'authentication.password_reset_completed';
       readonly actorId: ActorId;
       readonly tenantId: TenantId;

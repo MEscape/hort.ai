@@ -35,7 +35,7 @@ The product requirements do not say whether a child ever signs in with credentia
 ### Roles
 
 - An account has exactly one role, `parent` or `teacher`, chosen once in the sign-up form and validated by the domain (`createSignUpDraft`). It is stored on the provider's `user` row (`migrations/auth/0002_user_role.sql`, `CHECK ("role" IN ('parent', 'teacher'))`; accounts from before the migration are backfilled as `parent`).
-- Nothing after registration changes it: Better Auth's `/update-user` path is disabled, and the role is never read from a request. `BetterAuthCurrentActorProvider` reads the stored value; a missing or unknown value grants nothing (the session is treated as signed out).
+- Nothing after registration changes it: Better Auth's `/update-user` path is disabled, and the role is never read from a request. The account settings rename a person through the provider's `updateUser` called in-process with `{ name }` only (`AccountManager`); no request field reaches it. `BetterAuthCurrentActorProvider` reads the stored value; a missing or unknown value grants nothing (the session is treated as signed out).
 - **Documented risk:** a teacher account is not verified in the MVP. Anyone may register as a teacher and then create classes and invite codes; a teacher never gains access to child profiles (no `learner.*`), and a child joins a class only by a code a parent enters. Verification (school e-mail, manual approval) is a follow-up.
 
 `AuthorizationService` exposes two calls on purpose: `requireInTenant(permission)` (create, list your own) and `requireOnResource(permission, scope)` (a loaded resource). A caller cannot drop the scope by passing `undefined`. Every denial is the one `auth.permission_denied` error; the precise reason (`tenant_mismatch`, `owner_mismatch`, `permission_missing`) goes only to the audit log, because telling them apart would disclose that a resource exists for someone else.
@@ -62,6 +62,10 @@ Use cases (in `application/commands`, called by the validated Server Actions in 
 - Sessions are server-side rows (cookie cache off), so sign-out and password reset revoke at once. A hard ceiling (`AUTH_SESSION_MAX_LIFETIME_SECONDS`) ends a session however active it is. The actor provider treats a session of an unconfirmed address as signed out.
 - The provider's HTTP surface is closed except the two emailed links (`GET /api/auth/verify-email`, `GET /api/auth/reset-password/<token>`), served by `src/app/api/auth/[...all]/route.ts` after a rate-limit budget is spent.
 - With `AUTH_ENABLED=false` (development, loopback only) every request is one fixed parent of the default tenant. Authorization still runs for it.
+
+### Account settings (`/settings`)
+
+Signed-in parents and teachers hold `account.read` / `account.update` (the one permission both roles share). `GetAccount` returns the session's own name, address and role, nothing else; there is no account id to ask about another person. `UpdateDisplayName` changes the name only (same rules as sign-up). `ChangePassword` enforces the sign-up policy on the new password, spends the per-account budget `auth.password-change` (5 an hour, denies when the store is down), and lets the provider verify the current password (`auth.invalid_credentials` when wrong) and revoke the account's other sessions. Both commands record `account.display_name_changed` / `account.password_changed` (ids only). The forgotten-password flow is unchanged. Every signed-in page shows the `AccountHeader` (name, menu with Home, Account settings, Sign out).
 
 ## Audit integration
 

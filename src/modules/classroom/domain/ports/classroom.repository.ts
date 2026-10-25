@@ -17,6 +17,14 @@ export interface NewClassroom {
   readonly ownerId: ActorId;
   readonly draft: ClassroomDraft;
   readonly inviteCodeHash: string;
+  /** The code sealed by `InviteCodeVault`, or `null`/absent when only the hash is kept. */
+  readonly sealedInviteCode?: string | null;
+}
+
+/** A newly issued code as stored: its hash, and the code sealed by `InviteCodeVault` (or `null`). */
+export interface StoredInviteCode {
+  readonly hash: string;
+  readonly sealed: string | null;
 }
 
 export interface NewMembership {
@@ -82,12 +90,21 @@ export interface ClassroomRepository {
     name: string,
   ): AppResultAsync<Classroom, NotFoundAppError | InfrastructureAppError>;
 
-  /** Stores the hash of a new code; the old code stops working with the same write. */
+  /**
+   * Stores the hash of a new code; the old code stops working with the same write. The sealed code
+   * is replaced in the same write too, so an old code is never shown again.
+   */
   replaceInviteCode(
     id: ClassroomId,
     scope: ClassroomOwnerScope,
-    inviteCodeHash: string,
+    code: StoredInviteCode,
   ): AppResultAsync<Classroom, NotFoundAppError | InfrastructureAppError>;
+
+  /** The sealed current code of one of the owner's classes, or `null` (hash-only or not theirs). */
+  findSealedInviteCode(
+    id: ClassroomId,
+    scope: ClassroomOwnerScope,
+  ): AppResultAsync<string | null, InfrastructureAppError>;
 
   /** Marks the class archived and ends every membership, in one transaction. */
   archive(

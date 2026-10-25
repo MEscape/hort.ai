@@ -1,5 +1,7 @@
 import type { ClientAddressProvider, RateLimiter } from '@lib/rate-limit';
 
+import type { AuthorizationService } from './authorization-service';
+import type { AccountManager } from '../domain/ports/account-manager.port';
 import type { Authenticator } from '../domain/ports/authenticator.port';
 import type { CurrentActorProvider } from '../domain/ports/current-actor-provider.port';
 import type { SecurityAuditLog } from '../domain/ports/security-audit-log.port';
@@ -20,4 +22,16 @@ export interface AuthenticationDependencies {
 
 export interface CurrentActorDependencies {
   readonly currentActor: CurrentActorProvider;
+}
+
+/**
+ * The signed-in person's own account (settings page). Authorized like any protected use case
+ * (`account.*`), so the actor comes from the session; the rate limiter counts against that actor.
+ * Their outcomes are audited by the use cases, since the provider has no hook for them.
+ */
+export interface AccountDependencies {
+  readonly authorization: AuthorizationService;
+  readonly accounts: AccountManager;
+  readonly rateLimiter: RateLimiter;
+  readonly audit: SecurityAuditLog;
 }
