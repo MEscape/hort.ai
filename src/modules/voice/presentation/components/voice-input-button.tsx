@@ -73,7 +73,9 @@ export function VoiceInputButton({
         aria-describedby={`${id}-note`}
         aria-busy={busy}
         disabled={!allowed || busy}
-        onPointerDown={() => {
+        onPointerDown={(event) => {
+          // Keeps the release coming to this button even when the finger or mouse has moved off.
+          event.currentTarget.setPointerCapture(event.pointerId);
           pressedAt.current = recording ? 0 : Date.now();
           voice.toggle();
         }}
@@ -83,6 +85,11 @@ export function VoiceInputButton({
           }
           pressedAt.current = 0;
         }}
+        onPointerCancel={() => {
+          // The system took the press away (a gesture, a call): nothing was meant to be sent.
+          pressedAt.current = 0;
+          voice.cancel();
+        }}
         onClick={(event) => {
           // Pointers act on press and release above; a click without one is the keyboard.
           if (event.detail === 0) {
@@ -90,7 +97,7 @@ export function VoiceInputButton({
           }
         }}
         className={cn(
-          'flex size-16 shrink-0 items-center justify-center rounded-full shadow-lift transition-transform duration-150 ease-spring active:scale-95 disabled:opacity-50',
+          'flex size-16 shrink-0 touch-none items-center justify-center rounded-full shadow-lift transition-transform duration-150 ease-spring active:scale-95 disabled:opacity-50',
           recording ? 'bg-danger text-status-foreground' : 'bg-primary text-primary-foreground',
         )}
       >

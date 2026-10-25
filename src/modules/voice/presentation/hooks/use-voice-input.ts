@@ -18,6 +18,8 @@ export interface VoiceInput {
   readonly toggle: () => void;
   /** Stops and transcribes; nothing happens while not listening. */
   readonly stop: () => void;
+  /** Stops and throws the recording away without sending it anywhere (an aborted press). */
+  readonly cancel: () => void;
 }
 
 /** A recording stops by itself after this long, well within the provider's size limit. */
@@ -78,6 +80,8 @@ export function useVoiceInput(
   const startingRef = useRef(false);
   const mountedRef = useRef(true);
   const stopRequestedRef = useRef(false);
+  /** True once the recording was cancelled: it is dropped, never transcribed. */
+  const discardRef = useRef(false);
   const onTranscriptRef = useRef(onTranscript);
   useEffect(() => {
     onTranscriptRef.current = onTranscript;
@@ -111,6 +115,11 @@ export function useVoiceInput(
     if (recorder !== null && recorder.state !== 'inactive') {
       recorder.stop();
     }
+  };
+
+  const cancel = () => {
+    discardRef.current = true;
+    stop();
   };
 
   const finish = async (recording: Blob) => {
@@ -154,6 +163,7 @@ export function useVoiceInput(
     }
     startingRef.current = true;
     stopRequestedRef.current = false;
+    discardRef.current = false;
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -195,6 +205,11 @@ export function useVoiceInput(
         timerRef.current = null;
       }
       recorderRef.current = null;
+      if (discardRef.current) {
+        chunks.length = 0;
+        setStatus('idle');
+        return;
+      }
       void finish(
         new Blob(chunks, {
           type: recorder.mimeType === '' ? (type ?? 'audio/webm') : recorder.mimeType,
@@ -227,5 +242,6 @@ export function useVoiceInput(
       }
     },
     stop,
+    cancel,
   };
 }

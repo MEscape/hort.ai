@@ -76,6 +76,8 @@ describe('VoiceInputButton', () => {
   beforeEach(() => {
     vi.stubGlobal('MediaRecorder', FakeMediaRecorder);
     vi.stubGlobal('fetch', vi.fn());
+    // jsdom has no pointer capture.
+    HTMLElement.prototype.setPointerCapture = vi.fn();
     Object.defineProperty(navigator, 'mediaDevices', {
       configurable: true,
       value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop: trackStop }] })) },
@@ -170,6 +172,33 @@ describe('VoiceInputButton', () => {
       await screen.findByText("I didn't hear anything. Try again, close to the microphone."),
     ).toBeVisible();
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('throws the recording away when the system cancels the press', async () => {
+    setup();
+
+    const button = screen.getByRole('button', { name: 'Speak' });
+    fireEvent.pointerDown(button, { pointerId: 1 });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Done' })).toBeEnabled());
+    fireEvent.pointerCancel(screen.getByRole('button', { name: 'Done' }), { pointerId: 1 });
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Speak' })).toBeEnabled());
+    expect(fetch).not.toHaveBeenCalled();
+    expect(onTranscript).not.toHaveBeenCalled();
+    expect(trackStop).toHaveBeenCalledOnce();
+    expect(FakeMediaRecorder.instance?.state).toBe('inactive');
+  });
+
+  it('captures the pointer on press so the release reaches the button even off it', async () => {
+    const setPointerCapture = vi.fn();
+    setup();
+
+    const button = screen.getByRole('button', { name: 'Speak' });
+    button.setPointerCapture = setPointerCapture;
+    fireEvent.pointerDown(button, { pointerId: 7 });
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Done' })).toBeEnabled());
+    expect(setPointerCapture).toHaveBeenCalledWith(7);
   });
 
   it('disables the microphone and explains when voice input is not allowed', () => {
