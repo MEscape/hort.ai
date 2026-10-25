@@ -12,6 +12,7 @@ const query = vi.hoisted(() => ({
   where: vi.fn(),
   first: vi.fn(),
   update: vi.fn(),
+  updateAndCount: vi.fn(),
   create: vi.fn(),
   deleteAndCount: vi.fn(),
   include: vi.fn(),
@@ -39,6 +40,7 @@ beforeEach(() => {
   }
   query.first.mockResolvedValue(null);
   query.update.mockResolvedValue(null);
+  query.updateAndCount.mockResolvedValue(0);
   query.all.mockResolvedValue([]);
 });
 
@@ -143,7 +145,7 @@ describe('invite code validity', () => {
   });
 
   it('adds the member while the locked class still carries the code', async () => {
-    query.update.mockResolvedValue({ id });
+    query.updateAndCount.mockResolvedValue(1);
     query.create.mockResolvedValue({ joinedAt: dateToInstant(new Date('2026-10-24T12:00:00Z')) });
 
     const result = await repository.addMember({

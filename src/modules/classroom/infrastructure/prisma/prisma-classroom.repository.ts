@@ -203,22 +203,23 @@ export class PrismaClassroomRepository implements ClassroomRepository {
     return fromThrowableAsync(
       () =>
         db.transaction(async (tx) => {
-          // Row-locks the class while it is still active AND its current code is still the one the
-          // parent entered and not expired: an archive or a new code running at the same time
-          // either finishes first (no row, refused here) or waits for this transaction (and an
-          // archive then deletes this membership too). A plain insert only takes a key-share lock
-          // and would slip through.
+          // ONE `UPDATE … WHERE` (no-op SET) row-locks the class only while it is still active AND
+          // its current code is still the one the parent entered and not expired. Postgres
+          // re-checks the WHERE on the newest row version, so an archive or a new code running at
+          // the same time either commits first (count 0, refused here) or waits for this
+          // transaction (and an archive then deletes this membership too). `update()` would read
+          // first and write by key, and a plain insert only takes a key-share lock: both slip
+          // through.
           // @owner-scope capability JoinClassroom resolved classroomId using the current invite-code hash after requireOwnChild; this locks that active classroom and re-checks the hash.
-          const admitting = await tx.orm.public.Classroom.select('id')
-            .where({
-              id: classroomId,
-              tenantId,
-              inviteCodeHash,
-              status: CLASSROOM_STATUS_RECORD.active,
-            })
+          const admitting = await tx.orm.public.Classroom.where({
+            id: classroomId,
+            tenantId,
+            inviteCodeHash,
+            status: CLASSROOM_STATUS_RECORD.active,
+          })
             .where((row) => row.inviteCodeIssuedAt.gte(validSince))
-            .update({ status: CLASSROOM_STATUS_RECORD.active });
-          if (admitting === null) {
+            .updateAndCount({ status: CLASSROOM_STATUS_RECORD.active });
+          if (admitting === 0) {
             return null;
           }
           // @owner-scope child JoinClassroom verified requireOwnChild and the invitation capability; the active classroom was locked above in this transaction.
