@@ -10,6 +10,7 @@ import {
 } from 'react';
 
 import { startHelpSessionAction } from '@modules/guidance/client';
+import { VoiceInputButton } from '@modules/voice/client';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert';
 import { Button } from '@components/ui/button';
@@ -32,11 +33,18 @@ interface TaskEntryProps {
   readonly onDraftChange: (value: string) => void;
   readonly headingRef: Ref<HTMLHeadingElement>;
   readonly childProfileId: string | null;
+  readonly voiceConsent?: boolean;
 }
 
 // @ui-plain textarea No shared Textarea primitive is installed yet.
 // @unsaved-work none This transient task is submitted directly to start a session.
-export function TaskEntry({ draft, onDraftChange, headingRef, childProfileId }: TaskEntryProps) {
+export function TaskEntry({
+  draft,
+  onDraftChange,
+  headingRef,
+  childProfileId,
+  voiceConsent = false,
+}: TaskEntryProps) {
   const t = useTranslations('app');
   const router = useRouter();
   const [status, setStatus] = useState<'editing' | 'invalid' | 'unavailable' | 'failed'>('editing');
@@ -115,6 +123,13 @@ export function TaskEntry({ draft, onDraftChange, headingRef, childProfileId }: 
             <p id="task-error" role="alert" className="font-semibold text-nudge">
               {t('start.entry.empty')}
             </p>
+          )}
+          {childProfileId !== null && (
+            <VoiceInputButton
+              childProfileId={childProfileId}
+              allowed={voiceConsent}
+              onTranscript={onDraftChange}
+            />
           )}
           <div className="flex flex-wrap gap-3">
             <Button type="submit" size="lg" disabled={isPending}>
