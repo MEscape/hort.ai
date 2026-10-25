@@ -14,12 +14,13 @@
       "idInvalid": "Die Kennung ist ungültig.",
       "required": "Dieses Feld ist erforderlich.",
       "tooLong": "Dieser Wert ist zu lang.",
+      "nameInvalid": "Der Name besteht aus einer Ziffer von 1 bis 4 und einem Buchstaben, zum Beispiel „3b“.",
       "numberInvalid": "Geben Sie eine Klassenstufe von 1 bis 4 ein.",
       "optionUnknown": "Wählen Sie eine der verfügbaren Optionen."
     },
     "create": {
       "nameLabel": "Name der Klasse",
-      "nameHint": "Zum Beispiel „3b“. Bis zu 80 Zeichen.",
+      "nameHint": "Zum Beispiel „3b“: Jahrgangsstufe 1 bis 4 und ein Buchstabe.",
       "gradeLabel": "Jahrgangsstufe",
       "scopeNote": "Hort.ai unterstützt derzeit Mathematik in Hessen.",
       "submit": "Klasse anlegen",

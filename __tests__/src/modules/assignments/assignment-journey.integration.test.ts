@@ -174,7 +174,7 @@ describe.skipIf(!isEnabled)('teacher assignments reach the children of the class
 
   it('runs from a new class to the child seeing the task, without the solution key', async () => {
     const teacher = as(teacherA);
-    const created = await newClassroom('Klasse 3a');
+    const created = await newClassroom('3a');
     const classroomId = created.classroom.id;
     const draft = { title: 'Murmeln', taskText: '36 Murmeln an 4 Kinder', dueDate: '2026-11-02' };
     const posted = value(
@@ -202,7 +202,7 @@ describe.skipIf(!isEnabled)('teacher assignments reach the children of the class
     const joined = value(
       await parent.join.execute({ childProfileId: child, inviteCode: created.inviteCode }),
     );
-    expect(joined).toMatchObject({ classroomId, name: 'Klasse 3a' });
+    expect(joined).toMatchObject({ classroomId, name: '3a' });
     const tasks = value(await parent.childTasks.execute(child));
     expect(tasks).toEqual([
       { id: posted.id, title: 'Murmeln teilen', taskText: draft.taskText, dueDate: draft.dueDate },
@@ -215,7 +215,7 @@ describe.skipIf(!isEnabled)('teacher assignments reach the children of the class
 
   it('refuses wrong roles, foreign children and classes, cross-teacher access and stale codes', async () => {
     const teacher = as(teacherA);
-    const created = await newClassroom('Klasse 3b');
+    const created = await newClassroom('3b');
     const classroomId = created.classroom.id;
     const posted = value(
       await teacher.create.execute({ ...BLANK, classroomId, title: 'Plus', solutionKey: '603' }),
@@ -264,8 +264,8 @@ describe.skipIf(!isEnabled)('teacher assignments reach the children of the class
 
   it('gives the key for the help on an assignment only while the child is in the class (#33)', async () => {
     const teacher = as(teacherA);
-    const created = await newClassroom('Klasse 3c');
-    const other = await newClassroom('Klasse 3d');
+    const created = await newClassroom('3c');
+    const other = await newClassroom('3d');
     const posted = value(
       await teacher.create.execute({
         ...BLANK,

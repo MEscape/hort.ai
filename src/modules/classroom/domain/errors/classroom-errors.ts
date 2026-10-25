@@ -40,6 +40,7 @@ export const CLASSROOM_VALIDATION_CODES = {
   idInvalid: 'classroom.validation.id_invalid',
   required: 'classroom.validation.required',
   tooLong: 'classroom.validation.too_long',
+  nameInvalid: 'classroom.validation.name_invalid',
   numberInvalid: 'classroom.validation.number_invalid',
   optionUnknown: 'classroom.validation.option_unknown',
 } as const;
