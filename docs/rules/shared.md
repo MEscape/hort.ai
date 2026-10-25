@@ -7,7 +7,7 @@
 - Use src/components/ui for design-system primitives, src/components/layout for layout primitives, and src/components/shared for composites such as form fields and route error/not-found panels.
 - Compose shared primitives in modules; do not restyle or reimplement them. See [styling.md](styling.md).
 - Implement cross-module mechanisms once in src/lib (audit logging, persistence failure mapping, action input parsing). Keep module-specific vocabulary local.
-- Define universally shared ports (Clock, RateLimiter, ObjectStore) in src/lib and import them as types. Composition roots wire implementations.
+- Define universally shared ports (Clock, RateLimiter, ObjectStore, SpeechProvider) in src/lib and import them as types. Composition roots wire implementations.
 - Remove shared code when its last consumer disappears.
 - Reuse existing @lib/utils and @lib/pagination helpers instead of reimplementing them. Lint detects duplicate helpers, including:
   - Millisecond constants: MS_PER_MINUTE, MS_PER_DAY.

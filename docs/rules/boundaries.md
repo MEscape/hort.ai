@@ -12,6 +12,6 @@
 - Domain and application may import types from another module's public API. Cross-module runtime calls are otherwise limited to pure functions listed in CROSS_MODULE_RUNTIME_ALLOW.
 - Presentation may import another module's browser-safe client.ts API (routes, vocabulary, Server Actions) and types. composition.ts supplies server-side parts such as queries and Server Components.
 - Repositories and record mappers may import only trusted cross-module brand constructors (to<Name>Id).
-- Any layer may import shared ports (Clock, RateLimiter, ObjectStore) as types. Composition roots wire their implementations.
+- Any layer may import shared ports (Clock, RateLimiter, ObjectStore, SpeechProvider) as types. Composition roots wire their implementations.
 - src/app is the application composition boundary and may import any module's public API.
 - Enforce dependency direction with lint.

@@ -17,6 +17,7 @@ import type {
   ProfileOwner,
   ProfilePatch,
   SavedProfile,
+  SchoolSettings,
   UnfinishedProfileInput,
 } from '@modules/learner/domain/ports/child-profile.repository';
 import type {
@@ -144,6 +145,23 @@ export class InMemoryChildProfiles implements ChildProfileRepository {
       ...patch,
       setupStep: SETUP_STEPS[furthest] ?? reaches,
     };
+    this.rows[index] = updated;
+    return okAsync<ChildProfile | null>(updated);
+  }
+
+  updateSchoolSettings(profile: ChildProfile, settings: SchoolSettings) {
+    const index = this.rows.findIndex(
+      (row) =>
+        row.id === profile.id &&
+        row.ownerId === profile.ownerId &&
+        row.tenantId === profile.tenantId,
+    );
+    const stored = this.rows[index];
+    if (stored === undefined) {
+      return okAsync<ChildProfile | null>(null);
+    }
+    this.writes += 1;
+    const updated: ChildProfile = { ...stored, ...settings };
     this.rows[index] = updated;
     return okAsync<ChildProfile | null>(updated);
   }

@@ -7,12 +7,14 @@ import { systemClock } from '@lib/clock';
 import { serverEnv } from '@lib/config/server';
 import { once } from '@lib/utils';
 
+import { AdoptSchoolSettings } from './application/commands/adopt-school-settings';
 import { ChooseTutor } from './application/commands/choose-tutor';
 import { CompleteSetup } from './application/commands/complete-setup';
 import { CreateChildProfile } from './application/commands/create-child-profile';
 import { ResetOnboarding } from './application/commands/reset-onboarding';
 import { SaveControls } from './application/commands/save-controls';
 import { SaveInterests } from './application/commands/save-interests';
+import { GetChildProfileById } from './application/queries/get-child-profile-by-id';
 import { GetOnboardingState } from './application/queries/get-onboarding-state';
 import {
   LEVEL_BY_EVENT,
@@ -61,10 +63,14 @@ export const getLearnerCommands = once(() => {
     saveControls: new SaveControls(dependencies),
     completeSetup: new CompleteSetup(dependencies),
     resetOnboarding: new ResetOnboarding(dependencies),
+    adoptSchoolSettings: new AdoptSchoolSettings(dependencies),
   };
 });
 
 export const getLearnerQueries = once(() => {
   const dependencies = getDependencies();
-  return { getOnboardingState: new GetOnboardingState(dependencies) };
+  return {
+    getOnboardingState: new GetOnboardingState(dependencies),
+    getChildProfileById: new GetChildProfileById(dependencies),
+  };
 });

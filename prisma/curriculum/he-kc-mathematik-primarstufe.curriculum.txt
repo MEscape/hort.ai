@@ -1,0 +1,84 @@
+---
+source-key: he-kc-mathematik-primarstufe
+version: 2011
+title: Bildungsstandards und Inhaltsfelder – Kerncurriculum für Hessen, Primarstufe, Mathematik
+federal-state: he
+subject: math
+grades: 3-4
+source-url: https://kultus.hessen.de/sites/kultus.hessen.de/files/2021-06/kc_mathematik_prst_2011.pdf
+---
+// Short competency statements quoted from chapters 6.1 and 6.3 of the document above, each with
+// its chapter and page. The document itself is not redistributed (licence not stated, see
+// docs/architecture/curriculum.md). Lines starting with // are comments and are not ingested.
+
+[Seite 16]
+# 6.1 Bildungsstandards am Ende der Jahrgangsstufe 4 – Darstellen
+- geeignete Darstellungen für das Bearbeiten mathematischer Probleme auswählen und nutzen
+- Darstellungen entwickeln
+- eine Darstellung in eine andere übertragen
+- Darstellungen miteinander vergleichen und bewerten
+
+# 6.1 Bildungsstandards am Ende der Jahrgangsstufe 4 – Kommunizieren
+- Vorgehensweisen beschreiben
+- Lösungswege anderer nachvollziehen
+- Lösungswege gemeinsam reflektieren
+- eingeführte mathematische Fachbegriffe und Zeichen sachgerecht verwenden
+
+[Seite 17]
+# 6.1 Bildungsstandards am Ende der Jahrgangsstufe 4 – Argumentieren
+- mathematische Aussagen hinterfragen und auf Korrektheit prüfen
+- Vermutungen über mathematische Zusammenhänge äußern
+- Begründungen formulieren
+- Lösungswege vergleichen und bewerten
+
+# 6.1 Bildungsstandards am Ende der Jahrgangsstufe 4 – Umgehen mit symbolischen, formalen und technischen Elementen
+- neben der Umgangssprache auch Fachsprache nutzen
+- in Sachzusammenhängen Fachsprache in Umgangssprache übersetzen und umgekehrt sowie geeignete Symbole verwenden
+- Kontrollverfahren zur Überprüfung von Ergebnissen ausführen
+- Mess- und Zeichengeräte sachgerecht und anforderungsbezogen einsetzen
+
+# 6.1 Bildungsstandards am Ende der Jahrgangsstufe 4 – Problemlösen
+- in Problemsituationen mögliche mathematische Fragestellungen und Zusammenhänge erfassen und diese in eigenen Worten formulieren
+- Lösungsstrategien entwickeln und auf ähnliche Sachverhalte übertragen
+- Ergebnisse reflektieren
+- Lösungswege reflektieren
+
+# 6.1 Bildungsstandards am Ende der Jahrgangsstufe 4 – Modellieren
+- kurzen Sachtexten und einfachen Darstellungen aus der Lebenswirklichkeit Informationen entnehmen
+- Sachprobleme in die Sprache der Mathematik übersetzen
+- innermathematische Aspekte der Problemstellung sachgerecht bearbeiten
+- Probleme mathematisch lösen und diese Lösungen wieder auf die Ausgangssituation beziehen
+- das gewählte Modell bewerten
+- zu Termen, Gleichungen und bildlichen Darstellungen Sachaufgaben formulieren
+
+[Seite 21]
+# 6.3 Inhaltsfeld Muster und Strukturen
+- Gesetzmäßigkeiten in Mustern
+- Strukturierte Zahldarstellungen (wie die Hundertertafel)
+- Funktionale Beziehungen in Sachsituationen, Tabellen und grafischen Darstellungen (Proportionalität)
+- Geometrische und arithmetische Muster
+
+# 6.3 Inhaltsfeld Zahl und Operation
+- Zahldarstellung und Zahlbeziehungen (Jahrgangsstufe 2: im Zahlenraum bis 100; Jahrgangsstufe 4: im Zahlenraum bis 1.000.000)
+- Aufbau des dezimalen Stellenwertsystems
+- Grundrechenarten (Addition, Subtraktion, Multiplikation, Division)
+- Umkehroperationen
+- Sachsituationen (auch Kombinatorik)
+
+# 6.3 Inhaltsfeld Raum und Form
+- Geometrische Figuren und Abbildungen – auch in der Umwelt
+- Zwei- und dreidimensionale Darstellungen
+- Orientierung im Raum
+- Umfang ebener Figuren
+- Flächen- und Rauminhalte
+
+# 6.3 Inhaltsfeld Größen und Messen
+- Rechnen mit Größen (Jahrgangsstufe 2: Geldwerte, Längen, Zeitspannen; Jahrgangsstufe 4: Gewichte, Flächen- und Rauminhalte)
+- Umgang mit Größen in Sachsituationen
+- Mess- und Zeichengeräte
+
+# 6.3 Inhaltsfeld Daten und Zufall
+- Sammlung, Strukturierung und Darstellung von Daten
+- Informationsentnahme aus grafischen Darstellungen
+- Grundbegriffe der Wahrscheinlichkeit
+- Gewinnchancen bei einfachen Zufallsexperimenten
