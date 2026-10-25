@@ -5,7 +5,7 @@
  * validated AI answer reach the child. Use cases follow with the hint ladder (#30).
  */
 
-export { createGuidanceCommands, createHintOrchestrator } from './composition';
+export { createHintOrchestrator, getGuidanceCommands } from './composition';
 export type { RequestHintError } from './application/commands/request-hint';
 export type { RequestHintInput } from './application/contracts/hint-inputs';
 

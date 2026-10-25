@@ -13,6 +13,9 @@ import {
 } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 
+/** The EBML header a `MediaRecorder` WebM recording starts with. */
+const WEBM_HEADER = new Uint8Array([0x1a, 0x45, 0xdf, 0xa3]);
+
 function handlersWith(overrides: { synthesize?: Synthesize; transcribe?: Transcribe } = {}) {
   const options = {
     synthesize: vi.fn<Synthesize>(
@@ -157,7 +160,7 @@ describe('voice route handlers: transcription', () => {
     const { handlers, options } = handlersWith();
     const form = new FormData();
     form.set('childProfileId', 'child-1');
-    form.set('audio', new Blob([new Uint8Array([1, 2, 3])], { type: 'audio/webm;codecs=opus' }));
+    form.set('audio', new Blob([WEBM_HEADER], { type: 'audio/webm;codecs=opus' }));
 
     const response = await handlers.transcription(await multipartRequest(form));
 
@@ -166,7 +169,7 @@ describe('voice route handlers: transcription', () => {
     expect(await response.json()).toEqual({ text: 'Hallo Max' });
     expect(options.transcribe).toHaveBeenCalledWith({
       childProfileId: 'child-1',
-      audio: new Uint8Array([1, 2, 3]),
+      audio: WEBM_HEADER,
       contentType: 'audio/webm',
     });
   });

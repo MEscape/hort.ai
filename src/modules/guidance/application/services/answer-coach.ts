@@ -12,6 +12,7 @@ import type { HintLevel } from '../../domain/models/hint-level';
 import type { CurriculumCompetency } from '../../domain/models/hint-request';
 import type { FeedbackProvider } from '../../domain/ports/feedback-provider.port';
 import type { GuidanceAuditLog } from '../../domain/ports/guidance-audit-log.port';
+import type { SafetyClassifier } from '../../domain/ports/safety-classifier.port';
 import type { AnswerFeedback, AssessedBy, FeedbackText } from '../contracts/answer-views';
 
 type Rejection = Exclude<Verdict, { readonly output: unknown }>;
@@ -28,6 +29,8 @@ type Assessment =
 export interface AnswerCoachDependencies {
   readonly provider: FeedbackProvider;
   readonly audit: GuidanceAuditLog;
+  /** The second safety check (#11); without one only the word lists apply. */
+  readonly safety?: SafetyClassifier;
 }
 
 /** One answer of the child to one task, with the teacher's key when the task is an assignment (#33). */
@@ -104,7 +107,11 @@ export class AnswerCoach {
 
   private ask(kind: FeedbackKind, { task, answer, level, competencies }: AnswerToCheck) {
     const request: FeedbackRequest = { kind, task, answer, level, competencies };
-    return judgeAiAnswer(() => this.deps.provider.word(request), { kind, hintLevel: level });
+    return judgeAiAnswer(
+      () => this.deps.provider.word(request),
+      { kind, hintLevel: level },
+      this.deps.safety,
+    );
   }
 
   /** The predefined text of a kind; logged when it replaces a rejected or missing AI answer. */

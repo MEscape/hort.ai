@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { checkChildSafeText } from '@modules/guidance/domain/child-safety/check-child-safe-text';
+import {
+  checkChildSafeText,
+  flaggedBySafetyScores,
+} from '@modules/guidance/domain/child-safety/check-child-safe-text';
 
 const PERSONAL = 'guidance.child_safety.asks_for_personal_data';
 const SECRECY = 'guidance.child_safety.asks_for_secrecy';
@@ -78,5 +81,35 @@ describe('checkChildSafeText on feedback (#14)', () => {
     'That is wrong.',
   ])('rejects punishing feedback: %s', (text) => {
     expect(checkChildSafeText(text)).toEqual([DISCOURAGING]);
+  });
+});
+
+describe('flaggedBySafetyScores', () => {
+  it('flags a rule at or above one half and lets lower scores through', () => {
+    expect(
+      flaggedBySafetyScores({
+        'guidance.child_safety.asks_for_personal_data': 0.5,
+        'guidance.child_safety.asks_for_secrecy': 0.49,
+        'guidance.child_safety.discouraging': 0,
+      }),
+    ).toEqual(['guidance.child_safety.asks_for_personal_data']);
+  });
+
+  it('flags a score that is no probability, because the classifier output is untrusted', () => {
+    expect(
+      flaggedBySafetyScores({
+        'guidance.child_safety.inappropriate_content': Number.NaN,
+        'guidance.child_safety.discouraging': -0.2,
+        'guidance.child_safety.asks_for_secrecy': 1.5,
+      }),
+    ).toEqual([
+      'guidance.child_safety.asks_for_secrecy',
+      'guidance.child_safety.inappropriate_content',
+      'guidance.child_safety.discouraging',
+    ]);
+  });
+
+  it('flags nothing without scores', () => {
+    expect(flaggedBySafetyScores({})).toEqual([]);
   });
 });
