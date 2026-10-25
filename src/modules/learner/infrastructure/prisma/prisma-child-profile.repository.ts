@@ -15,10 +15,10 @@ import type { ActorId, ChildProfileId, TenantId } from '../../domain/models/ids'
 import type { SetupStep } from '../../domain/models/setup-step';
 import type {
   ChildProfileRepository,
-  ClassroomSettings,
   ProfileOwner,
   ProfilePatch,
   SavedProfile,
+  SchoolSettings,
   UnfinishedProfileInput,
 } from '../../domain/ports/child-profile.repository';
 
@@ -183,6 +183,22 @@ export class PrismaChildProfileRepository implements ChildProfileRepository {
     ).map((record) => (record === null ? null : toChildProfile(record)));
   }
 
+  updateSchoolSettings(
+    profile: ChildProfile,
+    { federalState, grade }: SchoolSettings,
+  ): AppResultAsync<ChildProfile | null, InfrastructureAppError> {
+    const { id, ownerId, tenantId } = profile;
+    return fromThrowableAsync(
+      async () =>
+        (await profiles()
+          .where({ id, ownerId, tenantId })
+          .updateAndCount({ federalState, grade })) > 0
+          ? profiles().where({ id, ownerId, tenantId }).first()
+          : null,
+      failures.infraOnly('updateSchoolSettings'),
+    ).map((record) => (record === null ? null : toChildProfile(record)));
+  }
+
   deleteAllOwned({
     tenantId,
     ownerId,
@@ -191,22 +207,6 @@ export class PrismaChildProfileRepository implements ChildProfileRepository {
       async () => db.orm.public.ChildProfile.where({ tenantId, ownerId }).deleteAndCount(),
       failures.infraOnly('deleteAllOwned'),
     );
-  }
-
-  adoptClassroomSettings(
-    { id, ownerId, tenantId }: ChildProfile,
-    { federalState, grade }: ClassroomSettings,
-  ): AppResultAsync<ChildProfile | null, InfrastructureAppError> {
-    return fromThrowableAsync(
-      async () =>
-        (await db.orm.public.ChildProfile.where({ id, ownerId, tenantId }).updateAndCount({
-          federalState,
-          grade,
-        })) > 0
-          ? profiles().where({ id, ownerId, tenantId }).first()
-          : null,
-      failures.infraOnly('adoptClassroomSettings'),
-    ).map((record) => (record === null ? null : toChildProfile(record)));
   }
 
   markSetupCompleted(

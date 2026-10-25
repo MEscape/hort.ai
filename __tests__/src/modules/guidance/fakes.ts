@@ -1,12 +1,16 @@
 import { parseChildTaskText } from '@modules/guidance/domain/models/child-task-text';
 import type { ChildTaskText } from '@modules/guidance/domain/models/child-task-text';
 import type { HintRequest } from '@modules/guidance/domain/models/hint-request';
+import { toChildProfileId } from '@modules/guidance/domain/models/ids';
+import type { ChildProfileId } from '@modules/guidance/domain/models/ids';
+import type { ChildProfileAccess } from '@modules/guidance/domain/ports/child-profile-access.port';
 import type { GuidanceEvent } from '@modules/guidance/domain/ports/guidance-audit-log.port';
 import type {
   HintProvider,
   HintProviderFailure,
 } from '@modules/guidance/domain/ports/hint-provider.port';
 
+import { notFoundError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
 
 /** A task text as the input check produces it; a test that needs another text goes through the same check. */
@@ -45,4 +49,17 @@ export function fakeHintProvider(script: ProviderScript) {
 export function recordingAuditLog() {
   const events: GuidanceEvent[] = [];
   return { audit: { record: (event: GuidanceEvent) => events.push(event) }, events };
+}
+
+export const OWN_CHILD = toChildProfileId('child-1');
+export const OTHER_CHILD = toChildProfileId('child-of-someone-else');
+
+/** The children the signed-in parent owns; any other id is "not found", as the learner module answers. */
+export function ownChildren(owned: readonly ChildProfileId[] = [OWN_CHILD]): ChildProfileAccess {
+  return {
+    findOwn: (id) =>
+      owned.includes(id)
+        ? okAsync({ id })
+        : errAsync(notFoundError('child_profile.not_found', 'The child profile was not found.')),
+  };
 }

@@ -14,10 +14,10 @@ import { SETUP_STEPS } from '@modules/learner/domain/models/setup-step';
 import type { SetupStep } from '@modules/learner/domain/models/setup-step';
 import type {
   ChildProfileRepository,
-  ClassroomSettings,
   ProfileOwner,
   ProfilePatch,
   SavedProfile,
+  SchoolSettings,
   UnfinishedProfileInput,
 } from '@modules/learner/domain/ports/child-profile.repository';
 import type {
@@ -149,15 +149,7 @@ export class InMemoryChildProfiles implements ChildProfileRepository {
     return okAsync<ChildProfile | null>(updated);
   }
 
-  deleteAllOwned({ tenantId, ownerId }: ProfileOwner) {
-    const kept = this.rows.filter((row) => row.ownerId !== ownerId || row.tenantId !== tenantId);
-    const deleted = this.rows.length - kept.length;
-    this.rows.splice(0, this.rows.length, ...kept);
-    this.writes += deleted > 0 ? 1 : 0;
-    return okAsync(deleted);
-  }
-
-  adoptClassroomSettings(profile: ChildProfile, settings: ClassroomSettings) {
+  updateSchoolSettings(profile: ChildProfile, settings: SchoolSettings) {
     const index = this.rows.findIndex(
       (row) =>
         row.id === profile.id &&
@@ -166,12 +158,20 @@ export class InMemoryChildProfiles implements ChildProfileRepository {
     );
     const stored = this.rows[index];
     if (stored === undefined) {
-      return okAsync(null);
+      return okAsync<ChildProfile | null>(null);
     }
     this.writes += 1;
-    const updated = { ...stored, ...settings };
+    const updated: ChildProfile = { ...stored, ...settings };
     this.rows[index] = updated;
-    return okAsync(updated);
+    return okAsync<ChildProfile | null>(updated);
+  }
+
+  deleteAllOwned({ tenantId, ownerId }: ProfileOwner) {
+    const kept = this.rows.filter((row) => row.ownerId !== ownerId || row.tenantId !== tenantId);
+    const deleted = this.rows.length - kept.length;
+    this.rows.splice(0, this.rows.length, ...kept);
+    this.writes += deleted > 0 ? 1 : 0;
+    return okAsync(deleted);
   }
 
   markSetupCompleted(profile: ChildProfile, completedAt: Date) {

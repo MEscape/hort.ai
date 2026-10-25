@@ -28,6 +28,21 @@
       "codeLabel": "Einladungscode:",
       "codeHint": "Gib diesen Einladungscode an die Eltern deiner Klasse weiter. Er wird nur jetzt angezeigt; später kannst du einen neuen erzeugen.",
       "continue": "Weiter zu den Aufgaben"
+    },
+    "join": {
+      "title": "Klasse",
+      "body": "Gib den Einladungscode von {name}s Lehrkraft ein. Dann sieht {name} die Aufgaben der Klasse unter „Schulaufgaben“.",
+      "codeLabel": "Einladungscode",
+      "codeHint": "Zum Beispiel ABCD-EFGH, so wie die Lehrkraft ihn dir gegeben hat.",
+      "submit": "Klasse beitreten",
+      "submitting": "Wird beigetreten …",
+      "current": "{name} ist in der Klasse {classroom} (Jahrgangsstufe {grade}).",
+      "leave": "Klasse verlassen",
+      "leaveTitle": "Klasse {classroom} verlassen?",
+      "leaveBody": "{name} sieht die Aufgaben dieser Klasse dann nicht mehr. Mit dem aktuellen Code der Lehrkraft kannst du wieder beitreten.",
+      "leaveKeep": "In der Klasse bleiben",
+      "leaveConfirm": "Klasse verlassen",
+      "leaving": "Wird verlassen …"
     }
   }
 }

@@ -73,17 +73,21 @@ describe('the roles', () => {
     expect([...new Set(granted)].sort()).toEqual([...PERMISSIONS].sort());
   });
 
-  it('give a parent the learner permissions and nothing of a class', () => {
+  it('give a parent the learner permissions, voice, the hint request and nothing of a class', () => {
     const permissions = permissionsForRole('parent');
 
-    expect(permissions.every((permission) => permission.startsWith('learner.'))).toBe(true);
+    expect(permissions.filter((permission) => !permission.startsWith('learner.')).sort()).toEqual([
+      'hint.request',
+      'voice.use',
+    ]);
     expect(permissions).not.toContain('classroom.read');
   });
 
-  it('give a teacher classes, material and assignments, but no learner permission', () => {
+  it('give a teacher classes, material and assignments, but no learner permission and no hints', () => {
     const permissions = permissionsForRole('teacher');
 
     expect(permissions.some((permission) => permission.startsWith('learner.'))).toBe(false);
+    expect(permissions).not.toContain('hint.request');
     expect(permissions).toEqual(expect.arrayContaining(['classroom.create', 'material.create']));
   });
 

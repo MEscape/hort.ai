@@ -12,7 +12,7 @@ export interface LearnerUseCases {
   readonly getChildProfileById: {
     execute(id: string): AppResultAsync<ChildProfileView, ChildProfileAccessError>;
   };
-  readonly adoptClassroomSettings: {
+  readonly adoptSchoolSettings: {
     execute(input: {
       readonly profileId: string;
       readonly federalState: string;
@@ -23,7 +23,7 @@ export interface LearnerUseCases {
 
 /**
  * `ChildProfileAccess` over the learner module's own use cases, which authorize the signed-in
- * parent on the stored profile (`learner.read` / `learner.update`) and audit the change.
+ * parent on the stored profile (`learner.read` / `learner.update`).
  */
 export class LearnerChildProfileAccess implements ChildProfileAccess {
   constructor(private readonly learner: LearnerUseCases) {}
@@ -36,10 +36,10 @@ export class LearnerChildProfileAccess implements ChildProfileAccess {
     childProfileId: string,
     settings: { readonly federalState: string; readonly grade: number },
   ): AppResultAsync<void, ChildProfileAccessError> {
-    // The learner module names federal states by their official upper-case code (`HE`).
-    return this.learner.adoptClassroomSettings
+    return this.learner.adoptSchoolSettings
       .execute({
         profileId: childProfileId,
+        // This module stores `he`; the learner module accepts only the official code `HE`.
         federalState: settings.federalState.toUpperCase(),
         grade: settings.grade,
       })

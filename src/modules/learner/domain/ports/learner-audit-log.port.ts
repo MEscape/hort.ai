@@ -56,13 +56,6 @@ export type LearnerEvent =
       readonly deletedCount: number;
     }
   | {
-      /** The child joined a class and took over its federal state and grade (#32). */
-      readonly type: 'learner.classroom_settings_adopted';
-      readonly actorId: ActorId;
-      readonly tenantId: TenantId;
-      readonly childProfileId: ChildProfileId;
-    }
-  | {
       readonly type: 'learner.setup_completed';
       readonly actorId: ActorId;
       readonly tenantId: TenantId;

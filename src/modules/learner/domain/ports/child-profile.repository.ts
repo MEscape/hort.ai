@@ -29,8 +29,8 @@ export interface ProfilePatch {
   readonly guardian?: GuardianConfirmation;
 }
 
-/** What a class hands down to a child that joins it (#32). */
-export interface ClassroomSettings {
+/** The school data a class decides for its children. */
+export interface SchoolSettings {
   readonly federalState: FederalState;
   readonly grade: Grade;
 }
@@ -84,19 +84,19 @@ export interface ChildProfileRepository {
   ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
 
   /**
+   * Stores a new federal state and grade on one of the owner's profiles, finished or not (a class
+   * the child joins sets both). Returns the stored profile, or `null` when it is gone.
+   */
+  updateSchoolSettings(
+    profile: ChildProfile,
+    settings: SchoolSettings,
+  ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
+
+  /**
    * Deletes every profile of the owner, finished or not, and nothing of anyone else. Returns how
    * many rows went; 0 is success (idempotent). Only the development reset uses it.
    */
   deleteAllOwned(owner: ProfileOwner): AppResultAsync<number, InfrastructureAppError>;
-
-  /**
-   * Takes over the federal state and grade of the class the child joined (#32), on the parent's
-   * own profile, finished or not. Returns the stored profile, or `null` when it is gone.
-   */
-  adoptClassroomSettings(
-    profile: ChildProfile,
-    settings: ClassroomSettings,
-  ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
 
   /**
    * Finishes the setup of a profile that is at the `review` step, in one conditional statement.

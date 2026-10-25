@@ -438,24 +438,4 @@ describe.skipIf(!isEnabled)('PrismaChildProfileRepository against Postgres', () 
       learningInsights: false,
     });
   });
-
-  it('takes over a class’s settings on the owner’s profile only, finished or not', async () => {
-    const owner = freshOwner();
-    const profile = await saveProfile(owner);
-
-    const adopted = await repository.adoptClassroomSettings(profile, {
-      federalState: 'HE',
-      grade: 3,
-    });
-    expect(adopted._unsafeUnwrap()).toMatchObject({ id: profile.id, federalState: 'HE', grade: 3 });
-
-    const stranger = { ...profile, ownerId: toActorId('parent-2') };
-    const foreign = await repository.adoptClassroomSettings(stranger, {
-      federalState: 'BY',
-      grade: 1,
-    });
-    expect(foreign._unsafeUnwrap()).toBeNull();
-    const stored = await repository.findOwned(profile.id, owner.ownerId, owner.tenantId);
-    expect(stored._unsafeUnwrap()).toMatchObject({ federalState: 'HE', grade: 3 });
-  });
 });

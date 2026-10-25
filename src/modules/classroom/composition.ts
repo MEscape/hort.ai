@@ -34,8 +34,11 @@ const dependencies: ClassroomDependencies = {
   classrooms: new PrismaClassroomRepository(systemClock),
   inviteCodes: cryptoInviteCodeIssuer,
   childProfiles: new LearnerChildProfileAccess({
-    getChildProfileById: getLearnerQueries().getChildProfileById,
-    adoptClassroomSettings: getLearnerCommands().adoptClassroomSettings,
+    // The learner module builds its use cases on first use; resolve them per call, not at import.
+    getChildProfileById: { execute: (id) => getLearnerQueries().getChildProfileById.execute(id) },
+    adoptSchoolSettings: {
+      execute: (input) => getLearnerCommands().adoptSchoolSettings.execute(input),
+    },
   }),
   audit: loggerClassroomAuditLog,
   rateLimiter: getRateLimiter(),
