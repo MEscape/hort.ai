@@ -1,3 +1,5 @@
+import { auditedActor } from '@modules/auth';
+
 import type { AppResultAsync } from '@lib/result';
 
 import { dayKeyOf } from '../../domain/models/day';
@@ -26,7 +28,7 @@ export class ClaimDailyReward {
   ): AppResultAsync<ClaimDailyRewardView, ClaimDailyRewardError> {
     const { audit, clock } = this.deps;
 
-    return loadAuthorizedChild(this.deps, input.childProfileId, 'progression.update').andThen(
+    return loadAuthorizedChild(this.deps, input.childProfileId, 'progression.daily_reward').andThen(
       ({ actor, childProfileId }) => {
         const now = clock.now();
         return grantXp(
@@ -37,7 +39,7 @@ export class ClaimDailyReward {
           if (stored) {
             audit.record({
               type: 'progression.daily_reward_claimed',
-              actorId: actor.id,
+              ...auditedActor(actor),
               tenantId: actor.tenantId,
               childProfileId,
               xp: DAILY_REWARD_XP,

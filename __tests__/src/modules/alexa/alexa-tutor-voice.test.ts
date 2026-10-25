@@ -45,7 +45,11 @@ function launch(supportedInterfaces?: Record<string, unknown>, type = 'LaunchReq
 function voiceAnswering(
   url: string,
 ): TutorVoice & { audioUrl: ReturnType<typeof vi.fn>; greetingUrl: ReturnType<typeof vi.fn> } {
-  return { audioUrl: vi.fn(() => okAsync(url)), greetingUrl: vi.fn(() => okAsync(url)) };
+  return {
+    audioUrl: vi.fn(() => okAsync(url)),
+    greetingUrl: vi.fn(() => okAsync(url)),
+    lineUrl: vi.fn(() => okAsync(url)),
+  };
 }
 
 function endpoint(voice: TutorVoice | null, extra: { voiceDeadlineMs?: number } = {}) {
@@ -113,6 +117,7 @@ describe('Alexa tutor voice', () => {
     const voice: TutorVoice = {
       audioUrl: () => errAsync(infrastructureError('speech.quota_exceeded', 'Quota used up.')),
       greetingUrl: () => okAsync(CLIP_URL),
+      lineUrl: () => okAsync(CLIP_URL),
     };
     const { handle, onVoiceFallback } = endpoint(voice);
 
@@ -127,6 +132,7 @@ describe('Alexa tutor voice', () => {
     const hanging: TutorVoice = {
       audioUrl: () => new ResultAsync(new Promise(() => undefined)),
       greetingUrl: () => okAsync(CLIP_URL),
+      lineUrl: () => okAsync(CLIP_URL),
     };
     const { handle, onVoiceFallback } = endpoint(hanging, { voiceDeadlineMs: 30 });
     const started = performance.now();
@@ -142,6 +148,7 @@ describe('Alexa tutor voice', () => {
     const throwing: TutorVoice = {
       audioUrl: () => new ResultAsync(Promise.reject(new Error('boom'))),
       greetingUrl: () => okAsync(CLIP_URL),
+      lineUrl: () => okAsync(CLIP_URL),
     };
     const { handle, onVoiceFallback } = endpoint(throwing);
 
@@ -221,7 +228,7 @@ describe('Alexa tutor introductions on launch', () => {
       verify: () => okAsync(undefined),
       tutor: { respond: tutorRespond },
       introductions: INTROS,
-      voice: greetingUrl ? { audioUrl, greetingUrl } : null,
+      voice: greetingUrl ? { audioUrl, greetingUrl, lineUrl: audioUrl } : null,
       onVoiceFallback,
       ...extra,
     });

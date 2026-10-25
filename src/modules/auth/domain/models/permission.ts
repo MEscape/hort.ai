@@ -17,15 +17,20 @@
  * The child speaks within the guardian's session, so it is the parent's permission.
  *
  * `progression.*` is a child's progress (XP, level, the daily reward). It is held by the child's
- * parent, on the parent's own children only, like `learner.*`.
+ * parent, on the parent's own children only, like `learner.*`. `progression.daily_reward` is only the
+ * once-a-day snack, apart from `progression.update` (learning XP), so a child channel can be given the
+ * one without the other. `learner.list` reads the guardian's whole set of profiles (the onboarding
+ * state), apart from `learner.read` on one profile.
  */
 export const LEARNER_PERMISSIONS = [
   'learner.create',
   'learner.read',
   'learner.update',
   'learner.delete',
+  'learner.list',
   'progression.read',
   'progression.update',
+  'progression.daily_reward',
   'voice.use',
 ] as const;
 

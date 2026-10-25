@@ -76,4 +76,4 @@ These are tasks a teacher could have set. Hort.ai never offers them on its own. 
 
 ## Out of scope for the MVP
 
-Other subjects, grades 1 and 2 content, states other than Hessen (beyond the KMK fallback), photo upload, generated exercises, streaks, rankings and any gamification beyond the small progression of [#64](https://github.com/MEscape/hort.ai/issues/64) (XP, levels, one daily reward, see the vision), Alexa, emotional signals, multiple children on one device.
+Other subjects, grades 1 and 2 content, states other than Hessen (beyond the KMK fallback), photo upload, generated exercises, streaks, rankings and any gamification beyond the small progression of [#64](https://github.com/MEscape/hort.ai/issues/64) (XP, levels, one daily reward, see the vision), Alexa beyond its development stage (Alexa is a second channel onto the same session, development stage with one demo profile only, see [alexa/README.md](../../alexa/README.md); the team must confirm), emotional signals, multiple children on one device.

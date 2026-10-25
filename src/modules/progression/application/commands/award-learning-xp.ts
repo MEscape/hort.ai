@@ -1,3 +1,5 @@
+import { auditedActor } from '@modules/auth';
+
 import type { ValidationAppError } from '@lib/errors';
 import { err, ok } from '@lib/result';
 import type { AppResult, AppResultAsync } from '@lib/result';
@@ -60,7 +62,7 @@ export class AwardLearningXp {
             if (stored) {
               audit.record({
                 type: 'progression.xp_awarded',
-                actorId: actor.id,
+                ...auditedActor(actor),
                 tenantId: actor.tenantId,
                 childProfileId,
                 event,
