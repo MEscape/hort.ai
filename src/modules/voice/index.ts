@@ -32,3 +32,7 @@ export type {
   SpeechTicketView,
   TranscriptView,
 } from './application/contracts/voice-views';
+
+/** The module's message catalogs, registered in `src/i18n/locales`. */
+export { default as enVoice } from './presentation/i18n/en.json';
+export { default as deVoice } from './presentation/i18n/de.json';

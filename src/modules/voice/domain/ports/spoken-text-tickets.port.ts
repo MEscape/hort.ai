@@ -1,9 +1,14 @@
 import type { ActorId, TenantId } from '@modules/auth';
 
+import type { ChildProfileId, SpeakerId } from '../models/ids';
+
 /** Who a ticket is for: the signed-in parent it was issued to. */
 export interface TicketHolder {
   readonly tenantId: TenantId;
   readonly actorId: ActorId;
+  /** Companion-message tickets are bound to this child and voice, including at playback. */
+  readonly childProfileId?: ChildProfileId;
+  readonly speakerId?: SpeakerId;
 }
 
 /**

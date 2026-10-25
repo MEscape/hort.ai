@@ -1,0 +1,30 @@
+{
+  "voice": {
+    "input": {
+      "start": "Sprechen",
+      "stop": "Fertig",
+      "listening": "Ich höre zu …",
+      "transcribing": "Ich schreibe auf, was du gesagt hast …",
+      "hint": "Tippe auf das Mikrofon und sprich. Dein Gerät fragt einmal, ob Hort zuhören darf. Danach kannst du den Text noch ändern.",
+      "notAllowed": "Sprechen haben deine Eltern noch nicht eingeschaltet. Schreib einfach.",
+      "problem": {
+        "mic_denied": "Hort darf gerade nicht zuhören. Kein Problem, schreib einfach.",
+        "unsupported": "Auf diesem Gerät geht Sprechen nicht. Schreib einfach.",
+        "nothing_heard": "Ich habe nichts gehört. Versuch es noch einmal, ganz nah am Mikrofon.",
+        "consentRequired": "Sprechen haben deine Eltern noch nicht eingeschaltet. Schreib einfach.",
+        "busy": "Mach kurz eine Pause und versuch es gleich noch einmal.",
+        "failed": "Das hat gerade nicht geklappt. Versuch es noch einmal oder schreib."
+      }
+    },
+    "readAloud": {
+      "play": "Vorlesen",
+      "stop": "Stopp",
+      "loading": "Einen Moment …",
+      "problem": {
+        "consentRequired": "Vorlesen haben deine Eltern noch nicht eingeschaltet.",
+        "busy": "Mach kurz eine Pause, dann lese ich dir wieder vor.",
+        "failed": "Das Vorlesen hat gerade nicht geklappt."
+      }
+    }
+  }
+}

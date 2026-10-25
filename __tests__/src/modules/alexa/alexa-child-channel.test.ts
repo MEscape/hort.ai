@@ -658,7 +658,9 @@ describe('Alexa child channel: the whole request stays within its budget', () =>
       verify: () =>
         new ResultAsync(
           new Promise((resolve) => {
-            setTimeout(() => resolve(ok(undefined)), verifyMs);
+            setTimeout(() => {
+              resolve(ok(undefined));
+            }, verifyMs);
           }),
         ),
       tutor: connectionTestTutor,
