@@ -2,7 +2,7 @@ import type { AppResultAsync } from '@lib/result';
 import type { ObjectLocation } from '@lib/storage';
 
 import type { ClassroomId } from '../models/ids';
-import type { MaterialStatement } from '../models/material';
+import type { ConvertibleMaterialMime, MaterialStatement } from '../models/material';
 
 export interface MaterialClassrooms {
   requireOwned(
@@ -22,4 +22,8 @@ export interface MaterialObjectWriter {
 }
 export interface MaterialIngest {
   extract(text: string): readonly MaterialStatement[];
+}
+export interface MaterialDocumentConverter {
+  /** The plain text of a Word or PowerPoint file, or `null` when the bytes are not a readable one. */
+  toText(contentType: ConvertibleMaterialMime, bytes: Uint8Array): string | null;
 }
