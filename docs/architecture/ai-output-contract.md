@@ -107,7 +107,7 @@ The text is shown, and may be read aloud, as plain text. It must not contain:
 | `guidance.ai_output.contains_url`               | a link                                                              |
 | `guidance.ai_output.contains_markup`            | HTML or Markdown                                                    |
 | `guidance.ai_output.contains_code`              | code                                                                |
-| `guidance.ai_output.solution_leaked`            | reserved for the solution-leak guard (#31)                          |
+| `guidance.ai_output.solution_leaked`            | the solution-leak guard (#31) rejected the text, see below          |
 
 These codes are stable. Renaming one is a breaking change of the contract and bumps its version.
 
@@ -180,7 +180,7 @@ Request `{ kind: 'comprehension_question', hintLevel: 'understand_task' }`:
 
 ### Leaking the solution
 
-These outputs are valid by shape, so this contract accepts them. The solution-leak guard (#31) must reject them with `guidance.ai_output.solution_leaked`, because only it knows the task and its solution.
+These outputs are valid by shape, so this contract accepts them. The solution-leak guard (#31) rejects them with `guidance.ai_output.solution_leaked`, because only it knows the task and its solution.
 
 | Output text                                                     | Why it leaks                                   |
 | --------------------------------------------------------------- | ---------------------------------------------- |
@@ -190,6 +190,30 @@ These outputs are valid by shape, so this contract accepts them. The solution-le
 | `Schreib: Tom hat 47 Murmeln.`                                  | a complete answer sentence for a text task     |
 
 A hint at `similar_example` uses a different problem (for example 34 + 13) and does not leak, as long as it never computes the child's own task.
+
+### The solution-leak guard (#31)
+
+`findSolutionLeaks` (`domain/solution-leak/`) runs in `judgeAiAnswer` on every validated output, hints and answer feedback alike, before the word lists and before the safety classifier, so a leaking text never leaves the backend. It is deterministic and needs no AI; a later check may only reject more. It knows the child's task, the teacher's solution key of an assignment (#33) and, for feedback, the child's own answer. None of these is sent to the AI.
+
+What the guard treats as the solution:
+
+- the value of a written expression in the task (`23 + 24`, `3 · 4 + 5`, `12 : 3`, `6 mal 7`), point before line;
+- for a word problem without an expression, every sum, difference, product, exact quotient and the total of its numbers (2 to 4 numbers; 0 and 1 are too common to count): stricter than needed, never weaker;
+- the numbers of the teacher's key, or the words of a text key (without fillers such as `der`, `und`).
+
+A number the task itself shows is not a result, so a hint may repeat the task. Numbers are read as digits, with a decimal comma, or spelled out (`siebenundvierzig`, `zweihundertdrei`); `ein` and `eine` are articles, only `eins` is the number.
+
+| Detail code                               | Rejects                                                                                                             |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `guidance.solution_leak.states_result`    | a result, even inside a "similar" example that gives the same number (`30 + 17 = 47`)                               |
+| `guidance.solution_leak.announces_result` | any number presented as the result (`Die Lösung lautet 12`, `Richtig wäre 47`), whether or not the result is known  |
+| `guidance.solution_leak.dictates_answer`  | telling the child what to write (`Schreib: …`)                                                                      |
+| `guidance.solution_leak.works_the_task`   | more correct steps on the task's numbers or their place values than the level allows: one at `next_step`, else none |
+| `guidance.solution_leak.reveals_key_text` | every word of a text key; words the task lists as options count too, because naming one is choosing it              |
+
+Praise and the comprehension question are only worded after a correct answer, so they may repeat a number the child wrote. A hit becomes the fallback reason `solution_leaked` with the predefined text of the requested kind and level, logged as `guidance.hint_fallback_used` or `guidance.feedback_fallback_used` with `guidance.ai_output.solution_leaked` and the detail codes, never with the text, the task, the answer or the key. Hints get the key through `HintOrchestrator.suggest(request, solutionKey)`; until assignments reach the hint request, hints are checked against the task alone.
+
+Known limits: a result in a paraphrase the guard cannot compute (`vierzig plus sieben` without `=`) passes, and for a text answer without a teacher's key only announced or dictated answers are caught. Both are prompt rules too (`domain/prompt/base-rules.ts`).
 
 ## Changing the contract
 
