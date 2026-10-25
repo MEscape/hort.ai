@@ -1,4 +1,9 @@
 import type { AnswerFeedback } from '../../application/contracts/answer-views';
+import type {
+  ComprehensionReplyView,
+  HelpSessionView,
+  StartHelpSessionView,
+} from '../../application/contracts/help-session-views';
 import type { HintOutcome, HintStep } from '../../application/contracts/hint-views';
 
 /**
@@ -30,4 +35,63 @@ export function toAnswerFeedbackDto(
   }
   const { result, assessedBy, next, message } = feedback;
   return { sessionId, result, assessedBy, next, message };
+}
+
+/**
+ * A help session as the help screen shows or resumes it (#17). Field by field from the stored
+ * view, so nothing added to the view later reaches the browser unnoticed. It carries no solution
+ * and no answer or reply text of the child.
+ */
+export type HelpSessionDto = HelpSessionView;
+
+/** `started`, or `continued` when the same task was already open. */
+export interface StartHelpSessionDto {
+  readonly outcome: StartHelpSessionView['outcome'];
+  readonly session: HelpSessionDto;
+}
+
+/** `understood` when the reply completed the task; the backend decides it, never the client. */
+export type ComprehensionReplyDto = ComprehensionReplyView;
+
+export function toHelpSessionDto(view: HelpSessionView): HelpSessionDto {
+  const {
+    sessionId,
+    task,
+    subject,
+    status,
+    hintLevel,
+    hints,
+    answerChecks,
+    openQuestion,
+    updatedAt,
+  } = view;
+  return {
+    sessionId,
+    task,
+    subject,
+    status,
+    hintLevel,
+    hints,
+    answerChecks: answerChecks.map(({ result, assessedBy, hintLevel: level }) => ({
+      result,
+      assessedBy,
+      hintLevel: level,
+    })),
+    openQuestion,
+    updatedAt,
+  };
+}
+
+export function toStartHelpSessionDto({
+  outcome,
+  session,
+}: StartHelpSessionView): StartHelpSessionDto {
+  return { outcome, session: toHelpSessionDto(session) };
+}
+
+export function toComprehensionReplyDto({
+  sessionId,
+  status,
+}: ComprehensionReplyView): ComprehensionReplyDto {
+  return { sessionId, status };
 }

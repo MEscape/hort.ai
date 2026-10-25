@@ -69,6 +69,19 @@
     "namespaces": {
       "public": {
         "enum": {
+          "AssessedBy": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "SOLUTION_KEY",
+                "value": "SOLUTION_KEY"
+              },
+              {
+                "name": "AI",
+                "value": "AI"
+              }
+            ]
+          },
           "AssessmentResult": {
             "codecId": "pg/text@1",
             "members": [
@@ -389,6 +402,32 @@
                   "kind": "scalar"
                 }
               },
+              "assessedBy": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "AssessedBy",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "hintLevel": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "HintLevel",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -411,7 +450,7 @@
                 }
               },
               "result": {
-                "nullable": false,
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -431,7 +470,7 @@
                 }
               },
               "text": {
-                "nullable": false,
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -478,6 +517,12 @@
               "fields": {
                 "answerId": {
                   "column": "answerId"
+                },
+                "assessedBy": {
+                  "column": "assessedBy"
+                },
+                "hintLevel": {
+                  "column": "hintLevel"
                 },
                 "id": {
                   "column": "id"
@@ -1612,7 +1657,7 @@
                 }
               },
               "text": {
-                "nullable": false,
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -1874,6 +1919,19 @@
                   "plane": "domain"
                 }
               },
+              "subject": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "Subject",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "taskText": {
                 "nullable": false,
                 "type": {
@@ -2023,6 +2081,9 @@
                 "status": {
                   "column": "status"
                 },
+                "subject": {
+                  "column": "subject"
+                },
                 "taskText": {
                   "column": "taskText"
                 },
@@ -2043,6 +2104,13 @@
           "HintEvent": {
             "fields": {
               "competencyCode": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "fallbackReason": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
@@ -2091,7 +2159,7 @@
                 }
               },
               "text": {
-                "nullable": false,
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -2120,6 +2188,9 @@
               "fields": {
                 "competencyCode": {
                   "column": "competencyCode"
+                },
+                "fallbackReason": {
+                  "column": "fallbackReason"
                 },
                 "id": {
                   "column": "id"
@@ -2543,6 +2614,21 @@
             "AnswerAssessment": {
               "checks": [
                 {
+                  "expression": "\"assessedBy\" IN ('SOLUTION_KEY', 'AI')",
+                  "name": "AnswerAssessment_assessedBy_check_5ef9c7ef",
+                  "prefix": "AnswerAssessment_assessedBy_check"
+                },
+                {
+                  "expression": "(\"result\" IS NULL) = (\"assessedBy\" IS NULL)",
+                  "name": "AnswerAssessment_assessed_rule_720eae42",
+                  "prefix": "AnswerAssessment_assessed_rule"
+                },
+                {
+                  "expression": "\"hintLevel\" IN ('UNDERSTAND_TASK', 'ACTIVATE_PRIOR_KNOWLEDGE', 'NEXT_STEP', 'SIMILAR_EXAMPLE')",
+                  "name": "AnswerAssessment_hintLevel_check_0e898a46",
+                  "prefix": "AnswerAssessment_hintLevel_check"
+                },
+                {
                   "expression": "char_length(\"idempotencyKey\") BETWEEN 1 AND 128",
                   "name": "AnswerAssessment_key_rule_2bdf8ced",
                   "prefix": "AnswerAssessment_key_rule"
@@ -2553,8 +2639,8 @@
                   "prefix": "AnswerAssessment_result_check"
                 },
                 {
-                  "expression": "char_length(\"text\") BETWEEN 1 AND 1000",
-                  "name": "AnswerAssessment_text_rule_d85c71d7",
+                  "expression": "\"text\" IS NULL OR char_length(\"text\") BETWEEN 1 AND 1000",
+                  "name": "AnswerAssessment_text_rule_cf2e486d",
                   "prefix": "AnswerAssessment_text_rule"
                 }
               ],
@@ -2563,6 +2649,28 @@
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": false
+                },
+                "assessedBy": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "AssessedBy",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "hintLevel": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "HintLevel",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
                 },
                 "id": {
                   "codecId": "pg/text@1",
@@ -2586,7 +2694,7 @@
                 "result": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
-                  "nullable": false,
+                  "nullable": true,
                   "valueSet": {
                     "entityKind": "valueSet",
                     "entityName": "AssessmentResult",
@@ -2602,7 +2710,7 @@
                 "text": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
-                  "nullable": false
+                  "nullable": true
                 }
               },
               "foreignKeys": [
@@ -3747,8 +3855,8 @@
                   "prefix": "ComprehensionQuestion_reply_rule"
                 },
                 {
-                  "expression": "char_length(\"text\") BETWEEN 1 AND 1000",
-                  "name": "ComprehensionQuestion_text_rule_d85c71d7",
+                  "expression": "\"text\" IS NULL OR char_length(\"text\") BETWEEN 1 AND 1000",
+                  "name": "ComprehensionQuestion_text_rule_cf2e486d",
                   "prefix": "ComprehensionQuestion_text_rule"
                 }
               ],
@@ -3790,7 +3898,7 @@
                 "text": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
-                  "nullable": false
+                  "nullable": true
                 }
               },
               "foreignKeys": [
@@ -3983,6 +4091,11 @@
                   "prefix": "HelpSession_status_check"
                 },
                 {
+                  "expression": "\"subject\" IN ('MATH', 'GERMAN', 'GENERAL_STUDIES', 'ENGLISH')",
+                  "name": "HelpSession_subject_check_50a44108",
+                  "prefix": "HelpSession_subject_check"
+                },
+                {
                   "expression": "char_length(\"taskText\") BETWEEN 1 AND 4000",
                   "name": "HelpSession_task_text_rule_a9ca7f56",
                   "prefix": "HelpSession_task_text_rule"
@@ -4050,6 +4163,17 @@
                   "valueSet": {
                     "entityKind": "valueSet",
                     "entityName": "HelpSessionStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "subject": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "Subject",
                     "namespaceId": "public",
                     "plane": "storage"
                   }
@@ -4154,6 +4278,15 @@
                 },
                 {
                   "columns": [
+                    "childProfileId"
+                  ],
+                  "name": "HelpSession_one_active_per_child_f47b7342",
+                  "prefix": "HelpSession_one_active_per_child",
+                  "unique": true,
+                  "where": "(\"status\" = 'ACTIVE')"
+                },
+                {
+                  "columns": [
                     "tenantId",
                     "ownerId",
                     "updatedAt"
@@ -4173,6 +4306,11 @@
             "HintEvent": {
               "checks": [
                 {
+                  "expression": "\"fallbackReason\" IS NULL OR char_length(\"fallbackReason\") BETWEEN 1 AND 64",
+                  "name": "HintEvent_fallback_reason_rule_350b7c97",
+                  "prefix": "HintEvent_fallback_reason_rule"
+                },
+                {
                   "expression": "char_length(\"idempotencyKey\") BETWEEN 1 AND 128",
                   "name": "HintEvent_key_rule_2bdf8ced",
                   "prefix": "HintEvent_key_rule"
@@ -4183,13 +4321,23 @@
                   "prefix": "HintEvent_level_check"
                 },
                 {
-                  "expression": "char_length(\"text\") BETWEEN 1 AND 1000",
-                  "name": "HintEvent_text_rule_d85c71d7",
+                  "expression": "(\"text\" IS NULL) = (\"fallbackReason\" IS NOT NULL)",
+                  "name": "HintEvent_text_or_fallback_rule_97dc2b73",
+                  "prefix": "HintEvent_text_or_fallback_rule"
+                },
+                {
+                  "expression": "\"text\" IS NULL OR char_length(\"text\") BETWEEN 1 AND 1000",
+                  "name": "HintEvent_text_rule_cf2e486d",
                   "prefix": "HintEvent_text_rule"
                 }
               ],
               "columns": {
                 "competencyCode": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "fallbackReason": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": true
@@ -4232,7 +4380,7 @@
                 "text": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
-                  "nullable": false
+                  "nullable": true
                 }
               },
               "foreignKeys": [
@@ -4696,6 +4844,13 @@
             }
           },
           "valueSet": {
+            "AssessedBy": {
+              "kind": "valueSet",
+              "values": [
+                "SOLUTION_KEY",
+                "AI"
+              ]
+            },
             "AssessmentResult": {
               "kind": "valueSet",
               "values": [
@@ -4828,7 +4983,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "073e39acca7299a40a57a7f3fae59f0191a148a085bae26fc5ac55b61d1f5495"
+    "storageHash": "eca80640cb0a769525df6288850067119387f7f45ed38d34e0c24729a1900541"
   },
   "execution": {
     "executionHash": "5388a8400147d76b9e718711335599d04f7ca67a9c7f7b82d886bf9fb1c1aec5",
