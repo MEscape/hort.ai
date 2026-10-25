@@ -1,7 +1,8 @@
 import { db, createPersistenceFailures, instantToDate } from '@lib/db';
 import type { InfrastructureAppError } from '@lib/errors';
-import { fromThrowableAsync } from '@lib/result';
+import { fromThrowableAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
+import { unique } from '@lib/utils';
 
 import { CURRICULUM_ERROR_CODES } from '../../domain/errors/curriculum-errors';
 
@@ -23,6 +24,8 @@ import type { Competency, CurriculumDocumentDraft } from '../../domain/models/co
 import type {
   CompetencyFilter,
   CompetencyRepository,
+  CompetencyText,
+  CompetencyTextLookup,
   CurriculumStoreOutcome,
 } from '../../domain/ports/competency.repository';
 
@@ -62,7 +65,7 @@ function newestPerSource(
  * Prisma 8 repository for official curriculum documents and competencies. Curriculum text is
  * public and belongs to no tenant, so queries are scoped by state, subject and grade, not owner.
  */
-export class PrismaCompetencyRepository implements CompetencyRepository {
+export class PrismaCompetencyRepository implements CompetencyRepository, CompetencyTextLookup {
   saveDocument(
     draft: CurriculumDocumentDraft,
   ): AppResultAsync<CurriculumStoreOutcome, InfrastructureAppError> {
@@ -143,5 +146,47 @@ export class PrismaCompetencyRepository implements CompetencyRepository {
         return document ? [toCompetency(record, document)] : [];
       });
     }, failures.infraOnly('listCandidates'));
+  }
+
+  describe(
+    refs: Parameters<CompetencyTextLookup['describe']>[0],
+    limit: number,
+  ): AppResultAsync<readonly CompetencyText[], InfrastructureAppError> {
+    if (refs.length === 0) {
+      return okAsync([]);
+    }
+    return fromThrowableAsync(async () => {
+      const documents = await db.orm.public.CurriculumDocument.select('id', 'sourceKey', 'version')
+        .where((row) => row.sourceKey.in(unique(refs.map(({ sourceKey }) => sourceKey))))
+        .limit(DOCUMENTS_MAX)
+        .all();
+      const wanted = documents.filter((document) =>
+        refs.some(
+          (ref) => ref.sourceKey === document.sourceKey && ref.version === document.version,
+        ),
+      );
+      if (wanted.length === 0) {
+        return [];
+      }
+      const byId = new Map(wanted.map((document) => [document.id, document]));
+      const records = await db.orm.public.Competency.select('documentId', 'code', 'text')
+        .where((row) => row.documentId.in([...byId.keys()]))
+        .where((row) => row.code.in(unique(refs.map(({ code }) => code))))
+        .limit(limit)
+        .all();
+      return records.flatMap((record) => {
+        const document = byId.get(record.documentId);
+        return document
+          ? [
+              {
+                sourceKey: document.sourceKey,
+                version: document.version,
+                code: record.code,
+                text: record.text,
+              },
+            ]
+          : [];
+      });
+    }, failures.infraOnly('describe'));
   }
 }

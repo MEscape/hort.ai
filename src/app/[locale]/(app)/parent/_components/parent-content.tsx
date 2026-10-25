@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 
+import { LearningSummaryCard } from '@modules/guidance';
 import {
   ParentAssignments,
   ParentControlsForm,
@@ -75,19 +76,22 @@ export async function ParentContent({
     return <ParentLearning {...learning} />;
   }
   return (
-    <ParentOverview
-      {...learning}
-      companion={
-        <Suspense
-          fallback={
-            <ParentPanel title={t('companionTitle')}>
-              <p>{t('loading')}</p>
-            </ParentPanel>
-          }
-        >
-          <ParentCompanion child={child} />
-        </Suspense>
-      }
-    />
+    <div className="space-y-6">
+      <LearningSummaryCard childProfileId={child.id} childName={child.displayName} />
+      <ParentOverview
+        {...learning}
+        companion={
+          <Suspense
+            fallback={
+              <ParentPanel title={t('companionTitle')}>
+                <p>{t('loading')}</p>
+              </ParentPanel>
+            }
+          >
+            <ParentCompanion child={child} />
+          </Suspense>
+        }
+      />
+    </div>
   );
 }

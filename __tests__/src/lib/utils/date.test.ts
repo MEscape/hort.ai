@@ -94,3 +94,12 @@ describe('addDays', () => {
     expect(() => addDays('nope', 1)).toThrow(RangeError);
   });
 });
+
+describe('calendarDayIn', () => {
+  it('names the day in the given zone, not in UTC', async () => {
+    const { calendarDayIn } = await import('@lib/utils/date');
+    const instant = new Date('2026-10-24T22:30:00Z');
+    expect(calendarDayIn(instant, 'UTC')).toBe('2026-10-24');
+    expect(calendarDayIn(instant, 'Europe/Berlin')).toBe('2026-10-25');
+  });
+});

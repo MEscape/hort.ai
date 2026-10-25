@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 import { assignmentsQueries, parseChildTasksPageParams } from '@modules/assignments';
 import type { ChildAssignmentView } from '@modules/assignments';
 import { requireSignedIn } from '@modules/auth';
-import { requireOnboarded } from '@modules/learner';
+import { getLearnerQueries, requireOnboarded } from '@modules/learner';
 
 import { I18nProvider } from '@components/providers/i18n-provider';
 
@@ -58,12 +58,15 @@ async function StartContent({ searchParams }: Pick<StartPageProps, 'searchParams
   const params = await searchParams;
   const parsed = parseChildTasksPageParams(params);
   const childProfileId = parsed.childProfileId ?? (await requireOnboarded()).id;
+  const profile = await getLearnerQueries().getChildProfileById.execute(childProfileId);
+  const voiceConsent = profile.isOk() && profile.value.voiceConsent;
   return (
     <StartScreen
       schoolAssignments={await loadSchoolAssignments(
         Promise.resolve({ ...params, child: childProfileId }),
       )}
       childProfileId={childProfileId}
+      voiceConsent={voiceConsent}
     />
   );
 }
@@ -72,7 +75,7 @@ export default async function StartPage({ params, searchParams }: StartPageProps
   const locale = requireLocale((await params).locale);
 
   return (
-    <I18nProvider locale={locale} namespaces={['assignments', 'guidance']}>
+    <I18nProvider locale={locale} namespaces={['assignments', 'guidance', 'voice']}>
       <StartPageShell header={<StartHeader />}>
         <Suspense fallback={<StartScreen schoolAssignments={null} childProfileId={null} />}>
           <StartContent searchParams={searchParams} />

@@ -3,15 +3,23 @@ import type { ValidationAppError } from '@lib/errors';
 import { err, ok } from '@lib/result';
 import type { AppResult } from '@lib/result';
 
-import { MATERIAL_MAX_BYTES } from '../../domain/models/material';
+import {
+  MATERIAL_MAX_BYTES,
+  MATERIAL_POWERPOINT_CONTENT_TYPE,
+  MATERIAL_WORD_CONTENT_TYPE,
+} from '../../domain/models/material';
 import { MATERIAL_QUERY_LIMITS } from '../material-limits';
 
+import type { ConvertibleMaterialMime } from '../../domain/models/material';
 import type { BeginMaterialInput } from '../contracts/material-inputs';
 
 export function invalidMaterial(): ValidationAppError {
   return validationError('teacher_material.validation_failed', 'Invalid material.', {
     file: ['teacher_material.validation.invalid_file'],
   });
+}
+export function isConvertibleContentType(value: string): value is ConvertibleMaterialMime {
+  return value === MATERIAL_WORD_CONTENT_TYPE || value === MATERIAL_POWERPOINT_CONTENT_TYPE;
 }
 /** No PDF parser is installed. Fail closed rather than claiming PDF extraction succeeded. */
 export function validateMaterialInput(

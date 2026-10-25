@@ -8,6 +8,7 @@ import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
 
 import { useTeacherMaterial } from '../hooks/use-teacher-material';
+import { MATERIAL_FORM_ACCEPT } from '../schemas/material-upload-schema';
 
 import type { MaterialView } from '../../application/contracts/material-views';
 
@@ -41,7 +42,7 @@ export function TeacherMaterialSection({ classroomId, materials }: TeacherMateri
               id={`${id}-file`}
               name="file"
               type="file"
-              accept=".txt,text/plain"
+              accept={MATERIAL_FORM_ACCEPT}
               disabled={isPending}
               aria-describedby={`${id}-hint`}
               aria-invalid={error !== null && error !== 'generic' ? true : undefined}

@@ -119,6 +119,7 @@ describe.skipIf(!isEnabled)('teacher assignments reach the children of the class
         getChildClassroom: new GetChildClassroom(classroom),
       }),
       audit: noAudit,
+      clock,
     };
     return {
       createClassroom: new CreateClassroom(classroom),

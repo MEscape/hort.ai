@@ -1,6 +1,7 @@
 'use client';
 
 import type { TutorOption } from '@modules/learner/client';
+import { ReadAloudButton } from '@modules/voice/client';
 
 import { Character } from '@components/brand/character';
 
@@ -42,12 +43,19 @@ function companionText(line: Exclude<ConversationLine, { kind: 'child' }>, t: Gu
 }
 
 interface ConversationLinesProps {
+  readonly childProfileId: string;
+  readonly voiceConsent: boolean;
   readonly lines: readonly ConversationLine[];
   readonly companion: TutorOption;
 }
 
 /** The conversation, oldest first: the companion speaks with picture and name, the child's own words on the right. */
-export function ConversationLines({ lines, companion }: ConversationLinesProps) {
+export function ConversationLines({
+  lines,
+  companion,
+  childProfileId,
+  voiceConsent,
+}: ConversationLinesProps) {
   const t = useTranslations('guidance');
   return (
     <ol aria-label={t('conversation.label')} aria-live="polite" className="space-y-4">
@@ -72,6 +80,12 @@ export function ConversationLines({ lines, companion }: ConversationLinesProps) 
             <div className="rounded-token-lg bg-surface p-4 text-copy shadow-sm">
               <p className="mb-1 font-semibold">{companion.name}</p>
               <p className="whitespace-pre-wrap">{companionText(line, t)}</p>
+              <ReadAloudButton
+                childProfileId={childProfileId}
+                message={line.speech}
+                allowed={voiceConsent}
+                className="mt-3"
+              />
             </div>
           </li>
         ),

@@ -30,11 +30,15 @@ export function toHelpSessionView(session: HelpSession): HelpSessionView {
     status: progressOf(session),
     hintLevel: session.hintLevel,
     hints: session.hints.map(toHintOutcome),
-    answerChecks: session.answerChecks.map(({ result, assessedBy, hintLevel }) => ({
-      result,
-      assessedBy,
-      hintLevel,
-    })),
+    answerChecks: session.answerChecks.map(
+      ({ result, assessedBy, hintLevel, feedbackText, question }) => ({
+        feedbackText,
+        questionText: question?.text ?? null,
+        result,
+        assessedBy,
+        hintLevel,
+      }),
+    ),
     openQuestion: open?.question ? toQuestion(open.question.text) : null,
     opening: session.topic.opening,
     updatedAt: session.updatedAt.toISOString(),

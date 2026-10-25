@@ -38,3 +38,23 @@ export interface CompetencyRepository {
     limit: number,
   ): AppResultAsync<readonly Competency[], InfrastructureAppError>;
 }
+
+/** Names a stored competency for a summary (#35). Public curriculum text, nothing to scope by owner. */
+export interface CompetencyTextLookup {
+  /** The texts of the named competencies of these document versions; at most `limit` rows. */
+  describe(
+    refs: readonly CompetencyRef[],
+    limit: number,
+  ): AppResultAsync<readonly CompetencyText[], InfrastructureAppError>;
+}
+
+/** One competency of one document version, as a session stores it. */
+export interface CompetencyRef {
+  readonly sourceKey: string;
+  readonly version: string;
+  readonly code: string;
+}
+
+export interface CompetencyText extends CompetencyRef {
+  readonly text: string;
+}

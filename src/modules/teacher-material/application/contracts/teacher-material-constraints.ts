@@ -9,6 +9,10 @@ export {
   TEACHER_MATERIAL_VALIDATION_CODES,
 } from '../../domain/errors/teacher-material-errors';
 export type { TeacherMaterialCode } from '../../domain/errors/teacher-material-errors';
-export { MATERIAL_MAX_BYTES } from '../../domain/models/material';
+export {
+  MATERIAL_MAX_BYTES,
+  MATERIAL_POWERPOINT_CONTENT_TYPE,
+  MATERIAL_WORD_CONTENT_TYPE,
+} from '../../domain/models/material';
 export { MATERIAL_QUERY_LIMITS } from '../material-limits';
 export { TEACHER_MATERIAL_ID_MAX_LENGTH } from '../../domain/models/ids';

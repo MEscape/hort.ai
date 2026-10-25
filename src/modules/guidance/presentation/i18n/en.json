@@ -69,6 +69,41 @@
         "at": "That is enough for today. Tomorrow from {time} (Berlin time) I will be back.",
         "anyTime": "That is enough for today. I will be back tomorrow."
       }
+    },
+    "insights": {
+      "parent": {
+        "title": "Where {name} needed help",
+        "window": "The last 14 days, without any conversation texts.",
+        "off": "Notes for your summary are off, so Hort shows nothing here.",
+        "empty": "No help session in the last 14 days yet.",
+        "manyHints": "Here {name} needed many hints: {topics}",
+        "understood": "{name} understood this: {topics}",
+        "ownTask": "Own task",
+        "sessionsLabel": "Help sessions",
+        "hints": "{count, plural, =0 {no hint yet} one {# hint} other {# hints}}",
+        "highestLevel": "up to “{level}”",
+        "comprehensionAnswered": "Comprehension question answered",
+        "status": {
+          "completed": "done",
+          "active": "still open",
+          "abandoned": "paused/switched"
+        },
+        "level": {
+          "understand_task": "understand the task",
+          "activate_prior_knowledge": "prior knowledge",
+          "next_step": "next step",
+          "similar_example": "similar example"
+        }
+      },
+      "class": {
+        "title": "Class overview",
+        "description": "Numbers for the whole class, never for single children.",
+        "empty": "No assignments in this class yet.",
+        "tooFew": "Hort shows numbers here from 3 children on – to protect the children.",
+        "children": "{count, plural, one {# child} other {# children}} got help",
+        "completed": "{count} of them done",
+        "medianHints": "typically {median} hints"
+      }
     }
   }
 }

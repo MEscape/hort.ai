@@ -94,3 +94,16 @@ export function addDays(input: DateInput, days: number): Date {
   result.setUTCDate(result.getUTCDate() + days);
   return result;
 }
+
+/**
+ * The calendar day (`YYYY-MM-DD`) an instant falls on in a time zone. Due dates are days, so
+ * "today" must follow the school's zone, not UTC or the server's.
+ */
+export function calendarDayIn(instant: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(instant);
+}

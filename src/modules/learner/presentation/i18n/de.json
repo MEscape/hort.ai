@@ -181,7 +181,7 @@
       },
       "insights": {
         "title": "Notizen für deine Zusammenfassung",
-        "description": "Hort darf festhalten, bei welchen Aufgabenarten {name} Hilfe brauchte, für deine spätere Zusammenfassung. Gespräche werden nicht gespeichert. Die Zusammenfassung ist noch in Arbeit.",
+        "description": "Hort darf festhalten, bei welchen Aufgabenarten {name} Hilfe brauchte, für deine Zusammenfassung im Elternbereich. Gespräche werden nicht gespeichert.",
         "on": "Notizen sind an",
         "off": "Notizen sind aus"
       },

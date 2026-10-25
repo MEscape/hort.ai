@@ -4,6 +4,7 @@ import { getAccessControl } from '@modules/auth';
 import { classroomQueries } from '@modules/classroom';
 
 import { IngestCurriculumDocument } from './application/commands/ingest-curriculum-document';
+import { DescribeCompetencies } from './application/queries/describe-competencies';
 import { FindRelevantCompetencies } from './application/queries/find-relevant-competencies';
 import { extractStatements } from './domain/parsing/extract-statements';
 import { loggerCurriculumAuditLog } from './infrastructure/audit/logger-curriculum-audit-log';
@@ -12,10 +13,11 @@ import { PrismaTeacherMaterialRepository } from './infrastructure/prisma/prisma-
 import { ClassroomTeacherMaterialSource } from './infrastructure/teacher-material/classroom-teacher-material-source';
 
 const materialRepository = new PrismaTeacherMaterialRepository();
+const competencyRepository = new PrismaCompetencyRepository();
 
 /** Public curriculum plus private material, re-authorized against the child's actual class. */
 const dependencies = {
-  competencies: new PrismaCompetencyRepository(),
+  competencies: competencyRepository,
   teacherMaterial: new ClassroomTeacherMaterialSource({
     childClassroom: classroomQueries.getChildClassroom,
     list: (classroomId, limit, childProfileId) =>
@@ -40,6 +42,8 @@ export const curriculumCommands = {
 
 export const curriculumQueries = {
   findRelevantCompetencies: new FindRelevantCompetencies(dependencies),
+  /** Names a help session's stored competency in a learning summary (#35). */
+  describeCompetencies: new DescribeCompetencies({ texts: competencyRepository }),
 } as const;
 
 /**

@@ -37,3 +37,9 @@ export interface CurriculumIngestReport {
   readonly statementCount: number;
   readonly truncatedCount: number;
 }
+
+/** An official competency's text by its retrieval code, for naming a topic (#35). */
+export interface CompetencyDescriptionView {
+  readonly code: string;
+  readonly text: string;
+}
