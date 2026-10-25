@@ -15,14 +15,21 @@ export interface HostedClip {
   readonly expiresAt: Date;
 }
 
+export interface StoredAudio {
+  readonly audio: Uint8Array<ArrayBuffer>;
+  readonly contentType: string;
+}
+
 /**
- * Spoken audio kept for channels that play a URL instead of receiving bytes (Alexa). Clips are a
- * cache keyed by their content, not records: nobody owns them, and losing one only costs a new
+ * Spoken audio kept so equal content is synthesized once: behind a URL for channels that play one
+ * (Alexa), as bytes for the web app. Clips are a cache keyed by their content, not records: nobody owns them, and losing one only costs a new
  * synthesis.
  */
 export interface SpeechClips {
   /** The stored clip for this content, or `null` when there is none yet. */
   find(content: ClipContent): AppResultAsync<HostedClip | null, InfrastructureAppError>;
+  /** The stored audio itself, for callers that answer with bytes; `null` when there is none yet. */
+  findAudio(content: ClipContent): AppResultAsync<StoredAudio | null, InfrastructureAppError>;
   save(
     content: ClipContent,
     audio: Uint8Array<ArrayBuffer>,

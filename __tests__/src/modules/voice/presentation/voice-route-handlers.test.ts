@@ -3,12 +3,17 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { createVoiceRouteHandlers } from '@modules/voice/presentation/http/voice-route-handlers';
-import type { Synthesize, Transcribe } from '@modules/voice/presentation/http/voice-route-handlers';
+import type {
+  SignedIn,
+  Synthesize,
+  Transcribe,
+} from '@modules/voice/presentation/http/voice-route-handlers';
 
 import {
   forbiddenError,
   infrastructureError,
   rateLimitedError,
+  unauthorizedError,
   validationError,
 } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
@@ -16,8 +21,11 @@ import { errAsync, okAsync } from '@lib/result';
 /** The EBML header a `MediaRecorder` WebM recording starts with. */
 const WEBM_HEADER = new Uint8Array([0x1a, 0x45, 0xdf, 0xa3]);
 
-function handlersWith(overrides: { synthesize?: Synthesize; transcribe?: Transcribe } = {}) {
+function handlersWith(
+  overrides: { synthesize?: Synthesize; transcribe?: Transcribe; signedIn?: SignedIn } = {},
+) {
   const options = {
+    signedIn: vi.fn<SignedIn>(overrides.signedIn ?? (() => okAsync(undefined))),
     synthesize: vi.fn<Synthesize>(
       overrides.synthesize ??
         (() => okAsync({ audio: new Uint8Array([0xff, 0xfb]), contentType: 'audio/mpeg' })),
@@ -25,7 +33,10 @@ function handlersWith(overrides: { synthesize?: Synthesize; transcribe?: Transcr
     transcribe: vi.fn<Transcribe>(overrides.transcribe ?? (() => okAsync({ text: 'Hallo Max' }))),
     onFailure: vi.fn(),
   };
-  const routes = createVoiceRouteHandlers({ onFailure: options.onFailure });
+  const routes = createVoiceRouteHandlers({
+    onFailure: options.onFailure,
+    signedIn: options.signedIn,
+  });
   return {
     handlers: {
       speech: (request: Request) => routes.speech(request, options.synthesize),
@@ -172,6 +183,22 @@ describe('voice route handlers: transcription', () => {
       audio: WEBM_HEADER,
       contentType: 'audio/webm',
     });
+  });
+
+  it('answers an anonymous caller 401 without reading the recording', async () => {
+    const anonymous = unauthorizedError('auth.unauthenticated', 'Sign in.');
+    const { handlers, options } = handlersWith({ signedIn: () => errAsync(anonymous) });
+    const form = new FormData();
+    form.set('childProfileId', 'child-1');
+    form.set('audio', new Blob([WEBM_HEADER], { type: 'audio/webm' }));
+    const request = await multipartRequest(form);
+    const formData = vi.spyOn(request, 'formData');
+
+    const response = await handlers.transcription(request);
+
+    expect(response.status).toBe(401);
+    expect(formData).not.toHaveBeenCalled();
+    expect(options.transcribe).not.toHaveBeenCalled();
   });
 
   it('refuses a recording that names no child, before the use case runs', async () => {

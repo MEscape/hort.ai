@@ -79,9 +79,10 @@ describe('voice module: recordings are never persisted', () => {
     expect(clipStore).not.toMatch(/[Rr]ecording|[Tt]ranscri/);
   });
 
-  it('builds its use cases from no store at all', () => {
+  it('builds its use cases from no store but the clip cache', () => {
     expect(Object.keys(voiceDependencies()).sort()).toEqual([
       'authorization',
+      'clips',
       'consent',
       'phrases',
       'rateLimiter',

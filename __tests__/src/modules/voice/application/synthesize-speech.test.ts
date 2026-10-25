@@ -5,8 +5,11 @@ import type { SpeechSource } from '@modules/voice/application/contracts/voice-in
 import { SynthesizeSpeech } from '@modules/voice/application/queries/synthesize-speech';
 import { VOICE_RATE_LIMITS } from '@modules/voice/application/rate-limits';
 
+import { infrastructureError } from '@lib/errors';
+import { errAsync } from '@lib/result';
+
 import { createBrokenRateLimiter, createTestRateLimiter } from '../../../support/rate-limiting';
-import { actor, allowing, denying, fakeSpeech, voiceDependencies } from '../fakes';
+import { actor, allowing, denying, fakeSpeech, memoryClips, voiceDependencies } from '../fakes';
 
 /** A ticket the fake ticket store redeems for `text`, as if issued for a validated hint. */
 function said(text: string): SpeechSource {
@@ -150,5 +153,74 @@ describe('SynthesizeSpeech', () => {
 
     expect(result._unsafeUnwrapErr().code).toBe('voice.rate_limiter_failed');
     expect(speech.synthesize).not.toHaveBeenCalled();
+  });
+
+  it('speaks a replayed ticket from the stored clip, so the provider bills it once', async () => {
+    const speech = fakeSpeech();
+    const { clips } = memoryClips();
+    const query = new SynthesizeSpeech(voiceDependencies({ speech, clips }));
+
+    const first = await query.execute({ speakerId: 'max', source: said('Super gemacht!') });
+    const replayed = await query.execute({ speakerId: 'max', source: said('Super gemacht!') });
+
+    expect(replayed._unsafeUnwrap()).toEqual(first._unsafeUnwrap());
+    expect(speech.synthesize).toHaveBeenCalledOnce();
+    expect(clips.save).toHaveBeenCalledOnce();
+  });
+
+  it('refuses a new synthesis once the global daily character budget is spent', async () => {
+    const speech = fakeSpeech();
+    const rateLimiter = createTestRateLimiter();
+    const query = new SynthesizeSpeech(
+      voiceDependencies({ speech, rateLimiter, clips: memoryClips().clips }),
+    );
+    await query.execute({ speakerId: 'max', source: said('Hallo') });
+    for (let unit = 0; unit < VOICE_RATE_LIMITS.dailyCharacters.limit; unit += 1) {
+      await rateLimiter.enforce({
+        policy: VOICE_RATE_LIMITS.dailyCharacters,
+        subject: { kind: 'global' },
+      });
+    }
+
+    const cached = await query.execute({ speakerId: 'max', source: said('Hallo') });
+    const refused = await query.execute({ speakerId: 'max', source: said('Neu') });
+
+    expect(cached.isOk()).toBe(true);
+    expect(refused._unsafeUnwrapErr()).toMatchObject({
+      kind: 'rate_limited',
+      code: 'voice.rate_limited',
+    });
+    expect(speech.synthesize).toHaveBeenCalledOnce();
+  });
+
+  it('counts one character unit per started hundred characters', async () => {
+    const rateLimiter = createTestRateLimiter();
+    const query = new SynthesizeSpeech(voiceDependencies({ rateLimiter }));
+    const perReply = Math.ceil(SPEECH_LIMITS.maxTextLength / 100);
+    const replies = Math.floor(VOICE_RATE_LIMITS.dailyCharacters.limit / perReply);
+    for (let reply = 0; reply < replies; reply += 1) {
+      const parent = new SynthesizeSpeech(
+        voiceDependencies({ rateLimiter, authorization: allowing(actor(`parent-${reply}`)) }),
+      );
+      const text = said('a'.repeat(SPEECH_LIMITS.maxTextLength));
+      expect((await parent.execute({ speakerId: 'max', source: text })).isOk()).toBe(true);
+    }
+
+    const refused = await query.execute({ speakerId: 'max', source: said('a') });
+
+    expect(refused._unsafeUnwrapErr().kind).toBe('rate_limited');
+  });
+
+  it('still speaks while the clip store cannot be read or written', async () => {
+    const speech = fakeSpeech();
+    const down = () => errAsync(infrastructureError('voice.clip_failed', 'Down.'));
+    const query = new SynthesizeSpeech(
+      voiceDependencies({ speech, clips: { find: down, findAudio: down, save: down } }),
+    );
+
+    const result = await query.execute({ speakerId: 'max', source: said('Hallo') });
+
+    expect(result.isOk()).toBe(true);
+    expect(speech.synthesize).toHaveBeenCalledOnce();
   });
 });

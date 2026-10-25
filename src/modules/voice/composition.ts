@@ -2,7 +2,7 @@ import 'server-only';
 
 import { randomBytes } from 'node:crypto';
 
-import { getAccessControl } from '@modules/auth';
+import { getAccessControl, getAuthQueries } from '@modules/auth';
 import { getLearnerQueries } from '@modules/learner';
 
 import { systemClock } from '@lib/clock';
@@ -31,6 +31,14 @@ const log = logger.withContext({ module: 'voice' });
 /** Size of the per-process key used when no `AUTH_SECRET` is set. */
 const TICKET_KEY_BYTES = 32;
 
+/** The clip cache both speech paths share; `null` without a private storage container. */
+const getSpeechClips = once(() => {
+  const store = getObjectStore();
+  return store?.supports('private') === true
+    ? objectStoreSpeechClips(store, { clock: systemClock })
+    : null;
+});
+
 /**
  * The module's composition root. Built on first use, so a build that imports a voice route needs
  * no speech configuration; without `ELEVENLABS_API_KEY` the use cases answer `voice.disabled`.
@@ -45,6 +53,7 @@ export const getVoiceQueries = once(() => {
     phrases: catalogSystemPhrases(),
     tickets: hmacSpokenTextTickets({ secret: ticketSecret(), clock: systemClock }),
     consent: learnerChildVoiceConsent((id) => getLearnerQueries().getChildProfileById.execute(id)),
+    clips: getSpeechClips(),
   };
   return {
     synthesizeSpeech: new SynthesizeSpeech(dependencies),
@@ -58,20 +67,17 @@ export const getVoiceQueries = once(() => {
  * `ELEVENLABS_API_KEY` or a private storage container it answers `voice.disabled` /
  * `voice.hosting_disabled`, and the channel keeps its own voice. Needs no auth wiring: it has no actor.
  */
-export const getHostedSpeech = once(() => {
-  const store = getObjectStore();
-  return new GetHostedSpeech({
-    rateLimiter: getRateLimiter(),
-    speech: getSpeechProvider(),
-    voices: catalogSpeakerVoices(),
-    phrases: catalogSystemPhrases(),
-    channelLines: catalogChannelLines(),
-    clips:
-      store?.supports('private') === true
-        ? objectStoreSpeechClips(store, { clock: systemClock })
-        : null,
-  });
-});
+export const getHostedSpeech = once(
+  () =>
+    new GetHostedSpeech({
+      rateLimiter: getRateLimiter(),
+      speech: getSpeechProvider(),
+      voices: catalogSpeakerVoices(),
+      phrases: catalogSystemPhrases(),
+      channelLines: catalogChannelLines(),
+      clips: getSpeechClips(),
+    }),
+);
 
 /**
  * Speech tickets are signed with a key derived from `AUTH_SECRET`, which every deployment with
@@ -91,6 +97,7 @@ function ticketSecret(): string {
  */
 export const getVoiceRouteHandlers = once((): VoiceRouteHandlers =>
   createVoiceRouteHandlers({
+    signedIn: () => getAuthQueries().getCurrentActor.execute(),
     onFailure: (operation, error) => {
       if (error.kind === 'infrastructure') {
         log.warn('Speech request failed', {

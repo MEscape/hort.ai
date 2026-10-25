@@ -79,6 +79,32 @@ describe('objectStoreSpeechClips', () => {
     );
   });
 
+  it('reads the audio of a stored clip through its read URL, and nothing for a missing one', async () => {
+    const stored = fakeStore({
+      byteSize: 3,
+      contentType: 'audio/mpeg',
+      etag: null,
+      lastModified: null,
+    });
+    const send = vi.fn((_url: string, _init: RequestInit) =>
+      Promise.resolve(new Response(AUDIO, { status: 200 })),
+    );
+    const present = objectStoreSpeechClips(stored, { clock, fetch: send });
+    const missing = objectStoreSpeechClips(fakeStore(null), { clock, fetch: send });
+    const refused = objectStoreSpeechClips(stored, { clock, fetch: ok(403) });
+
+    expect((await present.findAudio(CONTENT))._unsafeUnwrap()).toEqual({
+      audio: AUDIO,
+      contentType: 'audio/mpeg',
+    });
+    const [url, init] = send.mock.calls[0] ?? [];
+    expect(url).toContain('?sig=r');
+    expect(init).toMatchObject({ method: 'GET' });
+    expect((await missing.findAudio(CONTENT))._unsafeUnwrap()).toBeNull();
+    expect(send).toHaveBeenCalledOnce();
+    expect((await refused.findAudio(CONTENT))._unsafeUnwrapErr().code).toBe('voice.clip_failed');
+  });
+
   it('uploads through the signed target with its exact headers, then signs a read URL', async () => {
     const store = fakeStore();
     const send = ok();

@@ -5,45 +5,19 @@ import type { HostedSpeechSource } from '@modules/voice/application/contracts/vo
 import { GetHostedSpeech } from '@modules/voice/application/queries/get-hosted-speech';
 import { VOICE_RATE_LIMITS } from '@modules/voice/application/rate-limits';
 import type { HostedSpeechDependencies } from '@modules/voice/application/voice-dependencies';
-import type {
-  ClipContent,
-  HostedClip,
-  SpeechClips,
-} from '@modules/voice/domain/ports/speech-clips.port';
 import { catalogChannelLines } from '@modules/voice/infrastructure/catalog/catalog-channel-lines';
 
 import { infrastructureError } from '@lib/errors';
 import type { RateLimiter } from '@lib/rate-limit';
-import { errAsync, ok, okAsync, ResultAsync } from '@lib/result';
+import { errAsync, ok, ResultAsync } from '@lib/result';
 import type { SpeechProvider } from '@lib/speech';
 
 import { createBrokenRateLimiter, createTestRateLimiter } from '../../../support/rate-limiting';
-import { fakeSpeech } from '../fakes';
-
-const EXPIRES = new Date('2026-10-25T12:15:00.000Z');
+import { CLIP_EXPIRES as EXPIRES, fakeSpeech, memoryClips } from '../fakes';
 
 /** Most tests are about caching, not about which lines are allowed: every line passes here. */
 function line(text: string): HostedSpeechSource {
   return { kind: 'channel-line', text };
-}
-
-function memoryClips() {
-  const stored = new Map<string, Uint8Array>();
-  const keyOf = (content: ClipContent) => `${content.voice}|${content.text}`;
-  const clipOf = (content: ClipContent): HostedClip => ({
-    url: `https://clips.example/${encodeURIComponent(keyOf(content))}?sig=x`,
-    expiresAt: EXPIRES,
-  });
-  const clips = {
-    find: vi.fn<SpeechClips['find']>((content) =>
-      okAsync(stored.has(keyOf(content)) ? clipOf(content) : null),
-    ),
-    save: vi.fn<SpeechClips['save']>((content, audio) => {
-      stored.set(keyOf(content), audio);
-      return okAsync(clipOf(content));
-    }),
-  };
-  return { clips, stored };
 }
 
 function dependencies(overrides: Partial<HostedSpeechDependencies> = {}): HostedSpeechDependencies {
@@ -132,6 +106,26 @@ describe('GetHostedSpeech', () => {
     expect(speech.synthesize).toHaveBeenCalledTimes(VOICE_RATE_LIMITS.hostedSynthesize.limit);
   });
 
+  it('refuses a synthesis once the daily character budget is spent, and still serves stored clips', async () => {
+    const speech = fakeSpeech();
+    const rateLimiter = createTestRateLimiter();
+    const query = new GetHostedSpeech(dependencies({ speech, rateLimiter }));
+    await query.execute({ speakerId: 'max', source: line('Satz') });
+    for (let unit = 0; unit < VOICE_RATE_LIMITS.dailyCharacters.limit; unit += 1) {
+      await rateLimiter.enforce({
+        policy: VOICE_RATE_LIMITS.dailyCharacters,
+        subject: { kind: 'global' },
+      });
+    }
+
+    const cached = await query.execute({ speakerId: 'max', source: line('Satz') });
+    const refused = await query.execute({ speakerId: 'max', source: line('Neuer Satz') });
+
+    expect(cached.isOk()).toBe(true);
+    expect(refused._unsafeUnwrapErr().kind).toBe('rate_limited');
+    expect(speech.synthesize).toHaveBeenCalledOnce();
+  });
+
   it('does not synthesize while the limiter store is down', async () => {
     const speech = fakeSpeech();
     const query = new GetHostedSpeech(
@@ -154,8 +148,8 @@ describe('GetHostedSpeech', () => {
     const storageDown = new GetHostedSpeech(
       dependencies({
         clips: {
+          ...clips,
           find: () => errAsync(infrastructureError('voice.clip_failed', 'Down.')),
-          save: clips.save,
         },
       }),
     );
@@ -210,7 +204,8 @@ describe('GetHostedSpeech', () => {
     expect(synthesize).toHaveBeenCalledTimes(2);
     expect(clips.find).toHaveBeenCalledTimes(2);
     expect(clips.save).toHaveBeenCalledTimes(2);
-    expect(enforce).toHaveBeenCalledTimes(2);
+    // Per synthesis: the hosted budget and one unit of the daily character budget.
+    expect(enforce).toHaveBeenCalledTimes(4);
   });
 
   it('starts a new flight once the previous one has settled, also after a failure', async () => {

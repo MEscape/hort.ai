@@ -12,11 +12,15 @@ import type { ClipContent, HostedClip, SpeechClips } from '../../domain/ports/sp
 /** Bump when the audio of equal content changes (another model or format), so old clips are not reused. */
 const CLIP_VERSION = 'v1';
 const CLIP_PREFIX = 'speech-clips';
+/** Every clip is the provider's MP3 (`.mp3` keys). */
+const CLIP_TYPE = 'audio/mpeg';
 /** Long enough for Alexa to fetch the clip right after the answer; short, because the URL is a bearer link. */
 const READ_URL_TTL_SECONDS = 900;
 const UPLOAD_TTL_SECONDS = 60;
 /** The PUT of a few dozen KiB to Azure; part of the channel's answer time. */
 const UPLOAD_TIMEOUT_MS = 2_000;
+/** The GET of the same few dozen KiB, when the web app replays a clip; part of its answer time. */
+const DOWNLOAD_TIMEOUT_MS = 2_000;
 const CACHE_CONTROL = 'private, max-age=900';
 const MS_PER_SECOND = 1_000;
 
@@ -47,16 +51,37 @@ export function objectStoreSpeechClips(
       .map((url) => ({ url, expiresAt }));
   }
 
+  function find(content: ClipContent): AppResultAsync<HostedClip | null, InfrastructureAppError> {
+    const location = clipLocation(content);
+    return store
+      .head(location)
+      .mapErr(speechClipFailed)
+      .andThen((stored) =>
+        stored !== null && stored.byteSize > 0 ? readUrl(location) : okAsync(null),
+      );
+  }
+
   return {
-    find: (content) => {
-      const location = clipLocation(content);
-      return store
-        .head(location)
-        .mapErr(speechClipFailed)
-        .andThen((stored) =>
-          stored !== null && stored.byteSize > 0 ? readUrl(location) : okAsync(null),
-        );
-    },
+    find,
+    findAudio: (content) =>
+      find(content).andThen((clip) =>
+        clip === null
+          ? okAsync(null)
+          : fromThrowableAsync(
+              () =>
+                send(clip.url, { method: 'GET', signal: AbortSignal.timeout(DOWNLOAD_TIMEOUT_MS) }),
+              speechClipFailed,
+            ).andThen((response) =>
+              response.ok
+                ? fromThrowableAsync(() => response.arrayBuffer(), speechClipFailed).map(
+                    (bytes) => ({
+                      audio: new Uint8Array(bytes),
+                      contentType: CLIP_TYPE,
+                    }),
+                  )
+                : errAsync(speechClipFailed(`download answered ${response.status}`)),
+            ),
+      ),
     save: (content, audio, contentType) => {
       const location = clipLocation(content);
       return store

@@ -21,6 +21,14 @@ Both use cases (`SynthesizeSpeech`, `TranscribeSpeech`) require the signed-in pa
 a budget of 30 calls per parent in ten minutes (`application/rate-limits.ts`, denies when the
 limiter store is down), and only then call the provider.
 
+`SynthesizeSpeech` shares the clip store of hosted speech (below) when a private container is
+configured: equal text in an equal voice is synthesized once and then read back as bytes, so a
+replayed ticket or a repeated catalog line costs the provider nothing. The clip store is only a
+cache: when it cannot be read or written the words are still spoken. Note that this stores the audio
+of validated hints (generated text, never the child's own words) under a content hash. Every real
+synthesis, web or hosted, also spends the global daily character budget `voice.daily-characters`
+(20,000 characters, counted in units of 100, denies when spent or when the limiter store is down).
+
 ## Hosted speech (server channels)
 
 `getHostedSpeech()` (exported from `index.ts`, use case `GetHostedSpeech`) is for server-side channels that play
@@ -68,7 +76,8 @@ it answers `voice.hosting_disabled`; a storage failure is `voice.clip_failed`.
     (`getVoiceQueries().issueSpeechTicket.execute(outcome)` with a `generated` `HintOutcome`) and
     handed to the browser next to the text. It is `base64url(payload).HMAC-SHA256`, the key derived
     from `AUTH_SECRET`, bound to the parent (tenant and actor) and valid for 30 minutes. Forged,
-    expired or foreign tickets answer `voice.validation.ticket_invalid`. Nothing is stored.
+    expired or foreign tickets answer `voice.validation.ticket_invalid`. The ticket itself is not
+    stored; the spoken audio is cached as above.
 
 ## Fixed screen lines (`UI_LINES`)
 

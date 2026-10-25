@@ -20,6 +20,8 @@ import type { SpeechAudioView, TranscriptView } from '../../application/contract
 export type Synthesize = (input: SynthesizeSpeechInput) => AppResultAsync<SpeechAudioView>;
 /** The `TranscribeSpeech` use case, called by the Route Handler itself. */
 export type Transcribe = (input: TranscribeSpeechInput) => AppResultAsync<TranscriptView>;
+/** A cheap session lookup: fails (unauthenticated) for an anonymous caller. Not authorization. */
+export type SignedIn = () => AppResultAsync<unknown>;
 
 export interface VoiceRouteHandlers {
   /** `POST /api/voice/speech`: JSON `{ speakerId, phrase }` or `{ speakerId, ticket }` in, MP3 out. */
@@ -110,10 +112,12 @@ async function readRecording(request: Request): Promise<ReadRecording> {
  * entry point visibly calls it) and map its `Result`; authorization, consent, budgets and the text
  * and recording rules are the use cases'. The speech body names a catalog line or a ticket and
  * never words; one with `text` is refused. The recording is read into memory for this request and
- * never written anywhere. `onFailure` sees every failed `Result` (for the log).
+ * never written anywhere, and only after `signedIn` found a session, so an anonymous caller cannot
+ * make the server parse megabytes. `onFailure` sees every failed `Result` (for the log).
  */
 export function createVoiceRouteHandlers(options: {
   readonly onFailure: (operation: 'synthesize' | 'transcribe', error: AppError) => void;
+  readonly signedIn: SignedIn;
 }): VoiceRouteHandlers {
   const failed = (operation: 'synthesize' | 'transcribe', error: AppError) => {
     options.onFailure(operation, error);
@@ -157,6 +161,11 @@ export function createVoiceRouteHandlers(options: {
     },
 
     async transcription(request, transcribe) {
+      // Up to 4 MiB of multipart is parsed into memory below: only for a signed-in caller.
+      const session = await options.signedIn();
+      if (session.isErr()) {
+        return failed('transcribe', session.error);
+      }
       if (!declaredSizeFits(request, SPEECH_LIMITS.maxRecordingBytes + MULTIPART_OVERHEAD_BYTES)) {
         return refuse(PAYLOAD_TOO_LARGE, 'The recording is too large or has no length.');
       }

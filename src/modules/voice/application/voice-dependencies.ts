@@ -19,6 +19,8 @@ export interface VoiceDependencies {
   readonly phrases: SystemPhrases;
   readonly tickets: SpokenTextTickets;
   readonly consent: ChildVoiceConsent;
+  /** The clip cache; `null` while no private object storage is configured (every request synthesizes). */
+  readonly clips: SpeechClips | null;
 }
 
 /**

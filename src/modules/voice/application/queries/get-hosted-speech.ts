@@ -19,6 +19,7 @@ import {
 import { parseSpeakerId } from '../../domain/models/ids';
 import { speakableText } from '../../domain/models/utterance';
 import { VOICE_RATE_LIMITS } from '../rate-limits';
+import { spendSpeechCharacters } from '../services/speech-budget';
 
 import type { SpeakerId } from '../../domain/models/ids';
 import type { ClipContent, HostedClip } from '../../domain/ports/speech-clips.port';
@@ -32,7 +33,8 @@ export type GetHostedSpeechError =
 /**
  * Speech behind a short-lived URL, for channels that play audio from a link (Alexa). Equal text in
  * an equal voice is synthesized once and then served from storage, so a fixed sentence costs the
- * provider nothing after the first time; only a synthesis spends the global budget.
+ * provider nothing after the first time; only a synthesis spends the global budgets (the hosted
+ * one and the daily character budget).
  *
  * @authorization system Called by server-side channel adapters that authenticate their caller
  * themselves (Alexa: Amazon's request signature). There is no actor, so there is no ticket and no
@@ -75,6 +77,7 @@ export class GetHostedSpeech {
           : this.deps.rateLimiter
               .enforce({ policy: VOICE_RATE_LIMITS.hostedSynthesize, subject: { kind: 'global' } })
               .mapErr(fromRateLimitFailure)
+              .andThen(() => spendSpeechCharacters(this.deps.rateLimiter, content.text))
               .andThen(() => speech.synthesize({ voiceId, text: content.text }))
               .andThen((spoken) => clips.save(content, spoken.audio, spoken.contentType)),
       ),
