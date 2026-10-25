@@ -37,7 +37,7 @@
       "title": "From my teacher",
       "new": "{count} new",
       "none": "Nothing new right now.",
-      "soon": "Not here yet."
+      "open": "See my school tasks"
     },
     "world": {
       "title": "{owner} World",
@@ -55,9 +55,6 @@
       "welcomeBack": "Welcome back! Shall we keep going?",
       "photoSoon": "Photos are coming soon!",
       "voiceOff": "I only read what you type.",
-      "teacherNone": "Nothing new from your teacher.",
-      "teacherNew": "New tasks from your teacher!",
-      "teacherSoon": "Teacher tasks are coming soon.",
       "stripTime": "This is how much time is left.",
       "stripUnavailable": "I cannot count the time yet.",
       "closedLimit": "I need a break. See you tomorrow!",
@@ -131,7 +128,9 @@
       "unavailableTitle": "Help is coming soon",
       "unavailableBody": "Your task was not sent or saved. You can keep editing it here.",
       "sending": "Starting …",
-      "failed": "That did not work just now. Please try again."
+      "failed": "That did not work just now. Please try again.",
+      "paused": "It's break time now. Your task was not sent – you can try again later.",
+      "topic": "Island: {name}"
     },
     "school": {
       "title": "School tasks",
@@ -139,10 +138,21 @@
       "startHelp": "Start with this task",
       "failed": "That didn't work just now. Please try again."
     },
+    "replace": {
+      "title": "You still have a task open",
+      "body": "“{task}” is still open. You can work on one task at a time.",
+      "continue": "Carry on with it",
+      "startNew": "Start the new task"
+    },
     "resume": {
       "title": "Continue",
-      "body": "Saved tasks aren't available here yet.",
+      "openBody": "“{task}” is waiting for you.",
+      "noneBody": "No task is open right now.",
       "continue": "Go to help"
+    },
+    "ask": {
+      "line": "Write down your task for me. Then we'll look at it together.",
+      "progress": "Step 1 of 3"
     }
   },
   "world": {
@@ -167,13 +177,16 @@
       "placesLabel": "Places on {island}",
       "pickPlace": "Tap a place on the island to see which homework belongs there.",
       "noPlaces": "There is still a lot to discover here.",
-      "start": "Start a homework task"
+      "start": "Start a homework task",
+      "inMist": "This island is still in the mist. It appears once you do homework that belongs here."
     },
     "explore": {
       "title": "Explore the world",
       "hint": "Drag the map to look around, or pick a subject.",
       "jump": "Where to?",
-      "home": "Start"
+      "home": "Start",
+      "homeworkHere": "You already did homework here.",
+      "inMist": "Still in the mist: no homework here yet."
     },
     "areas": {
       "buchstabenberg": {

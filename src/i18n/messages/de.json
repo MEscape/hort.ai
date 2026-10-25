@@ -37,7 +37,7 @@
       "title": "Von meiner Lehrkraft",
       "new": "{count} neu",
       "none": "Gerade nichts Neues.",
-      "soon": "Noch nicht da."
+      "open": "Meine Schulaufgaben ansehen"
     },
     "world": {
       "title": "{owner} Welt",
@@ -55,9 +55,6 @@
       "welcomeBack": "Willkommen zurück! Machen wir weiter?",
       "photoSoon": "Fotos kommen bald!",
       "voiceOff": "Ich lese nur, was du tippst.",
-      "teacherNone": "Nichts Neues von deiner Lehrkraft.",
-      "teacherNew": "Neue Aufgaben von deiner Lehrkraft!",
-      "teacherSoon": "Aufgaben von deiner Lehrkraft kommen bald.",
       "stripTime": "So viel Zeit ist noch übrig.",
       "stripUnavailable": "Die Zeit kann ich noch nicht zählen.",
       "closedLimit": "Ich brauche Pause. Bis morgen!",
@@ -131,7 +128,9 @@
       "unavailableTitle": "Hilfe kommt bald",
       "unavailableBody": "Deine Aufgabe wurde nicht gesendet oder gespeichert. Du kannst sie hier weiter bearbeiten.",
       "sending": "Wird gestartet …",
-      "failed": "Das hat gerade nicht geklappt. Versuch es bitte noch einmal."
+      "failed": "Das hat gerade nicht geklappt. Versuch es bitte noch einmal.",
+      "paused": "Jetzt ist Pause. Deine Aufgabe wurde nicht gesendet – du kannst es später noch einmal versuchen.",
+      "topic": "Insel: {name}"
     },
     "school": {
       "title": "Schulaufgaben",
@@ -139,10 +138,21 @@
       "startHelp": "Mit dieser Aufgabe anfangen",
       "failed": "Das hat gerade nicht geklappt. Versuch es bitte noch einmal."
     },
+    "replace": {
+      "title": "Du hast noch eine Aufgabe offen",
+      "body": "„{task}“ ist noch offen. Du arbeitest immer an einer Aufgabe gleichzeitig.",
+      "continue": "Dort weitermachen",
+      "startNew": "Neue Aufgabe anfangen"
+    },
     "resume": {
       "title": "Weiter",
-      "body": "Gespeicherte Aufgaben sind hier noch nicht verfügbar.",
+      "openBody": "„{task}“ wartet auf dich.",
+      "noneBody": "Gerade ist keine Aufgabe offen.",
       "continue": "Zur Hilfe"
+    },
+    "ask": {
+      "line": "Schreib mir deine Aufgabe. Dann schauen wir sie uns zusammen an.",
+      "progress": "Schritt 1 von 3"
     }
   },
   "world": {
@@ -167,13 +177,16 @@
       "placesLabel": "Orte auf der Insel {island}",
       "pickPlace": "Tippe auf einen Ort auf der Insel, dann siehst du, welche Hausaufgaben dorthin gehören.",
       "noPlaces": "Hier gibt es noch viel zu entdecken.",
-      "start": "Hausaufgabe starten"
+      "start": "Hausaufgabe starten",
+      "inMist": "Diese Insel liegt noch im Nebel. Sie taucht auf, sobald du eine Hausaufgabe machst, die hierher gehört."
     },
     "explore": {
       "title": "Die Welt erkunden",
       "hint": "Ziehe die Karte, um dich umzusehen, oder wähle ein Fach.",
       "jump": "Wohin?",
-      "home": "Start"
+      "home": "Start",
+      "homeworkHere": "Hier hast du schon eine Hausaufgabe gemacht.",
+      "inMist": "Noch im Nebel: hier war noch keine Hausaufgabe."
     },
     "areas": {
       "buchstabenberg": {
