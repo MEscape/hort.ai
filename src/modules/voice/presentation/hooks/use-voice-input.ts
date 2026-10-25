@@ -198,7 +198,16 @@ export function useVoiceInput(
       );
     };
     recorderRef.current = recorder;
-    recorder.start();
+    try {
+      recorder.start();
+    } catch {
+      recorderRef.current = null;
+      stream.getTracks().forEach((track) => {
+        track.stop();
+      });
+      setProblem('unsupported');
+      return;
+    }
     timerRef.current = setTimeout(stop, MAX_RECORDING_MS);
     setStatus('recording');
   };

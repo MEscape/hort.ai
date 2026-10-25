@@ -157,6 +157,61 @@ describe('helpSessionCompanionMessages', () => {
     }
   });
 
+  it('reads only the stored validated praise and question of the indexed answer check', async () => {
+    const { messages } = setup({
+      sessionResult: okAsync(
+        session({
+          answerChecks: [
+            {
+              result: 'correct',
+              assessedBy: 'ai',
+              hintLevel: null,
+              feedbackText: 'You found a useful step!',
+              questionText: 'How did you get there?',
+            },
+          ],
+        }),
+      ),
+    });
+    expect(
+      (
+        await messages.textOf('child-1' as never, { kind: 'answer_feedback', index: 0 })
+      )._unsafeUnwrap(),
+    ).toBe('You found a useful step!');
+    expect(
+      (
+        await messages.textOf('child-1' as never, { kind: 'answer_question', index: 0 })
+      )._unsafeUnwrap(),
+    ).toBe('How did you get there?');
+    expect(
+      (
+        await messages.textOf('child-1' as never, { kind: 'answer_feedback', index: 1 })
+      )._unsafeUnwrap(),
+    ).toBe(null);
+  });
+
+  it('uses safe translated feedback when no generated text was stored', async () => {
+    const { messages } = setup({
+      sessionResult: okAsync(
+        session({
+          answerChecks: [
+            { result: 'not_yet', assessedBy: 'ai', hintLevel: null, feedbackText: null },
+          ],
+        }),
+      ),
+    });
+    expect(
+      (
+        await messages.textOf('child-1' as never, { kind: 'answer_feedback', index: 0 })
+      )._unsafeUnwrap(),
+    ).toBe('translated:feedback.fallback.answer_assessment.not_yet');
+    expect(
+      (
+        await messages.textOf('child-1' as never, { kind: 'answer_question', index: 0 })
+      )._unsafeUnwrap(),
+    ).toBe(null);
+  });
+
   it('passes learner errors of other kinds through unchanged', async () => {
     const failure = infrastructureError('learner.unavailable', 'unavailable');
     const { messages } = setup({ profileResult: errAsync(failure) });

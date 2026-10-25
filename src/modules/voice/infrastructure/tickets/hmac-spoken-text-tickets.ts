@@ -29,6 +29,8 @@ const isPayload = objectOf<TicketPayload>({
   t: isString,
   ten: isString,
   sub: isString,
+  child: (value): value is string | undefined => value === undefined || typeof value === 'string',
+  speaker: (value): value is string | undefined => value === undefined || typeof value === 'string',
   exp: isFiniteNumber,
 });
 

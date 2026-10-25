@@ -90,9 +90,9 @@ server checks it again (fail closed).
   redeemed at `/api/voice/speech`, which spends the parent's speech budget. The audio is kept for the
   life of the button, so listening again costs no characters; key the button by its message.
 
-Generated praise or encouragement after an answer check is not stored in the session, so it cannot be
-named yet; only its predefined lines are speakable. Storing it (or issuing the ticket in the check
-action) is the follow-up.
+Validated praise/encouragement and questions are also looked up from the stored answer check via
+`{ kind: 'answer_feedback', index }` / `{ kind: 'answer_question', index }`. Only companion text is
+exposed to the voice lookup; the child’s own answer/reply remains private in the store.
 
 ## Speakers and voices
 

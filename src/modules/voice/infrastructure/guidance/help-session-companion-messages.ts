@@ -26,6 +26,22 @@ function wordsIn(
     }
     return hint.kind === 'generated' ? hint.text : wording(`hint.fallback.${hint.level}`);
   }
+  if (message.kind === 'answer_feedback' || message.kind === 'answer_question') {
+    const check = session?.answerChecks[message.index];
+    if (check === undefined) {
+      return null;
+    }
+    if (message.kind === 'answer_question') {
+      return check.result !== 'correct'
+        ? null
+        : (check.questionText ?? wording('feedback.fallback.comprehension_question'));
+    }
+    const key =
+      check.result === 'correct'
+        ? 'feedback.fallback.praise'
+        : `feedback.fallback.answer_assessment.${check.result ?? 'unassessed'}`;
+    return check.feedbackText ?? wording(key);
+  }
   const question = session?.openQuestion ?? null;
   if (question === null) {
     return null;

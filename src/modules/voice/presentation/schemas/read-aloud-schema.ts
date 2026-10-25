@@ -19,6 +19,18 @@ export const readAloudSchema = z
         .object({ kind: z.literal('hint'), index: z.number().int().min(0).max(MAX_HINT_INDEX) })
         .strict(),
       z.object({ kind: z.literal('question') }).strict(),
+      z
+        .object({
+          kind: z.literal('answer_feedback'),
+          index: z.number().int().min(0).max(MAX_HINT_INDEX),
+        })
+        .strict(),
+      z
+        .object({
+          kind: z.literal('answer_question'),
+          index: z.number().int().min(0).max(MAX_HINT_INDEX),
+        })
+        .strict(),
       z.object({ kind: z.literal('feedback'), feedback: z.enum(READ_ALOUD_FEEDBACK) }).strict(),
     ]),
   })

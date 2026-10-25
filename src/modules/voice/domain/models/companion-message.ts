@@ -9,6 +9,8 @@ export type ReadAloudFeedback = (typeof READ_ALOUD_FEEDBACK)[number];
  */
 export type CompanionMessageRef =
   | { readonly kind: 'hint'; readonly index: number }
+  | { readonly kind: 'answer_feedback'; readonly index: number }
+  | { readonly kind: 'answer_question'; readonly index: number }
   | { readonly kind: 'question' }
   | { readonly kind: 'feedback'; readonly feedback: ReadAloudFeedback };
 
