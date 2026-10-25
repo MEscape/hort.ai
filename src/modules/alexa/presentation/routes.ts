@@ -175,17 +175,25 @@ interface RequestBudget {
 /** Marks work (body read, verification) that did not finish before the request's deadline. */
 const TIMED_OUT = Symbol('request_timed_out');
 
-/** The work's result, or `TIMED_OUT` once the budget is spent; other failures propagate unchanged. */
+/**
+ * The work's result, or `TIMED_OUT` once the budget is spent; other failures propagate unchanged.
+ * The clock is read again after the work settles: a result that arrives in the same tick as the
+ * deadline must not win against it, so nothing downstream runs past the budget.
+ */
 async function withinBudget<T>(
   work: PromiseLike<T>,
   budget: RequestBudget,
 ): Promise<T | typeof TIMED_OUT> {
+  const pending = Promise.resolve(work);
   const left = budget.deadlineAt - budget.now();
   if (left <= 0) {
+    // The work has started already; a late rejection of it must not become an unhandled one.
+    pending.catch(() => undefined);
     return TIMED_OUT;
   }
   try {
-    return await withTimeout(Promise.resolve(work), left);
+    const result = await withTimeout(pending, left);
+    return budget.now() >= budget.deadlineAt ? TIMED_OUT : result;
   } catch (error) {
     if (error instanceof TimeoutError) {
       return TIMED_OUT;

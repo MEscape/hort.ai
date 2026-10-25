@@ -668,7 +668,7 @@ describe('Alexa child channel: the whole request stays within its budget', () =>
     const child = fakeChild();
     const handle = createAlexaEndpoint({
       skillId: SKILL_ID,
-      verify: () => hanging<void>(),
+      verify: () => new ResultAsync(new Promise(() => undefined)),
       tutor: connectionTestTutor,
       introductions,
       child: { companion: child.companion, defaultTutorId: toTutorId('max') },
@@ -686,11 +686,12 @@ describe('Alexa child channel: the whole request stays within its budget', () =>
 
   it('fails closed before verifying when the body arrives too slowly', async () => {
     const verify = vi.fn(() => okAsync(undefined));
+    const child = fakeChild();
     const handle = createAlexaEndpoint({
       skillId: SKILL_ID,
       verify,
       tutor: connectionTestTutor,
-      child: { companion: fakeChild().companion, defaultTutorId: toTutorId('max') },
+      child: { companion: child.companion, defaultTutorId: toTutorId('max') },
       requestBudgetMs: 300,
     });
     const slowBody = new ReadableStream<Uint8Array>({
@@ -711,6 +712,58 @@ describe('Alexa child channel: the whole request stays within its budget', () =>
 
     expect(performance.now() - started).toBeLessThan(1_000);
     expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: { code: 'request_timeout' } });
     expect(verify).not.toHaveBeenCalled();
+    expect([...child.calls, ...child.lookups]).toEqual([]);
+  });
+
+  it('rejects a verification that settles only after the deadline, without any use case', async () => {
+    const child = fakeChild();
+    let clock = 0;
+    const handle = createAlexaEndpoint({
+      skillId: SKILL_ID,
+      // The clock passes the deadline while verification is running, which then succeeds at once.
+      verify: () =>
+        new ResultAsync(
+          Promise.resolve().then(() => {
+            clock = 10_000;
+            return ok(undefined);
+          }),
+        ),
+      tutor: connectionTestTutor,
+      introductions,
+      child: { companion: child.companion, defaultTutorId: toTutorId('max') },
+      requestBudgetMs: 300,
+      now: () => clock,
+    });
+
+    const response = await handle(request('LaunchRequest'));
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: { code: 'request_timeout' } });
+    expect([...child.calls, ...child.lookups]).toEqual([]);
+  });
+
+  it('does not leave an unhandled rejection when the budget is spent before verification starts', async () => {
+    const unhandled = vi.fn();
+    process.on('unhandledRejection', unhandled);
+    let clock = 0;
+    const handle = createAlexaEndpoint({
+      skillId: SKILL_ID,
+      verify: () => {
+        clock = 10_000;
+        return new ResultAsync(Promise.reject(new Error('late failure')));
+      },
+      tutor: connectionTestTutor,
+      requestBudgetMs: 300,
+      now: () => clock,
+    });
+
+    const response = await handle(request('LaunchRequest'));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    process.off('unhandledRejection', unhandled);
+
+    expect(response.status).toBe(503);
+    expect(unhandled).not.toHaveBeenCalled();
   });
 });
