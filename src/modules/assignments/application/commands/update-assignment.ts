@@ -1,7 +1,7 @@
 import type { AppResultAsync } from '@lib/result';
 
 import { createAssignmentDraft } from '../../domain/models/assignment';
-import { toDraftInput, toTeacherAssignmentView } from '../assignment-view-mappers';
+import { schoolToday, toDraftInput, toTeacherAssignmentView } from '../assignment-view-mappers';
 import { loadAuthorizedAssignment } from '../load-authorized-assignment';
 
 import type { AssignmentsDependencies } from '../assignments-dependencies';
@@ -15,11 +15,14 @@ export class UpdateAssignment {
   execute(
     input: UpdateAssignmentInput,
   ): AppResultAsync<TeacherAssignmentView, LoadAssignmentError> {
-    const { assignments, audit } = this.deps;
+    const { assignments, audit, clock } = this.deps;
 
     return loadAuthorizedAssignment(this.deps, input.id, 'assignment.update').andThen(
       ({ actor, assignment }) =>
-        createAssignmentDraft(toDraftInput(input))
+        createAssignmentDraft(toDraftInput(input), {
+          today: schoolToday(clock),
+          currentDueDate: assignment.dueDate,
+        })
           .asyncAndThen((draft) =>
             assignments.update(
               assignment.id,

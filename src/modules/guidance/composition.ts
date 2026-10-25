@@ -1,6 +1,7 @@
 import 'server-only';
 import { assignmentsQueries } from '@modules/assignments';
-import { getAccessControl } from '@modules/auth';
+import { getAccessControl, getParentAreaServices } from '@modules/auth';
+import type { AuthorizationService } from '@modules/auth';
 
 import { systemClock } from '@lib/clock';
 import { serverEnv } from '@lib/config/server';
@@ -12,15 +13,21 @@ import { CheckAnswer } from './application/commands/check-answer';
 import { ReplyToComprehensionQuestion } from './application/commands/reply-to-comprehension-question';
 import { RequestHint } from './application/commands/request-hint';
 import { StartHelpSession } from './application/commands/start-help-session';
+import { GetClassLearningOverview } from './application/queries/get-class-learning-overview';
+import { GetLearningSummary } from './application/queries/get-learning-summary';
 import { GetOpenHelpSession } from './application/queries/get-open-help-session';
 import { AnswerCoach } from './application/services/answer-coach';
 import { HintOrchestrator } from './application/services/hint-orchestrator';
+import { assignmentsInsightAccess } from './infrastructure/assignments/assignments-insight-access';
 import { AssignmentsModuleAccess } from './infrastructure/assignments/assignments-module-access';
 import { loggerGuidanceAuditLog } from './infrastructure/audit/logger-guidance-audit-log';
+import { curriculumCompetencyLabels } from './infrastructure/curriculum/curriculum-competency-labels';
 import { curriculumCompetencyRetrieval } from './infrastructure/curriculum/curriculum-competency-retrieval';
 import { GeminiProvider } from './infrastructure/gemini/gemini-provider';
 import { learnerChildProfileAccess } from './infrastructure/learner/learner-child-profile-access';
+import { learnerInsightsConsent } from './infrastructure/learner/learner-insights-consent';
 import { PrismaHelpSessionRepository } from './infrastructure/prisma/prisma-help-session.repository';
+import { PrismaLearningRecordRepository } from './infrastructure/prisma/prisma-learning-record.repository';
 import { progressionSessionReward } from './infrastructure/progression/progression-session-reward';
 import { JevSafetyClassifier } from './infrastructure/typesafe/jev-safety-classifier';
 import { JevTopicClassifier } from './infrastructure/typesafe/jev-topic-classifier';
@@ -151,3 +158,38 @@ export const getHelpSessionCommands = once(() => ({
 export const getHelpSessionQueries = once(() => ({
   getOpenHelpSession: new GetOpenHelpSession(getHelpSessionDependencies()),
 }));
+
+/**
+ * The parent area's check on top of the permission: the child shares the signed-in account on the
+ * device, so the summary also needs the parent's short-lived password proof (`/parent`).
+ */
+function withParentAreaProof(authorization: AuthorizationService): AuthorizationService {
+  const proven = <T>(actor: T) =>
+    getParentAreaServices()
+      .require.execute()
+      .map(() => actor);
+  return {
+    requireInTenant: (permission) => authorization.requireInTenant(permission).andThen(proven),
+    requireOnResource: (permission, scope) =>
+      authorization.requireOnResource(permission, scope).andThen(proven),
+  };
+}
+
+/** The parent's learning summary and the teacher's class overview (#35); no AI provider involved. */
+export const getInsightQueries = once(() => {
+  const deps = {
+    authorization: getAccessControl(),
+    clock: systemClock,
+    consent: learnerInsightsConsent,
+    assignments: assignmentsInsightAccess,
+    competencies: curriculumCompetencyLabels,
+    records: new PrismaLearningRecordRepository(),
+  };
+  return {
+    getLearningSummary: new GetLearningSummary({
+      ...deps,
+      authorization: withParentAreaProof(deps.authorization),
+    }),
+    getClassLearningOverview: new GetClassLearningOverview(deps),
+  };
+});

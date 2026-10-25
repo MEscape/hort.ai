@@ -9,7 +9,7 @@ export default defineConfig({
     fsModuleCache: false,
     globals: true,
     // Needs a database; run by `npm run test:integration` with its own configuration.
-    exclude: [...configDefaults.exclude, '**/*.integration.test.ts'],
+    exclude: [...configDefaults.exclude, '**/*.integration.test.ts', '__tests__/e2e/**'],
     // The environment is validated when `@lib/config` is first imported, so `vitest.env.ts` sets it first.
     setupFiles: ['./vitest.env.ts', './vitest.setup.ts'],
     // Form tests type and click through real components; with every worker busy a single one

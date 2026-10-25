@@ -55,17 +55,18 @@ The application runs on your machine. Docker Compose runs only its local depende
 
 ## Commands
 
-| Command                           | What it does                                                         |
-| --------------------------------- | -------------------------------------------------------------------- |
-| `npm run dev` / `build` / `start` | Development server, production build, production server              |
-| `npm run check`                   | Types, lint, format, i18n, dead code, all tests (incl. integration)  |
-| `npm test`                        | Unit tests (`npm run test:watch` while developing)                   |
-| `npm run test:integration`        | Integration tests; need the containers and a migrated database       |
-| `npm run lint:fix` / `format`     | Fix lint and formatting                                              |
-| `npm run dead-code`               | Fail on an export nothing references ([guide](scripts/README.md))    |
-| `npm run db:migrate`              | Apply app and auth migrations                                        |
-| `npm run db:generate`             | Emit the Prisma contract; commit the result                          |
-| `npm run gen -- <generator>`      | Scaffold modules, use cases, components, translations, env variables |
+| Command                           | What it does                                                                |
+| --------------------------------- | --------------------------------------------------------------------------- |
+| `npm run dev` / `build` / `start` | Development server, production build, production server                     |
+| `npm run check`                   | Types, lint, format, i18n, dead code, all tests (incl. integration)         |
+| `npm test`                        | Unit tests (`npm run test:watch` while developing)                          |
+| `npm run test:integration`        | Integration tests; need the containers and a migrated database              |
+| `npm run test:e2e`                | Chromium learning journeys; private temporary PostgreSQL, no cloud services |
+| `npm run lint:fix` / `format`     | Fix lint and formatting                                                     |
+| `npm run dead-code`               | Fail on an export nothing references ([guide](scripts/README.md))           |
+| `npm run db:migrate`              | Apply app and auth migrations                                               |
+| `npm run db:generate`             | Emit the Prisma contract; commit the result                                 |
+| `npm run gen -- <generator>`      | Scaffold modules, use cases, components, translations, env variables        |
 
 Run the narrowest tests while iterating and `npm run check` before opening a pull request.
 
@@ -76,10 +77,11 @@ There is no GitHub Actions workflow. Vercel builds every push and pull request w
 1. production dependency audit (`npm run audit:prod`: high/critical advisories fail, except dated, reviewed exceptions in `scripts/audit-production.ts`)
 2. types, lint, format, i18n catalogs, dead code
 3. unit tests with coverage, architecture and script tests
-4. Prisma contract, migration check, `next build`
-5. app and auth migrations, then `db:verify`
+4. Chromium learning-journey E2E against the real Next development server, real Better Auth and private temporary PostgreSQL databases; only Gemini and Upstash transport are local HTTP fakes
+5. Prisma contract, migration check, `next build`
+6. app and auth migrations, then `db:verify`
 
-The migrations run against the `DATABASE_URL` / `AUTH_DATABASE_URL` of the Vercel environment being built, so Production and Preview must point at their own databases, with a role allowed to migrate. Integration tests need the Docker containers and are not part of the Vercel build: run `npm run check` locally before merging.
+The deployment migrations run against the `DATABASE_URL` / `AUTH_DATABASE_URL` of the Vercel environment being built, so Production and Preview must point at their own databases, with a role allowed to migrate. The browser gate instead starts its own ephemeral local PostgreSQL cluster, applies the real migrations there and seeds synthetic accounts/profiles; it never uses deployment database credentials. Run `npm run test:e2e` from a clean worktree without `.env` files (the harness refuses them), with Node 24 and a non-root OS user. It installs the pinned Chromium headless shell and bundled PostgreSQL binaries; it needs no Docker, accounts or paid test service. Tests run serially, keep failure traces in `test-results/e2e` and stop their own services in `finally`. General infrastructure integration tests still need the Docker containers and are not part of the Vercel build.
 
 ## Project layout
 

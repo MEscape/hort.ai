@@ -5,7 +5,7 @@ import type { AppResultAsync } from '@lib/result';
 import { classroomArchived } from '../../domain/errors/assignment-errors';
 import { createAssignmentDraft } from '../../domain/models/assignment';
 import { parseClassroomId } from '../../domain/models/ids';
-import { toDraftInput, toTeacherAssignmentView } from '../assignment-view-mappers';
+import { schoolToday, toDraftInput, toTeacherAssignmentView } from '../assignment-view-mappers';
 
 import type { ClassroomAccessError, OwnClassroom } from '../../domain/ports/classroom-access.port';
 import type { AssignmentsDependencies } from '../assignments-dependencies';
@@ -21,10 +21,10 @@ export class CreateAssignment {
   execute(
     input: CreateAssignmentInput,
   ): AppResultAsync<TeacherAssignmentView, ClassroomAccessError | ConflictAppError> {
-    const { authorization, classrooms, assignments, audit } = this.deps;
+    const { authorization, classrooms, assignments, audit, clock } = this.deps;
 
     return authorization.requireInTenant('assignment.create').andThen((actor) =>
-      createAssignmentDraft(toDraftInput(input))
+      createAssignmentDraft(toDraftInput(input), { today: schoolToday(clock) })
         .asyncAndThen((draft) =>
           parseClassroomId(input.classroomId)
             .asyncAndThen((classroomId) => classrooms.requireOwnClassroom(classroomId))

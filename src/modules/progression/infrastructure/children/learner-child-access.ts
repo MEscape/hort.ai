@@ -1,19 +1,30 @@
+import type { AuthorizationError } from '@modules/auth';
 import { getLearnerQueries } from '@modules/learner';
+
+import type { InfrastructureAppError } from '@lib/errors';
+import { errAsync, okAsync } from '@lib/result';
+import type { AppResultAsync } from '@lib/result';
 
 import type { ChildAccessPort } from '../../domain/ports/child-access.port';
 
 /**
- * Asks the learner module, which owns the child profile and answers for the signed-in parent's own
- * profiles only. A profile of another parent is not among them, so it reads as "not owned".
- *
- * shortcut: the learner module lists one profile per parent (one child in the MVP), so ownership is
- * "the id is that profile"; switch to a lookup by id when the learner module offers one for several children.
+ * Asks the learner module, which owns the child profile and authorizes the lookup of this one id
+ * (the signed-in parent's own profile, or for a channel exactly its bound child). Another parent's
+ * or an unknown id is "not owned"; a refusal (a sibling for a bound channel) and every other failure
+ * are passed on, never read as "owned".
  */
 export function createLearnerChildAccess(
-  queries: Pick<ReturnType<typeof getLearnerQueries>, 'getOnboardingState'> = getLearnerQueries(),
+  queries: Pick<ReturnType<typeof getLearnerQueries>, 'getChildProfileById'> = getLearnerQueries(),
 ): ChildAccessPort {
   return {
     ownsChild: (id) =>
-      queries.getOnboardingState.execute().map((state) => state.profile?.id === id),
+      queries.getChildProfileById
+        .execute(id)
+        .map(() => true)
+        .orElse((error): AppResultAsync<boolean, AuthorizationError | InfrastructureAppError> =>
+          error.kind === 'not_found' || error.kind === 'validation'
+            ? okAsync(false)
+            : errAsync(error),
+        ),
   };
 }

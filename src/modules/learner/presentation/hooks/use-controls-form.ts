@@ -61,8 +61,10 @@ export function useControlsForm(
         saveControlsAction({
           ...values,
           profileId: profile.id,
-          // Voice on confirms the notice the voice switch shows, as the home switch does (#98).
-          voiceNoticeVersion: values.voiceEnabled ? VOICE_NOTICE_VERSION : null,
+          // Only switching voice on in this form confirms the notice it shows (#98). A switch left
+          // as loaded sends no version, so the server keeps the stored decision instead.
+          voiceNoticeVersion:
+            values.voiceEnabled && !profile.voiceConsent ? VOICE_NOTICE_VERSION : null,
         }),
       onSaved,
       codeFields: CODE_FIELDS,

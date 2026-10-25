@@ -8,6 +8,9 @@ import type { SessionOpening } from '../../domain/topic/session-topic';
 
 /** One stored answer check, as ids and results only: never the child's answer text. */
 export interface AnswerCheckView {
+  /** Validated companion text for server-side read-aloud lookup; child answers are never exposed. */
+  readonly feedbackText?: string | null;
+  readonly questionText?: string | null;
   readonly result: AssessmentResult | null;
   readonly assessedBy: AssessedBy | null;
   /** The rung of the hint ladder the session was on when the answer was checked. */

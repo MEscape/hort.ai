@@ -12,6 +12,8 @@ import { StartPageShell } from '@/app/[locale]/(public)/start/_components/start-
 import { StartScreen } from '@/app/[locale]/(public)/start/_components/start-screen';
 import app from '@/i18n/messages/en.json';
 
+vi.mock('@modules/voice/client', () => ({ VoiceInputButton: () => null }));
+
 vi.mock('@i18n', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   useRouter: () => ({ push: vi.fn() }),
