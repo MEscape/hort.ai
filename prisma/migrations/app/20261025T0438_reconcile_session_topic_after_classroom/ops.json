@@ -1,0 +1,520 @@
+[
+  {
+    "id": "column.public.HelpSession.classifiedBy",
+    "label": "Add column \"classifiedBy\" to \"HelpSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "classifiedBy",
+        "table": "HelpSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"classifiedBy\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "classifiedBy"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"classifiedBy\"",
+        "sql": "ALTER TABLE \"public\".\"HelpSession\" ADD COLUMN \"classifiedBy\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"classifiedBy\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "classifiedBy"
+        ]
+      },
+      {
+        "description": "verify column \"classifiedBy\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "classifiedBy",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.HelpSession.competencyCode",
+    "label": "Add column \"competencyCode\" to \"HelpSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "competencyCode",
+        "table": "HelpSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"competencyCode\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "competencyCode"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"competencyCode\"",
+        "sql": "ALTER TABLE \"public\".\"HelpSession\" ADD COLUMN \"competencyCode\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"competencyCode\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "competencyCode"
+        ]
+      },
+      {
+        "description": "verify column \"competencyCode\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "competencyCode",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.HelpSession.intent",
+    "label": "Add column \"intent\" to \"HelpSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "intent",
+        "table": "HelpSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"intent\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "intent"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"intent\"",
+        "sql": "ALTER TABLE \"public\".\"HelpSession\" ADD COLUMN \"intent\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"intent\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "intent"
+        ]
+      },
+      {
+        "description": "verify column \"intent\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "intent",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.HelpSession.openTopicLabel",
+    "label": "Add column \"openTopicLabel\" to \"HelpSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "openTopicLabel",
+        "table": "HelpSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"openTopicLabel\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "openTopicLabel"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"openTopicLabel\"",
+        "sql": "ALTER TABLE \"public\".\"HelpSession\" ADD COLUMN \"openTopicLabel\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"openTopicLabel\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "openTopicLabel"
+        ]
+      },
+      {
+        "description": "verify column \"openTopicLabel\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "openTopicLabel",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.HelpSession.opening",
+    "label": "Add column \"opening\" to \"HelpSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "opening",
+        "table": "HelpSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"opening\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "opening"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"opening\"",
+        "sql": "ALTER TABLE \"public\".\"HelpSession\" ADD COLUMN \"opening\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"opening\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "opening"
+        ]
+      },
+      {
+        "description": "verify column \"opening\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "opening",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.HelpSession.HelpSession_classifiedBy_check_a4f40f73",
+    "label": "Add check constraint \"HelpSession_classifiedBy_check_a4f40f73\" on \"HelpSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "HelpSession_classifiedBy_check_a4f40f73",
+        "table": "HelpSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"HelpSession_classifiedBy_check_a4f40f73\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "HelpSession_classifiedBy_check_a4f40f73",
+          "public",
+          "\"public\".\"HelpSession\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"HelpSession_classifiedBy_check_a4f40f73\"",
+        "sql": "ALTER TABLE \"public\".\"HelpSession\" ADD CONSTRAINT \"HelpSession_classifiedBy_check_a4f40f73\" CHECK (\"classifiedBy\" IN ('JEV', 'FALLBACK'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"HelpSession_classifiedBy_check_a4f40f73\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "HelpSession_classifiedBy_check_a4f40f73",
+          "public",
+          "\"public\".\"HelpSession\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.HelpSession.HelpSession_competency_code_rule_a887e22f",
+    "label": "Add check constraint \"HelpSession_competency_code_rule_a887e22f\" on \"HelpSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "HelpSession_competency_code_rule_a887e22f",
+        "table": "HelpSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"HelpSession_competency_code_rule_a887e22f\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "HelpSession_competency_code_rule_a887e22f",
+          "public",
+          "\"public\".\"HelpSession\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"HelpSession_competency_code_rule_a887e22f\"",
+        "sql": "ALTER TABLE \"public\".\"HelpSession\" ADD CONSTRAINT \"HelpSession_competency_code_rule_a887e22f\" CHECK (\"competencyCode\" IS NULL OR char_length(\"competencyCode\") BETWEEN 1 AND 300)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"HelpSession_competency_code_rule_a887e22f\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "HelpSession_competency_code_rule_a887e22f",
+          "public",
+          "\"public\".\"HelpSession\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.HelpSession.HelpSession_intent_check_c8c67b53",
+    "label": "Add check constraint \"HelpSession_intent_check_c8c67b53\" on \"HelpSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "HelpSession_intent_check_c8c67b53",
+        "table": "HelpSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"HelpSession_intent_check_c8c67b53\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "HelpSession_intent_check_c8c67b53",
+          "public",
+          "\"public\".\"HelpSession\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"HelpSession_intent_check_c8c67b53\"",
+        "sql": "ALTER TABLE \"public\".\"HelpSession\" ADD CONSTRAINT \"HelpSession_intent_check_c8c67b53\" CHECK (\"intent\" IN ('HOMEWORK', 'CURIOSITY', 'SMALL_TALK'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"HelpSession_intent_check_c8c67b53\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "HelpSession_intent_check_c8c67b53",
+          "public",
+          "\"public\".\"HelpSession\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.HelpSession.HelpSession_open_topic_label_rule_dce03648",
+    "label": "Add check constraint \"HelpSession_open_topic_label_rule_dce03648\" on \"HelpSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "HelpSession_open_topic_label_rule_dce03648",
+        "table": "HelpSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"HelpSession_open_topic_label_rule_dce03648\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "HelpSession_open_topic_label_rule_dce03648",
+          "public",
+          "\"public\".\"HelpSession\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"HelpSession_open_topic_label_rule_dce03648\"",
+        "sql": "ALTER TABLE \"public\".\"HelpSession\" ADD CONSTRAINT \"HelpSession_open_topic_label_rule_dce03648\" CHECK (\"openTopicLabel\" IS NULL OR char_length(\"openTopicLabel\") BETWEEN 2 AND 40)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"HelpSession_open_topic_label_rule_dce03648\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "HelpSession_open_topic_label_rule_dce03648",
+          "public",
+          "\"public\".\"HelpSession\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.HelpSession.HelpSession_opening_check_d0f19b01",
+    "label": "Add check constraint \"HelpSession_opening_check_d0f19b01\" on \"HelpSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "HelpSession_opening_check_d0f19b01",
+        "table": "HelpSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"HelpSession_opening_check_d0f19b01\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "HelpSession_opening_check_d0f19b01",
+          "public",
+          "\"public\".\"HelpSession\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"HelpSession_opening_check_d0f19b01\"",
+        "sql": "ALTER TABLE \"public\".\"HelpSession\" ADD CONSTRAINT \"HelpSession_opening_check_d0f19b01\" CHECK (\"opening\" IN ('CLARIFY', 'REDIRECT'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"HelpSession_opening_check_d0f19b01\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "HelpSession_opening_check_d0f19b01",
+          "public",
+          "\"public\".\"HelpSession\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.HelpSession.HelpSession_redirect_rule_362674df",
+    "label": "Add check constraint \"HelpSession_redirect_rule_362674df\" on \"HelpSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "HelpSession_redirect_rule_362674df",
+        "table": "HelpSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"HelpSession_redirect_rule_362674df\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "HelpSession_redirect_rule_362674df",
+          "public",
+          "\"public\".\"HelpSession\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"HelpSession_redirect_rule_362674df\"",
+        "sql": "ALTER TABLE \"public\".\"HelpSession\" ADD CONSTRAINT \"HelpSession_redirect_rule_362674df\" CHECK (\"opening\" IS DISTINCT FROM 'REDIRECT' OR \"intent\" IN ('CURIOSITY', 'SMALL_TALK'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"HelpSession_redirect_rule_362674df\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "HelpSession_redirect_rule_362674df",
+          "public",
+          "\"public\".\"HelpSession\"",
+          "c"
+        ]
+      }
+    ]
+  }
+]

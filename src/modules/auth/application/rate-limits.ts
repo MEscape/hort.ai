@@ -70,6 +70,17 @@ export const AUTH_RATE_LIMITS = {
    * the credential, so the budget only bounds how much work one client can ask for; a person opens a
    * link once or twice. It is the only budget the HTTP endpoint has: Better Auth's own limiter is off.
    */
+  /**
+   * Changing one's password while signed in. The current password is the credential being tested,
+   * so this bounds guessing it from a stolen session; a person needs it once or twice. Counted
+   * against the signed-in actor; denies while the store is down.
+   */
+  passwordChange: {
+    id: 'auth.password-change',
+    limit: 5,
+    windowSeconds: SECONDS_PER_HOUR,
+    onBackendFailure: 'deny',
+  },
   linkClient: {
     id: 'auth.link-client',
     limit: 20,
