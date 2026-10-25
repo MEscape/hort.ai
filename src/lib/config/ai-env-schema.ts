@@ -44,7 +44,8 @@ const apiKey = (provider: string) =>
  *
  * Optional on purpose: without `GEMINI_API_KEY` the app starts and the AI is off; every hint is
  * then the predefined prompt of its level. With `TYPESAFE_API_KEY`, TypeSafe's Jev rates every AI
- * text against the child-safety rules as a second check after the word lists.
+ * text against the child-safety rules as a second check after the word lists; production refuses
+ * `GEMINI_API_KEY` without it (`env-schema.ts`).
  */
 export const aiEnvSchema = z.object({
   /** Server-only secret. Never log it, never ship it to the browser. */

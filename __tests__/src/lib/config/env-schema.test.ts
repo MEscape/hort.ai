@@ -20,6 +20,7 @@ const production: Record<string, string | undefined> = {
   MAIL_PROVIDER: 'smtp',
   MAIL_FROM: 'noreply@example.org',
   MAIL_SMTP_HOST: 'smtp.example.org',
+  RATE_LIMIT_CLIENT_ADDRESS_SOURCE: 'vercel',
 };
 
 /** The `variable: message` pairs a failed parse complains about. */
@@ -145,6 +146,28 @@ describe('serverEnvSchema', () => {
     expect(problems({ ...production, TYPESAFE_API_URL: 'http://jev.example.org' })).toEqual([
       'TYPESAFE_API_URL: TYPESAFE_API_URL must be an https URL in production.',
     ]);
+  });
+
+  it('requires the Jev safety classifier wherever Gemini answers children in production', () => {
+    const gemini = { GEMINI_API_KEY: 'g'.repeat(32) };
+
+    expect(problems({ ...production, ...gemini })).toEqual([
+      'TYPESAFE_API_KEY: TYPESAFE_API_KEY is required in production when GEMINI_API_KEY is set: every AI text needs the second safety check.',
+    ]);
+    expect(problems({ ...production, ...gemini, TYPESAFE_API_KEY: 't'.repeat(32) })).toEqual([]);
+    expect(problems({ ...development, ...gemini })).toEqual([]);
+  });
+
+  it('requires a deliberate client-address source in production', () => {
+    const unset = { ...production, RATE_LIMIT_CLIENT_ADDRESS_SOURCE: undefined };
+
+    expect(problems(unset)).toEqual([
+      'RATE_LIMIT_CLIENT_ADDRESS_SOURCE: Set RATE_LIMIT_CLIENT_ADDRESS_SOURCE (or AUTH_TRUSTED_PROXIES) in production; otherwise every budget per client address is silently off.',
+    ]);
+    expect(problems({ ...unset, RATE_LIMIT_CLIENT_ADDRESS_SOURCE: 'none' })).toEqual([]);
+    expect(problems({ ...unset, AUTH_TRUSTED_PROXIES: '10.0.0.0/8' })).toEqual([]);
+    expect(problems({ ...unset, VERCEL: '1' })).toEqual([]);
+    expect(problems({ ...development })).toEqual([]);
   });
 
   it('does not require https for storage URLs outside production', () => {

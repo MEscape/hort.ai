@@ -68,6 +68,22 @@ function queryDiagnostics(chain: readonly unknown[]): Record<string, string | un
   return pick(diagnostics, definedKeys(diagnostics));
 }
 
+/**
+ * What the log line says about the thrown error: the name of the innermost error and its code (a
+ * Prisma `P2003`, say), else the module's code. Never its message or stack: a Prisma message can
+ * quote the query's arguments, which may be a child's text.
+ */
+function loggableError(chain: readonly unknown[], fallbackCode: string) {
+  const innermost = chain.filter((candidate) => candidate instanceof Error).at(-1);
+  const coded = chain.find(
+    (candidate): candidate is { code: string } =>
+      typeof candidate === 'object' &&
+      candidate !== null &&
+      typeof (candidate as { code?: unknown }).code === 'string',
+  );
+  return { kind: innermost?.name ?? 'UnknownError', code: coded?.code ?? fallbackCode };
+}
+
 export interface PersistenceFailureConfig {
   /** Logger context, e.g. `profile.persistence`. */
   readonly module: string;
@@ -81,8 +97,8 @@ export interface PersistenceFailureConfig {
  * Failure translators for one module's repository: the error boundary persistence.md asks for.
  * Prisma and driver errors never leave it; each translator narrows what was thrown to the kinds a
  * port method may return. A conflict or a miss is an expected outcome and is not logged; every
- * other failure is an infrastructure failure, logged once here, with the thrown error kept as
- * `cause` so diagnostics keep the underlying stack. Its message stays generic (api.md).
+ * other failure is an infrastructure failure, logged once here by name and code only, with the
+ * thrown error kept as `cause` for the caller. Its message stays generic (api.md).
  */
 export function createPersistenceFailures(config: PersistenceFailureConfig) {
   const log = logger.withContext({ module: config.module });
@@ -92,7 +108,10 @@ export function createPersistenceFailures(config: PersistenceFailureConfig) {
     chain: readonly unknown[],
     operation: string,
   ): InfrastructureAppError {
-    log.error(`${operation} failed`, thrown, { operation, ...queryDiagnostics(chain) });
+    log.error(`${operation} failed`, loggableError(chain, config.code), {
+      operation,
+      ...queryDiagnostics(chain),
+    });
     return infrastructureError(
       config.code,
       `${config.subject} persistence failed during ${operation}.`,

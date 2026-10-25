@@ -5,7 +5,11 @@ import { authEnvSchema } from './auth-env-schema';
 import { booleanFlag, integerSetting, postgresUrl } from './env-primitives';
 import { refineEnv } from './env-rules';
 import { mailEnvSchema } from './mail-env-schema';
-import { rateLimitEnvRules, rateLimitEnvSchema } from './rate-limit-env-schema';
+import {
+  effectiveClientAddress,
+  rateLimitEnvRules,
+  rateLimitEnvSchema,
+} from './rate-limit-env-schema';
 import { speechEnvSchema } from './speech-env-schema';
 import { storageEnvSchema } from './storage-env-schema';
 
@@ -119,6 +123,21 @@ const productionRules: ReadonlyArray<EnvRule<ServerEnvShape>> = [
     // Every request carries TYPESAFE_API_KEY and AI text meant for a child.
     violated: (env) => isProduction(env) && new URL(env.TYPESAFE_API_URL).protocol !== 'https:',
     message: 'TYPESAFE_API_URL must be an https URL in production.',
+  },
+  {
+    path: 'TYPESAFE_API_KEY',
+    // The word lists alone are not enough for generated text a child reads.
+    violated: (env) =>
+      isProduction(env) && env.GEMINI_API_KEY !== undefined && env.TYPESAFE_API_KEY === undefined,
+    message:
+      'TYPESAFE_API_KEY is required in production when GEMINI_API_KEY is set: every AI text needs the second safety check.',
+  },
+  {
+    path: 'RATE_LIMIT_CLIENT_ADDRESS_SOURCE',
+    // Unset on an unknown platform resolves no address, which would skip every per-address budget.
+    violated: (env) => isProduction(env) && !effectiveClientAddress(env).configured,
+    message:
+      'Set RATE_LIMIT_CLIENT_ADDRESS_SOURCE (or AUTH_TRUSTED_PROXIES) in production; otherwise every budget per client address is silently off.',
   },
   {
     path: 'ELEVENLABS_API_URL',

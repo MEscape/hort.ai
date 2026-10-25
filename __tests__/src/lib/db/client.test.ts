@@ -119,6 +119,7 @@ describe('db client', () => {
     vi.stubEnv('MAIL_PROVIDER', 'smtp');
     vi.stubEnv('MAIL_SMTP_HOST', 'smtp.example.test');
     vi.stubEnv('MAIL_FROM', 'noreply@example.test');
+    vi.stubEnv('RATE_LIMIT_CLIENT_ADDRESS_SOURCE', 'vercel');
 
     await loadClient();
 

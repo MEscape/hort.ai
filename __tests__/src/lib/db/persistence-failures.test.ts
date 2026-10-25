@@ -80,6 +80,20 @@ describe('infraOnly', () => {
     expect(JSON.stringify(logged())).not.toContain('secret');
   });
 
+  it('logs the error by name and code only, never its message or stack', () => {
+    const thrown = Object.assign(new Error('insert failed for "SECRET child text"'), {
+      name: 'PrismaClientKnownRequestError',
+      code: 'P2003',
+    });
+
+    failures.infraOnly('save')(wrapped(thrown));
+    failures.infraOnly('load')(new Error('SECRET in the message'));
+
+    expect(logged()[0]?.error).toEqual({ name: 'PrismaClientKnownRequestError', message: 'P2003' });
+    expect(logged()[1]?.error).toEqual({ name: 'Error', message: 'profile.persistence_failed' });
+    expect(JSON.stringify(logged())).not.toContain('SECRET');
+  });
+
   it('logs only the fields the database named', () => {
     failures.infraOnly('save')(sqlError('XX000'));
 
