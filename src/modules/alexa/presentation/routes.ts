@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- the one HTTP boundary: body, verification, deadline and routing stay together */
 import { z } from 'zod';
 
 import type { UnauthorizedAppError } from '@lib/errors';
@@ -379,3 +380,4 @@ async function collectBody(
   }
   return Buffer.concat(chunks).toString('utf8');
 }
+/* eslint-enable max-lines -- end of the boundary file */

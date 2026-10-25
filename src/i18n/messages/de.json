@@ -130,7 +130,6 @@
       "unavailableBody": "Deine Aufgabe wurde nicht gesendet oder gespeichert. Du kannst sie hier weiter bearbeiten.",
       "sending": "Wird gestartet …",
       "failed": "Das hat gerade nicht geklappt. Versuch es bitte noch einmal.",
-      "paused": "Jetzt ist Pause. Deine Aufgabe wurde nicht gesendet – du kannst es später noch einmal versuchen.",
       "topic": "Insel: {name}"
     },
     "school": {

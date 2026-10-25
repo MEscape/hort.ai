@@ -35,11 +35,12 @@
       "assignmentNotFound": "Diese Schulaufgabe gibt es nicht mehr. Such dir eine andere aus oder frag deine Lehrerin oder deinen Lehrer.",
       "childDistress": "Das klingt, als ginge es dir gerade nicht gut. Bitte erzähl es einem Erwachsenen, dem du vertraust – deinen Eltern, deiner Lehrerin oder deinem Lehrer. Du kannst auch kostenlos die Nummer gegen Kummer anrufen: 116 111.",
       "replyNotAnAnswer": "Erzähl es mir mit deinen eigenen Worten – es muss nicht perfekt sein.",
-      "learningPaused": "Jetzt ist Pause. Deine Aufgabe ist gespeichert – später geht es weiter.",
       "noHintForOpening": "Hier gibt es keinen Tipp. Zeig mir gern deine Hausaufgabe.",
       "rateLimited": "Mach kurz eine Pause und versuch es gleich noch einmal.",
       "infrastructure": "Gerade klappt etwas nicht. Bitte versuch es gleich noch einmal.",
-      "unexpected": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal."
+      "unexpected": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal.",
+      "learningWindowClosed": "Gerade ist Lernpause. Frag deine Eltern, wann es weitergeht.",
+      "dailyLimitReached": "Für heute ist Pause. Morgen bin ich wieder da."
     },
     "conversation": {
       "label": "Gespräch mit deinem Begleiter",
@@ -65,6 +66,16 @@
       "panelTitle": "Mit {name} schreiben",
       "panelOpen": "Schreiben",
       "close": "Schließen"
+    },
+    "pause": {
+      "window": {
+        "at": "Gerade ist Pause. {day, select, today {Heute} other {Morgen}} ab {time} Uhr bin ich wieder da.",
+        "anyTime": "Gerade ist Pause. {day, select, today {Gleich} other {Morgen}} bin ich wieder da."
+      },
+      "limit": {
+        "at": "Für heute ist Pause. Morgen ab {time} Uhr bin ich wieder da.",
+        "anyTime": "Für heute ist Pause. Morgen bin ich wieder da."
+      }
     },
     "insights": {
       "parent": {

@@ -23,7 +23,8 @@ import { spendChildBudget } from '../services/child-budget';
 import { classifySessionTask } from '../services/classify-session-task';
 import { parseRequestedTask, resolveSessionSource } from '../services/help-session-source';
 import { toHelpSessionView } from '../services/help-session-view';
-import { admitLearningTime, ownChildScope } from '../services/own-child-session';
+import { requireDailyBudget, requireWindowOpen } from '../services/learning-time';
+import { ownChildScope } from '../services/own-child-session';
 
 import type { HelpSessionSource } from '../../domain/models/help-session';
 import type { ChildProfileId } from '../../domain/models/ids';
@@ -35,7 +36,7 @@ import type { StartHelpSessionView } from '../contracts/help-session-views';
 import type { HelpSessionDependencies } from '../help-session-dependencies';
 import type { RequestedTask } from '../services/help-session-source';
 
-/** `guidance.learning_paused` (a closed day) is `forbidden`, part of `AuthorizationError`. */
+/** A closed learning window or a reached daily limit (#88) is `rate_limited`, with the time it reopens. */
 export type StartHelpSessionError =
   | AuthorizationError
   | ValidationAppError
@@ -59,8 +60,10 @@ export type StartHelpSessionError =
  * classification decides the session's opening (clarify, redirect or none); it never fails the start.
  *
  * Before any of that, once the child is known to be the parent's own: the distress check (#90,
- * `guidance.child_distress`, it wins over everything else), then the child's day (the parent's
- * daily limit and allowed hours, `guidance.learning_paused`). Neither stores, spends or asks the AI.
+ * `guidance.child_distress`, it wins over everything else), then the parent's learning window
+ * (#88, `guidance.learning_window_closed`). A new task also needs the day's budget
+ * (`guidance.daily_limit_reached`); the open one may be finished. None of them stores, spends or
+ * asks the AI.
  */
 export class StartHelpSession {
   constructor(private readonly deps: HelpSessionDependencies) {}
@@ -88,7 +91,7 @@ export class StartHelpSession {
         .asyncAndThen(({ id, requested, subject, island }) =>
           ownChildScope(this.deps, actor, id).andThen(({ owner, childProfileId, child }) =>
             this.refuseDistress(actor, childProfileId, requested)
-              .andThen(() => admitLearningTime(this.deps, owner, child))
+              .andThen(() => requireWindowOpen(this.deps, child))
               .andThen(() => spendChildBudget(rateLimiter, { actor, childProfileId, policy }))
               .andThen(() =>
                 resolveSessionSource(this.deps, { childProfileId, requested, subject }),
@@ -160,7 +163,7 @@ export class StartHelpSession {
       readonly source: HelpSessionSource;
       readonly island: SessionIsland | null;
     },
-  ): AppResultAsync<StartHelpSessionView, InfrastructureAppError> {
+  ): AppResultAsync<StartHelpSessionView, RateLimitedAppError | InfrastructureAppError> {
     const { sessions, audit } = this.deps;
 
     return sessions.findOpen(owner, childProfileId).andThen((open) => {
@@ -171,7 +174,9 @@ export class StartHelpSession {
         });
       }
       const replaces = open?.id ?? null;
-      return this.clearedIsland(owner, childProfileId, island)
+      // Only a new task asks for the day's budget; the open one may be finished (#88).
+      return requireDailyBudget(this.deps, sessions, owner, child)
+        .andThen(() => this.clearedIsland(owner, childProfileId, island))
         .andThen((picked) =>
           ResultAsync.fromSafePromise(
             classifySessionTask(this.deps, {

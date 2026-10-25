@@ -30,6 +30,13 @@ export interface NewHelpSession extends HelpSessionSource {
  * that does not exist. A step is written only while the session is active, once per request id.
  */
 export interface HelpSessionRepository extends HintSessionStore {
+  /** Only server-recorded activity instants, owner-scoped; no task or answer text. */
+  learningActivity(
+    owner: HelpSessionOwner,
+    childProfileId: ChildProfileId,
+    since: Date,
+  ): AppResultAsync<readonly Date[], InfrastructureAppError>;
+
   /**
    * Starts a session. The database holds at most one active session per child, so a concurrent
    * twin start returns the session that won (`created: false`) instead of a second one.
@@ -47,16 +54,6 @@ export interface HelpSessionRepository extends HintSessionStore {
     owner: HelpSessionOwner,
     childProfileId: ChildProfileId,
   ): AppResultAsync<HelpSession | null, InfrastructureAppError>;
-
-  /**
-   * Minutes the child spent in help sessions within `[from, to)`, measured from the stored step
-   * times of all their sessions; the daily limit counts against it.
-   */
-  helpMinutesBetween(
-    owner: HelpSessionOwner,
-    childProfileId: ChildProfileId,
-    range: { readonly from: Date; readonly to: Date },
-  ): AppResultAsync<number, InfrastructureAppError>;
 
   /**
    * The distinct world islands of the child's sessions that opened as help (no clarify or redirect

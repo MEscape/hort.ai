@@ -301,10 +301,10 @@ describe('HelpConversation errors that a retry cannot fix', () => {
     );
   });
 
-  it('shows a closed day as a calm status with a way home', async () => {
-    await failHint({ code: 'guidance.learning_paused' });
-    expect(screen.getByRole('status')).toHaveTextContent('errors.learningPaused');
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  it('says calmly when the learning window opens again, without a retry (#88)', async () => {
+    await failHint({ code: 'guidance.learning_window_closed', retryAfterSeconds: 60 * 60 });
+    expect(screen.getByText(/pause\.window/)).toBeVisible();
+    expect(screen.queryByText('errors.learningWindowClosed')).not.toBeInTheDocument();
     expect(screen.queryByText('conversation.retry')).not.toBeInTheDocument();
   });
 

@@ -16,7 +16,7 @@
 | Photo task                            | Out of the MVP scope in `docs/product/vision.md` and no upload backend: the camera button only has the companion say so.                                                                                                 |
 | "Type or say it"                      | Links to the existing task entry at `/start`.                                                                                                                                                                            |
 
-A closed day (limit reached, outside the allowed hours) is enforced by the guidance use cases on the server (`guidance.learning_paused`, see `docs/architecture/help-sessions.md`); this screen only reflects it. Both use the learner's `computeScreenTime`. One failing optional source (minutes, assignments, open session) never takes Home down.
+Enforcement of a closed day (limit reached, outside the allowed hours) is done by the guidance use cases that start or continue a task (#88); this screen only reflects it. `computeScreenTime` is the one function both call.
 
 ## The guide
 

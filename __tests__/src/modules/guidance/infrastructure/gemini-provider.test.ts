@@ -128,12 +128,11 @@ describe('GeminiProvider', () => {
   it('unwraps the one object from a code fence, a one-element array or surrounding prose', async () => {
     const assessment = { ...ANSWER, kind: 'answer_assessment', result: 'not_yet' };
     const text = JSON.stringify(assessment);
-    const fence = '```';
     const { fetch } = scriptedFetch(
-      reply(`${fence}json\n${text}\n${fence}`),
-      reply(`${fence}\n${text}\n${fence}\n`),
+      reply(`\`\`\`json\n${text}\n\`\`\``),
+      reply(`\`\`\`\n${text}\n\`\`\`\n`),
       reply(`[${text}]`),
-      reply(`${fence}json\n[${text}]\n${fence}`),
+      reply(`\`\`\`json\n[${text}]\n\`\`\``),
       reply(`Hier ist die Bewertung:\n${text}\nViel Erfolg!`),
     );
     const gemini = provider(fetch);

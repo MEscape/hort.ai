@@ -12,6 +12,8 @@ import { useTranslations } from '@i18n/client';
 
 import { messageKeyForCode } from '../messages/message-keys';
 
+import { LearningPauseNote } from './learning-pause-note';
+
 import type { HelpConversationState, StepFailure } from '../hooks/use-help-conversation';
 
 const MS_PER_SECOND = 1000;
@@ -21,11 +23,8 @@ const FINAL_CODES: ReadonlySet<string> = new Set([
   'guidance.session_not_found',
   'guidance.no_open_question',
   'guidance.no_hint_for_opening',
-  'guidance.learning_paused',
   'guidance.child_distress',
 ]);
-/** A closed day is calm news, not an error: announced politely. */
-const PAUSED_CODE = 'guidance.learning_paused';
 
 /** Whether Retry is held back: while the budget's `retryAfterSeconds` run. No countdown is shown. */
 function useCoolingDown(failure: StepFailure | null): boolean {
@@ -52,12 +51,12 @@ function messageOf(code: string | null) {
   return code === null ? 'errors.infrastructure' : messageKeyForCode(code);
 }
 
-/** The distress notice, a closed day, a gone session: the message and a calm way home. */
+/** The distress notice or a gone session: the message and a calm way home. */
 function FinalNotice({ code }: { readonly code: string }) {
   const t = useTranslations('guidance');
   return (
     <div
-      role={code === PAUSED_CODE ? 'status' : 'alert'}
+      role="alert"
       className="flex flex-col gap-3 rounded-token-lg border-2 border-hint-border bg-hint-subtle p-4 text-copy"
     >
       <p className="text-lead font-semibold">{t(messageOf(code))}</p>
@@ -87,8 +86,12 @@ export function StepStatus({
           {t('conversation.thinking', { name: companionName })}
         </p>
       )}
-      {failure !== null && code !== null && FINAL_CODES.has(code) && <FinalNotice code={code} />}
-      {failure !== null && !(code !== null && FINAL_CODES.has(code)) && (
+      {/* A closed window or a used-up day (#88) is calm news with the time it opens: no retry. */}
+      {failure?.pause ? <LearningPauseNote pause={failure.pause} /> : null}
+      {failure !== null && failure.pause === null && code !== null && FINAL_CODES.has(code) && (
+        <FinalNotice code={code} />
+      )}
+      {failure !== null && failure.pause === null && !(code !== null && FINAL_CODES.has(code)) && (
         <div role="alert" className="flex flex-wrap items-center gap-3">
           <p className="font-semibold text-nudge">{t(messageOf(code))}</p>
           {code !== 'empty' && (

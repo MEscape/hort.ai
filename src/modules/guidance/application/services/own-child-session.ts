@@ -1,22 +1,18 @@
 import type { Actor } from '@modules/auth';
 
 import { validationError } from '@lib/errors';
-import type { ForbiddenAppError, InfrastructureAppError, ValidationAppError } from '@lib/errors';
-import { errAsync, okAsync } from '@lib/result';
+import type { ValidationAppError } from '@lib/errors';
+import { errAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
-import { GUIDANCE_ERROR_CODES, learningPaused } from '../../domain/errors/guidance-errors';
+import { GUIDANCE_ERROR_CODES } from '../../domain/errors/guidance-errors';
 
 import type { ChildProfileId } from '../../domain/models/ids';
 import type {
-  ChildProfileAccess,
   ChildProfileAccessError,
   OwnChildProfile,
 } from '../../domain/ports/child-profile-access.port';
-import type {
-  HelpSessionOwner,
-  HelpSessionRepository,
-} from '../../domain/ports/help-session.repository';
+import type { HelpSessionOwner } from '../../domain/ports/help-session.repository';
 import type { HelpSessionDependencies } from '../help-session-dependencies';
 
 /**
@@ -69,39 +65,4 @@ export function refuseChildInDistress(
       validationError(GUIDANCE_ERROR_CODES.childDistress, 'The child may be in danger.', {}),
     );
   });
-}
-
-interface LearningTimeDependencies {
-  readonly childProfiles: ChildProfileAccess;
-  readonly sessions: Pick<HelpSessionRepository, 'helpMinutesBetween'>;
-}
-
-/** Minutes the child spent in help sessions today (the learner's calendar day, server clock). */
-export function todayHelpMinutes(
-  { childProfiles, sessions }: LearningTimeDependencies,
-  owner: HelpSessionOwner,
-  childProfileId: ChildProfileId,
-): AppResultAsync<number, InfrastructureAppError> {
-  return sessions.helpMinutesBetween(owner, childProfileId, childProfiles.today());
-}
-
-/**
- * The parent's daily limit and allowed hours, enforced on the server: a closed day is
- * `guidance.learning_paused` before anything is stored or any AI is asked. Without a limit nothing
- * is measured, so only the allowed hours count.
- */
-export function admitLearningTime(
-  deps: LearningTimeDependencies,
-  owner: HelpSessionOwner,
-  child: OwnChildProfile,
-): AppResultAsync<void, ForbiddenAppError | InfrastructureAppError> {
-  const used =
-    child.controls.dailyLimitMinutes === null
-      ? okAsync<number | null, InfrastructureAppError>(null)
-      : todayHelpMinutes(deps, owner, child.id);
-  return used.andThen((usedMinutes) =>
-    deps.childProfiles.isDayClosed(child, usedMinutes)
-      ? errAsync(learningPaused())
-      : okAsync(undefined),
-  );
 }

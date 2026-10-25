@@ -6,7 +6,6 @@ import { RequestHint } from '@modules/guidance/application/commands/request-hint
 import { StartHelpSession } from '@modules/guidance/application/commands/start-help-session';
 import { GetTodayHelpMinutes } from '@modules/guidance/application/queries/get-today-help-minutes';
 import { HintOrchestrator } from '@modules/guidance/application/services/hint-orchestrator';
-import type { LearningControls } from '@modules/guidance/domain/ports/child-profile-access.port';
 import type { HelpSessionRepository } from '@modules/guidance/domain/ports/help-session.repository';
 import type { TopicClassifier } from '@modules/guidance/domain/ports/topic-classifier.port';
 
@@ -23,15 +22,16 @@ import {
   fakeCompetencies,
   fakeHintProvider,
   fakeSessionStore,
+  learningTime,
   openSession,
   ownChildren,
   recordingAuditLog,
 } from '../fakes';
 import { helpSessionDependencies, inMemorySessions } from '../help-session-fakes';
 
-const NO_CONTROLS: LearningControls = { dailyLimitMinutes: null, allowedWindow: null };
 /** 15:00 to 18:00; `NOW` is 10:00 in Berlin. */
 const AFTERNOON = { fromMinute: 15 * 60, untilMinute: 18 * 60 };
+const MS_PER_MINUTE = 60_000;
 
 /** A classifier that must never be reached in these tests' refusals; it keeps every task it saw. */
 function watchingClassifier() {
@@ -52,11 +52,9 @@ function watchingClassifier() {
 }
 
 function startWith({
-  controls = NO_CONTROLS,
-  helpMinutes = 0,
-}: { readonly controls?: LearningControls; readonly helpMinutes?: number } = {}) {
+  allowedWindow = null,
+}: { readonly allowedWindow?: typeof AFTERNOON | null } = {}) {
   const store = inMemorySessions();
-  store.usage.helpMinutes = helpMinutes;
   const { classifier, tasks } = watchingClassifier();
   const { deps, events } = helpSessionDependencies(
     store.repository,
@@ -64,7 +62,7 @@ function startWith({
     createTestRateLimiter(),
     fakeAssignments(),
     classifier,
-    ownChildren([OWN_CHILD], { controls }),
+    ownChildren([OWN_CHILD], { controls: { dailyLimitMinutes: null, allowedWindow } }),
   );
   return {
     store,
@@ -108,8 +106,8 @@ describe('StartHelpSession distress check (#90)', () => {
     expect(events).toEqual([]);
   });
 
-  it('wins over a closed day, so the child still gets the notice', async () => {
-    const { run } = startWith({ controls: { ...NO_CONTROLS, allowedWindow: AFTERNOON } });
+  it('wins over a closed learning window (#88), so the child still gets the notice', async () => {
+    const { run } = startWith({ allowedWindow: AFTERNOON });
 
     const result = await run(WORDS);
 
@@ -117,78 +115,26 @@ describe('StartHelpSession distress check (#90)', () => {
   });
 });
 
-describe('StartHelpSession screen time (server side)', () => {
-  it('pauses a start outside the allowed hours, before anything is classified or stored', async () => {
-    const { run, store, classified } = startWith({
-      controls: { ...NO_CONTROLS, allowedWindow: AFTERNOON },
-    });
-
-    const result = await run('Rechne 23 + 19.');
-
-    expect(result.isErr() && result.error).toMatchObject({
-      kind: 'forbidden',
-      code: 'guidance.learning_paused',
-    });
-    expect(classified).toEqual([]);
-    expect(store.starts).toEqual([]);
-  });
-
-  it("pauses a start once today's help minutes reach the daily limit", async () => {
-    const { run, store, classified } = startWith({
-      controls: { ...NO_CONTROLS, dailyLimitMinutes: 30 },
-      helpMinutes: 30,
-    });
-
-    const result = await run('Rechne 23 + 19.');
-
-    expect(result.isErr() && result.error.code).toBe('guidance.learning_paused');
-    expect(classified).toEqual([]);
-    expect(store.starts).toEqual([]);
-  });
-
-  it('starts while minutes are left inside the allowed hours', async () => {
-    const { run, store } = startWith({
-      controls: {
-        dailyLimitMinutes: 30,
-        allowedWindow: { fromMinute: 8 * 60, untilMinute: 18 * 60 },
-      },
-      helpMinutes: 29,
-    });
-
-    const result = await run('Rechne 23 + 19.');
-
-    expect(result.isOk() && result.value.outcome).toBe('started');
-    expect(store.starts).toHaveLength(1);
-  });
-});
-
-describe('RequestHint gating', () => {
-  function hintWith({
-    controls = NO_CONTROLS,
-    helpMinutesToday = 0,
-    session = openSession(),
-  }: {
-    readonly controls?: LearningControls;
-    readonly helpMinutesToday?: number;
-    readonly session?: ReturnType<typeof openSession>;
-  } = {}) {
+describe('RequestHint and the session opening (#92)', () => {
+  function hintWith(session = openSession()) {
     const { provider, requests } = fakeHintProvider({
       answer: { version: 1, kind: 'hint', hintLevel: 'understand_task', text: 'Was weißt du?' },
     });
     const { audit } = recordingAuditLog();
-    const sessions = fakeSessionStore([session], { helpMinutesToday });
+    const sessions = fakeSessionStore([session]);
     const requestHint = new RequestHint({
       authorization: createAuthorizationService({
         currentActor: signedInAs(parent()),
         audit: recordingSecurityAudit(),
       }),
-      childProfiles: ownChildren([OWN_CHILD], { controls }),
+      childProfiles: ownChildren([OWN_CHILD]),
       assignments: fakeAssignments().access,
       competencies: fakeCompetencies().retrieval,
       rateLimiter: createTestRateLimiter(),
       sessions: sessions.store,
       hints: new HintOrchestrator({ provider, audit }),
       audit,
+      ...learningTime(),
     });
     return {
       requests,
@@ -198,32 +144,10 @@ describe('RequestHint gating', () => {
     };
   }
 
-  it('pauses a hint inside an open session once the daily limit is used up: no AI, nothing stored', async () => {
-    const { run, requests, sessions } = hintWith({
-      controls: { ...NO_CONTROLS, dailyLimitMinutes: 20 },
-      helpMinutesToday: 25,
-    });
-
-    const result = await run();
-
-    expect(result.isErr() && result.error.code).toBe('guidance.learning_paused');
-    expect(requests).toEqual([]);
-    expect(sessions.hintsOf()).toEqual([]);
-  });
-
-  it('pauses a hint outside the allowed hours', async () => {
-    const { run, requests } = hintWith({ controls: { ...NO_CONTROLS, allowedWindow: AFTERNOON } });
-
-    const result = await run();
-
-    expect(result.isErr() && result.error.code).toBe('guidance.learning_paused');
-    expect(requests).toEqual([]);
-  });
-
-  it('gives no hint in a session that opened with the friendly redirect (#92)', async () => {
-    const { run, requests, sessions } = hintWith({
-      session: openSession({ opening: { kind: 'redirect', intent: 'small_talk' } }),
-    });
+  it('gives no hint in a session that opened with the friendly redirect', async () => {
+    const { run, requests, sessions } = hintWith(
+      openSession({ opening: { kind: 'redirect', intent: 'small_talk' } }),
+    );
 
     const result = await run();
 
@@ -233,7 +157,7 @@ describe('RequestHint gating', () => {
   });
 
   it('still helps a session that opened with a clarifying question', async () => {
-    const { run } = hintWith({ session: openSession({ opening: { kind: 'clarify' } }) });
+    const { run } = hintWith(openSession({ opening: { kind: 'clarify' } }));
 
     const result = await run();
 
@@ -242,36 +166,36 @@ describe('RequestHint gating', () => {
 });
 
 describe('GetTodayHelpMinutes', () => {
-  function queryWith(minutes: number) {
+  /** Stored step instants, minutes before `NOW`. */
+  function queryWith(minutesAgo: readonly number[]) {
     const store = inMemorySessions();
-    const ranges: Array<{ readonly from: Date; readonly to: Date }> = [];
+    const reads: Date[] = [];
     const repository: HelpSessionRepository = {
       ...store.repository,
-      helpMinutesBetween: (_owner, _child, range) => {
-        ranges.push(range);
-        return okAsync(minutes);
+      learningActivity: (_owner, _child, since) => {
+        reads.push(since);
+        return okAsync(minutesAgo.map((ago) => new Date(NOW.getTime() - ago * MS_PER_MINUTE)));
       },
     };
     const { deps } = helpSessionDependencies(repository);
-    return { ranges, query: new GetTodayHelpMinutes(deps) };
+    return { reads, query: new GetTodayHelpMinutes(deps) };
   }
 
-  it("answers the own child's help minutes since midnight in Berlin", async () => {
-    const { query, ranges } = queryWith(12);
+  it("counts the own child's help minutes like the daily limit does: steps, idle gaps capped", async () => {
+    // 4 + 3 minutes between steps, then 30 idle minutes that count as the 5 minute cap.
+    const { query } = queryWith([42, 12, 8, 5]);
 
     const result = await query.execute({ childProfileId: OWN_CHILD });
 
     expect(result.isOk() && result.value).toBe(12);
-    // 25 October 2026 starts in summer time (UTC+2), so its midnight is 22:00 UTC the day before.
-    expect(ranges).toEqual([{ from: new Date('2026-10-24T22:00:00.000Z'), to: NOW }]);
   });
 
-  it("refuses another parent's child before measuring anything", async () => {
-    const { query, ranges } = queryWith(12);
+  it("refuses another parent's child before reading anything", async () => {
+    const { query, reads } = queryWith([10, 5]);
 
     const result = await query.execute({ childProfileId: OTHER_CHILD });
 
     expect(result.isErr() && result.error.kind).toBe('not_found');
-    expect(ranges).toEqual([]);
+    expect(reads).toEqual([]);
   });
 });

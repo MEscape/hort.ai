@@ -28,6 +28,7 @@ import { curriculumCompetencyRetrieval } from './infrastructure/curriculum/curri
 import { GeminiProvider } from './infrastructure/gemini/gemini-provider';
 import { learnerChildProfileAccess } from './infrastructure/learner/learner-child-profile-access';
 import { learnerInsightsConsent } from './infrastructure/learner/learner-insights-consent';
+import { learnerLearningTimePolicy } from './infrastructure/learner/learner-learning-time-policy';
 import { PrismaHelpSessionRepository } from './infrastructure/prisma/prisma-help-session.repository';
 import { PrismaLearningRecordRepository } from './infrastructure/prisma/prisma-learning-record.repository';
 import { progressionSessionReward } from './infrastructure/progression/progression-session-reward';
@@ -114,8 +115,8 @@ const getAssignmentAccess = once(
  */
 const getHelpSessionRepository = once(() => new PrismaHelpSessionRepository(systemClock));
 
-/** The child's profile, and their day against the parent's limit and hours, on the server's clock. */
-const getChildProfileAccess = once(() => learnerChildProfileAccess(systemClock));
+/** The child's profile with the parent's controls; the learning-time policy reads them (#88). */
+const getChildProfileAccess = once(() => learnerChildProfileAccess);
 
 /** The guidance use cases, over the configured AI provider and safety classifier. */
 export const getGuidanceCommands = once(() => {
@@ -134,6 +135,8 @@ export const getGuidanceCommands = once(() => {
       ...(safety === undefined ? {} : { safety }),
     }),
     audit: loggerGuidanceAuditLog,
+    clock: systemClock,
+    learningTime: learnerLearningTimePolicy,
   };
   return { requestHint: new RequestHint(deps), checkAnswer: new CheckAnswer(deps) };
 });
@@ -149,6 +152,8 @@ const getHelpSessionDependencies = once((): HelpSessionDependencies => {
     audit: loggerGuidanceAuditLog,
     competencies: curriculumCompetencyRetrieval,
     reward: progressionSessionReward,
+    clock: systemClock,
+    learningTime: learnerLearningTimePolicy,
     ...(classifier === undefined ? {} : { classifier }),
   };
 });

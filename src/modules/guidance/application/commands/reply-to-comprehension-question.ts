@@ -5,6 +5,7 @@ import type {
   ConflictAppError,
   InfrastructureAppError,
   NotFoundAppError,
+  RateLimitedAppError,
   ValidationAppError,
 } from '@lib/errors';
 import { ResultAsync, errAsync, okAsync } from '@lib/result';
@@ -16,6 +17,7 @@ import { GUIDANCE_ERROR_CODES } from '../../domain/errors/guidance-errors';
 import { parseChildTaskText } from '../../domain/models/child-task-text';
 import { isSessionUnderstood, openQuestionCheck } from '../../domain/models/help-session';
 import { parseChildProfileId, parseHelpSessionId } from '../../domain/models/ids';
+import { requireWindowOpen } from '../services/learning-time';
 import { ownChildScope, refuseChildInDistress } from '../services/own-child-session';
 
 import type { ChildProfileId, HelpSessionId } from '../../domain/models/ids';
@@ -28,6 +30,7 @@ export type ReplyToComprehensionQuestionError =
   | ValidationAppError
   | NotFoundAppError
   | ConflictAppError
+  | RateLimitedAppError
   | InfrastructureAppError;
 
 const noOpenQuestion = () =>
@@ -46,7 +49,7 @@ const notAnAnswer = () =>
  * understood task completes the session, so "Continue" no longer offers it.
  *
  * The reply is not judged: answering is what counts, and nothing a child writes here takes
- * anything away. No rate limit, because no provider is called.
+ * anything away. No rate limit, because no provider is called; the parent's learning window still applies (#88).
  */
 export class ReplyToComprehensionQuestion {
   constructor(private readonly deps: HelpSessionDependencies) {}
@@ -78,52 +81,59 @@ export class ReplyToComprehensionQuestion {
             if (isNonAnswer(reply)) {
               return errAsync(notAnAnswer());
             }
-            return ownChildScope(this.deps, actor, id).andThen(({ owner, childProfileId }) => {
-              const ref = { ...owner, childProfileId, sessionId };
-              return sessions.loadSession(ref, true).andThen((session) => {
-                // A lost HTTP response must not turn a stored completion into an error. No new
-                // write: return the authenticated session's proven completion, and grant its XP
-                // again (keyed by the session, so only a grant that failed the first time lands).
-                if (session.status === 'completed' && isSessionUnderstood(session)) {
-                  return this.rewarded(childProfileId, sessionId).map(() => ({
-                    sessionId,
-                    status: 'understood' as const,
-                  }));
-                }
-                const check = openQuestionCheck(session);
-                if (check === null) {
-                  return errAsync(noOpenQuestion());
-                }
-                const understood = isTaskUnderstood({
-                  result: check.result,
-                  comprehensionReplied: true,
-                });
-                return sessions
-                  .recordComprehensionReply(ref, {
-                    check,
-                    text: reply,
-                    completes: understood,
-                  })
-                  .andThen((outcome) =>
-                    outcome === 'recorded' && understood
-                      ? this.rewarded(childProfileId, sessionId).map(() => outcome)
-                      : okAsync(outcome),
-                  )
-                  .map((outcome): ComprehensionReplyView => {
-                    if (outcome === 'recorded') {
-                      audit.record({
-                        type: 'guidance.comprehension_replied',
-                        tenantId: actor.tenantId,
-                        actorId: actor.id,
-                        childProfileId,
-                        sessionId,
-                        understood,
-                      });
-                    }
-                    return { sessionId, status: understood ? 'understood' : 'working' };
+            return ownChildScope(this.deps, actor, id).andThen(
+              ({ owner, childProfileId, child }) => {
+                const ref = { ...owner, childProfileId, sessionId };
+                return sessions.loadSession(ref, true).andThen((session) => {
+                  // A lost HTTP response must not turn a stored completion into an error. No new
+                  // write: return the authenticated session's proven completion, and grant its XP
+                  // again (keyed by the session, so only a grant that failed the first time lands).
+                  if (session.status === 'completed' && isSessionUnderstood(session)) {
+                    return this.rewarded(childProfileId, sessionId).map(() => ({
+                      sessionId,
+                      status: 'understood' as const,
+                    }));
+                  }
+                  // The parent's window (#88): no reply while it is closed.
+                  const refusal = requireWindowOpen(this.deps, child);
+                  if (refusal.isErr()) {
+                    return errAsync(refusal.error);
+                  }
+                  const check = openQuestionCheck(session);
+                  if (check === null) {
+                    return errAsync(noOpenQuestion());
+                  }
+                  const understood = isTaskUnderstood({
+                    result: check.result,
+                    comprehensionReplied: true,
                   });
-              });
-            });
+                  return sessions
+                    .recordComprehensionReply(ref, {
+                      check,
+                      text: reply,
+                      completes: understood,
+                    })
+                    .andThen((outcome) =>
+                      outcome === 'recorded' && understood
+                        ? this.rewarded(childProfileId, sessionId).map(() => outcome)
+                        : okAsync(outcome),
+                    )
+                    .map((outcome): ComprehensionReplyView => {
+                      if (outcome === 'recorded') {
+                        audit.record({
+                          type: 'guidance.comprehension_replied',
+                          tenantId: actor.tenantId,
+                          actorId: actor.id,
+                          childProfileId,
+                          sessionId,
+                          understood,
+                        });
+                      }
+                      return { sessionId, status: understood ? 'understood' : 'working' };
+                    });
+                });
+              },
+            );
           },
         ),
     );

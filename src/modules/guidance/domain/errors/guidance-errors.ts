@@ -1,12 +1,5 @@
-import {
-  forbiddenError,
-  infrastructureError,
-  notFoundError,
-  rateLimitedError,
-  validationError,
-} from '@lib/errors';
+import { infrastructureError, notFoundError, rateLimitedError, validationError } from '@lib/errors';
 import type {
-  ForbiddenAppError,
   InfrastructureAppError,
   NotFoundAppError,
   RateLimitedAppError,
@@ -34,13 +27,18 @@ export const GUIDANCE_ERROR_CODES = {
   childDistress: 'guidance.child_distress',
   /** The comprehension reply says nothing ("?", "weiß nicht"); the child is asked for their own words. */
   replyNotAnAnswer: 'guidance.reply_not_an_answer',
-  /**
-   * The parent's daily limit is used up or it is outside the allowed hours (`computeScreenTime` on
-   * the server's clock): no new session and no step, nothing stored, no AI. The task stays saved.
-   */
-  learningPaused: 'guidance.learning_paused',
   /** A session that opened with the friendly redirect (small talk, curiosity, #92) gives no hint. */
   noHintForOpening: 'guidance.no_hint_for_opening',
+  /**
+   * The parent's learning window is closed (#88): no help session starts or goes on until it opens
+   * again. Carries how long to wait, like a rate limit.
+   */
+  learningWindowClosed: 'guidance.learning_window_closed',
+  /**
+   * The day's help time reached the parent's daily limit (#88): no new task starts until the next
+   * Berlin calendar day. The task the child is in the middle of can still be finished.
+   */
+  dailyLimitReached: 'guidance.daily_limit_reached',
 } as const;
 
 /** Field-level codes, carried in `fieldErrors`. */
@@ -84,9 +82,17 @@ export function fromRateLimitFailure(
       );
 }
 
-/** See `GUIDANCE_ERROR_CODES.learningPaused`. The parent's controls forbid learning right now. */
-export function learningPaused(): ForbiddenAppError {
-  return forbiddenError(GUIDANCE_ERROR_CODES.learningPaused, 'Learning is paused for today.');
+/**
+ * A calm refusal because of the parent's controls (#88). Waiting is the only remedy, so it carries
+ * how long, as a rate limit does; nothing about it is a failure of the child or the system.
+ */
+export function learningTimeClosed(
+  code:
+    | typeof GUIDANCE_ERROR_CODES.learningWindowClosed
+    | typeof GUIDANCE_ERROR_CODES.dailyLimitReached,
+  retryAfterSeconds: number,
+): RateLimitedAppError {
+  return rateLimitedError(code, 'Learning is paused for now.', retryAfterSeconds);
 }
 
 /** See `GUIDANCE_ERROR_CODES.assignmentNotFound`. */

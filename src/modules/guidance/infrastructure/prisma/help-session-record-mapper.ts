@@ -137,30 +137,6 @@ const CLASSIFIED_BY = invert(CLASSIFIED_BY_RECORD);
 
 export type LevelValue = ValueOf<typeof LEVEL_RECORD>;
 
-/** The step times of one session, as `helpMinutesBetween` reads them. */
-interface StepTimesRecord {
-  readonly startedAt: InstantRecord;
-  readonly hintEvents: ReadonlyArray<{ readonly occurredAt: InstantRecord }>;
-  readonly childAnswers: ReadonlyArray<{ readonly occurredAt: InstantRecord }>;
-  readonly comprehensionQuestions: ReadonlyArray<{ readonly repliedAt: InstantRecord | null }>;
-}
-
-/** When the child worked in the session within `[from, to)`: its start, hints, checks and replies. */
-export function toStepTimes(
-  record: StepTimesRecord,
-  { from, to }: { readonly from: Date; readonly to: Date },
-): Date[] {
-  return [
-    record.startedAt,
-    ...record.hintEvents.map((hint) => hint.occurredAt),
-    ...record.childAnswers.map((answer) => answer.occurredAt),
-    ...record.comprehensionQuestions.map((question) => question.repliedAt),
-  ]
-    .filter(isDefined)
-    .map(instantToDate)
-    .filter((time) => time >= from && time < to);
-}
-
 /** The higher rung of the two: a session's hint level only ever goes up. */
 export function raisedLevel(current: LevelValue | null, given: LevelValue): LevelValue {
   const rung = (level: LevelValue) => HINT_LEVELS.indexOf(LEVEL[level]);

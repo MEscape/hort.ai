@@ -25,7 +25,7 @@ import type {
 } from '@modules/guidance/domain/ports/assignment-access.port';
 import type {
   ChildProfileAccess,
-  LearningControls,
+  OwnChildProfile,
 } from '@modules/guidance/domain/ports/child-profile-access.port';
 import type {
   CompetencyQuery,
@@ -48,7 +48,7 @@ import type {
   SafetyScores,
 } from '@modules/guidance/domain/ports/safety-classifier.port';
 import { UNCLASSIFIED_TOPIC } from '@modules/guidance/domain/topic/session-topic';
-import { computeScreenTime, learningDayStart } from '@modules/learner/domain/models/screen-time';
+import { learnerLearningTimePolicy } from '@modules/guidance/infrastructure/learner/learner-learning-time-policy';
 
 import { infrastructureError, notFoundError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
@@ -110,29 +110,21 @@ export function recordingAuditLog() {
 export const OWN_CHILD = toChildProfileId('child-1');
 export const OTHER_CHILD = toChildProfileId('child-of-someone-else');
 
-/** 10:00 in Berlin on a school day. */
-export const NOW = new Date('2026-10-25T09:00:00.000Z');
-
 /**
  * The children the signed-in parent owns; any other id is "not found", as the learner module answers.
- * Their day follows the learner's own screen-time rule at `now`, with the `controls` the parent set
- * (none by default).
+ * They carry the `controls` the parent set (none by default).
  */
 export function ownChildren(
   owned: readonly ChildProfileId[] = [OWN_CHILD],
   {
     controls = { dailyLimitMinutes: null, allowedWindow: null },
-    now = NOW,
-  }: { readonly controls?: LearningControls; readonly now?: Date } = {},
+  }: { readonly controls?: OwnChildProfile['controls'] } = {},
 ): ChildProfileAccess {
   return {
     findOwn: (id) =>
       owned.includes(id)
         ? okAsync({ id, federalState: 'BY', grade: 2, controls })
         : errAsync(notFoundError('child_profile.not_found', 'The child profile was not found.')),
-    today: () => ({ from: learningDayStart(now), to: now }),
-    isDayClosed: (child, usedMinutes) =>
-      computeScreenTime({ controls: child.controls, usedMinutes, now }).status.startsWith('closed'),
   };
 }
 
@@ -259,7 +251,7 @@ export function openSession(
  */
 export function fakeSessionStore(
   sessions: ReadonlyArray<ReturnType<typeof openSession>> = [openSession()],
-  options: { readonly failsRecording?: boolean; readonly helpMinutesToday?: number } = {},
+  options: { readonly failsRecording?: boolean } = {},
 ) {
   const stored = new Map(
     sessions.map(({ ref, state }) => [
@@ -272,9 +264,7 @@ export function fakeSessionStore(
     errAsync(notFoundError('guidance.session_not_found', 'The help session was not found.'));
   const writeFailed = () =>
     errAsync(infrastructureError('guidance.session_store_failed', 'The session store is down.'));
-  const store: HintSessionStore &
-    Pick<HelpSessionRepository, 'loadSession' | 'helpMinutesBetween'> = {
-    helpMinutesBetween: () => okAsync(options.helpMinutesToday ?? 0),
+  const store: HintSessionStore & Pick<HelpSessionRepository, 'loadSession'> = {
     load(ref) {
       const session = stored.get(sessionKey(ref));
       return session === undefined
@@ -346,4 +336,12 @@ export function fakeSessionStore(
     checks,
     hintsOf: (ref = openSession().ref) => stored.get(sessionKey(ref))?.hints ?? [],
   };
+}
+
+/** The instant the fake clock shows, 10:00 Berlin: inside any window a test would set around it. */
+export const NOW = new Date('2026-10-25T09:00:00.000Z');
+
+/** The parent's learning window and daily limit (#88) over the real learner rule, on a fixed clock. */
+export function learningTime(now: Date = NOW) {
+  return { clock: { now: () => now }, learningTime: learnerLearningTimePolicy };
 }

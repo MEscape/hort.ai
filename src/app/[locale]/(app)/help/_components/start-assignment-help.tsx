@@ -2,7 +2,12 @@
 
 import { useTransition, useState } from 'react';
 
-import { startHelpSessionAction } from '@modules/guidance/client';
+import {
+  LearningPauseNote,
+  learningPauseOf,
+  startHelpSessionAction,
+} from '@modules/guidance/client';
+import type { LearningPause } from '@modules/guidance/client';
 
 import { Button } from '@components/ui/button';
 
@@ -37,10 +42,12 @@ export function StartAssignmentHelp({
   const router = useRouter();
   const [failed, setFailed] = useState(false);
   const [isAsking, setIsAsking] = useState(false);
+  const [pause, setPause] = useState<LearningPause | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function start() {
     setFailed(false);
+    setPause(null);
     startTransition(async () => {
       const result = await startHelpSessionAction({
         childProfileId,
@@ -51,7 +58,10 @@ export function StartAssignmentHelp({
         router.push('/help');
         router.refresh();
       } else {
-        setFailed(true);
+        // A closed window or a used-up day (#88) is a calm pause, not a failure.
+        const learningPause = learningPauseOf(result?.error);
+        setPause(learningPause);
+        setFailed(learningPause === null);
       }
     });
   }
@@ -76,6 +86,7 @@ export function StartAssignmentHelp({
       {isAsking && openTask !== null && (
         <ReplaceOpenTask openTask={openTask.task} isPending={isPending} onReplace={start} />
       )}
+      {pause !== null && <LearningPauseNote pause={pause} />}
       {failed && (
         <p role="alert" className="text-nudge">
           {t('start.school.failed')}

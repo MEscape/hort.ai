@@ -113,7 +113,7 @@ function personalPartsOf(inputs: readonly string[]): string[] {
   return inputs.flatMap((input) =>
     input
       .toLowerCase()
-      .split(/[^a-z0-9]+/u)
+      .split(/[^\p{L}\p{N}]+/u)
       .filter((part) => part.length >= MIN_PART_LENGTH),
   );
 }

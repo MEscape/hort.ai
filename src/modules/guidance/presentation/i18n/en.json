@@ -35,11 +35,12 @@
       "assignmentNotFound": "This school task is not available any more. Pick another one or ask your teacher.",
       "childDistress": "It sounds like you are not feeling okay right now. Please tell a grown-up you trust – your parents or your teacher. In Germany you can also call the Nummer gegen Kummer for free: 116 111.",
       "replyNotAnAnswer": "Tell me in your own words – it doesn't have to be perfect.",
-      "learningPaused": "It's break time now. Your task is saved – we'll carry on later.",
       "noHintForOpening": "There is no hint here. Show me your homework if you like.",
       "rateLimited": "Take a short break and try again in a moment.",
       "infrastructure": "Something is not working right now. Please try again in a moment.",
-      "unexpected": "Something went wrong. Please try again."
+      "unexpected": "Something went wrong. Please try again.",
+      "learningWindowClosed": "It is break time right now. Ask your parents when we can go on.",
+      "dailyLimitReached": "That is enough for today. I will be back tomorrow."
     },
     "conversation": {
       "label": "Conversation with your companion",
@@ -65,6 +66,16 @@
       "panelTitle": "Write with {name}",
       "panelOpen": "Write",
       "close": "Close"
+    },
+    "pause": {
+      "window": {
+        "at": "We are taking a break. {day, select, today {Today} other {Tomorrow}} from {time} (Berlin time) I will be back.",
+        "anyTime": "We are taking a break. {day, select, today {Soon} other {Tomorrow}} I will be back."
+      },
+      "limit": {
+        "at": "That is enough for today. Tomorrow from {time} (Berlin time) I will be back.",
+        "anyTime": "That is enough for today. I will be back tomorrow."
+      }
     },
     "insights": {
       "parent": {

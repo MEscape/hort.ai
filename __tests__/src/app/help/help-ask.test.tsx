@@ -17,7 +17,10 @@ vi.mock('@i18n', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   useRouter: () => router,
 }));
-vi.mock('@modules/guidance/client', () => ({ startHelpSessionAction: vi.fn() }));
+vi.mock('@modules/guidance/client', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  startHelpSessionAction: vi.fn(),
+}));
 
 const COMPANION = {
   id: 'max',
@@ -225,15 +228,20 @@ describe('asking for the task on the help canvas', () => {
     expect(router.push).not.toHaveBeenCalled();
   });
 
-  it('says calmly that it is break time when the learning time is closed', async () => {
+  it('says calmly that the day is done when the daily limit is reached (#88)', async () => {
     vi.mocked(startHelpSessionAction).mockResolvedValue({
       ok: false,
-      error: { code: 'guidance.learning_paused', message: 'refused' },
+      error: {
+        code: 'guidance.daily_limit_reached',
+        message: 'refused',
+        retryAfterSeconds: 8 * 60 * 60,
+      },
     } as never);
     renderAsk();
     typeTask('Rechne 23 + 24.');
 
-    expect(await screen.findByText(/break time now/)).toBeVisible();
+    expect(await screen.findByText(/That is enough for today/)).toBeVisible();
+    expect(screen.queryByText(app.start.entry.failed)).toBeNull();
     expect(router.push).not.toHaveBeenCalled();
   });
 });

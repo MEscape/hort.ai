@@ -19,11 +19,15 @@ const OPTION = new RegExp(
   'gu',
 );
 
-/** Lower case, decimal comma as point, number words as digits, only letters, digits, `.`, `=` and single spaces. */
+/** German thousands dots ("1.000", "12.345.678"); read before the decimal comma, so "1,500" stays one and a half. */
+const THOUSANDS = /(?<![\d.])[1-9]\d{0,2}(?:\.\d{3})+(?![\d]|\.\d)/g;
+
+/** Lower case, thousands dots dropped, decimal comma as point, number words as digits, only letters, digits, `.`, `=` and single spaces. */
 function normalize(text: string): string {
   return text
     .normalize('NFKC')
     .toLowerCase()
+    .replace(THOUSANDS, (grouped) => grouped.replaceAll('.', ''))
     .replace(/(\d),(\d)/g, '$1.$2')
     .replace(/[^\p{L}\p{N}.=]+/gu, ' ')
     .replace(/(?<!\d)\.|\.(?!\d)/g, ' ')

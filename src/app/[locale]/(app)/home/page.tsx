@@ -71,7 +71,7 @@ async function unfinishedOf(session: OpenHelpSession | null): Promise<Unfinished
     general_studies: t('world.subjects.natur'),
   } as const satisfies Record<OpenHelpSession['subject'], string>;
   return {
-    title: truncate(session.task, TASK_PREVIEW_LIMIT),
+    title: truncate(session.task.replace(/\s+/g, ' ').trim(), TASK_PREVIEW_LIMIT),
     area: subjects[session.subject],
     // The opening thinking prompt (only without a clarify or redirect opening) is not a hint the child asked for.
     lastStep: t('home.continue.hints', {

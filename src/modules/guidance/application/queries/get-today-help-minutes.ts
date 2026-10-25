@@ -4,7 +4,8 @@ import type { InfrastructureAppError, NotFoundAppError, ValidationAppError } fro
 import type { AppResultAsync } from '@lib/result';
 
 import { parseChildProfileId } from '../../domain/models/ids';
-import { ownChildScope, todayHelpMinutes } from '../services/own-child-session';
+import { minutesToday } from '../services/learning-time';
+import { ownChildScope } from '../services/own-child-session';
 
 import type { GetOpenHelpSessionInput } from '../contracts/help-session-inputs';
 import type { HelpSessionDependencies } from '../help-session-dependencies';
@@ -25,7 +26,7 @@ export class GetTodayHelpMinutes {
       .andThen((actor) =>
         parseChildProfileId(input.childProfileId).asyncAndThen((id) =>
           ownChildScope(this.deps, actor, id).andThen(({ owner, childProfileId }) =>
-            todayHelpMinutes(this.deps, owner, childProfileId),
+            minutesToday(this.deps, this.deps.sessions, owner, childProfileId),
           ),
         ),
       );

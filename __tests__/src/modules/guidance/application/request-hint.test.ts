@@ -33,6 +33,7 @@ import {
   ownChildren,
   recordingAuditLog,
   task,
+  learningTime,
 } from '../fakes';
 
 const TASK = 'Lisa hat 3 Äpfel und bekommt 4 dazu. Wie viele Äpfel hat sie?';
@@ -90,6 +91,7 @@ function build(options: BuildOptions = {}) {
     competencies: retrieval,
     rateLimiter: options.rateLimiter ?? createTestRateLimiter(),
     sessions: sessions.store,
+    ...learningTime(),
     hints: new HintOrchestrator({ provider, audit }),
     audit,
   });

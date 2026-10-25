@@ -2,7 +2,12 @@
 
 import { useRef, useState, useTransition, type ChangeEvent, type SubmitEvent } from 'react';
 
-import { startHelpSessionAction } from '@modules/guidance/client';
+import {
+  LearningPauseNote,
+  learningPauseOf,
+  startHelpSessionAction,
+} from '@modules/guidance/client';
+import type { LearningPause } from '@modules/guidance/client';
 import { VoiceInputButton } from '@modules/voice/client';
 
 import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert';
@@ -58,14 +63,11 @@ function contextOf(topic: StartTopic | null) {
 }
 
 /** The child's typed text stays on screen; nothing was sent to the AI or stored. */
-function statusOf(code: string | undefined): 'distress' | 'paused' | 'failed' {
-  if (code === 'guidance.child_distress') {
-    return 'distress';
-  }
-  return code === 'guidance.learning_paused' ? 'paused' : 'failed';
+function statusOf(code: string | undefined): 'distress' | 'failed' {
+  return code === 'guidance.child_distress' ? 'distress' : 'failed';
 }
 
-/** Why the help did not start: a calm notice (no retry for distress or a closed day); the typed task stays on screen. */
+/** Why the help did not start: a calm notice (no retry for distress); the typed task stays on screen. */
 function StartNotice({ status }: { readonly status: string }) {
   const t = useTranslations('app');
   const tGuidance = useTranslations('guidance');
@@ -85,15 +87,13 @@ function StartNotice({ status }: { readonly status: string }) {
       </p>
     );
   }
-  if (status !== 'distress' && status !== 'paused') {
+  if (status !== 'distress') {
     return null;
   }
   return (
-    <Alert variant="hint" role={status === 'distress' ? 'alert' : 'status'}>
+    <Alert variant="hint" role="alert">
       <Lightbulb aria-hidden="true" />
-      <AlertDescription>
-        {status === 'distress' ? tGuidance('errors.childDistress') : t('start.entry.paused')}
-      </AlertDescription>
+      <AlertDescription>{tGuidance('errors.childDistress')}</AlertDescription>
     </Alert>
   );
 }
@@ -111,8 +111,9 @@ export function TaskEntry({
   const t = useTranslations('app');
   const router = useRouter();
   const [status, setStatus] = useState<
-    'editing' | 'invalid' | 'unavailable' | 'confirm' | 'failed' | 'distress' | 'paused'
+    'editing' | 'invalid' | 'unavailable' | 'confirm' | 'failed' | 'distress'
   >('editing');
+  const [pause, setPause] = useState<LearningPause | null>(null);
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -140,6 +141,7 @@ export function TaskEntry({
 
   function start(profileId: string) {
     setStatus('editing');
+    setPause(null);
     startTransition(async () => {
       const result = await startHelpSessionAction({
         childProfileId: profileId,
@@ -151,7 +153,9 @@ export function TaskEntry({
         router.push('/help');
         router.refresh();
       } else {
-        setStatus(statusOf(result?.error.code));
+        const learningPause = learningPauseOf(result?.error);
+        setPause(learningPause);
+        setStatus(learningPause === null ? statusOf(result?.error.code) : 'editing');
       }
     });
   }
@@ -230,6 +234,7 @@ export function TaskEntry({
               }}
             />
           )}
+          {pause !== null && <LearningPauseNote pause={pause} />}
           <StartNotice status={status} />
           {isPending && (
             <p role="status" aria-live="polite">

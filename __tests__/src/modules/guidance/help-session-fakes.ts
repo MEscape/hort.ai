@@ -24,6 +24,7 @@ import {
   OWN_CHILD,
   fakeAssignments,
   fakeCompetencies,
+  learningTime,
   ownChildren,
   recordingAuditLog,
   task,
@@ -62,8 +63,6 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
   const starts: NewHelpSession[] = [];
   const replies: Array<{ readonly completes: boolean; readonly text: string }> = [];
   let created = 0;
-  /** What `helpMinutesBetween` answers; a test sets it to reach the daily limit. */
-  const usage = { helpMinutes: 0 };
 
   const active = (childProfileId: string, sessionId?: string) =>
     [...sessions.values()].find(
@@ -94,8 +93,17 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
       sessions.set(session.id, session);
       return okAsync({ session, created: true });
     },
+    learningActivity: (_owner, childProfileId, since) =>
+      okAsync(
+        [...sessions.values()]
+          .filter((session) => session.childProfileId === childProfileId)
+          .flatMap((session) => [
+            session.startedAt,
+            ...session.answerChecks.map(({ occurredAt }) => occurredAt),
+          ])
+          .filter((instant) => instant.getTime() >= since.getTime()),
+      ),
     findOpen: (_owner, childProfileId) => okAsync(active(childProfileId)),
-    helpMinutesBetween: () => okAsync(usage.helpMinutes),
     homeworkAreaIds: (_owner, childProfileId, limit) =>
       okAsync(
         [
@@ -175,7 +183,7 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
       return okAsync('recorded');
     },
   };
-  return { repository, sessions, starts, replies, usage };
+  return { repository, sessions, starts, replies };
 }
 
 /** The dependencies of the session use cases over the in-memory store, signed in as `actor`. */
@@ -203,6 +211,7 @@ export function helpSessionDependencies(
       sessions: repository,
       audit,
       competencies: fakeCompetencies().retrieval,
+      ...learningTime(),
       ...(classifier === undefined ? {} : { classifier }),
     },
     events,

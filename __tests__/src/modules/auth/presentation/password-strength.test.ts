@@ -25,6 +25,15 @@ describe('local password guidance', () => {
     expect(assessment.level).toBeLessThanOrEqual(STRENGTH.fair);
     expect(assessment.isLongEnough).toBe(true);
   });
+
+  it('reads names with umlauts as whole words', () => {
+    expect(
+      assessPassword('Müller and many other words', ['Jürgen Müller']).avoidsPersonalInfo,
+    ).toBe(false);
+    expect(assessPassword('Keller zeller cellar words', ['Jürgen Müller']).avoidsPersonalInfo).toBe(
+      true,
+    );
+  });
 });
 
 describe('email typo suggestions', () => {

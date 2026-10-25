@@ -29,6 +29,7 @@ import {
   ownChildren,
   recordingAuditLog,
   task,
+  learningTime,
 } from '../fakes';
 
 import type { FeedbackScripts } from '../fakes';
@@ -93,6 +94,7 @@ function build(options: BuildOptions = {}) {
     competencies: retrieval,
     rateLimiter: options.rateLimiter ?? createTestRateLimiter(),
     sessions: sessions.store,
+    ...learningTime(),
     answers: new AnswerCoach({ provider, audit }),
     audit,
   });

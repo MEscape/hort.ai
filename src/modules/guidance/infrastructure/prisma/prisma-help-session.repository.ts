@@ -5,7 +5,6 @@ import { errAsync, fromThrowableAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
 import { GUIDANCE_ERROR_CODES } from '../../domain/errors/guidance-errors';
-import { helpMinutes } from '../../domain/models/help-minutes';
 import {
   HELP_SESSION_STEP_LIMIT,
   isSameTask,
@@ -33,10 +32,10 @@ import {
   STATUS_RECORD,
   SUBJECT_RECORD,
   raisedLevel,
-  toStepTimes,
   toTopicRecord,
   toHelpSession,
 } from './help-session-record-mapper';
+import { loadLearningActivity } from './learning-activity.repository';
 
 import type { HelpSession } from '../../domain/models/help-session';
 import type {
@@ -153,29 +152,7 @@ export class PrismaHelpSessionRepository implements HelpSessionRepository {
           ),
     );
 
-  helpMinutesBetween: HelpSessionRepository['helpMinutesBetween'] = (
-    owner,
-    childProfileId,
-    { from, to },
-  ) =>
-    fromThrowableAsync(
-      async () =>
-        // @owner-scope child Exact tenant, parent and child; the steps are reached through those sessions.
-        db.orm.public.HelpSession.where({
-          tenantId: owner.tenantId,
-          ownerId: owner.ownerId,
-          childProfileId,
-        })
-          // Every step touches `updatedAt`, so a session with a step in the range was touched since.
-          .where((row) => row.startedAt.lt(dateToInstant(to)))
-          .where((row) => row.updatedAt.gte(dateToInstant(from)))
-          .select('startedAt')
-          .include('hintEvents', (hints) => hints.select('occurredAt'))
-          .include('childAnswers', (answers) => answers.select('occurredAt'))
-          .include('comprehensionQuestions', (questions) => questions.select('repliedAt'))
-          .all(),
-      failures.infraOnly('helpMinutesBetween'),
-    ).map((sessions) => helpMinutes(sessions.map((session) => toStepTimes(session, { from, to }))));
+  learningActivity: HelpSessionRepository['learningActivity'] = loadLearningActivity;
 
   homeworkAreaIds: HelpSessionRepository['homeworkAreaIds'] = (...scope) =>
     fromThrowableAsync(() => findHomeworkAreaIds(...scope), failures.infraOnly('homeworkAreaIds'));
