@@ -1,19 +1,36 @@
 import 'server-only';
 
+import { getAccessControl } from '@modules/auth';
+import { classroomQueries } from '@modules/classroom';
+
 import { IngestCurriculumDocument } from './application/commands/ingest-curriculum-document';
 import { FindRelevantCompetencies } from './application/queries/find-relevant-competencies';
 import { extractStatements } from './domain/parsing/extract-statements';
 import { loggerCurriculumAuditLog } from './infrastructure/audit/logger-curriculum-audit-log';
 import { PrismaCompetencyRepository } from './infrastructure/prisma/prisma-competency.repository';
-import { noTeacherMaterialSource } from './infrastructure/teacher-material/no-teacher-material-source';
+import { PrismaTeacherMaterialRepository } from './infrastructure/prisma/prisma-teacher-material.repository';
+import { ClassroomTeacherMaterialSource } from './infrastructure/teacher-material/classroom-teacher-material-source';
 
-/**
- * The module's composition root. Teacher material (#29) is not wired yet: `noTeacherMaterialSource`
- * answers "no material" until #29 replaces it with an adapter over `MaterialSection`.
- */
+const materialRepository = new PrismaTeacherMaterialRepository();
+
+/** Public curriculum plus private material, re-authorized against the child's actual class. */
 const dependencies = {
   competencies: new PrismaCompetencyRepository(),
-  teacherMaterial: noTeacherMaterialSource,
+  teacherMaterial: new ClassroomTeacherMaterialSource({
+    childClassroom: classroomQueries.getChildClassroom,
+    list: (classroomId, limit, childProfileId) =>
+      getAccessControl()
+        .requireInTenant('learner.read')
+        .andThen((actor) =>
+          materialRepository.list({
+            classroomId,
+            limit,
+            childProfileId,
+            tenantId: actor.tenantId,
+            ownerId: actor.id,
+          }),
+        ),
+  }),
   audit: loggerCurriculumAuditLog,
 };
 
