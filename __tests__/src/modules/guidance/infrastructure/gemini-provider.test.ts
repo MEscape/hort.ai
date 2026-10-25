@@ -108,6 +108,41 @@ describe('GeminiProvider', () => {
     expect((await gemini.suggest(REQUEST))._unsafeUnwrap()).toBeUndefined();
   });
 
+  it('unwraps the one object from a code fence, a one-element array or surrounding prose', async () => {
+    const assessment = { ...ANSWER, kind: 'answer_assessment', result: 'not_yet' };
+    const text = JSON.stringify(assessment);
+    const { fetch } = scriptedFetch(
+      reply('```json\n' + text + '\n```'),
+      reply('```\n' + text + '\n```\n'),
+      reply(`[${text}]`),
+      reply('```json\n[' + text + ']\n```'),
+      reply(`Hier ist die Bewertung:\n${text}\nViel Erfolg!`),
+    );
+    const gemini = provider(fetch);
+
+    for (let call = 0; call < 5; call += 1) {
+      expect((await gemini.word(FEEDBACK))._unsafeUnwrap()).toEqual(assessment);
+    }
+  });
+
+  it('leaves anything but exactly one object for the contract to reject', async () => {
+    const one = JSON.stringify(ANSWER);
+    const { fetch } = scriptedFetch(
+      reply(`[${one}, ${one}]`),
+      reply(`${one}\n${one}`),
+      reply('```json\nDie Lösung ist 7.\n```'),
+      reply('[]'),
+      reply('"nur Text"'),
+    );
+    const gemini = provider(fetch);
+
+    expect((await gemini.word(FEEDBACK))._unsafeUnwrap()).toEqual([ANSWER, ANSWER]);
+    expect((await gemini.word(FEEDBACK))._unsafeUnwrap()).toBe(`${one}\n${one}`);
+    expect((await gemini.word(FEEDBACK))._unsafeUnwrap()).toBe('```json\nDie Lösung ist 7.\n```');
+    expect((await gemini.word(FEEDBACK))._unsafeUnwrap()).toEqual([]);
+    expect((await gemini.word(FEEDBACK))._unsafeUnwrap()).toBe('nur Text');
+  });
+
   it('reports a refused call with its status only, never the key or the error text', async () => {
     const { fetch } = scriptedFetch(json({ message: 'Lisa hat 3 Äpfel' }, 503));
 
