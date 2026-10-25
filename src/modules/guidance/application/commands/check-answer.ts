@@ -9,13 +9,18 @@ import type {
 import { ResultAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
+import { currentHintLevel } from '../../domain/hint-ladder/next-hint-level';
 import { parseChildTaskText } from '../../domain/models/child-task-text';
 import { GUIDANCE_RATE_LIMITS } from '../rate-limits';
-import { admitOwnChild, groundInCurriculum, parseChildTask } from '../services/child-task';
+import { toRecordedAnswerCheck } from '../services/answer-record';
+import { groundInCurriculum, openOwnSession, parseSessionStep } from '../services/session-step';
 
+import type { ChildTaskText } from '../../domain/models/child-task-text';
+import type { StepRequestId } from '../../domain/models/ids';
 import type { AnswerFeedback } from '../contracts/answer-views';
 import type { CheckAnswerInput } from '../contracts/hint-inputs';
 import type { CheckAnswerDependencies } from '../guidance-dependencies';
+import type { OpenSession } from '../services/session-step';
 
 export type CheckAnswerError =
   | AuthorizationError
@@ -25,57 +30,78 @@ export type CheckAnswerError =
   | InfrastructureAppError;
 
 /**
- * The child's own answer to a task is checked and worded for them (#14).
+ * The child's own answer to the session's task is checked and worded for them (#14).
  *
  * It needs `hint.request`, not a permission of its own: the same parent asks for the same child,
  * at the same kind of cost (AI calls), and checking an answer is part of the same help with one
  * task. The steps are RequestHint's: permission, cheap input checks (the answer is checked like the
  * task), ownership, the child's own budget (`answerCheck`, since one check costs up to three AI
- * calls), curriculum grounding, then `AnswerCoach`, which never fails and never states the
- * solution. Storing the result and the child's reply to the comprehension question needs session
- * state (#17, #35) and is not done here.
+ * calls), the stored session (its task, and its current rung, which the wording follows),
+ * curriculum grounding, then `AnswerCoach`, which never fails and never states the solution. The
+ * check is recorded for the session (#78); a recording failure is logged, the child still gets it.
  */
 export class CheckAnswer {
   constructor(private readonly deps: CheckAnswerDependencies) {}
 
   execute(input: CheckAnswerInput): AppResultAsync<AnswerFeedback, CheckAnswerError> {
-    const { authorization, answers, audit } = this.deps;
+    const { authorization, audit } = this.deps;
 
     return authorization.requireInTenant('hint.request').andThen((actor) =>
-      parseChildTask(input)
-        .andThen((parsed) =>
-          parseChildTaskText(input.answer, 'answer').map((answer) => ({ parsed, answer })),
+      parseSessionStep(input)
+        .andThen((step) =>
+          parseChildTaskText(input.answer, 'answer').map((answer) => ({ step, answer })),
         )
-        .asyncAndThen(({ parsed, answer }) =>
-          admitOwnChild(this.deps, { actor, parsed, policy: GUIDANCE_RATE_LIMITS.answerCheck }).map(
-            (admitted) => ({ admitted, answer }),
+        .asyncAndThen(({ step, answer }) =>
+          openOwnSession(this.deps, { actor, step, policy: GUIDANCE_RATE_LIMITS.answerCheck }).map(
+            (session) => ({ session, step, answer }),
           ),
         )
-        .andThen(({ admitted, answer }) =>
-          ResultAsync.fromSafePromise(
-            groundInCurriculum(this.deps, admitted, input.level).then((competencies) =>
-              answers.check({
-                task: admitted.task,
-                answer,
-                // TODO(#33): a teacher's assignment brings its solution key; a child's own task has none.
-                solutionKey: null,
-                level: input.level,
-                competencies,
-              }),
-            ),
-          ).map((feedback) => {
-            audit.record({
-              type: 'guidance.answer_checked',
-              tenantId: actor.tenantId,
-              actorId: actor.id,
-              childProfileId: admitted.child.id,
-              level: input.level,
-              result: feedback.result,
-              assessedBy: feedback.assessedBy,
-            });
-            return feedback;
-          }),
+        .andThen(({ session, step, answer }) =>
+          ResultAsync.fromSafePromise(this.check(session, step.requestId, answer)).map(
+            (feedback) => {
+              audit.record({
+                type: 'guidance.answer_checked',
+                tenantId: actor.tenantId,
+                actorId: actor.id,
+                childProfileId: session.child.id,
+                level: currentHintLevel(session.state),
+                result: feedback.result,
+                assessedBy: feedback.assessedBy,
+              });
+              return feedback;
+            },
+          ),
         ),
     );
+  }
+
+  private async check(
+    session: OpenSession,
+    requestId: StepRequestId,
+    answer: ChildTaskText,
+  ): Promise<AnswerFeedback> {
+    const { answers, sessions, audit } = this.deps;
+    const level = currentHintLevel(session.state);
+    const competencies = await groundInCurriculum(this.deps, session, level);
+    const feedback = await answers.check({
+      task: session.state.task,
+      answer,
+      // TODO(#33): a teacher's assignment brings its solution key; a child's own task has none.
+      solutionKey: null,
+      level,
+      competencies,
+    });
+    const recorded = await sessions.recordAnswerCheck(
+      session.ref,
+      toRecordedAnswerCheck(requestId, answer, feedback),
+    );
+    if (recorded.isErr()) {
+      audit.record({
+        type: 'guidance.step_not_recorded',
+        step: 'answer_check',
+        code: recorded.error.code,
+      });
+    }
+    return feedback;
   }
 }

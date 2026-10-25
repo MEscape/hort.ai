@@ -36,6 +36,14 @@ export type GuidanceEvent =
       readonly childProfileId: ChildProfileId;
       readonly level: HintLevel;
       readonly outcome: 'generated' | 'fallback';
+      /** A retried request that got the hint it already had, without a new AI call. */
+      readonly isReplay: boolean;
+    }
+  | {
+      /** The child got the step, but the session could not store it; the code says why. */
+      readonly type: 'guidance.step_not_recorded';
+      readonly step: 'hint' | 'answer_check';
+      readonly code: string;
     }
   | {
       readonly type: 'guidance.answer_checked';
