@@ -16,20 +16,19 @@ import type { ChildProfile } from '../domain/models/child-profile';
 export type LoadChildProfileError =
   AuthorizationError | ValidationAppError | NotFoundAppError | InfrastructureAppError;
 
-export interface AuthorizedChildProfile {
+interface AuthorizedChildProfile {
   readonly actor: Actor;
   readonly childProfile: ChildProfile;
 }
 
 /**
- * The shared first half of every operation on an existing child profile:
+ * The shared first half of every operation on an existing profile:
  *
- *  1. `requireInTenant` FIRST, so a caller without the permission learns
- *     nothing about which ids exist.
- *  2. Look the child profile up by (id, actor.tenantId): another tenant's id is
- *     simply "not found".
- *  3. `requireOnResource` against the STORED tenant and owner: another parent's profile is
- *     refused (`auth.permission_denied`), and a foreign tenant's record is the backstop.
+ *  1. `requireInTenant` FIRST, so a caller without the permission learns nothing about which ids exist.
+ *  2. Look the profile up by (id, the actor's own id and tenant): another parent's id, like an
+ *     unknown one, is simply "not found", with the same answer.
+ *  3. `requireOnResource` against the STORED owner and tenant, the backstop should a repository
+ *     ever return a foreign record.
  */
 export function loadAuthorizedChildProfile(
   deps: LearnerDependencies,
@@ -40,7 +39,7 @@ export function loadAuthorizedChildProfile(
 
   return authorization.requireInTenant(permission).andThen((actor) =>
     parseChildProfileId(rawId)
-      .asyncAndThen((id) => childProfiles.findById(id, actor.tenantId))
+      .asyncAndThen((id) => childProfiles.findOwned(id, actor.id, actor.tenantId))
       .andThen((childProfile): AppResultAsync<ChildProfile, NotFoundAppError> =>
         childProfile === null ? errAsync(childProfileNotFound()) : okAsync(childProfile),
       )

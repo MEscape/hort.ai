@@ -1,4 +1,2 @@
-/** Every list is bounded (performance.md). Raise a limit deliberately, never by removing it. */
-export const DEFAULT_CHILD_PROFILE_LIST_LIMIT = 50;
-export const MIN_CHILD_PROFILE_LIST_LIMIT = 1;
-export const MAX_CHILD_PROFILE_LIST_LIMIT = 100;
+/** A parent has one child in the MVP; the bound only keeps a read from ever being unbounded (performance.md). */
+export const OWN_PROFILES_LIMIT = 10;

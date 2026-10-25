@@ -3,7 +3,7 @@ import 'server-only';
 import { randomBytes } from 'node:crypto';
 
 import { getAccessControl } from '@modules/auth';
-import { learnerQueries } from '@modules/learner';
+import { getLearnerQueries } from '@modules/learner';
 
 import { systemClock } from '@lib/clock';
 import { serverEnv } from '@lib/config/server';
@@ -40,7 +40,7 @@ export const getVoiceQueries = once(() => {
     voices: catalogSpeakerVoices(),
     phrases: catalogSystemPhrases(),
     tickets: hmacSpokenTextTickets({ secret: ticketSecret(), clock: systemClock }),
-    consent: learnerChildVoiceConsent((id) => learnerQueries.getChildProfileById.execute(id)),
+    consent: learnerChildVoiceConsent((id) => getLearnerQueries().getChildProfileById.execute(id)),
   };
   return {
     synthesizeSpeech: new SynthesizeSpeech(dependencies),

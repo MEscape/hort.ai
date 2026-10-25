@@ -31,8 +31,8 @@ limiter store is down), and only then call the provider.
   `scribe_v1`, audio-event tags off). The recording is held in memory for the one request and
   never stored, neither by us nor as a file.
 - **Consent**: a recording leaves the session only for the signed-in parent's own child (checked by
-  the learner module, `GetChildProfileById`) and only while that child profile has `voiceConsent`
-  (set and withdrawn by the parent through `UpdateChildProfile`). Otherwise `voice.consent_required`
+  the learner module, `GetChildProfileById`) and only while that child profile allows voice
+  (`controls.voiceEnabled`, set by the parent in the onboarding controls). Otherwise `voice.consent_required`
   (403) and the interface stays with text. Another parent's child answers like a missing one
   (`voice.child_profile_not_found`, 404), so ids cannot be probed.
 - **Transcript** is only returned, as a suggestion the child corrects; nothing is sent on. Wherever
@@ -86,7 +86,7 @@ interface falls back to text, as it must when the microphone is refused.
 | `voice.validation_failed`       | 422    | Text or recording broke a rule (see `fieldErrors`)      |
 | `voice.unknown_speaker`         | 404    | No speaker with a voice has this id                     |
 | `voice.unknown_phrase`          | 404    | The speaker has no such catalog line                    |
-| `voice.consent_required`        | 403    | No `voiceConsent` on this child profile: use text       |
+| `voice.consent_required`        | 403    | Voice is off on this child profile: use text            |
 | `voice.child_profile_not_found` | 404    | Not a child profile of this parent (missing or foreign) |
 | `voice.rate_limited`            | 429    | Budget spent; `Retry-After` says when to try again      |
 | `voice.disabled`                | 502    | No `ELEVENLABS_API_KEY`                                 |

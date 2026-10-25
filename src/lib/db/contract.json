@@ -125,23 +125,6 @@
               }
             ]
           },
-          "Companion": {
-            "codecId": "pg/text@1",
-            "members": [
-              {
-                "name": "MAX",
-                "value": "MAX"
-              },
-              {
-                "name": "LILI",
-                "value": "LILI"
-              },
-              {
-                "name": "FINA",
-                "value": "FINA"
-              }
-            ]
-          },
           "FederalState": {
             "codecId": "pg/text@1",
             "members": [
@@ -249,6 +232,51 @@
               }
             ]
           },
+          "Interest": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "nature",
+                "value": "nature"
+              },
+              {
+                "name": "animals",
+                "value": "animals"
+              },
+              {
+                "name": "science",
+                "value": "science"
+              },
+              {
+                "name": "art",
+                "value": "art"
+              },
+              {
+                "name": "music",
+                "value": "music"
+              },
+              {
+                "name": "sports",
+                "value": "sports"
+              },
+              {
+                "name": "technology",
+                "value": "technology"
+              },
+              {
+                "name": "stories",
+                "value": "stories"
+              },
+              {
+                "name": "puzzles",
+                "value": "puzzles"
+              },
+              {
+                "name": "history",
+                "value": "history"
+              }
+            ]
+          },
           "MaterialContentType": {
             "codecId": "pg/text@1",
             "members": [
@@ -280,6 +308,35 @@
               {
                 "name": "DELETED",
                 "value": "DELETED"
+              }
+            ]
+          },
+          "SetupStep": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "child",
+                "value": "child"
+              },
+              {
+                "name": "interests",
+                "value": "interests"
+              },
+              {
+                "name": "tutor",
+                "value": "tutor"
+              },
+              {
+                "name": "controls",
+                "value": "controls"
+              },
+              {
+                "name": "review",
+                "value": "review"
+              },
+              {
+                "name": "done",
+                "value": "done"
               }
             ]
           },
@@ -782,23 +839,31 @@
           },
           "ChildProfile": {
             "fields": {
-              "companion": {
+              "allowedFromMinute": {
                 "nullable": true,
                 "type": {
-                  "codecId": "pg/text@1",
+                  "codecId": "pg/int4@1",
                   "kind": "scalar"
-                },
-                "valueSet": {
-                  "entityKind": "enum",
-                  "entityName": "Companion",
-                  "namespaceId": "public",
-                  "plane": "domain"
+                }
+              },
+              "allowedUntilMinute": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
                 }
               },
               "createdAt": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "dailyLimitMinutes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
                   "kind": "scalar"
                 }
               },
@@ -829,10 +894,47 @@
                   "kind": "scalar"
                 }
               },
+              "guardianConfirmedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "guardianConsentVersion": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "interests": {
+                "many": {
+                  "elementNullable": false
+                },
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "Interest",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "learningInsights": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
                   "kind": "scalar"
                 }
               },
@@ -843,6 +945,26 @@
                   "kind": "scalar"
                 }
               },
+              "setupCompletedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "setupStep": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SetupStep",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "tenantId": {
                 "nullable": false,
                 "type": {
@@ -850,10 +972,10 @@
                   "kind": "scalar"
                 }
               },
-              "updatedAt": {
-                "nullable": false,
+              "tutorId": {
+                "nullable": true,
                 "type": {
-                  "codecId": "pg/timestamptz-temporal@1",
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
@@ -900,11 +1022,17 @@
             },
             "storage": {
               "fields": {
-                "companion": {
-                  "column": "companion"
+                "allowedFromMinute": {
+                  "column": "allowedFromMinute"
+                },
+                "allowedUntilMinute": {
+                  "column": "allowedUntilMinute"
                 },
                 "createdAt": {
                   "column": "createdAt"
+                },
+                "dailyLimitMinutes": {
+                  "column": "dailyLimitMinutes"
                 },
                 "displayName": {
                   "column": "displayName"
@@ -915,17 +1043,35 @@
                 "grade": {
                   "column": "grade"
                 },
+                "guardianConfirmedAt": {
+                  "column": "guardianConfirmedAt"
+                },
+                "guardianConsentVersion": {
+                  "column": "guardianConsentVersion"
+                },
                 "id": {
                   "column": "id"
+                },
+                "interests": {
+                  "column": "interests"
+                },
+                "learningInsights": {
+                  "column": "learningInsights"
                 },
                 "ownerId": {
                   "column": "ownerId"
                 },
+                "setupCompletedAt": {
+                  "column": "setupCompletedAt"
+                },
+                "setupStep": {
+                  "column": "setupStep"
+                },
                 "tenantId": {
                   "column": "tenantId"
                 },
-                "updatedAt": {
-                  "column": "updatedAt"
+                "tutorId": {
+                  "column": "tutorId"
                 },
                 "voiceConsent": {
                   "column": "voiceConsent"
@@ -2753,14 +2899,24 @@
             "ChildProfile": {
               "checks": [
                 {
-                  "expression": "\"companion\" IN ('MAX', 'LILI', 'FINA')",
-                  "name": "ChildProfile_companion_check_faf15343",
-                  "prefix": "ChildProfile_companion_check"
+                  "expression": "(\"allowedFromMinute\" IS NULL AND \"allowedUntilMinute\" IS NULL) OR (\"allowedFromMinute\" IS NOT NULL AND \"allowedUntilMinute\" IS NOT NULL AND \"allowedFromMinute\" >= 0 AND \"allowedUntilMinute\" <= 1440 AND \"allowedFromMinute\" % 15 = 0 AND \"allowedUntilMinute\" % 15 = 0 AND \"allowedUntilMinute\" - \"allowedFromMinute\" >= 30)",
+                  "name": "ChildProfile_allowed_window_rule_75d4fbb3",
+                  "prefix": "ChildProfile_allowed_window_rule"
                 },
                 {
-                  "expression": "char_length(\"displayName\") BETWEEN 1 AND 40",
-                  "name": "ChildProfile_display_name_rule_610003c6",
+                  "expression": "\"dailyLimitMinutes\" IS NULL OR \"dailyLimitMinutes\" IN (15, 30, 45, 60, 90)",
+                  "name": "ChildProfile_daily_limit_rule_103a53e8",
+                  "prefix": "ChildProfile_daily_limit_rule"
+                },
+                {
+                  "expression": "char_length(\"displayName\") BETWEEN 1 AND 24",
+                  "name": "ChildProfile_display_name_rule_0a455fd0",
                   "prefix": "ChildProfile_display_name_rule"
+                },
+                {
+                  "expression": "(\"setupStep\" = 'done') = (\"setupCompletedAt\" IS NOT NULL)",
+                  "name": "ChildProfile_done_rule_888ed74c",
+                  "prefix": "ChildProfile_done_rule"
                 },
                 {
                   "expression": "\"federalState\" IN ('BW', 'BY', 'BE', 'BB', 'HB', 'HH', 'HE', 'MV', 'NI', 'NW', 'RP', 'SL', 'SN', 'ST', 'SH', 'TH')",
@@ -2771,19 +2927,38 @@
                   "expression": "\"grade\" BETWEEN 1 AND 4",
                   "name": "ChildProfile_grade_rule_ab1ddaff",
                   "prefix": "ChildProfile_grade_rule"
+                },
+                {
+                  "expression": "array_remove(\"interests\", NULL) <@ '{\"nature\",\"animals\",\"science\",\"art\",\"music\",\"sports\",\"technology\",\"stories\",\"puzzles\",\"history\"}'",
+                  "name": "ChildProfile_interests_check_18d24d59",
+                  "prefix": "ChildProfile_interests_check"
+                },
+                {
+                  "expression": "cardinality(\"interests\") <= 4",
+                  "name": "ChildProfile_interests_count_rule_0c69299a",
+                  "prefix": "ChildProfile_interests_count_rule"
+                },
+                {
+                  "expression": "array_position(\"interests\", NULL) IS NULL",
+                  "name": "ChildProfile_interests_elem_not_null_4b23e016",
+                  "prefix": "ChildProfile_interests_elem_not_null"
+                },
+                {
+                  "expression": "\"setupStep\" IN ('child', 'interests', 'tutor', 'controls', 'review', 'done')",
+                  "name": "ChildProfile_setupStep_check_c4a680fd",
+                  "prefix": "ChildProfile_setupStep_check"
                 }
               ],
               "columns": {
-                "companion": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": true,
-                  "valueSet": {
-                    "entityKind": "valueSet",
-                    "entityName": "Companion",
-                    "namespaceId": "public",
-                    "plane": "storage"
-                  }
+                "allowedFromMinute": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
+                },
+                "allowedUntilMinute": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
                 },
                 "createdAt": {
                   "codecId": "pg/timestamptz-temporal@1",
@@ -2793,6 +2968,11 @@
                     "kind": "function"
                   },
                   "nullable": false
+                },
+                "dailyLimitMinutes": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
                 },
                 "displayName": {
                   "codecId": "pg/text@1",
@@ -2815,9 +2995,46 @@
                   "dataType": "pg/int4",
                   "nullable": false
                 },
+                "guardianConfirmedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "guardianConsentVersion": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
                 "id": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
+                  "nullable": false
+                },
+                "interests": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": []
+                  },
+                  "many": {
+                    "elementNullable": false
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "Interest",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "learningInsights": {
+                  "codecId": "pg/bool@1",
+                  "dataType": "pg/bool",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
                   "nullable": false
                 },
                 "ownerId": {
@@ -2825,19 +3042,35 @@
                   "dataType": "pg/text",
                   "nullable": false
                 },
+                "setupCompletedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "setupStep": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "child"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SetupStep",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
                 "tenantId": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": false
                 },
-                "updatedAt": {
-                  "codecId": "pg/timestamptz-temporal@1",
-                  "dataType": "pg/timestamptz",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nullable": false
+                "tutorId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
                 },
                 "voiceConsent": {
                   "codecId": "pg/bool@1",
@@ -2851,6 +3084,16 @@
               },
               "foreignKeys": [],
               "indexes": [
+                {
+                  "columns": [
+                    "tenantId",
+                    "ownerId"
+                  ],
+                  "name": "ChildProfile_one_unfinished_per_owner_15ad2a20",
+                  "prefix": "ChildProfile_one_unfinished_per_owner",
+                  "unique": true,
+                  "where": "(\"setupCompletedAt\" IS NULL)"
+                },
                 {
                   "columns": [
                     "tenantId",
@@ -4181,14 +4424,6 @@
                 "ARCHIVED"
               ]
             },
-            "Companion": {
-              "kind": "valueSet",
-              "values": [
-                "MAX",
-                "LILI",
-                "FINA"
-              ]
-            },
             "FederalState": {
               "kind": "valueSet",
               "values": [
@@ -4227,6 +4462,21 @@
                 "SIMILAR_EXAMPLE"
               ]
             },
+            "Interest": {
+              "kind": "valueSet",
+              "values": [
+                "nature",
+                "animals",
+                "science",
+                "art",
+                "music",
+                "sports",
+                "technology",
+                "stories",
+                "puzzles",
+                "history"
+              ]
+            },
             "MaterialContentType": {
               "kind": "valueSet",
               "values": [
@@ -4241,6 +4491,17 @@
                 "PROCESSED",
                 "FAILED",
                 "DELETED"
+              ]
+            },
+            "SetupStep": {
+              "kind": "valueSet",
+              "values": [
+                "child",
+                "interests",
+                "tutor",
+                "controls",
+                "review",
+                "done"
               ]
             },
             "Subject": {
@@ -4258,7 +4519,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "b4c24533b3b5199288e9d082d4afd19bed5e5d6520273577cb784a15c6051594"
+    "storageHash": "6099aa947d35bd4c5a55c52faf7686b47fd7060ba0c4a1be4d267431ee38bfee"
   },
   "execution": {
     "executionHash": "c34472bff7c2b7010a1a9feb8891bd65a47095469dac87679d33d2107642809b",

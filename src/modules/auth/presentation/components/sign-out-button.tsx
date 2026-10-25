@@ -2,14 +2,13 @@
 
 import { useId } from 'react';
 
+import { FormAlert } from '@components/shared/form-alert';
 import { Button } from '@components/ui/button';
 import { LogOut } from '@components/ui/icons';
 
 import { useTranslations } from '@i18n/client';
 
 import { useSignOut } from '../hooks/use-sign-out';
-
-import { AuthFormAlert } from './auth-form-alert';
 
 /**
  * Ends the visit. A failed sign-out stays on the page and says so, so it can be tried again and
@@ -32,7 +31,7 @@ export function SignOutButton() {
         <LogOut aria-hidden="true" />
         {isPending ? t('signOut.pending') : t('signOut.label')}
       </Button>
-      <AuthFormAlert id={`${id}-error`} message={error} />
+      <FormAlert id={`${id}-error`} message={error} />
     </div>
   );
 }

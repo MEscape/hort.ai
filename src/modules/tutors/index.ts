@@ -2,6 +2,7 @@ export {
   TUTOR_STORAGE_PREFIX,
   tutorCatalog,
   tutorImageKey,
+  tutorIntroKey,
 } from './presentation/catalog/tutor-catalog';
 export type { TutorImage } from './presentation/catalog/tutor-catalog';
 export { tutorCatalogSchema } from './presentation/schemas/tutor-catalog-schema';

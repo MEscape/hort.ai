@@ -6,7 +6,7 @@ import { getVoiceQueries, getVoiceRouteHandlers } from '@modules/voice';
  * is read into memory for this request only and never stored.
  *
  * @authorization protected `TranscribeSpeech` requires the signed-in parent's `voice.use` permission,
- * ownership of the named child profile and its `voiceConsent`.
+ * ownership of the named child profile and its voice control.
  */
 export function POST(request: Request): Promise<Response> {
   return getVoiceRouteHandlers().transcription(request, (input) =>
