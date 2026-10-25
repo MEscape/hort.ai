@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
+import { VOICE_NOTICE_VERSION } from '../../application/contracts/learner-constraints';
 import { saveControlsAction } from '../actions/save-controls-action';
 import { controlsSchema, NO_LIMIT } from '../schemas/onboarding-schema';
 
@@ -54,7 +55,13 @@ export function useControlsForm(
   return {
     form,
     ...useStepSubmit(form, {
-      send: (values) => saveControlsAction({ ...values, profileId: profile.id }),
+      send: (values) =>
+        saveControlsAction({
+          ...values,
+          profileId: profile.id,
+          // Voice on confirms the notice the voice switch shows, as the home switch does (#98).
+          voiceNoticeVersion: values.voiceEnabled ? VOICE_NOTICE_VERSION : null,
+        }),
       onSaved,
       codeFields: CODE_FIELDS,
     }),

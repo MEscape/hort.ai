@@ -63,7 +63,7 @@ const welcomePending = ({ id, ownerId, tenantId }: Owner & { readonly id: ChildP
   });
 
 /** The columns a step's patch writes; a part the patch leaves out is not touched. */
-function columnsOf({ interests, tutorId, controls, guardian }: ProfilePatch) {
+function columnsOf({ interests, tutorId, controls, guardian, voiceNotice }: ProfilePatch) {
   return {
     ...(interests === undefined ? {} : { interests: [...interests] }),
     ...(tutorId === undefined ? {} : { tutorId }),
@@ -81,6 +81,13 @@ function columnsOf({ interests, tutorId, controls, guardian }: ProfilePatch) {
       : {
           guardianConfirmedAt: dateToInstant(guardian.confirmedAt),
           guardianConsentVersion: guardian.consentVersion,
+        }),
+    ...(voiceNotice === undefined
+      ? {}
+      : {
+          voiceNoticeVersion: voiceNotice?.version ?? null,
+          voiceNoticeConfirmedAt:
+            voiceNotice === null ? null : dateToInstant(voiceNotice.confirmedAt),
         }),
   };
 }

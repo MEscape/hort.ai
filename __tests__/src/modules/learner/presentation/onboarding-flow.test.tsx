@@ -7,6 +7,7 @@ import { createChildProfileAction } from '@modules/learner/presentation/actions/
 import { saveControlsAction } from '@modules/learner/presentation/actions/save-controls-action';
 import { saveInterestsAction } from '@modules/learner/presentation/actions/save-interests-action';
 import { OnboardingFlow } from '@modules/learner/presentation/components/onboarding-flow';
+import { VOICE_NOTICE_VERSION } from '@modules/learner/application/contracts/learner-constraints';
 import type { ChildProfileDto } from '@modules/learner/presentation/dto/learner-dto';
 import en from '@modules/learner/presentation/i18n/en.json';
 
@@ -288,12 +289,16 @@ describe('onboarding flow', () => {
     expect(saveControlsAction).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('switch', { name: 'Talking to Max' }));
+    expect(screen.getByRole('switch', { name: 'Talking to Max' })).toHaveAccessibleDescription(
+      new RegExp(VOICE_NOTICE_VERSION),
+    );
     fireEvent.click(screen.getByRole('checkbox', { name: /I am the parent or legal guardian/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
     expect(await screen.findByRole('heading', { name: 'Is everything right?' })).toBeVisible();
     expect(saveControlsAction).toHaveBeenCalledWith(
       expect.objectContaining({
         voiceEnabled: true,
+        voiceNoticeVersion: VOICE_NOTICE_VERSION,
         dailyLimitMinutes: 'none',
         windowEnabled: false,
         learningInsights: false,

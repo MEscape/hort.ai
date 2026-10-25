@@ -196,6 +196,7 @@ describe.skipIf(!isEnabled)('PrismaChildProfileRepository against Postgres', () 
             learningInsights: true,
           },
           guardian: { confirmedAt, consentVersion: '2026-10-24' },
+          voiceNotice: { confirmedAt, version: '2026-10-25' },
         },
         'review',
       )
@@ -211,9 +212,15 @@ describe.skipIf(!isEnabled)('PrismaChildProfileRepository against Postgres', () 
         learningInsights: true,
       },
       guardian: { confirmedAt, consentVersion: '2026-10-24' },
+      voiceNotice: { confirmedAt, version: '2026-10-25' },
       setupStep: 'review',
     });
     expect((await list(owner))[0]).toEqual(stored);
+
+    const voiceOff = (
+      await repository.updateUnfinished(profile, { voiceNotice: null }, 'review')
+    )._unsafeUnwrap();
+    expect(voiceOff?.voiceNotice).toBeNull();
   });
 
   it('clears the limit and the window again when the controls are saved without them', async () => {

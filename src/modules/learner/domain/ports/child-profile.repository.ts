@@ -32,6 +32,8 @@ export interface ProfilePatch {
   readonly tutorId?: TutorId;
   readonly controls?: ParentControls;
   readonly guardian?: GuardianConfirmation;
+  /** Goes with `controls`: `null` clears it, so voice off leaves no confirmation behind (#98). */
+  readonly voiceNotice?: VoiceNoticeConfirmation | null;
 }
 
 /** The school data a class decides for its children. */
