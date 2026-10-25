@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { decideTopic, isSubjectMismatch } from '@modules/guidance/domain/topic/decide-topic';
+import {
+  decideArea,
+  decideTopic,
+  isSubjectMismatch,
+} from '@modules/guidance/domain/topic/decide-topic';
 import type {
   ChildMessageIntent,
   TopicClassification,
@@ -22,6 +26,7 @@ function classified(
     intent: { value: intent, confidence: intentConfidence },
     subject: { value: 'math', confidence: 0.9 },
     topic,
+    area: null,
   };
 }
 
@@ -101,5 +106,34 @@ describe('isSubjectMismatch', () => {
   it('does not report the picked subject or no subject', () => {
     expect(isSubjectMismatch(withSubject(0.99), 'german')).toBe(false);
     expect(isSubjectMismatch({ ...withSubject(0.99), subject: null }, 'math')).toBe(false);
+  });
+});
+
+describe('decideArea', () => {
+  const homework = (area: TopicClassification['area']): TopicClassification => ({
+    ...classified('homework', 0.9, competency(0.9)),
+    area,
+  });
+  const HELP = { action: 'help', competencyCode: CODE, openTopicLabel: null } as const;
+
+  it('keeps a sure island of a homework task the backend helps with', () => {
+    expect(decideArea(homework({ areaId: 'zahlenwald', confidence: 0.7 }), HELP)).toBe(
+      'zahlenwald',
+    );
+  });
+
+  it('keeps no island below 0.7 or without one, so an unsure answer clears nothing', () => {
+    expect(decideArea(homework({ areaId: 'zahlenwald', confidence: 0.69 }), HELP)).toBeNull();
+    expect(decideArea(homework(null), HELP)).toBeNull();
+  });
+
+  it('never keeps the fallback island, which only means the classifier was unsure', () => {
+    expect(decideArea(homework({ areaId: 'ueberraschungsinsel', confidence: 1 }), HELP)).toBeNull();
+  });
+
+  it('keeps no island when the session opens with a clarifying question or a redirect', () => {
+    const sure = homework({ areaId: 'zahlenwald', confidence: 0.95 });
+    expect(decideArea(sure, { action: 'clarify' })).toBeNull();
+    expect(decideArea(sure, { action: 'redirect', intent: 'curiosity' })).toBeNull();
   });
 });

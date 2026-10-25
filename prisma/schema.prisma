@@ -415,6 +415,10 @@ model HelpSession {
   competencyCode   String?
   openTopicLabel   String?
   classifiedBy     TopicClassifiedBy?
+  /// The world island of the task (`WORLD_AREAS` id): picked by the child or a sure classification.
+  /// It clears that island's mist; `placeId` is one of its places, only when the child picked it.
+  areaId           String?
+  placeId          String?
   version          Int               @default(1)
   startedAt        DateTime          @default(now())
   updatedAt        DateTime          @default(now())
@@ -434,6 +438,8 @@ model HelpSession {
   @@check(expression: sql`"version" >= 1`, name: "HelpSession_version_rule")
   @@check(expression: sql`"openTopicLabel" IS NULL OR char_length("openTopicLabel") BETWEEN 2 AND 40`, name: "HelpSession_open_topic_label_rule")
   @@check(expression: sql`"competencyCode" IS NULL OR char_length("competencyCode") BETWEEN 1 AND 300`, name: "HelpSession_competency_code_rule")
+  @@check(expression: sql`"areaId" IS NULL OR "areaId" ~ '^[a-z][a-z0-9-]{1,40}$'`, name: "HelpSession_area_id_rule")
+  @@check(expression: sql`"placeId" IS NULL OR ("areaId" IS NOT NULL AND "placeId" ~ '^[a-z][a-z0-9-]{1,40}$')`, name: "HelpSession_place_id_rule")
   @@check(expression: sql`"opening" IS DISTINCT FROM 'REDIRECT' OR "intent" IN ('CURIOSITY', 'SMALL_TALK')`, name: "HelpSession_redirect_rule")
   @@check(expression: sql`("status" = 'ACTIVE') = ("endedAt" IS NULL)`, name: "HelpSession_ended_rule")
 }

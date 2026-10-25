@@ -1,5 +1,12 @@
-import { infrastructureError, notFoundError, rateLimitedError, validationError } from '@lib/errors';
+import {
+  forbiddenError,
+  infrastructureError,
+  notFoundError,
+  rateLimitedError,
+  validationError,
+} from '@lib/errors';
 import type {
+  ForbiddenAppError,
   InfrastructureAppError,
   NotFoundAppError,
   RateLimitedAppError,
@@ -23,6 +30,17 @@ export const GUIDANCE_ERROR_CODES = {
    * or the child is in no class. One code for all, so an id of another class discloses nothing.
    */
   assignmentNotFound: 'guidance.assignment_not_found',
+  /** The child's words say they may be in danger (#90): no AI, nothing stored, the trusted-adult notice. */
+  childDistress: 'guidance.child_distress',
+  /** The comprehension reply says nothing ("?", "weiß nicht"); the child is asked for their own words. */
+  replyNotAnAnswer: 'guidance.reply_not_an_answer',
+  /**
+   * The parent's daily limit is used up or it is outside the allowed hours (`computeScreenTime` on
+   * the server's clock): no new session and no step, nothing stored, no AI. The task stays saved.
+   */
+  learningPaused: 'guidance.learning_paused',
+  /** A session that opened with the friendly redirect (small talk, curiosity, #92) gives no hint. */
+  noHintForOpening: 'guidance.no_hint_for_opening',
 } as const;
 
 /** Field-level codes, carried in `fieldErrors`. */
@@ -32,6 +50,8 @@ export const GUIDANCE_VALIDATION_CODES = {
   sessionIdInvalid: 'guidance.validation.session_id_invalid',
   requestIdInvalid: 'guidance.validation.request_id_invalid',
   assignmentIdInvalid: 'guidance.validation.assignment_id_invalid',
+  /** Not a world island, or a place of another island (or a place without an island). */
+  areaInvalid: 'guidance.validation.area_invalid',
 } as const;
 
 export type GuidanceValidationCode =
@@ -61,6 +81,11 @@ export function fromRateLimitFailure(
         'The rate limit could not be checked.',
         failure.cause,
       );
+}
+
+/** See `GUIDANCE_ERROR_CODES.learningPaused`. The parent's controls forbid learning right now. */
+export function learningPaused(): ForbiddenAppError {
+  return forbiddenError(GUIDANCE_ERROR_CODES.learningPaused, 'Learning is paused for today.');
 }
 
 /** See `GUIDANCE_ERROR_CODES.assignmentNotFound`. */

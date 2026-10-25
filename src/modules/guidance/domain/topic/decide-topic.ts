@@ -1,3 +1,5 @@
+import { FALLBACK_AREA_ID, resolveArea } from '@modules/world';
+
 import type { TopicClassification, TopicDecision } from './topic-classification';
 import type { HintSubject } from '../models/hint-subject';
 
@@ -44,6 +46,19 @@ export function decideTopic(
   return topic.kind === 'competency'
     ? { action: 'help', competencyCode: topic.competencyCode, openTopicLabel: null }
     : { action: 'help', competencyCode: null, openTopicLabel: topic.label };
+}
+
+/**
+ * The island a session's homework belongs to, or `null`: only for a task the backend helps with, only
+ * at `resolveArea`'s confidence of 0.7 and never the fallback island, which only means "unsure".
+ * An island the child picked is not decided here: it always wins (`classifySessionTask`).
+ */
+export function decideArea({ area }: TopicClassification, decision: TopicDecision): string | null {
+  if (decision.action !== 'help' || area === null) {
+    return null;
+  }
+  const resolved = resolveArea(area.areaId, area.confidence);
+  return resolved.id === FALLBACK_AREA_ID ? null : resolved.id;
 }
 
 /** A confidently different subject than the child picked. Only logged: the child's choice wins. */

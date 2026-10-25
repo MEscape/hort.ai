@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'df028899cf6d03459369581c0d338055d77b7232cf36e23c686f7b0e33287ceb'>;
+  StorageHashBase<'3af585b99de98bbac25f4ee99788c93e52f7b8a8c93c42f06aba0bfa32afd0fb'>;
 export type ExecutionHash =
   ExecutionHashBase<'5388a8400147d76b9e718711335599d04f7ca67a9c7f7b82d886bf9fb1c1aec5'>;
 export type ProfileHash =
@@ -961,6 +961,7 @@ export namespace Models {
     readonly [RelationKeys]?: 'competencies';
   };
   export type public_HelpSession = {
+    areaId: FieldOutputTypes['public']['HelpSession']['areaId'];
     assignmentId: FieldOutputTypes['public']['HelpSession']['assignmentId'];
     childProfileId: FieldOutputTypes['public']['HelpSession']['childProfileId'];
     classifiedBy: FieldOutputTypes['public']['HelpSession']['classifiedBy'];
@@ -972,6 +973,7 @@ export namespace Models {
     openTopicLabel: FieldOutputTypes['public']['HelpSession']['openTopicLabel'];
     opening: FieldOutputTypes['public']['HelpSession']['opening'];
     ownerId: FieldOutputTypes['public']['HelpSession']['ownerId'];
+    placeId: FieldOutputTypes['public']['HelpSession']['placeId'];
     startedAt: FieldOutputTypes['public']['HelpSession']['startedAt'];
     status: FieldOutputTypes['public']['HelpSession']['status'];
     subject: FieldOutputTypes['public']['HelpSession']['subject'];
@@ -2033,6 +2035,12 @@ type ContractBase = Omit<
             };
             readonly HelpSession: {
               columns: {
+                readonly areaId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
                 readonly assignmentId: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
@@ -2097,6 +2105,12 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly placeId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly startedAt: {
@@ -3605,6 +3619,10 @@ type ContractBase = Omit<
           };
           readonly HelpSession: {
             readonly fields: {
+              readonly areaId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly assignmentId: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -3650,6 +3668,10 @@ type ContractBase = Omit<
               };
               readonly ownerId: {
                 readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly placeId: {
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly startedAt: {
@@ -3761,6 +3783,7 @@ type ContractBase = Omit<
               readonly table: 'HelpSession';
               readonly namespaceId: 'public';
               readonly fields: {
+                readonly areaId: { readonly column: 'areaId' };
                 readonly assignmentId: { readonly column: 'assignmentId' };
                 readonly childProfileId: { readonly column: 'childProfileId' };
                 readonly classifiedBy: { readonly column: 'classifiedBy' };
@@ -3772,6 +3795,7 @@ type ContractBase = Omit<
                 readonly openTopicLabel: { readonly column: 'openTopicLabel' };
                 readonly opening: { readonly column: 'opening' };
                 readonly ownerId: { readonly column: 'ownerId' };
+                readonly placeId: { readonly column: 'placeId' };
                 readonly startedAt: { readonly column: 'startedAt' };
                 readonly status: { readonly column: 'status' };
                 readonly subject: { readonly column: 'subject' };

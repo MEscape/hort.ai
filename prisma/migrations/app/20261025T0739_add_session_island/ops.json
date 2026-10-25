@@ -1,0 +1,192 @@
+[
+  {
+    "id": "column.public.HelpSession.areaId",
+    "label": "Add column \"areaId\" to \"HelpSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "areaId",
+        "table": "HelpSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"areaId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "areaId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"areaId\"",
+        "sql": "ALTER TABLE \"public\".\"HelpSession\" ADD COLUMN \"areaId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"areaId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "areaId"
+        ]
+      },
+      {
+        "description": "verify column \"areaId\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "areaId",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.HelpSession.placeId",
+    "label": "Add column \"placeId\" to \"HelpSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "placeId",
+        "table": "HelpSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"placeId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "placeId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"placeId\"",
+        "sql": "ALTER TABLE \"public\".\"HelpSession\" ADD COLUMN \"placeId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"placeId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "placeId"
+        ]
+      },
+      {
+        "description": "verify column \"placeId\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "HelpSession",
+          "placeId",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.HelpSession.HelpSession_area_id_rule_f94bd28e",
+    "label": "Add check constraint \"HelpSession_area_id_rule_f94bd28e\" on \"HelpSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "HelpSession_area_id_rule_f94bd28e",
+        "table": "HelpSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"HelpSession_area_id_rule_f94bd28e\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "HelpSession_area_id_rule_f94bd28e",
+          "public",
+          "\"public\".\"HelpSession\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"HelpSession_area_id_rule_f94bd28e\"",
+        "sql": "ALTER TABLE \"public\".\"HelpSession\" ADD CONSTRAINT \"HelpSession_area_id_rule_f94bd28e\" CHECK (\"areaId\" IS NULL OR \"areaId\" ~ '^[a-z][a-z0-9-]{1,40}$')"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"HelpSession_area_id_rule_f94bd28e\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "HelpSession_area_id_rule_f94bd28e",
+          "public",
+          "\"public\".\"HelpSession\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.HelpSession.HelpSession_place_id_rule_2202e11e",
+    "label": "Add check constraint \"HelpSession_place_id_rule_2202e11e\" on \"HelpSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "HelpSession_place_id_rule_2202e11e",
+        "table": "HelpSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"HelpSession_place_id_rule_2202e11e\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "HelpSession_place_id_rule_2202e11e",
+          "public",
+          "\"public\".\"HelpSession\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"HelpSession_place_id_rule_2202e11e\"",
+        "sql": "ALTER TABLE \"public\".\"HelpSession\" ADD CONSTRAINT \"HelpSession_place_id_rule_2202e11e\" CHECK (\"placeId\" IS NULL OR (\"areaId\" IS NOT NULL AND \"placeId\" ~ '^[a-z][a-z0-9-]{1,40}$'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"HelpSession_place_id_rule_2202e11e\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "HelpSession_place_id_rule_2202e11e",
+          "public",
+          "\"public\".\"HelpSession\"",
+          "c"
+        ]
+      }
+    ]
+  }
+]

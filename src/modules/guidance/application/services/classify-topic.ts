@@ -2,6 +2,7 @@ import { unique } from '@lib/utils';
 
 import {
   confidenceBucketOf,
+  decideArea,
   decideTopic,
   isSubjectMismatch,
 } from '../../domain/topic/decide-topic';
@@ -12,6 +13,7 @@ import type { CurriculumCompetency } from '../../domain/models/hint-request';
 import type { HintSubject } from '../../domain/models/hint-subject';
 import type { GuidanceAuditLog, GuidanceEvent } from '../../domain/ports/guidance-audit-log.port';
 import type {
+  TopicClassificationRequest,
   TopicClassifier,
   TopicClassifierName,
 } from '../../domain/ports/topic-classifier.port';
@@ -32,6 +34,7 @@ export interface ChildTaskToClassify {
   readonly task: ChildTaskText;
   readonly subject: HintSubject;
   readonly candidates: readonly CurriculumCompetency[];
+  readonly areas: TopicClassificationRequest['areas'];
   readonly clarificationAlreadyAsked: boolean;
 }
 
@@ -41,6 +44,8 @@ export interface ClassifiedChildTask {
   /** `null` when the classification could not be used. */
   readonly intent: ChildMessageIntent | null;
   readonly classifiedBy: TopicClassifierName | 'fallback';
+  /** The offered island the task belongs to (`decideArea`); `null` when unsure or not helped. */
+  readonly areaId: string | null;
 }
 
 type FallbackEvent = Extract<
@@ -52,6 +57,7 @@ const TODAYS_FLOW: ClassifiedChildTask = {
   decision: { action: 'help', competencyCode: null, openTopicLabel: null },
   intent: null,
   classifiedBy: 'fallback',
+  areaId: null,
 };
 
 /** Either a validated classification, or why it could not be used. */
@@ -59,12 +65,13 @@ async function classificationOf(
   classifier: TopicClassifier,
   request: ChildTaskToClassify,
 ): Promise<TopicClassification | Pick<FallbackEvent, 'reason' | 'codes'>> {
-  const { task, subject, candidates } = request;
+  const { task, subject, candidates, areas } = request;
   try {
-    return await classifier.classify({ task, subject, candidates }).match(
+    return await classifier.classify({ task, subject, candidates, areas }).match(
       (raw) =>
         validateTopicClassification(raw, {
           candidateCodes: new Set(candidates.map(({ code }) => code)),
+          candidateAreaIds: new Set(areas.map(({ id }) => id)),
         }).match(
           (classification) => classification,
           (rejection) => ({
@@ -125,5 +132,10 @@ export async function classifyTopic(
     topicConfidence: topic.kind === 'none' ? null : confidenceBucketOf(topic.confidence),
     action: decision.action,
   });
-  return { decision, intent: intent.value, classifiedBy: classifier.name };
+  return {
+    decision,
+    intent: intent.value,
+    classifiedBy: classifier.name,
+    areaId: decideArea(classification, decision),
+  };
 }

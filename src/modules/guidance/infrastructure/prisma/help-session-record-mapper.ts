@@ -3,6 +3,7 @@ import type { InstantRecord } from '@lib/db';
 import { isDefined, literalGuard } from '@lib/utils';
 
 import { parseAssignmentTaskText } from '../../domain/models/child-task-text';
+import { HINT_LEVELS } from '../../domain/models/hint-level';
 import {
   toAssignmentId,
   toChildProfileId,
@@ -42,6 +43,8 @@ export const SESSION_SELECT = [
   'competencyCode',
   'openTopicLabel',
   'classifiedBy',
+  'areaId',
+  'placeId',
   'startedAt',
   'updatedAt',
 ] as const;
@@ -134,6 +137,36 @@ const CLASSIFIED_BY = invert(CLASSIFIED_BY_RECORD);
 
 export type LevelValue = ValueOf<typeof LEVEL_RECORD>;
 
+/** The step times of one session, as `helpMinutesBetween` reads them. */
+interface StepTimesRecord {
+  readonly startedAt: InstantRecord;
+  readonly hintEvents: ReadonlyArray<{ readonly occurredAt: InstantRecord }>;
+  readonly childAnswers: ReadonlyArray<{ readonly occurredAt: InstantRecord }>;
+  readonly comprehensionQuestions: ReadonlyArray<{ readonly repliedAt: InstantRecord | null }>;
+}
+
+/** When the child worked in the session within `[from, to)`: its start, hints, checks and replies. */
+export function toStepTimes(
+  record: StepTimesRecord,
+  { from, to }: { readonly from: Date; readonly to: Date },
+): Date[] {
+  return [
+    record.startedAt,
+    ...record.hintEvents.map((hint) => hint.occurredAt),
+    ...record.childAnswers.map((answer) => answer.occurredAt),
+    ...record.comprehensionQuestions.map((question) => question.repliedAt),
+  ]
+    .filter(isDefined)
+    .map(instantToDate)
+    .filter((time) => time >= from && time < to);
+}
+
+/** The higher rung of the two: a session's hint level only ever goes up. */
+export function raisedLevel(current: LevelValue | null, given: LevelValue): LevelValue {
+  const rung = (level: LevelValue) => HINT_LEVELS.indexOf(LEVEL[level]);
+  return current !== null && rung(current) > rung(given) ? current : given;
+}
+
 export interface SessionRecord {
   readonly id: string;
   readonly childProfileId: string;
@@ -147,6 +180,8 @@ export interface SessionRecord {
   readonly competencyCode: string | null;
   readonly openTopicLabel: string | null;
   readonly classifiedBy: ValueOf<typeof CLASSIFIED_BY_RECORD> | null;
+  readonly areaId: string | null;
+  readonly placeId: string | null;
   readonly startedAt: InstantRecord;
   readonly updatedAt: InstantRecord;
 }
@@ -241,6 +276,8 @@ export function toTopicRecord(topic: SessionTopic) {
     competencyCode: topic.competencyCode,
     openTopicLabel: topic.openTopicLabel,
     classifiedBy: topic.classifiedBy === null ? null : CLASSIFIED_BY_RECORD[topic.classifiedBy],
+    areaId: topic.areaId,
+    placeId: topic.placeId,
   } as const;
 }
 
@@ -252,6 +289,8 @@ function toTopic(session: SessionRecord): SessionTopic | null {
     competencyCode: session.competencyCode,
     openTopicLabel: session.openTopicLabel,
     classifiedBy: session.classifiedBy === null ? null : CLASSIFIED_BY[session.classifiedBy],
+    areaId: session.areaId,
+    placeId: session.placeId,
   };
   if (session.opening === null) {
     return { ...base, opening: null };

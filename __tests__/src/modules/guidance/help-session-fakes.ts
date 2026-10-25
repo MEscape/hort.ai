@@ -3,7 +3,9 @@ import type { Actor } from '@modules/auth/domain/models/actor';
 import type { HelpSessionDependencies } from '@modules/guidance/application/help-session-dependencies';
 import { toLadderState } from '@modules/guidance/domain/models/help-session';
 import type { HelpSession } from '@modules/guidance/domain/models/help-session';
+import { HINT_LEVELS } from '@modules/guidance/domain/models/hint-level';
 import { toHelpSessionId } from '@modules/guidance/domain/models/ids';
+import type { ChildProfileAccess } from '@modules/guidance/domain/ports/child-profile-access.port';
 import type {
   HelpSessionRepository,
   NewHelpSession,
@@ -60,6 +62,8 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
   const starts: NewHelpSession[] = [];
   const replies: Array<{ readonly completes: boolean; readonly text: string }> = [];
   let created = 0;
+  /** What `helpMinutesBetween` answers; a test sets it to reach the daily limit. */
+  const usage = { helpMinutes: 0 };
 
   const active = (childProfileId: string, sessionId?: string) =>
     [...sessions.values()].find(
@@ -91,6 +95,18 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
       return okAsync({ session, created: true });
     },
     findOpen: (_owner, childProfileId) => okAsync(active(childProfileId)),
+    helpMinutesBetween: () => okAsync(usage.helpMinutes),
+    homeworkAreaIds: (_owner, childProfileId, limit) =>
+      okAsync(
+        [
+          ...new Set(
+            [...sessions.values()]
+              .filter((s) => s.childProfileId === childProfileId && s.topic.opening === null)
+              .map((s) => s.topic.areaId)
+              .filter((areaId) => areaId !== null),
+          ),
+        ].slice(0, limit),
+      ),
     loadSession: (ref, includeCompleted = false) => {
       const stored = sessions.get(ref.sessionId);
       const session =
@@ -102,17 +118,24 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
       return session === null ? errAsync(notFound()) : okAsync(session);
     },
     load: (ref) => repository.loadSession(ref).map(toLadderState),
-    recordHint: (ref, hint) => {
+    recordHint: (ref, hint, after) => {
       const session = active(ref.childProfileId, ref.sessionId);
       if (session === null) {
         return errAsync(notFound());
       }
-      if (session.hints.some((given) => given.requestId === hint.requestId)) {
+      // A twin under the same id, or a hint recorded since the state `after` names, wins.
+      const latest = session.hints.at(-1)?.requestId ?? null;
+      if (session.hints.some((given) => given.requestId === hint.requestId) || latest !== after) {
         return okAsync('duplicate');
       }
+      const level = session.hintLevel;
       sessions.set(session.id, {
         ...session,
-        hintLevel: hint.level,
+        // The level only ever goes up, as in the database.
+        hintLevel:
+          level !== null && HINT_LEVELS.indexOf(level) > HINT_LEVELS.indexOf(hint.level)
+            ? level
+            : hint.level,
         hints: [...session.hints, hint],
       });
       return okAsync('recorded');
@@ -152,7 +175,7 @@ export function inMemorySessions(initial: readonly HelpSession[] = []) {
       return okAsync('recorded');
     },
   };
-  return { repository, sessions, starts, replies };
+  return { repository, sessions, starts, replies, usage };
 }
 
 /** The dependencies of the session use cases over the in-memory store, signed in as `actor`. */
@@ -162,6 +185,7 @@ export function helpSessionDependencies(
   rateLimiter: RateLimiter = createTestRateLimiter(),
   assignments: ReturnType<typeof fakeAssignments> = fakeAssignments(),
   classifier?: TopicClassifier,
+  childProfiles: ChildProfileAccess = ownChildren(),
 ): {
   readonly deps: HelpSessionDependencies;
   readonly events: ReturnType<typeof recordingAuditLog>['events'];
@@ -173,7 +197,7 @@ export function helpSessionDependencies(
         currentActor: signedInAs(actor),
         audit: recordingSecurityAudit(),
       }),
-      childProfiles: ownChildren(),
+      childProfiles,
       rateLimiter,
       assignments: assignments.access,
       sessions: repository,

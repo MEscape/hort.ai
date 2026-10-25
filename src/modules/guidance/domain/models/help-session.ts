@@ -109,6 +109,7 @@ export function toLadderState(session: HelpSession): HintLadderState {
     assignmentId: session.assignmentId,
     subject: session.subject,
     competencyCode: session.topic.competencyCode,
+    opening: session.topic.opening,
     hints: session.hints,
     answers: session.answerChecks.map((check) => check.result),
   };

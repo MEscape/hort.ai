@@ -1,6 +1,7 @@
 import { invariant } from '@lib/utils';
 
 import { checkAgainstSolutionKey } from '../../domain/answer-check/check-against-solution-key';
+import { expressionsIn, readMath } from '../../domain/solution-leak/read-math';
 
 import { judgeAiAnswer } from './judge-ai-answer';
 
@@ -16,6 +17,30 @@ import type { SafetyClassifier } from '../../domain/ports/safety-classifier.port
 import type { AnswerFeedback, AssessedBy, FeedbackText } from '../contracts/answer-views';
 
 type Rejection = Exclude<Verdict, { readonly output: unknown }>;
+
+/** "Rechne", "Rechne aus:", "Was ist" … in front of the expression, and "= ?" or "." after it. */
+const LEADING_IMPERATIVE =
+  /^(?:rechne(?:\s+aus)?|berechne|löse|was\s+ist|wie\s+viel\s+ist|what\s+is|calculate)\s*:?\s*/iu;
+const TRAILING_ASK = /\s*(?:=\s*\??|[?.!])\s*$/u;
+/** Whole numbers joined by + − · × * : and nothing else: no brackets, labels or other words. */
+const BARE_EXPRESSION = /^\d{1,6}(?:\s*[-+−·×*:]\s*\d{1,6})+$/u;
+
+/**
+ * The result of a task that is nothing but one arithmetic expression ("Rechne 23 + 24 = ?"), which
+ * then decides like a teacher's key: the AI's assessment is only a proposal. `null` for anything
+ * else (a word problem, a task label such as "Aufgabe 2:", brackets, an estimate, "Tauschaufgabe"),
+ * for a division with a remainder, and for a negative result, so the validated AI decides those.
+ */
+function computedKey(task: string): string | null {
+  const bare = task.trim().replace(LEADING_IMPERATIVE, '').replace(TRAILING_ASK, '');
+  if (!BARE_EXPRESSION.test(bare)) {
+    return null;
+  }
+  const [value, ...more] = expressionsIn(readMath(bare));
+  return value === undefined || more.length > 0 || value < 0 || !Number.isInteger(value)
+    ? null
+    : String(value);
+}
 
 /** The result and who decided it, or no result when the AI could not assess; plus any AI text. */
 type Assessment =
@@ -44,8 +69,9 @@ export interface AnswerToCheck {
 }
 
 /**
- * Checks the child's own answer and words the feedback (#14). With a solution key the result is
- * decided deterministically against it; without one the AI assesses and its assessment must pass
+ * Checks the child's own answer and words the feedback (#14). With a solution key (the teacher's,
+ * or the computed result of the task's one written expression) the result is decided
+ * deterministically against it; without one the AI assesses and its assessment must pass
  * the contract (#6) and the child-safety rules, which also reject punishing wording. Praise and the
  * comprehension question come from the AI under the same checks, each with its predefined fallback.
  * The solution-leak guard (#31) checks every AI text against the task and the key, so an assessment
@@ -72,10 +98,11 @@ export class AnswerCoach {
   }
 
   private async assess(toCheck: AnswerToCheck): Promise<Assessment> {
-    if (toCheck.solutionKey !== null) {
+    const key = toCheck.solutionKey ?? computedKey(toCheck.task);
+    if (key !== null) {
       // The key decides; the child gets the predefined, encouraging wording of the result.
       return {
-        result: checkAgainstSolutionKey(toCheck.answer, toCheck.solutionKey),
+        result: checkAgainstSolutionKey(toCheck.answer, key, toCheck.task),
         assessedBy: 'solution_key',
         message: null,
       };

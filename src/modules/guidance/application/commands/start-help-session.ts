@@ -1,4 +1,5 @@
 import type { Actor, AuthorizationError } from '@modules/auth';
+import { FALLBACK_AREA_ID } from '@modules/world';
 
 import type {
   InfrastructureAppError,
@@ -6,27 +7,35 @@ import type {
   RateLimitedAppError,
   ValidationAppError,
 } from '@lib/errors';
-import { okAsync, ResultAsync } from '@lib/result';
+import { validationError } from '@lib/errors';
+import { errAsync, okAsync, ResultAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
+import { detectsChildDistress } from '../../domain/child-safety/detect-child-distress';
+import { GUIDANCE_ERROR_CODES } from '../../domain/errors/guidance-errors';
 import { isSameTask } from '../../domain/models/help-session';
 import { parseHintSubject } from '../../domain/models/hint-subject';
 import { parseChildProfileId } from '../../domain/models/ids';
+import { parseSessionIsland } from '../../domain/models/session-island';
+import { HOMEWORK_AREA_IDS_MAX } from '../guidance-limits';
 import { GUIDANCE_RATE_LIMITS } from '../rate-limits';
 import { spendChildBudget } from '../services/child-budget';
 import { classifySessionTask } from '../services/classify-session-task';
 import { parseRequestedTask, resolveSessionSource } from '../services/help-session-source';
 import { toHelpSessionView } from '../services/help-session-view';
-import { ownChildScope } from '../services/own-child-session';
+import { admitLearningTime, ownChildScope } from '../services/own-child-session';
 
 import type { HelpSessionSource } from '../../domain/models/help-session';
 import type { ChildProfileId } from '../../domain/models/ids';
+import type { SessionIsland } from '../../domain/models/session-island';
 import type { OwnChildProfile } from '../../domain/ports/child-profile-access.port';
 import type { HelpSessionOwner } from '../../domain/ports/help-session.repository';
 import type { StartHelpSessionInput } from '../contracts/help-session-inputs';
 import type { StartHelpSessionView } from '../contracts/help-session-views';
 import type { HelpSessionDependencies } from '../help-session-dependencies';
+import type { RequestedTask } from '../services/help-session-source';
 
+/** `guidance.learning_paused` (a closed day) is `forbidden`, part of `AuthorizationError`. */
 export type StartHelpSessionError =
   | AuthorizationError
   | ValidationAppError
@@ -48,7 +57,10 @@ export type StartHelpSessionError =
  * new task stores a session and is classified once by intent and curriculum topic (#92), so it
  * spends the child's `sessionStart` budget once the child is known to be the parent's own. The
  * classification decides the session's opening (clarify, redirect or none); it never fails the start.
- * The distress check of #90 belongs before it.
+ *
+ * Before any of that, once the child is known to be the parent's own: the distress check (#90,
+ * `guidance.child_distress`, it wins over everything else), then the child's day (the parent's
+ * daily limit and allowed hours, `guidance.learning_paused`). Neither stores, spends or asks the AI.
  */
 export class StartHelpSession {
   constructor(private readonly deps: HelpSessionDependencies) {}
@@ -63,21 +75,73 @@ export class StartHelpSession {
       parseChildProfileId(input.childProfileId)
         .andThen((id) =>
           parseRequestedTask(input).andThen((requested) =>
-            parseHintSubject(input.subject).map((subject) => ({ id, requested, subject })),
+            parseHintSubject(input.subject).andThen((subject) =>
+              parseSessionIsland(input.areaId, input.placeId).map((island) => ({
+                id,
+                requested,
+                subject,
+                island,
+              })),
+            ),
           ),
         )
-        .asyncAndThen(({ id, requested, subject }) =>
+        .asyncAndThen(({ id, requested, subject, island }) =>
           ownChildScope(this.deps, actor, id).andThen(({ owner, childProfileId, child }) =>
-            spendChildBudget(rateLimiter, { actor, childProfileId, policy })
+            this.refuseDistress(actor, childProfileId, requested)
+              .andThen(() => admitLearningTime(this.deps, owner, child))
+              .andThen(() => spendChildBudget(rateLimiter, { actor, childProfileId, policy }))
               .andThen(() =>
                 resolveSessionSource(this.deps, { childProfileId, requested, subject }),
               )
               .andThen((source) =>
-                this.startOrContinue(actor, { owner, childProfileId, child, source }),
+                this.startOrContinue(actor, { owner, childProfileId, child, source, island }),
               ),
           ),
         ),
     );
+  }
+
+  /**
+   * The child's own words that look like distress (#90) get the trusted-adult notice instead of
+   * help: no AI call, no session stored, ids only in the log. A teacher's text is not the child's.
+   */
+  private refuseDistress(
+    actor: Actor,
+    childProfileId: ChildProfileId,
+    requested: RequestedTask,
+  ): AppResultAsync<void, ValidationAppError> {
+    if (requested.kind !== 'own' || !detectsChildDistress(requested.task)) {
+      return okAsync(undefined);
+    }
+    this.deps.audit.record({
+      type: 'guidance.child_distress_detected',
+      tenantId: actor.tenantId,
+      actorId: actor.id,
+      childProfileId,
+      sessionId: null,
+      step: 'start',
+    });
+    return errAsync(
+      validationError(GUIDANCE_ERROR_CODES.childDistress, 'The child may be in danger.', {}),
+    );
+  }
+
+  /**
+   * The picked island, only when the child may start there: the starting island, or one an earlier
+   * homework session of the child cleared. An island still in the mist is ignored, so only a
+   * classified homework task ever clears it, never a link.
+   */
+  private clearedIsland(
+    owner: HelpSessionOwner,
+    childProfileId: ChildProfileId,
+    island: SessionIsland | null,
+  ): AppResultAsync<SessionIsland | null, InfrastructureAppError> {
+    if (island === null || island.areaId === FALLBACK_AREA_ID) {
+      return okAsync(island);
+    }
+    return this.deps.sessions
+      .homeworkAreaIds(owner, childProfileId, HOMEWORK_AREA_IDS_MAX)
+      .map((cleared) => (cleared.includes(island.areaId) ? island : null));
   }
 
   /** The open session when it is on the same task; otherwise a new one that replaces it. */
@@ -88,11 +152,13 @@ export class StartHelpSession {
       childProfileId,
       child,
       source,
+      island,
     }: {
       readonly owner: HelpSessionOwner;
       readonly childProfileId: ChildProfileId;
       readonly child: OwnChildProfile;
       readonly source: HelpSessionSource;
+      readonly island: SessionIsland | null;
     },
   ): AppResultAsync<StartHelpSessionView, InfrastructureAppError> {
     const { sessions, audit } = this.deps;
@@ -105,14 +171,18 @@ export class StartHelpSession {
         });
       }
       const replaces = open?.id ?? null;
-      return ResultAsync.fromSafePromise(
-        classifySessionTask(this.deps, {
-          child,
-          task: source.task,
-          subject: source.subject,
-          replaces: open,
-        }),
-      )
+      return this.clearedIsland(owner, childProfileId, island)
+        .andThen((picked) =>
+          ResultAsync.fromSafePromise(
+            classifySessionTask(this.deps, {
+              child,
+              task: source.task,
+              subject: source.subject,
+              replaces: open,
+              island: picked,
+            }),
+          ),
+        )
         .andThen((topic) => sessions.start(owner, { childProfileId, ...source, replaces, topic }))
         .map(({ session, created }): StartHelpSessionView => {
           if (created) {

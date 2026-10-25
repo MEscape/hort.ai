@@ -38,12 +38,14 @@ interface Part {
 
 interface Candidate {
   content: { parts: Part[] | undefined } | undefined;
+  finishReason: string | undefined;
 }
 
 const isGenerateContentResponse = objectOf<{ candidates: Candidate[] | undefined }>({
   candidates: optional(
     arrayOf(
       objectOf<Candidate>({
+        finishReason: optional(isString),
         content: optional(
           objectOf<{ parts: Part[] | undefined }>({
             parts: optional(arrayOf(objectOf<Part>({ text: optional(isString) }))),
@@ -63,14 +65,29 @@ function failureOf(thrown: unknown): HintProviderFailure {
 }
 
 /**
+ * A hint or a feedback sentence is a small JSON object; a longer answer is cut off, not shortened.
+ * Flash models think by default and count their thoughts in this budget, so it leaves room for
+ * them; the request timeout still bounds the cost.
+ * shortcut: no explicit thinking setting, set one once the model's thinking config is pinned.
+ */
+const MAX_OUTPUT_TOKENS = 2048;
+/** The one finish reason of a complete answer; any other (cut off, blocked, recited) is none. */
+const COMPLETE = 'STOP';
+
+/**
  * The model's JSON answer, still untrusted. Text that is not JSON is returned as it is, so the
- * output contract rejects it as invalid output; no text at all (a blocked answer) is `undefined`.
+ * output contract rejects it as invalid output; no text at all (a blocked answer) and an answer
+ * that did not finish normally (cut off at the output limit, stopped for safety) are `undefined`.
  */
 function answerOf(body: unknown): unknown {
   if (!isGenerateContentResponse(body)) {
     return undefined;
   }
-  const parts = body.candidates?.[0]?.content?.parts ?? [];
+  const candidate = body.candidates?.[0];
+  if (candidate?.finishReason !== undefined && candidate.finishReason !== COMPLETE) {
+    return undefined;
+  }
+  const parts = candidate?.content?.parts ?? [];
   const text = parts.map((part) => part.text ?? '').join('');
   if (text === '') {
     return undefined;
@@ -124,7 +141,10 @@ export class GeminiProvider implements HintProvider, FeedbackProvider {
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: instructions }] },
           contents: [{ role: 'user', parts: [{ text: data }] }],
-          generationConfig: { responseMimeType: 'application/json' },
+          generationConfig: {
+            responseMimeType: 'application/json',
+            maxOutputTokens: MAX_OUTPUT_TOKENS,
+          },
           safetySettings: SAFETY_SETTINGS,
         }),
         signal: AbortSignal.timeout(timeoutMs),

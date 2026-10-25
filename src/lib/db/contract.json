@@ -1904,6 +1904,13 @@
           },
           "HelpSession": {
             "fields": {
+              "areaId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "assignmentId": {
                 "nullable": true,
                 "type": {
@@ -2000,6 +2007,13 @@
               },
               "ownerId": {
                 "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "placeId": {
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -2163,6 +2177,9 @@
             },
             "storage": {
               "fields": {
+                "areaId": {
+                  "column": "areaId"
+                },
                 "assignmentId": {
                   "column": "assignmentId"
                 },
@@ -2195,6 +2212,9 @@
                 },
                 "ownerId": {
                   "column": "ownerId"
+                },
+                "placeId": {
+                  "column": "placeId"
                 },
                 "startedAt": {
                   "column": "startedAt"
@@ -4207,6 +4227,11 @@
             "HelpSession": {
               "checks": [
                 {
+                  "expression": "\"areaId\" IS NULL OR \"areaId\" ~ '^[a-z][a-z0-9-]{1,40}$'",
+                  "name": "HelpSession_area_id_rule_f94bd28e",
+                  "prefix": "HelpSession_area_id_rule"
+                },
+                {
                   "expression": "\"classifiedBy\" IN ('JEV', 'FALLBACK')",
                   "name": "HelpSession_classifiedBy_check_a4f40f73",
                   "prefix": "HelpSession_classifiedBy_check"
@@ -4242,6 +4267,11 @@
                   "prefix": "HelpSession_opening_check"
                 },
                 {
+                  "expression": "\"placeId\" IS NULL OR (\"areaId\" IS NOT NULL AND \"placeId\" ~ '^[a-z][a-z0-9-]{1,40}$')",
+                  "name": "HelpSession_place_id_rule_2202e11e",
+                  "prefix": "HelpSession_place_id_rule"
+                },
+                {
                   "expression": "\"opening\" IS DISTINCT FROM 'REDIRECT' OR \"intent\" IN ('CURIOSITY', 'SMALL_TALK')",
                   "name": "HelpSession_redirect_rule_362674df",
                   "prefix": "HelpSession_redirect_rule"
@@ -4268,6 +4298,11 @@
                 }
               ],
               "columns": {
+                "areaId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
                 "assignmentId": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
@@ -4346,6 +4381,11 @@
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": false
+                },
+                "placeId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
                 },
                 "startedAt": {
                   "codecId": "pg/timestamptz-temporal@1",
@@ -5209,7 +5249,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "df028899cf6d03459369581c0d338055d77b7232cf36e23c686f7b0e33287ceb"
+    "storageHash": "3af585b99de98bbac25f4ee99788c93e52f7b8a8c93c42f06aba0bfa32afd0fb"
   },
   "execution": {
     "executionHash": "5388a8400147d76b9e718711335599d04f7ca67a9c7f7b82d886bf9fb1c1aec5",

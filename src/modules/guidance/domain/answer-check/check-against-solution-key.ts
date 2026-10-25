@@ -1,33 +1,23 @@
+import { numberWord } from '../solution-leak/read-math';
+
 import type { AssessmentResult } from '../ai-output/ai-output';
 
-/** German number words up to twenty, so "sieben" matches a key of 7. Larger numbers are written as digits. */
-const NUMBER_WORDS: Readonly<Record<string, string>> = {
-  null: '0',
-  eins: '1',
-  ein: '1',
-  eine: '1',
-  zwei: '2',
-  drei: '3',
-  vier: '4',
-  fünf: '5',
-  sechs: '6',
-  sieben: '7',
-  acht: '8',
-  neun: '9',
-  zehn: '10',
-  elf: '11',
-  zwölf: '12',
-  dreizehn: '13',
-  vierzehn: '14',
-  fünfzehn: '15',
-  sechzehn: '16',
-  siebzehn: '17',
-  achtzehn: '18',
-  neunzehn: '19',
-  zwanzig: '20',
-};
-
 const NUMBER = /\d+(?:\.\d+)?/g;
+
+/** Articles say nothing about which answer was meant: the key "Ein Hund" is met by "der Hund". */
+const ARTICLES = 'der|die|das|den|dem|des|ein|eine|einen|einem|einer|the|a|an';
+const ARTICLE = new RegExp(`^(?:${ARTICLES})$`);
+
+/**
+ * The words a task offers to choose from: each one after a comma, "oder" or a sentence mark
+ * ("Hund, Katze oder Maus"), past an article.
+ * shortcut: any word after a comma counts, so a text answer repeating prose that follows a comma
+ * in the task is not_yet; parse real option lists if teachers' keys run into it.
+ */
+const OPTION = new RegExp(
+  String.raw`(?:^|[,:?!]|\b(?:oder|or)\b)\s*(?:(?:${ARTICLES})\s+)?(\p{L}+)`,
+  'gu',
+);
 
 /** Lower case, decimal comma as point, number words as digits, only letters, digits, `.`, `=` and single spaces. */
 function normalize(text: string): string {
@@ -39,7 +29,7 @@ function normalize(text: string): string {
     .replace(/(?<!\d)\.|\.(?!\d)/g, ' ')
     .split(' ')
     .filter((token) => token !== '')
-    .map((token) => NUMBER_WORDS[token] ?? token)
+    .map((token) => numberWord(token)?.toString() ?? token)
     .join(' ');
 }
 
@@ -49,16 +39,26 @@ function answerNumbers(answer: string): string[] {
   return afterEquals.match(NUMBER) ?? [];
 }
 
+function optionsOf(task: string): string[] {
+  return [...task.normalize('NFKC').toLowerCase().matchAll(OPTION)].map(([, word = '']) => word);
+}
+
 /**
  * Checks the child's answer against the teacher's solution key (#14, #33), deterministically and
  * without the AI. A key with numbers is met when the answer's numbers are exactly the key's, in
  * order, whatever words surround them ("Sie hat 7 Äpfel" meets "7"). A key without numbers is met
- * when every word of the key appears in the answer ("der Hund" meets "Hund"). Anything else is
- * `not_yet`: "partly correct" needs judgement, so only the AI assesses it, and only without a key.
+ * when every word of the key but its articles appears in the answer ("der Hund" meets "Ein Hund"),
+ * and the answer names none of the task's other options ("Hund Katze Maus" lists them all).
+ * Anything else is `not_yet`: "partly correct" needs judgement, so only the AI assesses it, and
+ * only without a key.
  *
  * The key never leaves the backend: it is not passed to the AI and not shown to the child.
  */
-export function checkAgainstSolutionKey(answer: string, solutionKey: string): AssessmentResult {
+export function checkAgainstSolutionKey(
+  answer: string,
+  solutionKey: string,
+  task = '',
+): AssessmentResult {
   const given = normalize(answer);
   const expected = normalize(solutionKey);
   if (given === expected) {
@@ -73,5 +73,9 @@ export function checkAgainstSolutionKey(answer: string, solutionKey: string): As
     return same ? 'correct' : 'not_yet';
   }
   const words = new Set(given.split(' '));
-  return expected.split(' ').every((word) => words.has(word)) ? 'correct' : 'not_yet';
+  const keyWords = expected.split(' ').filter((word) => !ARTICLE.test(word));
+  const otherOptions = optionsOf(task).filter((word) => !keyWords.includes(word));
+  return keyWords.every((word) => words.has(word)) && !otherOptions.some((word) => words.has(word))
+    ? 'correct'
+    : 'not_yet';
 }

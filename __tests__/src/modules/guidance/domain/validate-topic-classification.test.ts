@@ -36,9 +36,10 @@ function rejectionOf(raw: unknown) {
 
 describe('validateTopicClassification accepts', () => {
   it('a competency among the candidates', () => {
-    expect(validateTopicClassification(classification(), CONTEXT)._unsafeUnwrap()).toEqual(
-      classification(),
-    );
+    expect(validateTopicClassification(classification(), CONTEXT)._unsafeUnwrap()).toEqual({
+      ...classification(),
+      area: null,
+    });
   });
 
   it('an open label, normalized and lower-cased', () => {
@@ -56,7 +57,10 @@ describe('validateTopicClassification accepts', () => {
       subject: null,
       topic: { kind: 'none' },
     });
-    expect(validateTopicClassification(raw, CONTEXT)._unsafeUnwrap()).toEqual(raw);
+    expect(validateTopicClassification(raw, CONTEXT)._unsafeUnwrap()).toEqual({
+      ...raw,
+      area: null,
+    });
   });
 
   it.each([0, 1])('a confidence of exactly %d', (confidence) => {
@@ -165,6 +169,48 @@ describe('validateTopicClassification rejects', () => {
   it.each(['small_talk', 'curiosity'])('a topic with the intent %s', (value) => {
     expect(rejectionOf(classification({ intent: { value, confidence: 0.9 } }))).toEqual({
       topic: [CODES.inconsistentTopic],
+    });
+  });
+});
+
+describe('validateTopicClassification and the island of the task', () => {
+  const WITH_AREAS = { ...CONTEXT, candidateAreaIds: new Set(['zahlenwald', 'malmuehle']) };
+
+  it('accepts one of the offered islands and treats a missing island as none', () => {
+    const raw = classification({ area: { areaId: 'zahlenwald', confidence: 0.82 } });
+    expect(validateTopicClassification(raw, WITH_AREAS)._unsafeUnwrap().area).toEqual({
+      areaId: 'zahlenwald',
+      confidence: 0.82,
+    });
+    expect(validateTopicClassification(classification(), WITH_AREAS)._unsafeUnwrap().area).toBe(
+      null,
+    );
+  });
+
+  it('rejects an island that was not offered, however real, and a bad confidence', () => {
+    const raw = classification({ area: { areaId: 'maerchenwald', confidence: 1.2 } });
+    const result = validateTopicClassification(raw, WITH_AREAS);
+    expect(result.isErr() && result.error.fieldErrors).toEqual({
+      'area.areaId': [CODES.unknownArea],
+      'area.confidence': [CODES.invalidConfidence],
+    });
+  });
+
+  it('rejects an island for a message that is not homework', () => {
+    const raw = classification({
+      intent: { value: 'small_talk', confidence: 0.9 },
+      topic: { kind: 'none' },
+      area: { areaId: 'zahlenwald', confidence: 0.9 },
+    });
+    const result = validateTopicClassification(raw, WITH_AREAS);
+    expect(result.isErr() && result.error.fieldErrors).toEqual({ area: [CODES.inconsistentTopic] });
+  });
+
+  it('rejects any island when none was offered', () => {
+    const raw = classification({ area: { areaId: 'zahlenwald', confidence: 0.9 } });
+    const result = validateTopicClassification(raw, CONTEXT);
+    expect(result.isErr() && result.error.fieldErrors).toEqual({
+      'area.areaId': [CODES.unknownArea],
     });
   });
 });

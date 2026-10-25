@@ -18,6 +18,8 @@ const idSchema = (message: string) =>
 /** Counted in characters by the domain; a string of code units can be up to twice as long. */
 const CHILD_TEXT_INPUT_MAX = CHILD_TASK_TEXT_MAX_LENGTH * 2;
 
+/** Longer than any island or place id (at most 41 characters); the use case checks it. */
+const ISLAND_INPUT_MAX = 64;
 /** Longer than any subject; the use case checks it against `HINT_SUBJECTS`. */
 const SUBJECT_INPUT_MAX = 32;
 
@@ -46,6 +48,15 @@ export const startHelpSessionSchema = getOpenHelpSessionSchema.extend({
   subject: z
     .string({ message: CODES.subjectInvalid })
     .max(SUBJECT_INPUT_MAX, { message: CODES.subjectInvalid }),
+  /** Checked against the world by the use case (`parseSessionIsland`). */
+  areaId: z
+    .string({ message: CODES.areaInvalid })
+    .max(ISLAND_INPUT_MAX, { message: CODES.areaInvalid })
+    .optional(),
+  placeId: z
+    .string({ message: CODES.areaInvalid })
+    .max(ISLAND_INPUT_MAX, { message: CODES.areaInvalid })
+    .optional(),
 });
 
 export const replyComprehensionSchema = getOpenHelpSessionSchema.extend({

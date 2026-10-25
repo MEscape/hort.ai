@@ -71,7 +71,7 @@ describe('GeminiProvider', () => {
     expect(body).toMatchObject({
       systemInstruction: { parts: [{ text: instructions }] },
       contents: [{ role: 'user', parts: [{ text: data }] }],
-      generationConfig: { responseMimeType: 'application/json' },
+      generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 2048 },
     });
     expect(body['safetySettings']).toHaveLength(4);
     expect(JSON.stringify(body['safetySettings'])).not.toContain('BLOCK_NONE');
@@ -106,6 +106,23 @@ describe('GeminiProvider', () => {
     expect((await gemini.suggest(REQUEST))._unsafeUnwrap()).toBeUndefined();
     expect((await gemini.suggest(REQUEST))._unsafeUnwrap()).toBeUndefined();
     expect((await gemini.suggest(REQUEST))._unsafeUnwrap()).toBeUndefined();
+  });
+
+  it('has no answer for one cut off at the output limit or stopped for safety, even with text', async () => {
+    const cut = (finishReason: string) =>
+      json({ candidates: [{ finishReason, content: { parts: [{ text: '{"version":1}' }] } }] });
+    const { fetch } = scriptedFetch(
+      cut('MAX_TOKENS'),
+      cut('SAFETY'),
+      cut('RECITATION'),
+      cut('STOP'),
+    );
+    const gemini = provider(fetch);
+
+    expect((await gemini.suggest(REQUEST))._unsafeUnwrap()).toBeUndefined();
+    expect((await gemini.suggest(REQUEST))._unsafeUnwrap()).toBeUndefined();
+    expect((await gemini.suggest(REQUEST))._unsafeUnwrap()).toBeUndefined();
+    expect((await gemini.suggest(REQUEST))._unsafeUnwrap()).toEqual({ version: 1 });
   });
 
   it('reports a refused call with its status only, never the key or the error text', async () => {

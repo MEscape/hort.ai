@@ -192,18 +192,74 @@ describe('CheckAnswer', () => {
     ]);
   });
 
-  it('still gives the feedback when the session cannot store it, and logs the code', async () => {
+  it('still gives a not-yet message when the session cannot store it, and logs the code', async () => {
     const { checkAnswer, events } = build({
+      scripts: { answer_assessment: output('answer_assessment', NOT_YET, { result: 'not_yet' }) },
       sessions: fakeSessionStore([onNextStep()], { failsRecording: true }),
     });
 
     const result = await checkAnswer.execute(input());
 
-    expect(result.isOk() && result.value).toMatchObject({ result: 'correct' });
+    expect(result.isOk() && result.value).toMatchObject({ result: 'not_yet' });
     expect(events).toContainEqual({
       type: 'guidance.step_not_recorded',
       step: 'answer_check',
       code: 'guidance.session_store_failed',
+    });
+  });
+
+  it('refuses praise and a question the session could not store, so the child never answers a lost question', async () => {
+    const { checkAnswer } = build({
+      sessions: fakeSessionStore([onNextStep()], { failsRecording: true }),
+    });
+
+    const result = await checkAnswer.execute(input());
+
+    expect(result.isErr() && result.error).toMatchObject({
+      kind: 'infrastructure',
+      code: 'guidance.session_store_failed',
+    });
+  });
+
+  it('replays a retried check (same request id) from the session, without asking the AI again', async () => {
+    const { checkAnswer, requests, sessions } = build();
+    const retried = input();
+    const first = await checkAnswer.execute(retried);
+    const asked = requests.length;
+
+    const second = await checkAnswer.execute({ ...retried, answer: 'etwas anderes' });
+
+    expect(second._unsafeUnwrap()).toEqual(first._unsafeUnwrap());
+    expect(requests).toHaveLength(asked);
+    expect(sessions.checks).toHaveLength(1);
+  });
+
+  it('returns the stored check when a concurrent twin recorded the same request id first', async () => {
+    const fake = fakeSessionStore([onNextStep()]);
+    const twin = {
+      ...fake,
+      store: {
+        ...fake.store,
+        recordAnswerCheck: (...[ref, check]: Parameters<typeof fake.store.recordAnswerCheck>) =>
+          fake.store
+            .recordAnswerCheck(ref, {
+              ...check,
+              result: 'not_yet',
+              feedbackText: NOT_YET,
+              question: null,
+            })
+            .andThen(() => fake.store.recordAnswerCheck(ref, check)),
+      },
+    };
+    const { checkAnswer } = build({ sessions: twin });
+
+    const result = await checkAnswer.execute(input());
+
+    expect(result._unsafeUnwrap()).toEqual({
+      result: 'not_yet',
+      assessedBy: 'ai',
+      next: 'hint_ladder',
+      message: { kind: 'generated', text: NOT_YET },
     });
   });
 
@@ -437,9 +493,9 @@ describe("CheckAnswer on a teacher's assignment (#33)", () => {
     expect(JSON.stringify(requests)).not.toContain(SOLUTION_KEY);
   });
 
-  it('lets the AI assess when the key cannot be read, and logs why', async () => {
+  it('lets the AI assess a word problem when the key cannot be read, and logs why', async () => {
     const { checkAnswer, events } = build({
-      sessions: onAssignment(),
+      sessions: fakeSessionStore([onNextStep({ assignmentId: ASSIGNMENT })]),
       assignments: fakeAssignments({ fails: true }),
     });
 
@@ -451,5 +507,119 @@ describe("CheckAnswer on a teacher's assignment (#33)", () => {
       step: 'answer_check',
       code: 'assignments.persistence_failed',
     });
+  });
+});
+
+describe('CheckAnswer on a task with one computable expression (the AI only proposes)', () => {
+  const computable = () => fakeSessionStore([onNextStep({ task: task('Rechne 23 + 24.') })]);
+
+  it('overrules an AI that calls a wrong answer correct, and asks no comprehension question', async () => {
+    const { checkAnswer, requests, sessions } = build({ sessions: computable() });
+
+    const result = await checkAnswer.execute(input({ answer: '40' }));
+
+    expect(result._unsafeUnwrap()).toMatchObject({ result: 'not_yet', next: 'hint_ladder' });
+    expect(requests.map((r) => r.kind)).not.toContain('answer_assessment');
+    expect(sessions.checks[0]).toMatchObject({ result: 'not_yet', question: null });
+  });
+
+  it('accepts the right answer even when the AI says not yet', async () => {
+    const { checkAnswer } = build({
+      sessions: computable(),
+      scripts: {
+        ...CORRECT,
+        answer_assessment: output('answer_assessment', NOT_YET, { result: 'not_yet' }),
+      },
+    });
+
+    const result = await checkAnswer.execute(input({ answer: 'Es sind 47.' }));
+
+    expect(result._unsafeUnwrap()).toMatchObject({
+      result: 'correct',
+      assessedBy: 'solution_key',
+      next: 'comprehension_question',
+    });
+  });
+
+  it.each([
+    ['Rechne (3 + 4) · 2', '7'],
+    ['Aufgabe 2: 5 + 3', '8'],
+    ['Nr. 3: 12 + 5', '17'],
+    ['Rechne 17 : 5', '3 Rest 2'],
+    ['Tauschaufgabe zu 3 + 5', '5 + 3'],
+    ['Tom rechnet 23 + 24 = 46. Hat er recht?', 'Nein'],
+    ['Überschlage 198 + 403', '600'],
+  ])(
+    'leaves "%s" to the validated AI assessment instead of computing a key',
+    async (text, answer) => {
+      const { checkAnswer } = build({
+        sessions: fakeSessionStore([onNextStep({ task: task(text) })]),
+      });
+
+      const result = await checkAnswer.execute(input({ answer }));
+
+      expect(result._unsafeUnwrap()).toMatchObject({ result: 'correct', assessedBy: 'ai' });
+    },
+  );
+
+  it.each([
+    ['Rechne aus: 23 + 24 = ?', '47'],
+    ['Was ist 6 · 7?', '42'],
+    ['12 : 4 =', '3'],
+  ])('computes the key of the bare expression "%s"', async (text, answer) => {
+    const { checkAnswer, requests } = build({
+      sessions: fakeSessionStore([onNextStep({ task: task(text) })]),
+      scripts: {
+        ...CORRECT,
+        answer_assessment: output('answer_assessment', NOT_YET, { result: 'not_yet' }),
+      },
+    });
+
+    const result = await checkAnswer.execute(input({ answer }));
+
+    expect(result._unsafeUnwrap()).toMatchObject({ result: 'correct', assessedBy: 'solution_key' });
+    expect(requests.map((r) => r.kind)).not.toContain('answer_assessment');
+  });
+
+  it('leaves a word problem, which names no operation, to the validated AI assessment', async () => {
+    const { checkAnswer } = build();
+
+    const result = await checkAnswer.execute(input());
+
+    expect(result._unsafeUnwrap()).toMatchObject({ result: 'correct', assessedBy: 'ai' });
+  });
+});
+
+describe('CheckAnswer when the answer says the child may be in danger (#90)', () => {
+  it('answers with the trusted-adult code, asks no AI, stores nothing and logs ids only', async () => {
+    const { checkAnswer, requests, sessions, events } = build();
+
+    const result = await checkAnswer.execute(input({ answer: 'Mein Papa schlägt mich.' }));
+
+    expect(result.isErr() && result.error).toMatchObject({ code: 'guidance.child_distress' });
+    expect(requests).toEqual([]);
+    expect(sessions.checks).toEqual([]);
+    expect(events).toEqual([
+      {
+        type: 'guidance.child_distress_detected',
+        tenantId: 'default',
+        actorId: 'parent-1',
+        childProfileId: 'child-1',
+        sessionId: null,
+        step: 'answer',
+      },
+    ]);
+  });
+
+  it("logs nothing for another parent's child: the id is not trusted before ownership", async () => {
+    const { checkAnswer, requests, events } = build();
+
+    const result = await checkAnswer.execute(
+      input({ childProfileId: OTHER_CHILD, answer: 'Mein Papa schlägt mich.' }),
+    );
+
+    expect(result.isErr() && result.error).toMatchObject({ kind: 'not_found' });
+    expect(requests).toEqual([]);
+    expect(events).toEqual([]);
   });
 });

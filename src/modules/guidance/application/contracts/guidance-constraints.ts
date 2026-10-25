@@ -34,6 +34,10 @@ export {
   TOPIC_CLASSIFICATION_VALIDATION_CODES,
 };
 export { CHILD_TASK_TEXT_MAX_LENGTH } from '../../domain/models/child-task-text';
+/** The #90 check on a child's own words, for other modules that take free text from a child. */
+export { detectsChildDistress } from '../../domain/child-safety/detect-child-distress';
+/** A task's arithmetic in one notation (`+ - * /`, number words as digits), for the canvas scene planner. */
+export { readMath } from '../../domain/solution-leak/read-math';
 
 /** No id or request key of a session step is longer; the domain checks the exact shape. */
 export const GUIDANCE_ID_MAX_LENGTH = 128;

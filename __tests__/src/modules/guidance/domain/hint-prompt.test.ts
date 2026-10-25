@@ -25,18 +25,47 @@ describe('buildHintPrompt', () => {
   it('passes the task and competencies as JSON data, never inside the instructions', () => {
     const { instructions, data } = buildHintPrompt(REQUEST);
 
-    expect(JSON.parse(data)).toEqual({ task: REQUEST.task, competencies: REQUEST.competencies });
+    expect(JSON.parse(data)).toEqual({
+      task: REQUEST.task,
+      competencies: REQUEST.competencies,
+      earlierHints: [],
+      lastAnswerResult: null,
+    });
     expect(instructions).not.toContain('Lisa');
     expect(instructions).not.toContain('Addieren');
   });
 
+  it('passes the earlier hints and the last answer result as data and asks to build on them', () => {
+    const earlierHints = [
+      { level: 'understand_task', text: 'Was sollst du herausfinden?' },
+    ] as const;
+
+    const { instructions, data } = buildHintPrompt({
+      ...REQUEST,
+      earlierHints,
+      lastAnswerResult: 'not_yet',
+    });
+
+    expect(JSON.parse(data)).toMatchObject({ earlierHints, lastAnswerResult: 'not_yet' });
+    expect(instructions).toContain('Do not repeat an earlier hint; build on it.');
+    expect(instructions).not.toContain('herausfinden');
+  });
+
   it.each(INJECTIONS)('keeps a prompt injection in the data: %s', (text) => {
-    const injected = { ...REQUEST, task: task(text) };
+    const injected = {
+      ...REQUEST,
+      task: task(text),
+      earlierHints: [{ level: 'understand_task', text }] as const,
+    };
 
     const prompt = buildHintPrompt(injected);
 
     expect(prompt.instructions).toBe(buildHintPrompt(REQUEST).instructions);
-    expect(JSON.parse(prompt.data)).toEqual({ task: text, competencies: REQUEST.competencies });
+    expect(JSON.parse(prompt.data)).toMatchObject({
+      task: text,
+      competencies: REQUEST.competencies,
+      earlierHints: [{ level: 'understand_task', text }],
+    });
   });
 
   it.each(HINT_LEVELS)(
@@ -54,8 +83,13 @@ describe('buildHintPrompt', () => {
     const extended = {
       ...REQUEST,
       competencies: [{ code: 'M2.1', description: 'Addieren', note: 'intern' }],
+      earlierHints: [
+        { level: 'understand_task', text: 'Lies genau.', requestId: 'geheim' },
+      ] as const,
     };
 
-    expect(buildHintPrompt(extended).data).not.toContain('intern');
+    const { data } = buildHintPrompt(extended);
+    expect(data).not.toContain('intern');
+    expect(data).not.toContain('geheim');
   });
 });

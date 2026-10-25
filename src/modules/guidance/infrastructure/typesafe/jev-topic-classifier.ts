@@ -46,9 +46,15 @@ const SUBJECT_QUESTIONS = {
 const candidateQuestion = (number: number) =>
   `The task in the field "message" of the state practises the competency given as candidate number ${number} in the field "candidates" of the state.`;
 
+const areaQuestion = (number: number) =>
+  `The task in the field "message" of the state is about the topics given as area number ${number} in the field "areas" of the state.`;
+
 const intentKey = (intent: string) => `intent_${intent}`;
 const subjectKey = (subject: string) => `subject_${subject}`;
 const candidateKey = (number: number) => `candidate_${number}`;
+const areaKey = (number: number) => `area_${number}`;
+
+type OfferedAreas = TopicClassificationRequest['areas'];
 
 /** A question Jev did not answer counts as 0: unsure leads to clarify or no competency, never a wrong one. */
 const scoreOf = (answers: Record<string, unknown>, key: string): number =>
@@ -73,6 +79,7 @@ function best<T>([first, ...rest]: readonly [T, ...T[]], score: (option: T) => n
 function classificationOf(
   answers: Record<string, unknown>,
   candidates: readonly CurriculumCompetency[],
+  areas: OfferedAreas,
 ) {
   const intent = best(CHILD_MESSAGE_INTENTS, (value) => scoreOf(answers, intentKey(value)));
   const subject = best(HINT_SUBJECTS, (value) => scoreOf(answers, subjectKey(value)));
@@ -82,6 +89,11 @@ function classificationOf(
       ? undefined
       : best([first, ...rest], ({ number }) => scoreOf(answers, candidateKey(number)));
   const hasTopic = intent.value === 'homework' && topic !== undefined && topic.confidence > 0;
+  const [firstArea, ...restAreas] = areas.map(({ id }, index) => ({ id, number: index + 1 }));
+  const area =
+    firstArea === undefined || intent.value !== 'homework'
+      ? undefined
+      : best([firstArea, ...restAreas], ({ number }) => scoreOf(answers, areaKey(number)));
   return {
     version: TOPIC_CLASSIFICATION_VERSION,
     intent,
@@ -89,15 +101,19 @@ function classificationOf(
     topic: hasTopic
       ? { kind: 'competency', competencyCode: topic.value.code, confidence: topic.confidence }
       : { kind: 'none' },
+    ...(area === undefined || area.confidence <= 0
+      ? {}
+      : { area: { areaId: area.value.id, confidence: area.confidence } }),
   };
 }
 
 /**
  * TypeSafe's Jev decision model as the topic classifier (#92): one `systemone` request with one
- * yes/no question per intent, subject and candidate competency, answered as probabilities. The
- * state is a JSON object of the child's message and the numbered candidate descriptions. Jev can
- * only point at a candidate number, so it can never name a competency outside the candidates. It
- * cannot propose an open label; that needs a text model (issue #92, step 12).
+ * yes/no question per intent, subject, candidate competency and offered island, answered as
+ * probabilities. The state is a JSON object of the child's message, the numbered candidate
+ * descriptions and the numbered islands' topics. Jev can only point at a number, so it can never
+ * name a competency or island outside the offered ones. It cannot propose an open label; that
+ * needs a text model (issue #92, step 12).
  */
 export class JevTopicClassifier implements TopicClassifier {
   readonly name = 'jev';
@@ -107,11 +123,15 @@ export class JevTopicClassifier implements TopicClassifier {
   classify({
     task,
     candidates,
+    areas,
   }: TopicClassificationRequest): ResultAsync<unknown, HintProviderFailure> {
     const offered = candidates.slice(0, MAX_CANDIDATES);
     const state = JSON.stringify({
       message: task,
       candidates: offered.map(({ description }, index) => ({ number: index + 1, description })),
+      ...(areas.length === 0
+        ? {}
+        : { areas: areas.map(({ topics }, index) => ({ number: index + 1, topics })) }),
     });
     const questions: Readonly<Record<string, string>> = Object.fromEntries<string>([
       ...CHILD_MESSAGE_INTENTS.map((intent): [string, string] => [
@@ -126,9 +146,10 @@ export class JevTopicClassifier implements TopicClassifier {
         candidateKey(index + 1),
         candidateQuestion(index + 1),
       ]),
+      ...areas.map((_, index): [string, string] => [areaKey(index + 1), areaQuestion(index + 1)]),
     ]);
     return ResultAsync.fromSafePromise(askJev(this.options, { state, questions })).andThen(
-      (answers) => answers.map((scores) => classificationOf(scores, offered)),
+      (answers) => answers.map((scores) => classificationOf(scores, offered, areas)),
     );
   }
 }

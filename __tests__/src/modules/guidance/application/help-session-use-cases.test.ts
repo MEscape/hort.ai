@@ -3,10 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { TEACHER_ROLE } from '@modules/auth/domain/models/role';
 import { ReplyToComprehensionQuestion } from '@modules/guidance/application/commands/reply-to-comprehension-question';
 import { StartHelpSession } from '@modules/guidance/application/commands/start-help-session';
+import { GetHomeworkAreaIds } from '@modules/guidance/application/queries/get-homework-area-ids';
 import { GetOpenHelpSession } from '@modules/guidance/application/queries/get-open-help-session';
 import { GUIDANCE_RATE_LIMITS } from '@modules/guidance/application/rate-limits';
 import type { AnswerCheckStep } from '@modules/guidance/domain/models/help-session';
-import { toStepRequestId } from '@modules/guidance/domain/models/ids';
+import { toHelpSessionId, toStepRequestId } from '@modules/guidance/domain/models/ids';
 import type { TopicClassifier } from '@modules/guidance/domain/ports/topic-classifier.port';
 import { UNCLASSIFIED_TOPIC } from '@modules/guidance/domain/topic/session-topic';
 
@@ -208,6 +209,8 @@ describe('StartHelpSession topic classification (#92)', () => {
       competencyCode: CODE,
       openTopicLabel: null,
       classifiedBy: 'jev',
+      areaId: null,
+      placeId: null,
     });
   });
 
@@ -247,6 +250,150 @@ describe('StartHelpSession topic classification (#92)', () => {
     await startWith(fake, inMemorySessions([storedSession()]))(TASK);
 
     expect(tasks).toEqual([]);
+  });
+});
+
+describe('StartHelpSession and the island of the task', () => {
+  const CODE = REQUEST.competencies[0]?.code ?? '';
+
+  /** Answers homework with the competency and, when islands were offered, the first of them. */
+  function islandClassifier(confidence = 0.9) {
+    const requests: Array<Parameters<TopicClassifier['classify']>[0]> = [];
+    const fake: TopicClassifier = {
+      name: 'jev',
+      classify: (request) => {
+        requests.push(request);
+        const [first] = request.areas;
+        return okAsync({
+          version: 1,
+          intent: { value: 'homework', confidence: 0.9 },
+          subject: null,
+          topic: { kind: 'competency', competencyCode: CODE, confidence: 0.9 },
+          ...(first === undefined ? {} : { area: { areaId: first.id, confidence } }),
+        });
+      },
+    };
+    return { fake, requests };
+  }
+
+  function startWith(fake: TopicClassifier | undefined, initial = inMemorySessions()) {
+    const { deps } = helpSessionDependencies(
+      initial.repository,
+      parent(),
+      createTestRateLimiter(),
+      fakeAssignments(),
+      fake,
+    );
+    return (input: Partial<Parameters<StartHelpSession['execute']>[0]> = {}) =>
+      new StartHelpSession(deps).execute({
+        childProfileId: OWN_CHILD,
+        task: TASK,
+        subject: 'math',
+        ...input,
+      });
+  }
+
+  /** An earlier homework session that cleared `areaId`, so the child may pick it. */
+  const cleared = (areaId: string) =>
+    storedSession({
+      id: toHelpSessionId(`cleared-${areaId}`),
+      status: 'abandoned',
+      topic: { ...UNCLASSIFIED_TOPIC, intent: 'homework', areaId, placeId: null },
+    });
+
+  it('stores the island and place the child started from, and asks the classifier about no island', async () => {
+    const store = inMemorySessions([cleared('zahlenwald')]);
+    const { fake, requests } = islandClassifier();
+
+    await startWith(fake, store)({ areaId: 'zahlenwald', placeId: 'plus-mulde' });
+
+    expect(store.starts[0]?.topic).toMatchObject({ areaId: 'zahlenwald', placeId: 'plus-mulde' });
+    expect(requests[0]?.areas).toEqual([]);
+  });
+
+  it('keeps the picked island even without any classifier', async () => {
+    const store = inMemorySessions([cleared('maerchenwald')]);
+    await startWith(undefined, store)({ areaId: 'maerchenwald' });
+    expect(store.starts[0]?.topic).toMatchObject({ areaId: 'maerchenwald', placeId: null });
+  });
+
+  it('ignores a picked island still in the mist and lets the classification decide', async () => {
+    const store = inMemorySessions();
+    const { fake, requests } = islandClassifier();
+
+    await startWith(fake, store)({ areaId: 'malmuehle', placeId: undefined });
+
+    const offered = requests[0]?.areas.map(({ id }) => id) ?? [];
+    expect(offered.length).toBeGreaterThan(0);
+    expect(store.starts[0]?.topic).toMatchObject({ areaId: offered[0], placeId: null });
+  });
+
+  it('always lets the child start from the starting island', async () => {
+    const store = inMemorySessions();
+    await startWith(undefined, store)({ areaId: 'ueberraschungsinsel' });
+    expect(store.starts[0]?.topic).toMatchObject({ areaId: 'ueberraschungsinsel' });
+  });
+
+  it('refuses an island that is not one, or a place of another island, before anything is stored', async () => {
+    const store = inMemorySessions();
+    const run = startWith(islandClassifier().fake, store);
+    for (const input of [
+      { areaId: 'atlantis' },
+      { areaId: 'maerchenwald', placeId: 'plus-mulde' },
+      { placeId: 'plus-mulde' },
+    ]) {
+      const result = await run(input);
+      expect(
+        result.isErr() && result.error.kind === 'validation' && result.error.fieldErrors,
+      ).toEqual({
+        areaId: ['guidance.validation.area_invalid'],
+      });
+    }
+    expect(store.starts).toEqual([]);
+  });
+
+  it('offers a free task the islands of its subject and grade and stores a sure answer', async () => {
+    const store = inMemorySessions();
+    const { fake, requests } = islandClassifier();
+
+    await startWith(fake, store)();
+
+    const offered = requests[0]?.areas.map(({ id }) => id) ?? [];
+    expect(offered).toContain('zahlenwald');
+    expect(offered).not.toContain('maerchenwald');
+    expect(offered).not.toContain('ueberraschungsinsel');
+    expect(store.starts[0]?.topic).toMatchObject({ areaId: offered[0], placeId: null });
+  });
+
+  it('stores no island for an unsure answer or without a classifier', async () => {
+    const unsure = inMemorySessions();
+    await startWith(islandClassifier(0.5).fake, unsure)();
+    expect(unsure.starts[0]?.topic).toMatchObject({ areaId: null, placeId: null });
+
+    const none = inMemorySessions();
+    await startWith(undefined, none)();
+    expect(none.starts[0]?.topic).toMatchObject({ areaId: null, placeId: null });
+  });
+
+  it('keeps the picked island when the reply to a clarifying question replaces that session', async () => {
+    const asked = storedSession({
+      task: task('Hilfe'),
+      topic: {
+        ...UNCLASSIFIED_TOPIC,
+        intent: 'homework',
+        opening: { kind: 'clarify' },
+        classifiedBy: 'jev',
+        areaId: 'zahlenwald',
+        placeId: 'plus-mulde',
+      },
+    });
+    const store = inMemorySessions([asked]);
+    const { fake, requests } = islandClassifier();
+
+    await startWith(fake, store)({ task: 'Hilfe. Ich soll 23 + 19 rechnen.' });
+
+    expect(store.starts[0]?.topic).toMatchObject({ areaId: 'zahlenwald', placeId: 'plus-mulde' });
+    expect(requests[0]?.areas).toEqual([]);
   });
 });
 
@@ -441,6 +588,60 @@ describe('GetOpenHelpSession', () => {
   });
 });
 
+describe('GetHomeworkAreaIds', () => {
+  const onIsland = (
+    id: string,
+    areaId: string | null,
+    opening: (typeof UNCLASSIFIED_TOPIC)['opening'] = null,
+    status: 'active' | 'abandoned' = 'abandoned',
+  ) =>
+    storedSession({
+      id: toHelpSessionId(id),
+      status,
+      topic: { ...UNCLASSIFIED_TOPIC, intent: 'homework', opening, areaId, placeId: null },
+    });
+
+  it('lists each island of the child’s homework sessions once, finished or switched or open', async () => {
+    const { deps } = helpSessionDependencies(
+      inMemorySessions([
+        onIsland('s1', 'zahlenwald'),
+        onIsland('s2', 'zahlenwald', null, 'active'),
+        onIsland('s3', 'malmuehle'),
+        onIsland('s4', null),
+      ]).repository,
+    );
+
+    const ids = (
+      await new GetHomeworkAreaIds(deps).execute({ childProfileId: OWN_CHILD })
+    )._unsafeUnwrap();
+
+    expect([...ids].sort()).toEqual(['malmuehle', 'zahlenwald']);
+  });
+
+  it('never counts a session that only asked to clarify or redirected small talk', async () => {
+    const { deps } = helpSessionDependencies(
+      inMemorySessions([
+        onIsland('s1', 'zahlenwald', { kind: 'clarify' }),
+        onIsland('s2', 'maerchenwald', { kind: 'redirect', intent: 'small_talk' }),
+      ]).repository,
+    );
+
+    const ids = await new GetHomeworkAreaIds(deps).execute({ childProfileId: OWN_CHILD });
+
+    expect(ids._unsafeUnwrap()).toEqual([]);
+  });
+
+  it("refuses another parent's child like an unknown one", async () => {
+    const { deps } = helpSessionDependencies(
+      inMemorySessions([onIsland('s1', 'zahlenwald')]).repository,
+    );
+
+    const result = await new GetHomeworkAreaIds(deps).execute({ childProfileId: OTHER_CHILD });
+
+    expect(result._unsafeUnwrapErr().kind).toBe('not_found');
+  });
+});
+
 describe('ReplyToComprehensionQuestion', () => {
   const reply = (sessions = [storedSession({ answerChecks: [check()] })]) => {
     const store = inMemorySessions(sessions);
@@ -496,8 +697,8 @@ describe('ReplyToComprehensionQuestion', () => {
     await run();
     const again = await run();
 
-    // XP for the session is granted once (#83).
-    expect(rewards).toEqual(['session-1']);
+    // The replay asks for the session's XP again; the grant is keyed by the session, so once (#83).
+    expect(rewards).toEqual(['session-1', 'session-1']);
     // The session is completed, so it is no longer open to replies.
     expect(again._unsafeUnwrap()).toEqual({ sessionId: 'session-1', status: 'understood' });
     expect(store.replies).toHaveLength(1);

@@ -29,15 +29,68 @@ const answered = (answers: Record<string, unknown>) =>
   new Response(JSON.stringify({ model: 'jev-1.14.0', answers }), { status: 200 });
 const noul = (value: number) => ({ type: 'noul', noul: value });
 
-function classify(fetch: typeof globalThis.fetch, candidates = CANDIDATES) {
+const AREAS = [
+  { id: 'zahlenwald', topics: ['counting', 'adding'] },
+  { id: 'obstgarten', topics: ['fractions', 'sharing'] },
+];
+
+function classify(
+  fetch: typeof globalThis.fetch,
+  candidates = CANDIDATES,
+  areas: ReadonlyArray<{ readonly id: string; readonly topics: readonly string[] }> = [],
+) {
   return new JevTopicClassifier({
     apiKey: API_KEY,
     apiUrl: 'https://api.typesafe.ai',
     modelId: 'jev-1.14.0',
     timeoutMs: 1000,
     fetch,
-  }).classify({ task: TASK, subject: 'math', candidates });
+  }).classify({ task: TASK, subject: 'math', candidates, areas });
 }
+
+describe('JevTopicClassifier and the islands', () => {
+  it('offers the islands by number with their topics as data, never by id or the child text', async () => {
+    const { fetch, bodies } = scriptedFetch(answered({}));
+
+    await classify(fetch, CANDIDATES, AREAS);
+
+    const body = JSON.parse(bodies[0] ?? '') as {
+      state: string;
+      questions: Record<string, { instructions: string }>;
+    };
+    expect(JSON.parse(body.state)).toMatchObject({
+      areas: [
+        { number: 1, topics: ['counting', 'adding'] },
+        { number: 2, topics: ['fractions', 'sharing'] },
+      ],
+    });
+    expect(Object.keys(body.questions)).toEqual(expect.arrayContaining(['area_1', 'area_2']));
+    const questions = JSON.stringify(body.questions);
+    expect(questions).not.toContain('obstgarten');
+    expect(questions).not.toContain('fractions');
+  });
+
+  it('names the best island of a homework task by its id', async () => {
+    const { fetch } = scriptedFetch(
+      answered({ intent_homework: noul(0.94), area_1: noul(0.3), area_2: noul(0.88) }),
+    );
+
+    expect((await classify(fetch, CANDIDATES, AREAS))._unsafeUnwrap()).toMatchObject({
+      area: { areaId: 'obstgarten', confidence: 0.88 },
+    });
+  });
+
+  it('names no island for small talk or when no island scored at all', async () => {
+    const smallTalk = scriptedFetch(answered({ intent_small_talk: noul(0.9), area_1: noul(0.9) }));
+    expect((await classify(smallTalk.fetch, CANDIDATES, AREAS))._unsafeUnwrap()).not.toHaveProperty(
+      'area',
+    );
+    const unscored = scriptedFetch(answered({ intent_homework: noul(0.9) }));
+    expect((await classify(unscored.fetch, CANDIDATES, AREAS))._unsafeUnwrap()).not.toHaveProperty(
+      'area',
+    );
+  });
+});
 
 describe('JevTopicClassifier', () => {
   it('asks fixed questions, with the child text and the candidates in the state only', async () => {

@@ -12,7 +12,9 @@ import { CheckAnswer } from './application/commands/check-answer';
 import { ReplyToComprehensionQuestion } from './application/commands/reply-to-comprehension-question';
 import { RequestHint } from './application/commands/request-hint';
 import { StartHelpSession } from './application/commands/start-help-session';
+import { GetHomeworkAreaIds } from './application/queries/get-homework-area-ids';
 import { GetOpenHelpSession } from './application/queries/get-open-help-session';
+import { GetTodayHelpMinutes } from './application/queries/get-today-help-minutes';
 import { AnswerCoach } from './application/services/answer-coach';
 import { HintOrchestrator } from './application/services/hint-orchestrator';
 import { AssignmentsModuleAccess } from './infrastructure/assignments/assignments-module-access';
@@ -105,12 +107,15 @@ const getAssignmentAccess = once(
  */
 const getHelpSessionRepository = once(() => new PrismaHelpSessionRepository(systemClock));
 
+/** The child's profile, and their day against the parent's limit and hours, on the server's clock. */
+const getChildProfileAccess = once(() => learnerChildProfileAccess(systemClock));
+
 /** The guidance use cases, over the configured AI provider and safety classifier. */
 export const getGuidanceCommands = once(() => {
   const safety = getSafetyClassifier();
   const deps = {
     authorization: getAccessControl(),
-    childProfiles: learnerChildProfileAccess,
+    childProfiles: getChildProfileAccess(),
     assignments: getAssignmentAccess(),
     competencies: curriculumCompetencyRetrieval,
     rateLimiter: getRateLimiter(),
@@ -130,7 +135,7 @@ const getHelpSessionDependencies = once((): HelpSessionDependencies => {
   const classifier = getTopicClassifier();
   return {
     authorization: getAccessControl(),
-    childProfiles: learnerChildProfileAccess,
+    childProfiles: getChildProfileAccess(),
     assignments: getAssignmentAccess(),
     rateLimiter: getRateLimiter(),
     sessions: getHelpSessionRepository(),
@@ -150,4 +155,8 @@ export const getHelpSessionCommands = once(() => ({
 /** "Continue": the child's open help session (#17). */
 export const getHelpSessionQueries = once(() => ({
   getOpenHelpSession: new GetOpenHelpSession(getHelpSessionDependencies()),
+  /** Home's time strip: today's help minutes, the count the daily limit is enforced against. */
+  getTodayHelpMinutes: new GetTodayHelpMinutes(getHelpSessionDependencies()),
+  /** The world map's mist: the islands the child did homework on. */
+  getHomeworkAreaIds: new GetHomeworkAreaIds(getHelpSessionDependencies()),
 }));

@@ -1,15 +1,26 @@
 import type { Clock } from '@lib/clock';
-import { createPersistenceFailures, dateToInstant, db, rollbackWith, rollbackable } from '@lib/db';
-import type { Rollbackable } from '@lib/db';
-import { conflictError, infrastructureError, notFoundError } from '@lib/errors';
-import type { ConflictAppError, InfrastructureAppError } from '@lib/errors';
+import { createPersistenceFailures, dateToInstant, db, rollbackWith } from '@lib/db';
+import { conflictError } from '@lib/errors';
 import { errAsync, fromThrowableAsync, okAsync } from '@lib/result';
 import type { AppResultAsync } from '@lib/result';
 
 import { GUIDANCE_ERROR_CODES } from '../../domain/errors/guidance-errors';
-import { HELP_SESSION_STEP_LIMIT, toLadderState } from '../../domain/models/help-session';
+import { helpMinutes } from '../../domain/models/help-minutes';
+import {
+  HELP_SESSION_STEP_LIMIT,
+  isSameTask,
+  toLadderState,
+} from '../../domain/models/help-session';
 import { toHelpSessionId } from '../../domain/models/ids';
 
+import {
+  duplicateOnConflict,
+  findHomeworkAreaIds,
+  runStep,
+  sessionNotFound,
+  settleStep,
+  storeFailed,
+} from './help-session-ownership';
 import {
   ANSWER_SELECT,
   ASSESSED_BY_RECORD,
@@ -21,17 +32,21 @@ import {
   SESSION_SELECT,
   STATUS_RECORD,
   SUBJECT_RECORD,
+  raisedLevel,
+  toStepTimes,
   toTopicRecord,
   toHelpSession,
 } from './help-session-record-mapper';
 
-import type { LevelValue } from './help-session-record-mapper';
 import type { HelpSession } from '../../domain/models/help-session';
-import type { HelpSessionRepository } from '../../domain/ports/help-session.repository';
+import type {
+  HelpSessionOwner,
+  HelpSessionRepository,
+  NewHelpSession,
+} from '../../domain/ports/help-session.repository';
 import type {
   HelpSessionRef,
   HintSessionStoreError as HelpSessionLoadError,
-  RecordOutcome as StepOutcome,
 } from '../../domain/ports/hint-session-store.port';
 
 const failures = createPersistenceFailures({
@@ -43,73 +58,6 @@ const failures = createPersistenceFailures({
 /** Only seen inside this file: a unique index refused a repeat, which is an expected outcome. */
 const alreadyStored = () => conflictError('guidance.step_already_stored', 'Already stored.');
 
-const sessionNotFound = () =>
-  notFoundError(GUIDANCE_ERROR_CODES.sessionNotFound, 'The help session was not found.');
-
-/** Rows that break the contract, or a session that vanished mid-operation: logged, never shown half. */
-const storeFailed = (operation: string): InfrastructureAppError =>
-  infrastructureError(
-    GUIDANCE_ERROR_CODES.sessionStoreFailed,
-    `HelpSession persistence failed during ${operation}.`,
-    undefined,
-  );
-
-type Database = Pick<typeof db, 'orm'>;
-
-/** The one active session `ref` names, pinned to its tenant, owner and child. */
-const activeSession = (database: Database, ref: HelpSessionRef) =>
-  database.orm.public.HelpSession.where({
-    id: ref.sessionId,
-    tenantId: ref.tenantId,
-    ownerId: ref.ownerId,
-    childProfileId: ref.childProfileId,
-    status: STATUS_RECORD.active,
-  });
-
-/** A repeat (`conflict`) is the duplicate outcome; anything else stays a failure. */
-const duplicateOnConflict = (
-  error: HelpSessionLoadError | ConflictAppError,
-): AppResultAsync<StepOutcome, HelpSessionLoadError> =>
-  error.kind === 'conflict' ? okAsync('duplicate') : errAsync(error);
-
-/** How a step's transaction ended: a refusal rolled back with `rollbackWith` is a duplicate. */
-type StepEnd = Rollbackable<'recorded' | 'missing', 'duplicate'>;
-
-const settleStep = (ended: StepEnd): AppResultAsync<StepOutcome, HelpSessionLoadError> => {
-  if (ended.kind === 'rolled-back') {
-    return okAsync(ended.refusal);
-  }
-  return ended.value === 'missing' ? errAsync(sessionNotFound()) : okAsync('recorded');
-};
-
-/** What a step writes, given the locked session; it returns the session columns it moves on. */
-type StepWrite = (
-  tx: Database,
-  locked: { readonly version: number; readonly currentHintLevel: LevelValue | null },
-) => Promise<Record<string, unknown>>;
-
-/**
- * One step in one transaction: lock the active session (an ended or foreign one is not found),
- * write the step, then move the session on with what the step returns and a new version. A
- * repeated request id hits the unique index, so the whole transaction rolls back and the caller
- * maps the conflict to `duplicate`.
- */
-function runStep(clock: Clock, ref: HelpSessionRef, write: StepWrite): Promise<StepEnd> {
-  return rollbackable(() =>
-    db.transaction(async (tx) => {
-      const locked = await activeSession(tx, ref)
-        .select('version', 'currentHintLevel')
-        .update({ updatedAt: dateToInstant(clock.now()) });
-      if (locked === null) {
-        return 'missing' as const;
-      }
-      const moved = await write(tx, locked);
-      await activeSession(tx, ref).updateAndCount({ ...moved, version: locked.version + 1 });
-      return 'recorded' as const;
-    }),
-  );
-}
-
 /**
  * Prisma-backed help sessions, the only place that touches `db` for them. Every query names the
  * tenant, the owner and the child; step rows are reached only through a session pinned that way.
@@ -118,7 +66,14 @@ function runStep(clock: Clock, ref: HelpSessionRef, write: StepWrite): Promise<S
 export class PrismaHelpSessionRepository implements HelpSessionRepository {
   constructor(private readonly clock: Clock) {}
 
-  start: HelpSessionRepository['start'] = (owner, session) => {
+  start: HelpSessionRepository['start'] = (owner, session) => this.create(owner, session, true);
+
+  /** `retake`: whether a refused start may end the session that holds the child's slot, once. */
+  private create(
+    owner: HelpSessionOwner,
+    session: NewHelpSession,
+    retake: boolean,
+  ): ReturnType<HelpSessionRepository['start']> {
     const now = dateToInstant(this.clock.now());
     return fromThrowableAsync(
       () =>
@@ -160,16 +115,21 @@ export class PrismaHelpSessionRepository implements HelpSessionRepository {
         if (error.kind === 'not_found') {
           return errAsync(storeFailed('start'));
         }
-        // A twin start won the one-active-per-child index: its session is the answer.
-        return error.kind === 'conflict'
-          ? this.findOpen(owner, session.childProfileId).andThen((open) =>
-              open === null
-                ? errAsync(storeFailed('start'))
-                : okAsync({ session: open, created: false }),
-            )
-          : errAsync(error);
+        if (error.kind !== 'conflict') {
+          return errAsync(error);
+        }
+        // The one-active-per-child index refused. A twin start of the same task won: its session
+        // is the answer. Another task opened meanwhile is ended once, as `replaces` would have.
+        return this.findOpen(owner, session.childProfileId).andThen((open) => {
+          if (open !== null && isSameTask(open, session)) {
+            return okAsync({ session: open, created: false });
+          }
+          return retake
+            ? this.create(owner, { ...session, replaces: open?.id ?? null }, false)
+            : errAsync(storeFailed('start'));
+        });
       });
-  };
+  }
 
   findOpen: HelpSessionRepository['findOpen'] = (owner, childProfileId) =>
     fromThrowableAsync(
@@ -193,15 +153,51 @@ export class PrismaHelpSessionRepository implements HelpSessionRepository {
           ),
     );
 
+  helpMinutesBetween: HelpSessionRepository['helpMinutesBetween'] = (
+    owner,
+    childProfileId,
+    { from, to },
+  ) =>
+    fromThrowableAsync(
+      async () =>
+        // @owner-scope child Exact tenant, parent and child; the steps are reached through those sessions.
+        db.orm.public.HelpSession.where({
+          tenantId: owner.tenantId,
+          ownerId: owner.ownerId,
+          childProfileId,
+        })
+          // Every step touches `updatedAt`, so a session with a step in the range was touched since.
+          .where((row) => row.startedAt.lt(dateToInstant(to)))
+          .where((row) => row.updatedAt.gte(dateToInstant(from)))
+          .select('startedAt')
+          .include('hintEvents', (hints) => hints.select('occurredAt'))
+          .include('childAnswers', (answers) => answers.select('occurredAt'))
+          .include('comprehensionQuestions', (questions) => questions.select('repliedAt'))
+          .all(),
+      failures.infraOnly('helpMinutesBetween'),
+    ).map((sessions) => helpMinutes(sessions.map((session) => toStepTimes(session, { from, to }))));
+
+  homeworkAreaIds: HelpSessionRepository['homeworkAreaIds'] = (...scope) =>
+    fromThrowableAsync(() => findHomeworkAreaIds(...scope), failures.infraOnly('homeworkAreaIds'));
+
   loadSession: HelpSessionRepository['loadSession'] = (ref, includeCompleted = false) =>
     this.read(ref, includeCompleted);
 
   load: HelpSessionRepository['load'] = (ref) => this.loadSession(ref).map(toLadderState);
 
-  recordHint: HelpSessionRepository['recordHint'] = (ref, hint) =>
+  recordHint: HelpSessionRepository['recordHint'] = (ref, hint, after) =>
     fromThrowableAsync(
       () =>
-        runStep(this.clock, ref, async (tx) => {
+        runStep(this.clock, ref, async (tx, locked) => {
+          // @owner-scope child The session was locked with tenant, owner and child in this transaction.
+          const latest = await tx.orm.public.HintEvent.where({ sessionId: ref.sessionId })
+            .select('idempotencyKey')
+            .orderBy([(row) => row.occurredAt.desc(), (row) => row.id.desc()])
+            .first();
+          if ((latest?.idempotencyKey ?? null) !== after) {
+            // Another hint was recorded since this one's level was decided: that one took the rung.
+            rollbackWith('duplicate');
+          }
           // @owner-scope child The session was locked with tenant, owner and child in this transaction.
           await tx.orm.public.HintEvent.create({
             sessionId: ref.sessionId,
@@ -209,9 +205,12 @@ export class PrismaHelpSessionRepository implements HelpSessionRepository {
             level: LEVEL_RECORD[hint.level],
             text: hint.kind === 'generated' ? hint.text : null,
             fallbackReason: hint.kind === 'fallback' ? hint.reason : null,
+            competencyCode: locked.competencyCode,
             occurredAt: dateToInstant(this.clock.now()),
           });
-          return { currentHintLevel: LEVEL_RECORD[hint.level] };
+          return {
+            currentHintLevel: raisedLevel(locked.currentHintLevel, LEVEL_RECORD[hint.level]),
+          };
         }),
       failures.orConflict('recordHint', alreadyStored),
     )

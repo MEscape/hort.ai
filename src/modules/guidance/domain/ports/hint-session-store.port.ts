@@ -31,7 +31,10 @@ export interface RecordedAnswerCheck {
   readonly question: { readonly text: string | null } | null;
 }
 
-/** A step stored now, or one already stored under the same request id (a retried request). */
+/**
+ * A step stored now, or nothing stored because the step is already there: the same request id (a
+ * retried request), or, for a hint, another hint recorded since the state it was decided from.
+ */
 export type RecordOutcome = 'recorded' | 'duplicate';
 
 export type HintSessionStoreError = NotFoundAppError | InfrastructureAppError;
@@ -43,9 +46,16 @@ export type HintSessionStoreError = NotFoundAppError | InfrastructureAppError;
  */
 export interface HintSessionStore {
   load(ref: HelpSessionRef): AppResultAsync<HintLadderState, HintSessionStoreError>;
+  /**
+   * `after` is the request id of the latest hint in the state the level was decided from (`null`
+   * for none). When the session's latest hint is another one by now, a concurrent request already
+   * took this rung: nothing is stored and the outcome is `duplicate`, so one rung is never recorded
+   * twice. The session's hint level only ever goes up.
+   */
   recordHint(
     ref: HelpSessionRef,
     hint: GivenHint,
+    after: StepRequestId | null,
   ): AppResultAsync<RecordOutcome, HintSessionStoreError>;
   /** The hint level at the time is taken from the stored session, not passed in. */
   recordAnswerCheck(

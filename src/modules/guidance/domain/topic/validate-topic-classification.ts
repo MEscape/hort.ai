@@ -16,13 +16,19 @@ import {
   TOPIC_KINDS,
 } from './topic-classification';
 
-import type { Confidence, TopicClassification, TopicGuess } from './topic-classification';
+import type {
+  AreaGuess,
+  Confidence,
+  TopicClassification,
+  TopicGuess,
+} from './topic-classification';
 import type { TopicClassificationValidationCode } from '../errors/topic-classification-errors';
 
 /** The key a violation of the output as a whole is reported under. */
 const WHOLE_OUTPUT = '$';
 
-const TOP_FIELDS = ['version', 'intent', 'subject', 'topic'];
+const TOP_FIELDS = ['version', 'intent', 'subject', 'topic', 'area'];
+const AREA_FIELDS = ['areaId', 'confidence'];
 const PART_FIELDS = ['value', 'confidence'];
 const TOPIC_FIELDS = {
   competency: ['kind', 'competencyCode', 'confidence'],
@@ -48,6 +54,8 @@ type Report = (field: string, code: TopicClassificationValidationCode) => void;
 interface Context {
   /** The codes of the candidate competencies offered in this request; no other code is accepted. */
   readonly candidateCodes: ReadonlySet<string>;
+  /** The islands offered in this request (none when the child picked one); no other is accepted. */
+  readonly candidateAreaIds?: ReadonlySet<string>;
 }
 
 /** The object at `path`, or `undefined` after reporting it missing or of the wrong type. */
@@ -188,12 +196,33 @@ function topicAt(raw: unknown, context: Context, report: Report): TopicGuess | u
   return label === undefined || confidence === undefined ? undefined : { kind, label, confidence };
 }
 
+/** An island offered in this request, with its confidence; absent or `null` is no island. */
+function areaAt(raw: unknown, context: Context, report: Report): AreaGuess | null | undefined {
+  if (raw === undefined || raw === null) {
+    return null;
+  }
+  const area = objectAt(report, raw, { path: 'area', allowed: AREA_FIELDS });
+  if (area === undefined) {
+    return undefined;
+  }
+  const areaId = area['areaId'];
+  if (areaId === undefined) {
+    report('area.areaId', CODES.missingField);
+  } else if (!isString(areaId)) {
+    report('area.areaId', CODES.invalidType);
+  } else if (!(context.candidateAreaIds?.has(areaId) ?? false)) {
+    report('area.areaId', CODES.unknownArea);
+  }
+  const confidence = confidenceAt(area['confidence'], 'area.confidence', report);
+  return isString(areaId) && confidence !== undefined ? { areaId, confidence } : undefined;
+}
+
 /**
  * Validates a raw, untrusted topic classification (#92) against its contract and the request it
  * answers. Rejects anything that is not an object of version 1, an unknown field at any level, an
  * intent or subject outside the closed lists, a confidence outside 0 to 1, a competency that was
- * not one of this request's candidates, an open label that is not a short, safe plain label, and a
- * topic on a message that is not homework. A rejection lists every violation by field; the caller
+ * not one of this request's candidates, an island that was not offered, an open label that is not
+ * a short, safe plain label, and a topic or island on a message that is not homework. A rejection lists every violation by field; the caller
  * then proceeds without a classification (homework, no competency).
  */
 export function validateTopicClassification(
@@ -234,12 +263,16 @@ export function validateTopicClassification(
   ) {
     report('topic', CODES.inconsistentTopic);
   }
+  const area = areaAt(raw['area'], context, report);
+  if (intent !== undefined && intent.value !== 'homework' && area !== null && area !== undefined) {
+    report('area', CODES.inconsistentTopic);
+  }
   if (violations.size > 0) {
     return err(topicClassificationRejected(Object.fromEntries(violations)));
   }
   invariant(
-    intent !== undefined && subject !== undefined && topic !== undefined,
+    intent !== undefined && subject !== undefined && topic !== undefined && area !== undefined,
     'validateTopicClassification: an unchecked part reached the mapper.',
   );
-  return ok({ version: TOPIC_CLASSIFICATION_VERSION, intent, subject, topic });
+  return ok({ version: TOPIC_CLASSIFICATION_VERSION, intent, subject, topic, area });
 }

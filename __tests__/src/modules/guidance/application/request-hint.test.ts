@@ -155,7 +155,7 @@ describe('RequestHint: the hint ladder (#30)', () => {
             requestId: parseStepRequestId('earlier')._unsafeUnwrap(),
             level: 'activate_prior_knowledge',
             kind: 'fallback',
-            reason: 'timeout',
+            reason: 'invalid_output',
           },
         ],
       }),
@@ -165,6 +165,48 @@ describe('RequestHint: the hint ladder (#30)', () => {
     await requestHint.execute({ ...input(), level: 'similar_example' } as never);
 
     expect(requests.map((r) => r.level)).toEqual(['next_step']);
+  });
+
+  it('hands the AI the latest generated hints and the last answer result, never more', async () => {
+    const generated = (n: number) =>
+      ({
+        requestId: parseStepRequestId(`earlier-${String(n)}`)._unsafeUnwrap(),
+        level: 'understand_task',
+        kind: 'generated',
+        text: `Hinweis ${String(n)}`,
+      }) as const;
+    const fallback = {
+      requestId: parseStepRequestId('earlier-fallback')._unsafeUnwrap(),
+      level: 'activate_prior_knowledge',
+      kind: 'fallback',
+      reason: 'invalid_output',
+    } as const;
+    const sessions = fakeSessionStore([
+      openSession({
+        hints: [generated(1), generated(2), fallback, generated(3), generated(4), generated(5)],
+        answers: ['not_yet', 'partly_correct'],
+      }),
+    ]);
+    const { requestHint, requests } = build({ sessions });
+
+    await requestHint.execute(input());
+
+    expect(requests[0]?.earlierHints).toEqual(
+      [2, 3, 4, 5].map((n) => ({ level: 'understand_task', text: `Hinweis ${String(n)}` })),
+    );
+    expect(requests[0]?.lastAnswerResult).toBe('partly_correct');
+  });
+
+  it('gives two requests at once the one hint recorded for the rung, never the rung twice', async () => {
+    const { requestHint, sessions } = build();
+
+    const [first, second] = await Promise.all([
+      requestHint.execute(input({ requestId: 'tab-1' })),
+      requestHint.execute(input({ requestId: 'tab-2' })),
+    ]);
+
+    expect(sessions.hintsOf()).toHaveLength(1);
+    expect(second._unsafeUnwrap()).toEqual(first._unsafeUnwrap());
   });
 
   it('skips "understand the task" once an answer was partly correct', async () => {

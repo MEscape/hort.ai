@@ -33,6 +33,10 @@
       "sessionNotFound": "Diese Aufgabe ist nicht mehr offen. Starte sie bitte neu.",
       "noOpenQuestion": "Gerade gibt es keine Frage zu beantworten.",
       "assignmentNotFound": "Diese Schulaufgabe gibt es nicht mehr. Such dir eine andere aus oder frag deine Lehrerin oder deinen Lehrer.",
+      "childDistress": "Das klingt, als ginge es dir gerade nicht gut. Bitte erzähl es einem Erwachsenen, dem du vertraust – deinen Eltern, deiner Lehrerin oder deinem Lehrer. Du kannst auch kostenlos die Nummer gegen Kummer anrufen: 116 111.",
+      "replyNotAnAnswer": "Erzähl es mir mit deinen eigenen Worten – es muss nicht perfekt sein.",
+      "learningPaused": "Jetzt ist Pause. Deine Aufgabe ist gespeichert – später geht es weiter.",
+      "noHintForOpening": "Hier gibt es keinen Tipp. Zeig mir gern deine Hausaufgabe.",
       "rateLimited": "Mach kurz eine Pause und versuch es gleich noch einmal.",
       "infrastructure": "Gerade klappt etwas nicht. Bitte versuch es gleich noch einmal.",
       "unexpected": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal."
@@ -56,7 +60,11 @@
       "home": "Zur Startseite",
       "emptyTitle": "Gerade ist keine Aufgabe offen",
       "emptyBody": "Starte eine neue Aufgabe, dann helfe ich dir beim Nachdenken.",
-      "newTask": "Neue Aufgabe"
+      "newTask": "Neue Aufgabe",
+      "progress": "Schritt {current} von {total}",
+      "panelTitle": "Mit {name} schreiben",
+      "panelOpen": "Schreiben",
+      "close": "Schließen"
     }
   }
 }

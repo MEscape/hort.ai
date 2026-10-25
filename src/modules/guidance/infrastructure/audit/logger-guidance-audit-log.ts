@@ -25,6 +25,8 @@ export const LEVEL_BY_EVENT = {
   'guidance.topic_classification_fallback_used': 'warn',
   'guidance.topic_classified': 'info',
   'guidance.topic_subject_mismatch': 'info',
+  // A child who may need a trusted adult: visible to operations, still ids only.
+  'guidance.child_distress_detected': 'warn',
 } as const satisfies Record<GuidanceEvent['type'], 'info' | 'warn'>;
 
 /** One structured log line per event under `guidance.audit`; never throws. */

@@ -1,3 +1,5 @@
+import { areasForSchoolSubject } from '@modules/world';
+
 import { toSessionTopic } from '../../domain/topic/session-topic';
 
 import { classifyTopic } from './classify-topic';
@@ -5,6 +7,7 @@ import { classifyTopic } from './classify-topic';
 import type { ChildTaskText } from '../../domain/models/child-task-text';
 import type { HelpSession } from '../../domain/models/help-session';
 import type { HintSubject } from '../../domain/models/hint-subject';
+import type { SessionIsland } from '../../domain/models/session-island';
 import type { OwnChildProfile } from '../../domain/ports/child-profile-access.port';
 import type { SessionTopic } from '../../domain/topic/session-topic';
 import type { HelpSessionDependencies } from '../help-session-dependencies';
@@ -14,6 +17,10 @@ import type { HelpSessionDependencies } from '../help-session-dependencies';
  * When the open session it replaces asked to clarify, the new task is the child's reply (the task
  * with the explanation added), so it is classified once more and never asked about again. A failed
  * retrieval only means no competency can be picked: the intent is still classified.
+ *
+ * The island the child started from always wins and the classifier is asked about none; the reply
+ * to a clarifying question keeps the island of the session it replaces (only a pick can be stored
+ * on a session that asked). A free task is offered the islands of its subject and the child's grade.
  */
 export async function classifySessionTask(
   { competencies, classifier, audit }: HelpSessionDependencies,
@@ -22,13 +29,21 @@ export async function classifySessionTask(
     task,
     subject,
     replaces,
+    island,
   }: {
     readonly child: OwnChildProfile;
     readonly task: ChildTaskText;
     readonly subject: HintSubject;
     readonly replaces: HelpSession | null;
+    readonly island: SessionIsland | null;
   },
 ): Promise<SessionTopic> {
+  const asked = replaces?.topic.opening?.kind === 'clarify' ? replaces.topic : null;
+  const clarificationAlreadyAsked = asked !== null;
+  const askedArea = asked?.areaId ?? null;
+  const askedIsland =
+    askedArea === null ? null : { areaId: askedArea, placeId: asked?.placeId ?? null };
+  const picked = island ?? askedIsland;
   const candidates = await competencies
     .findFor({ federalState: child.federalState, grade: child.grade, subject, task })
     .match(
@@ -49,8 +64,10 @@ export async function classifySessionTask(
       task,
       subject,
       candidates,
-      clarificationAlreadyAsked: replaces?.topic.opening?.kind === 'clarify',
+      areas: picked === null ? areasForSchoolSubject(subject, child.grade) : [],
+      clarificationAlreadyAsked,
     },
   );
-  return toSessionTopic(classified);
+  const topic = toSessionTopic(classified);
+  return picked === null ? topic : { ...topic, ...picked };
 }

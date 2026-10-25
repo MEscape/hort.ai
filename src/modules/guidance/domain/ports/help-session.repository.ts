@@ -48,6 +48,26 @@ export interface HelpSessionRepository extends HintSessionStore {
     childProfileId: ChildProfileId,
   ): AppResultAsync<HelpSession | null, InfrastructureAppError>;
 
+  /**
+   * Minutes the child spent in help sessions within `[from, to)`, measured from the stored step
+   * times of all their sessions; the daily limit counts against it.
+   */
+  helpMinutesBetween(
+    owner: HelpSessionOwner,
+    childProfileId: ChildProfileId,
+    range: { readonly from: Date; readonly to: Date },
+  ): AppResultAsync<number, InfrastructureAppError>;
+
+  /**
+   * The distinct world islands of the child's sessions that opened as help (no clarify or redirect
+   * opening), whatever their status; at most `limit`.
+   */
+  homeworkAreaIds(
+    owner: HelpSessionOwner,
+    childProfileId: ChildProfileId,
+    limit: number,
+  ): AppResultAsync<readonly string[], InfrastructureAppError>;
+
   /** The whole active session `ref` names. Completion recovery alone may also read a completed one. */
   loadSession(
     ref: HelpSessionRef,

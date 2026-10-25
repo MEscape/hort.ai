@@ -56,8 +56,8 @@ function initialLines(session: HelpSessionDto): ConversationLine[] {
 /**
  * The help conversation of one stored session (#83). The browser keeps no session state of its
  * own: it starts from the stored session and adds only what each Server Action returned. Every
- * step carries a request id made once per intent and reused on retry, so a double tap or a retry
- * after a lost answer is stored once.
+ * step carries a request id made once per intent (step and text) and reused on retry, so a double
+ * tap or a retry after a lost answer is stored once.
  */
 export function useHelpConversation(childProfileId: string, initial: HelpSessionDto) {
   const sessionId = initial.sessionId;
@@ -67,7 +67,7 @@ export function useHelpConversation(childProfileId: string, initial: HelpSession
   const [draft, setDraft] = useState('');
   const [failure, setFailure] = useState<StepFailure | null>(null);
   const [isPending, startTransition] = useTransition();
-  const pending = useRef<{ step: Step; requestId: string } | null>(null);
+  const pending = useRef<{ step: Step; requestId: string; text: string } | null>(null);
   const lastStep = useRef<Step>('hint');
   const opened = useRef(false);
 
@@ -156,8 +156,10 @@ export function useHelpConversation(childProfileId: string, initial: HelpSession
     }
     setFailure(null);
     lastStep.current = step;
-    if (pending.current?.step !== step) {
-      pending.current = { step, requestId: crypto.randomUUID() };
+    // A changed answer or reply is a new intent: the old id would replay the old one's result.
+    const text = step === 'hint' ? '' : draft;
+    if (pending.current?.step !== step || pending.current.text !== text) {
+      pending.current = { step, requestId: crypto.randomUUID(), text };
     }
     const { requestId } = pending.current;
     if (step === 'hint') {
@@ -181,7 +183,7 @@ export function useHelpConversation(childProfileId: string, initial: HelpSession
       return;
     }
     opened.current = true;
-    pending.current = { step: 'hint', requestId: OPENING_REQUEST_ID };
+    pending.current = { step: 'hint', requestId: OPENING_REQUEST_ID, text: '' };
     askHint(OPENING_REQUEST_ID);
   }, []);
 
@@ -189,7 +191,7 @@ export function useHelpConversation(childProfileId: string, initial: HelpSession
     lines,
     phase,
     /** The opening thinking prompt is not a hint the child asked for. */
-    hintsUsed: Math.max(0, hintCount - 1),
+    hintsUsed: Math.max(0, hintCount - (initial.opening === null ? 1 : 0)),
     draft,
     setDraft,
     failure,

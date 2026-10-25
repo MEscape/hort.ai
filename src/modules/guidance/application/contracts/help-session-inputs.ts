@@ -10,6 +10,10 @@ export interface StartHelpSessionInput {
   readonly assignmentId?: string | undefined;
   /** One of `HINT_SUBJECTS`; it picks the curriculum that grounds the session's hints. */
   readonly subject: string;
+  /** The world island the child started from (`/start?area=`); it always wins over a classification. */
+  readonly areaId?: string | undefined;
+  /** One of that island's own places; needs `areaId`. */
+  readonly placeId?: string | undefined;
 }
 
 /** "Continue": the child's open session, if any. */

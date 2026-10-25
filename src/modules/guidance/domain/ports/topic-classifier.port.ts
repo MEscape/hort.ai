@@ -1,3 +1,5 @@
+import type { WorldArea } from '@modules/world';
+
 import type { ResultAsync } from '@lib/result';
 
 import type { HintProviderFailure } from './hint-provider.port';
@@ -15,6 +17,11 @@ export interface TopicClassificationRequest {
   readonly subject: HintSubject;
   /** The competencies `findRelevantCompetencies` returned for the child's own state and grade (at most five). */
   readonly candidates: readonly CurriculumCompetency[];
+  /**
+   * The islands of the world the task may belong to (`areasForSchoolSubject`); empty when the child
+   * picked one. Their English topics are trusted data, never the child's words.
+   */
+  readonly areas: ReadonlyArray<Pick<WorldArea, 'id' | 'topics'>>;
 }
 
 /** Which model classified; stored with the session (#17) next to `fallback`. */

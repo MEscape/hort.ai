@@ -1,4 +1,6 @@
 // @vitest-environment node
+import { createHash } from 'node:crypto';
+
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { toActorId, toTenantId } from '@modules/auth/domain/models/ids';
@@ -8,6 +10,7 @@ import {
   parseChildTaskText,
 } from '@modules/guidance/domain/models/child-task-text';
 import type { ChildTaskText } from '@modules/guidance/domain/models/child-task-text';
+import type { HintLevel } from '@modules/guidance/domain/models/hint-level';
 import {
   toAssignmentId,
   toChildProfileId,
@@ -18,7 +21,7 @@ import type { HelpSessionRepository } from '@modules/guidance/domain/ports/help-
 import type { HelpSessionRef } from '@modules/guidance/domain/ports/hint-session-store.port';
 import { UNCLASSIFIED_TOPIC } from '@modules/guidance/domain/topic/session-topic';
 
-import type { db as Db } from '@lib/db';
+import type { db as Db, dateToInstant as DateToInstant } from '@lib/db';
 
 /**
  * The Prisma adapter against the real help-session tables: the local Postgres after
@@ -52,6 +55,7 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
 
   let repository: HelpSessionRepository;
   let db: typeof Db;
+  let toInstant: typeof DateToInstant;
   let disconnect: () => Promise<void>;
 
   /** A parent with one finished child profile in a tenant of its own. */
@@ -91,6 +95,7 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
     const { PrismaHelpSessionRepository } =
       await import('@modules/guidance/infrastructure/prisma/prisma-help-session.repository');
     db = database.db;
+    toInstant = database.dateToInstant;
     disconnect = database.disconnectDb;
     repository = new PrismaHelpSessionRepository(advancingClock());
   });
@@ -110,6 +115,8 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
       competencyCode: null,
       openTopicLabel: null,
       classifiedBy: 'jev',
+      areaId: 'zahlenwald',
+      placeId: 'plus-mulde',
     } as const;
 
     const { session } = (
@@ -132,18 +139,26 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
   it('saves every step and reloads exactly the same state', async () => {
     const { owner, childProfileId, ref } = await started();
 
-    await repository.recordHint(ref, {
-      requestId: toStepRequestId('hint-1'),
-      level: 'understand_task',
-      kind: 'generated',
-      text: 'Was sollst du herausfinden?',
-    });
-    await repository.recordHint(ref, {
-      requestId: toStepRequestId('hint-2'),
-      level: 'next_step',
-      kind: 'fallback',
-      reason: 'timeout',
-    });
+    await repository.recordHint(
+      ref,
+      {
+        requestId: toStepRequestId('hint-1'),
+        level: 'understand_task',
+        kind: 'generated',
+        text: 'Was sollst du herausfinden?',
+      },
+      null,
+    );
+    await repository.recordHint(
+      ref,
+      {
+        requestId: toStepRequestId('hint-2'),
+        level: 'next_step',
+        kind: 'fallback',
+        reason: 'timeout',
+      },
+      toStepRequestId('hint-1'),
+    );
     await repository.recordAnswerCheck(ref, {
       requestId: toStepRequestId('check-1'),
       answer: text('41'),
@@ -170,6 +185,8 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
       task: 'Rechne 23 + 19.',
       assignmentId: null,
       subject: 'math',
+      competencyCode: null,
+      opening: null,
       hints: loaded.hints,
       answers: ['not_yet', 'correct'],
     });
@@ -222,8 +239,8 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
       question: null,
     } as const;
 
-    expect((await repository.recordHint(ref, hint))._unsafeUnwrap()).toBe('recorded');
-    expect((await repository.recordHint(ref, hint))._unsafeUnwrap()).toBe('duplicate');
+    expect((await repository.recordHint(ref, hint, null))._unsafeUnwrap()).toBe('recorded');
+    expect((await repository.recordHint(ref, hint, null))._unsafeUnwrap()).toBe('duplicate');
     expect((await repository.recordAnswerCheck(ref, check))._unsafeUnwrap()).toBe('recorded');
     expect((await repository.recordAnswerCheck(ref, check))._unsafeUnwrap()).toBe('duplicate');
 
@@ -301,12 +318,16 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
     });
     expect(
       (
-        await repository.recordHint(foreign, {
-          requestId: toStepRequestId('hint-1'),
-          level: 'understand_task',
-          kind: 'fallback',
-          reason: 'timeout',
-        })
+        await repository.recordHint(
+          foreign,
+          {
+            requestId: toStepRequestId('hint-1'),
+            level: 'understand_task',
+            kind: 'fallback',
+            reason: 'timeout',
+          },
+          null,
+        )
       )._unsafeUnwrapErr(),
     ).toMatchObject({ kind: 'not_found' });
     expect(
@@ -314,6 +335,56 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
         await repository.loadSession({ ...ref, sessionId: toHelpSessionId('missing') })
       )._unsafeUnwrapErr(),
     ).toMatchObject({ kind: 'not_found' });
+  });
+
+  it('lists the distinct islands of sessions that opened as help, for this child only', async () => {
+    const { owner, childProfileId } = await freshChild();
+    const other = await freshChild();
+    const startOn = async (
+      who: { readonly owner: typeof owner; readonly childProfileId: typeof childProfileId },
+      taskText: string,
+      topic: typeof UNCLASSIFIED_TOPIC,
+      replaces: ReturnType<typeof toHelpSessionId> | null = null,
+    ) =>
+      (
+        await repository.start(who.owner, {
+          childProfileId: who.childProfileId,
+          assignmentId: null,
+          task: text(taskText),
+          subject: 'math',
+          replaces,
+          topic,
+        })
+      )._unsafeUnwrap().session.id;
+    const help = (areaId: string) =>
+      ({ ...UNCLASSIFIED_TOPIC, intent: 'homework', areaId }) as const;
+
+    const first = await startOn({ owner, childProfileId }, 'Rechne 23 + 19.', help('zahlenwald'));
+    const second = await startOn(
+      { owner, childProfileId },
+      'Rechne 50 - 8.',
+      help('zahlenwald'),
+      first,
+    );
+    const third = await startOn(
+      { owner, childProfileId },
+      'Hallo Max!',
+      {
+        ...help('maerchenwald'),
+        intent: 'small_talk',
+        opening: { kind: 'redirect', intent: 'small_talk' },
+      },
+      second,
+    );
+    await startOn({ owner, childProfileId }, 'Rechne 3 mal 4.', help('malmuehle'), third);
+    await startOn(other, 'Rechne 1 + 1.', help('obstgarten'));
+
+    const ids = (await repository.homeworkAreaIds(owner, childProfileId, 10))._unsafeUnwrap();
+
+    expect([...ids].sort()).toEqual(['malmuehle', 'zahlenwald']);
+    expect(
+      (await repository.homeworkAreaIds(owner, childProfileId, 1))._unsafeUnwrap(),
+    ).toHaveLength(1);
   });
 
   it('abandons the replaced session and keeps one active session per child', async () => {
@@ -369,7 +440,8 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
       federalState: 'BY',
       grade: 2,
       subject: 'MATH',
-      inviteCodeHash: 'e'.repeat(64),
+      // Unique per run: the hash is globally unique, and a crashed run leaves its row behind.
+      inviteCodeHash: createHash('sha256').update(runId).digest('hex'),
     });
     const assignmentText =
       `Rechne die Aufgaben auf dem Blatt. ${'36 + 47 = ? '.repeat(150)}`.trim();
@@ -399,5 +471,165 @@ describe.skipIf(!isEnabled)('PrismaHelpSessionRepository against Postgres', () =
     expect((await repository.load(ref))._unsafeUnwrap().assignmentId).toBe(assignment.id);
     expect(JSON.stringify(reloaded)).not.toContain('"83"');
     await db.orm.public.Classroom.where({ id: classroom.id }).deleteAndCount();
+  });
+
+  const hintAt = (requestId: string, level: HintLevel) =>
+    ({
+      requestId: toStepRequestId(requestId),
+      level,
+      kind: 'generated',
+      text: 'Lies genau.',
+    }) as const;
+
+  it('stores nothing for a step on a session that ended while the step waited for it', async () => {
+    const { ref } = await started();
+    let step: ReturnType<HelpSessionRepository['recordHint']> | undefined;
+
+    // Another request ends the session and holds its row while the step starts.
+    await db.transaction(async (tx) => {
+      const now = toInstant(new Date());
+      await tx.orm.public.HelpSession.where({ id: ref.sessionId }).updateAndCount({
+        status: 'ABANDONED',
+        endedAt: now,
+        updatedAt: now,
+      });
+      step = repository.recordHint(ref, hintAt('hint-1', 'understand_task'), null);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    });
+
+    expect((await step)?._unsafeUnwrapErr()).toMatchObject({
+      kind: 'not_found',
+      code: 'guidance.session_not_found',
+    });
+    const hints = await db.orm.public.HintEvent.where({ sessionId: ref.sessionId }).all();
+    expect(hints).toEqual([]);
+  });
+
+  it('records a rung once when two hints were decided from the same state', async () => {
+    const { ref } = await started();
+
+    const first = await repository.recordHint(ref, hintAt('tab-1', 'understand_task'), null);
+    const second = await repository.recordHint(ref, hintAt('tab-2', 'understand_task'), null);
+
+    expect([first._unsafeUnwrap(), second._unsafeUnwrap()]).toEqual(['recorded', 'duplicate']);
+    const loaded = (await repository.loadSession(ref))._unsafeUnwrap();
+    expect(loaded.hints.map((hint) => hint.requestId)).toEqual(['tab-1']);
+  });
+
+  it('never lowers the hint level of the session', async () => {
+    const { ref } = await started();
+
+    await repository.recordHint(ref, hintAt('high', 'next_step'), null);
+    await repository.recordHint(ref, hintAt('low', 'understand_task'), toStepRequestId('high'));
+
+    expect((await repository.loadSession(ref))._unsafeUnwrap()).toMatchObject({
+      hintLevel: 'next_step',
+      hints: [{ level: 'next_step' }, { level: 'understand_task' }],
+    });
+  });
+
+  it("stores the session's competency with every hint", async () => {
+    const { owner, childProfileId } = await freshChild();
+    const { session } = (
+      await repository.start(owner, {
+        childProfileId,
+        assignmentId: null,
+        task: text('Rechne 23 + 19.'),
+        subject: 'math',
+        replaces: null,
+        topic: { ...UNCLASSIFIED_TOPIC, intent: 'homework', competencyCode: 'M2.4' },
+      })
+    )._unsafeUnwrap();
+
+    await repository.recordHint(
+      { ...owner, childProfileId, sessionId: session.id },
+      hintAt('hint-1', 'understand_task'),
+      null,
+    );
+
+    const stored = await db.orm.public.HintEvent.where({ sessionId: session.id })
+      .select('competencyCode')
+      .all();
+    expect(stored).toEqual([{ competencyCode: 'M2.4' }]);
+  });
+
+  it('starts another task over an open one it did not know of, ending that one', async () => {
+    const { owner, childProfileId, ref } = await started();
+
+    const other = (
+      await repository.start(owner, {
+        childProfileId,
+        assignmentId: null,
+        task: text('Rechne 50 - 8.'),
+        subject: 'math',
+        replaces: null,
+        topic: UNCLASSIFIED_TOPIC,
+      })
+    )._unsafeUnwrap();
+
+    expect(other).toMatchObject({ created: true, session: { task: 'Rechne 50 - 8.' } });
+    expect((await repository.loadSession(ref))._unsafeUnwrapErr()).toMatchObject({
+      kind: 'not_found',
+    });
+  });
+
+  it("counts the child's help minutes from the step times in the range, idle gaps capped", async () => {
+    const clock = { current: new Date(START) };
+    const timed = new (
+      await import('@modules/guidance/infrastructure/prisma/prisma-help-session.repository')
+    ).PrismaHelpSessionRepository({ now: () => clock.current });
+    const at = (minute: number) => {
+      clock.current = new Date(START + minute * 60_000);
+    };
+    const { owner, childProfileId } = await freshChild();
+    at(0);
+    const { session } = (
+      await timed.start(owner, {
+        childProfileId,
+        assignmentId: null,
+        task: text('Rechne 23 + 19.'),
+        subject: 'math',
+        replaces: null,
+        topic: UNCLASSIFIED_TOPIC,
+      })
+    )._unsafeUnwrap();
+    const ref = { ...owner, childProfileId, sessionId: session.id };
+    at(2);
+    await timed.recordHint(ref, hintAt('hint-1', 'understand_task'), null);
+    at(30);
+    await timed.recordAnswerCheck(ref, {
+      requestId: toStepRequestId('check-1'),
+      answer: text('42'),
+      result: 'correct',
+      assessedBy: 'ai',
+      feedbackText: null,
+      question: { text: null },
+    });
+    const [check] = (await timed.loadSession(ref))._unsafeUnwrap().answerChecks;
+    at(33);
+    if (check !== undefined) {
+      await timed.recordComprehensionReply(ref, { check, text: text('Zehner.'), completes: true });
+    }
+    const hour = { from: new Date(START), to: new Date(START + 60 * 60_000) };
+
+    // 1 for the start, 2 to the hint, 28 capped at 5 to the check, 3 to the reply.
+    expect((await timed.helpMinutesBetween(owner, childProfileId, hour))._unsafeUnwrap()).toBe(11);
+    expect(
+      (
+        await timed.helpMinutesBetween(owner, childProfileId, {
+          ...hour,
+          from: new Date(START + 60_000),
+        })
+      )._unsafeUnwrap(),
+    ).toBe(9);
+    expect(
+      (
+        await timed.helpMinutesBetween(
+          { ...owner, ownerId: toActorId('parent-2') },
+          childProfileId,
+          hour,
+        )
+      )._unsafeUnwrap(),
+    ).toBe(0);
   });
 });

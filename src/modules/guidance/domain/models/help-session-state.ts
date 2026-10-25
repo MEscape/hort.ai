@@ -4,6 +4,7 @@ import type { HintLevel } from './hint-level';
 import type { HintSubject } from './hint-subject';
 import type { AssignmentId, StepRequestId } from './ids';
 import type { AssessmentResult } from '../ai-output/ai-output';
+import type { SessionOpening } from '../topic/session-topic';
 
 /**
  * One hint the child was given in a session: the validated AI text, or the predefined prompt of the
@@ -38,6 +39,8 @@ export interface HintLadderState {
    * against that request's candidates. `null` for no competency, an open topic or an older session.
    */
   readonly competencyCode: string | null;
+  /** How the session opened (#92); a `redirect` gives no hint. `null`: help as usual. */
+  readonly opening: SessionOpening | null;
   readonly hints: readonly GivenHint[];
   readonly answers: ReadonlyArray<AssessmentResult | null>;
 }

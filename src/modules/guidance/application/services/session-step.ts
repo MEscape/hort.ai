@@ -1,6 +1,6 @@
 import type { Actor } from '@modules/auth';
 
-import type { RateLimitedAppError, ValidationAppError } from '@lib/errors';
+import type { ForbiddenAppError, RateLimitedAppError, ValidationAppError } from '@lib/errors';
 import type { RateLimitPolicy } from '@lib/rate-limit';
 import type { AppResult, AppResultAsync } from '@lib/result';
 
@@ -11,6 +11,7 @@ import {
 } from '../../domain/models/ids';
 
 import { spendChildBudget } from './child-budget';
+import { admitLearningTime } from './own-child-session';
 
 import type { HintLadderState } from '../../domain/models/help-session-state';
 import type { HintLevel } from '../../domain/models/hint-level';
@@ -42,7 +43,7 @@ export interface OpenSession {
 }
 
 export type OpenSessionError =
-  ChildProfileAccessError | RateLimitedAppError | HintSessionStoreError;
+  ChildProfileAccessError | ForbiddenAppError | RateLimitedAppError | HintSessionStoreError;
 
 /** The cheap input checks, before anything is looked up or counted. */
 export function parseSessionStep(
@@ -60,9 +61,11 @@ export function parseSessionStep(
 }
 
 /**
- * The child must be the actor's own (another parent's child is "not found"), each step spends one
- * of that child's budget under `policy` (counted per child, so siblings do not use up each other's
- * help), and the session must be an active one of exactly this parent and child.
+ * The child must be the actor's own (another parent's child is "not found"), the child's day must
+ * be open (the parent's daily limit and allowed hours, `guidance.learning_paused` otherwise, even
+ * inside a session: the task stays saved for later), each step spends one of that child's budget
+ * under `policy` (counted per child, so siblings do not use up each other's help), and the session
+ * must be an active one of exactly this parent and child.
  */
 export function openOwnSession(
   {
@@ -83,7 +86,9 @@ export function openOwnSession(
       childProfileId: child.id,
       sessionId: step.sessionId,
     };
-    return spendChildBudget(rateLimiter, { actor, childProfileId: child.id, policy })
+    const owner = { tenantId: actor.tenantId, ownerId: actor.id };
+    return admitLearningTime({ childProfiles, sessions }, owner, child)
+      .andThen(() => spendChildBudget(rateLimiter, { actor, childProfileId: child.id, policy }))
       .andThen(() => sessions.load(ref))
       .map((state) => ({ child, ref, state }));
   });

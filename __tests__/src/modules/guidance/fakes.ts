@@ -23,13 +23,17 @@ import type {
   AssignmentAccess,
   AssignmentTask,
 } from '@modules/guidance/domain/ports/assignment-access.port';
-import type { ChildProfileAccess } from '@modules/guidance/domain/ports/child-profile-access.port';
+import type {
+  ChildProfileAccess,
+  LearningControls,
+} from '@modules/guidance/domain/ports/child-profile-access.port';
 import type {
   CompetencyQuery,
   CompetencyRetrieval,
 } from '@modules/guidance/domain/ports/competency-retrieval.port';
 import type { FeedbackProvider } from '@modules/guidance/domain/ports/feedback-provider.port';
 import type { GuidanceEvent } from '@modules/guidance/domain/ports/guidance-audit-log.port';
+import type { HelpSessionRepository } from '@modules/guidance/domain/ports/help-session.repository';
 import type {
   HintProvider,
   HintProviderFailure,
@@ -43,6 +47,8 @@ import type {
   SafetyClassifier,
   SafetyScores,
 } from '@modules/guidance/domain/ports/safety-classifier.port';
+import { UNCLASSIFIED_TOPIC } from '@modules/guidance/domain/topic/session-topic';
+import { computeScreenTime, learningDayStart } from '@modules/learner/domain/models/screen-time';
 
 import { infrastructureError, notFoundError } from '@lib/errors';
 import { errAsync, okAsync } from '@lib/result';
@@ -56,6 +62,8 @@ export const REQUEST: HintRequest = {
   task: task('Lisa hat 3 Äpfel und bekommt 4 dazu. Wie viele Äpfel hat sie?'),
   level: 'next_step',
   competencies: [{ code: 'M2.1', description: 'Addieren im Zahlenraum bis 20' }],
+  earlierHints: [],
+  lastAnswerResult: null,
 };
 
 /** What the scripted provider does on its next call. */
@@ -102,13 +110,29 @@ export function recordingAuditLog() {
 export const OWN_CHILD = toChildProfileId('child-1');
 export const OTHER_CHILD = toChildProfileId('child-of-someone-else');
 
-/** The children the signed-in parent owns; any other id is "not found", as the learner module answers. */
-export function ownChildren(owned: readonly ChildProfileId[] = [OWN_CHILD]): ChildProfileAccess {
+/** 10:00 in Berlin on a school day. */
+export const NOW = new Date('2026-10-25T09:00:00.000Z');
+
+/**
+ * The children the signed-in parent owns; any other id is "not found", as the learner module answers.
+ * Their day follows the learner's own screen-time rule at `now`, with the `controls` the parent set
+ * (none by default).
+ */
+export function ownChildren(
+  owned: readonly ChildProfileId[] = [OWN_CHILD],
+  {
+    controls = { dailyLimitMinutes: null, allowedWindow: null },
+    now = NOW,
+  }: { readonly controls?: LearningControls; readonly now?: Date } = {},
+): ChildProfileAccess {
   return {
     findOwn: (id) =>
       owned.includes(id)
-        ? okAsync({ id, federalState: 'BY', grade: 2 })
+        ? okAsync({ id, federalState: 'BY', grade: 2, controls })
         : errAsync(notFoundError('child_profile.not_found', 'The child profile was not found.')),
+    today: () => ({ from: learningDayStart(now), to: now }),
+    isDayClosed: (child, usedMinutes) =>
+      computeScreenTime({ controls: child.controls, usedMinutes, now }).status.startsWith('closed'),
   };
 }
 
@@ -195,6 +219,7 @@ export function fakeFeedbackProvider(scripts: FeedbackScripts) {
 }
 
 export const SESSION = toHelpSessionId('session-1');
+const STORED_AT = new Date('2026-10-25T08:00:00.000Z');
 
 const sessionKey = (ref: HelpSessionRef) =>
   [ref.tenantId, ref.ownerId, ref.childProfileId, ref.sessionId].join(':');
@@ -219,6 +244,7 @@ export function openSession(
       assignmentId: null,
       subject: 'math',
       competencyCode: null,
+      opening: null,
       hints: [],
       answers: [],
       ...state,
@@ -233,7 +259,7 @@ export function openSession(
  */
 export function fakeSessionStore(
   sessions: ReadonlyArray<ReturnType<typeof openSession>> = [openSession()],
-  options: { readonly failsRecording?: boolean } = {},
+  options: { readonly failsRecording?: boolean; readonly helpMinutesToday?: number } = {},
 ) {
   const stored = new Map(
     sessions.map(({ ref, state }) => [
@@ -246,14 +272,44 @@ export function fakeSessionStore(
     errAsync(notFoundError('guidance.session_not_found', 'The help session was not found.'));
   const writeFailed = () =>
     errAsync(infrastructureError('guidance.session_store_failed', 'The session store is down.'));
-  const store: HintSessionStore = {
+  const store: HintSessionStore &
+    Pick<HelpSessionRepository, 'loadSession' | 'helpMinutesBetween'> = {
+    helpMinutesBetween: () => okAsync(options.helpMinutesToday ?? 0),
     load(ref) {
       const session = stored.get(sessionKey(ref));
       return session === undefined
         ? missing()
         : okAsync({ ...session, hints: [...session.hints], answers: [...session.answers] });
     },
-    recordHint(ref, hint: GivenHint) {
+    loadSession(ref) {
+      const session = stored.get(sessionKey(ref));
+      return session === undefined
+        ? missing()
+        : okAsync({
+            id: ref.sessionId,
+            childProfileId: ref.childProfileId,
+            assignmentId: session.assignmentId,
+            task: session.task,
+            subject: session.subject,
+            status: 'active',
+            hintLevel: session.hints.at(-1)?.level ?? null,
+            startedAt: STORED_AT,
+            updatedAt: STORED_AT,
+            hints: [...session.hints],
+            answerChecks: checks.map((check) => ({
+              ...check,
+              hintLevel: null,
+              question: check.question === null ? null : { text: check.question.text, reply: null },
+              occurredAt: STORED_AT,
+            })),
+            topic: {
+              ...UNCLASSIFIED_TOPIC,
+              competencyCode: session.competencyCode,
+              opening: session.opening,
+            },
+          });
+    },
+    recordHint(ref, hint: GivenHint, after) {
       const session = stored.get(sessionKey(ref));
       if (options.failsRecording) {
         return writeFailed();
@@ -261,7 +317,9 @@ export function fakeSessionStore(
       if (session === undefined) {
         return missing();
       }
-      if (session.hints.some((h) => h.requestId === hint.requestId)) {
+      // A twin under the same id, or a hint recorded since the state `after` names, wins.
+      const latest = session.hints.at(-1)?.requestId ?? null;
+      if (session.hints.some((h) => h.requestId === hint.requestId) || latest !== after) {
         return okAsync('duplicate');
       }
       session.hints.push(hint);

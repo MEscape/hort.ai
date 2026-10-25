@@ -43,9 +43,14 @@ const homework = (topicConfidence: number, subject = 'math') => ({
   topic: { kind: 'competency', competencyCode: CODE, confidence: topicConfidence },
 });
 
+const AREAS = [{ id: 'zahlenwald', topics: ['counting', 'adding'] }];
+
 function run(
   classifier: TopicClassifier | undefined,
-  options: { readonly clarificationAlreadyAsked?: boolean } = {},
+  options: {
+    readonly clarificationAlreadyAsked?: boolean;
+    readonly areas?: TopicClassificationRequest['areas'];
+  } = {},
 ) {
   const { audit, events } = recordingAuditLog();
   const result = classifyTopic(
@@ -54,6 +59,7 @@ function run(
       task: TASK,
       subject: 'math',
       candidates: CANDIDATES,
+      areas: options.areas ?? [],
       clarificationAlreadyAsked: options.clarificationAlreadyAsked ?? false,
     },
   );
@@ -64,6 +70,7 @@ const TODAYS_FLOW = {
   decision: { action: 'help', competencyCode: null, openTopicLabel: null },
   intent: null,
   classifiedBy: 'fallback',
+  areaId: null,
 };
 
 describe('classifyTopic', () => {
@@ -75,8 +82,9 @@ describe('classifyTopic', () => {
       decision: { action: 'help', competencyCode: CODE, openTopicLabel: null },
       intent: 'homework',
       classifiedBy: 'jev',
+      areaId: null,
     });
-    expect(requests).toEqual([{ task: TASK, subject: 'math', candidates: CANDIDATES }]);
+    expect(requests).toEqual([{ task: TASK, subject: 'math', candidates: CANDIDATES, areas: [] }]);
     expect(events).toEqual([
       {
         type: 'guidance.topic_classified',
@@ -89,6 +97,23 @@ describe('classifyTopic', () => {
       },
     ]);
     expect(JSON.stringify(events)).not.toContain('Äpfel');
+  });
+
+  it('keeps the offered island of a sure homework task, validated like a competency', async () => {
+    const { classifier, requests } = fakeTopicClassifier({
+      answer: { ...homework(0.81), area: { areaId: 'zahlenwald', confidence: 0.9 } },
+    });
+    const { result } = run(classifier, { areas: AREAS });
+
+    expect((await result).areaId).toBe('zahlenwald');
+    expect(requests[0]?.areas).toEqual(AREAS);
+  });
+
+  it('drops the whole output when the island was not offered (prompt injection)', async () => {
+    const { classifier } = fakeTopicClassifier({
+      answer: { ...homework(0.81), area: { areaId: 'maerchenwald', confidence: 0.99 } },
+    });
+    expect(await run(classifier, { areas: AREAS }).result).toEqual(TODAYS_FLOW);
   });
 
   it('asks to clarify an unsure topic once, then helps without a competency', async () => {

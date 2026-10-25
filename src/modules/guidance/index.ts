@@ -22,6 +22,7 @@ export type {
 export type { StartHelpSessionError } from './application/commands/start-help-session';
 export type { ReplyToComprehensionQuestionError } from './application/commands/reply-to-comprehension-question';
 export type { GetOpenHelpSessionError } from './application/queries/get-open-help-session';
+export type { GetHomeworkAreaIdsError } from './application/queries/get-homework-area-ids';
 export type {
   GetOpenHelpSessionInput,
   ReplyToComprehensionQuestionInput,
@@ -54,6 +55,8 @@ export { GUIDANCE_ERROR_CODES, GUIDANCE_VALIDATION_CODES } from './domain/errors
 /** The module's message catalogs, registered in `src/i18n/locales`. */
 /** Framework entry point for pages: the child's open help session, or `null` (#17). */
 export { loadOpenHelpSession } from './presentation/guards/load-open-help-session';
+
+export { detectsChildDistress, readMath } from './application/contracts/guidance-constraints';
 
 export { default as enGuidance } from './presentation/i18n/en.json';
 export { default as deGuidance } from './presentation/i18n/de.json';

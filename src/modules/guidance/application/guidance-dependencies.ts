@@ -8,6 +8,7 @@ import type { AssignmentAccess } from '../domain/ports/assignment-access.port';
 import type { ChildProfileAccess } from '../domain/ports/child-profile-access.port';
 import type { CompetencyRetrieval } from '../domain/ports/competency-retrieval.port';
 import type { GuidanceAuditLog } from '../domain/ports/guidance-audit-log.port';
+import type { HelpSessionRepository } from '../domain/ports/help-session.repository';
 import type { HintSessionStore } from '../domain/ports/hint-session-store.port';
 
 /** What every guidance use case about one step of a child's help session is built from. */
@@ -18,7 +19,8 @@ export interface SessionStepDependencies {
   readonly assignments: AssignmentAccess;
   readonly competencies: CompetencyRetrieval;
   readonly rateLimiter: RateLimiter;
-  readonly sessions: HintSessionStore;
+  /** Also measures today's help minutes, which the parent's daily limit counts against. */
+  readonly sessions: HintSessionStore & Pick<HelpSessionRepository, 'helpMinutesBetween'>;
   readonly audit: GuidanceAuditLog;
 }
 
@@ -28,4 +30,7 @@ export interface RequestHintDependencies extends SessionStepDependencies {
 
 export interface CheckAnswerDependencies extends SessionStepDependencies {
   readonly answers: AnswerCoach;
+  /** A retried check is answered from the stored session, so the store also reads its checks. */
+  readonly sessions: SessionStepDependencies['sessions'] &
+    Pick<HelpSessionRepository, 'loadSession'>;
 }

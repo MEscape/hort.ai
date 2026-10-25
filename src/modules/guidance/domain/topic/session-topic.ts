@@ -20,6 +20,13 @@ export interface SessionTopic {
   readonly openTopicLabel: string | null;
   /** `null` for a session from before #92. */
   readonly classifiedBy: TopicClassifierName | 'fallback' | null;
+  /**
+   * The world island the task belongs to: the one the child started from, or a sure classification
+   * of a task the backend helps with. `null` when neither; it is what clears the island's mist.
+   */
+  readonly areaId: string | null;
+  /** One of that island's own places, only when the child picked it. */
+  readonly placeId: string | null;
 }
 
 /** The topic of a session that was never classified. */
@@ -29,6 +36,8 @@ export const UNCLASSIFIED_TOPIC: SessionTopic = {
   competencyCode: null,
   openTopicLabel: null,
   classifiedBy: null,
+  areaId: null,
+  placeId: null,
 };
 
 /** The stored form of a decision. */
@@ -36,12 +45,14 @@ export function toSessionTopic({
   decision,
   intent,
   classifiedBy,
+  areaId,
 }: {
   readonly decision: TopicDecision;
   readonly intent: ChildMessageIntent | null;
   readonly classifiedBy: TopicClassifierName | 'fallback';
+  readonly areaId: string | null;
 }): SessionTopic {
-  const base = { ...UNCLASSIFIED_TOPIC, intent, classifiedBy };
+  const base = { ...UNCLASSIFIED_TOPIC, intent, classifiedBy, areaId };
   switch (decision.action) {
     case 'help':
       return {

@@ -115,6 +115,19 @@ export type GuidanceEvent =
       readonly action: TopicDecision['action'];
     }
   | {
+      /**
+       * The child's words looked like distress (#90): they got the trusted-adult notice instead of
+       * homework help, with no AI call. Ids and the step only, never the words.
+       */
+      readonly type: 'guidance.child_distress_detected';
+      readonly tenantId: TenantId;
+      readonly actorId: ActorId;
+      readonly childProfileId: ChildProfileId;
+      /** `null` at the start, where no session exists (and none is stored). */
+      readonly sessionId: HelpSessionId | null;
+      readonly step: 'start' | 'answer' | 'reply';
+    }
+  | {
       /** Only logged: the subject the child picked wins. */
       readonly type: 'guidance.topic_subject_mismatch';
       readonly picked: HintSubject;

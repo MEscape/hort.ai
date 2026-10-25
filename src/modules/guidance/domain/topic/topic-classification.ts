@@ -26,12 +26,20 @@ export type TopicGuess =
   | { readonly kind: 'open'; readonly label: string; readonly confidence: Confidence }
   | { readonly kind: 'none' };
 
+/** The island of the world a homework task belongs to: one of this request's offered islands. */
+export interface AreaGuess {
+  readonly areaId: string;
+  readonly confidence: Confidence;
+}
+
 /** A classification that passed `validateTopicClassification`. */
 export interface TopicClassification {
   readonly version: typeof TOPIC_CLASSIFICATION_VERSION;
   readonly intent: { readonly value: ChildMessageIntent; readonly confidence: Confidence };
   readonly subject: { readonly value: HintSubject; readonly confidence: Confidence } | null;
   readonly topic: TopicGuess;
+  /** Optional in the output; `null` when the classifier named no island. */
+  readonly area: AreaGuess | null;
 }
 
 /**

@@ -18,6 +18,7 @@ export const TOPIC_CLASSIFICATION_VALIDATION_CODES = {
   invalidConfidence: 'guidance.topic_classification.invalid_confidence',
   invalidTopicKind: 'guidance.topic_classification.invalid_topic_kind',
   unknownCompetency: 'guidance.topic_classification.unknown_competency',
+  unknownArea: 'guidance.topic_classification.unknown_area',
   invalidLabel: 'guidance.topic_classification.invalid_label',
   unsafeLabel: 'guidance.topic_classification.unsafe_label',
   inconsistentTopic: 'guidance.topic_classification.inconsistent_topic',
