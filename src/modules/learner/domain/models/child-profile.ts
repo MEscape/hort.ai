@@ -1,255 +1,126 @@
-import type { ActorId, TenantId } from '@modules/auth';
-
-import type { FieldErrorBag, ValidationAppError } from '@lib/errors';
+import type { ValidationAppError } from '@lib/errors';
 import { err, ok } from '@lib/result';
 import type { AppResult } from '@lib/result';
-import { literalGuard } from '@lib/utils';
 
-import { createLearnerErrorBag, LEARNER_VALIDATION_CODES } from '../errors/learner-errors';
+import { LEARNER_VALIDATION_CODES, createLearnerErrorBag } from '../errors/learner-errors';
 
-import type { ChildProfileId } from './ids';
+import { isFederalState, isGrade } from './federal-state';
+import { LEARNER_LIMITS } from './learner-limits';
+import { GUARDIAN_CONSENT_VERSION } from './parent-controls';
+
+import type { FederalState, Grade } from './federal-state';
+import type { ActorId, ChildProfileId, TenantId, TutorId } from './ids';
+import type { Interest } from './interests';
+import type { ParentControls } from './parent-controls';
+import type { SetupStep } from './setup-step';
 
 const CODES = LEARNER_VALIDATION_CODES;
 
-/** Field bounds. Presentation reads them through the application's constraints contract. */
-export const CHILD_PROFILE_LIMITS = {
-  displayNameMax: 40,
-  gradeMin: 1,
-  gradeMax: 4,
-} as const;
+/** Control and format characters (newlines, zero-width and bidi marks): never part of a child's name. */
+const UNSAFE_NAME_CHARACTERS = /[\p{Cc}\p{Cf}]/u;
 
-/** Primary school: grades 1 to 4 (#5). A whole number in that range, nothing else. */
-function isValidGrade(value: number): boolean {
-  return (
-    Number.isInteger(value) &&
-    value >= CHILD_PROFILE_LIMITS.gradeMin &&
-    value <= CHILD_PROFILE_LIMITS.gradeMax
-  );
+/** The guardian's confirmation that they may decide for the child, and which statement they confirmed. */
+export interface GuardianConfirmation {
+  readonly confirmedAt: Date;
+  readonly consentVersion: string;
 }
 
-export const CHILD_PROFILE_FEDERAL_STATES = [
-  'bw',
-  'by',
-  'be',
-  'bb',
-  'hb',
-  'hh',
-  'he',
-  'mv',
-  'ni',
-  'nw',
-  'rp',
-  'sl',
-  'sn',
-  'st',
-  'sh',
-  'th',
-] as const;
-export type ChildProfileFederalState = (typeof CHILD_PROFILE_FEDERAL_STATES)[number];
-export const isChildProfileFederalState = literalGuard(CHILD_PROFILE_FEDERAL_STATES);
-
-export const CHILD_PROFILE_COMPANIONS = ['max', 'lili', 'fina'] as const;
-export type ChildProfileCompanion = (typeof CHILD_PROFILE_COMPANIONS)[number];
-export const isChildProfileCompanion = literalGuard(CHILD_PROFILE_COMPANIONS);
-
 /**
- * A stored child profile. It holds only what the product needs (#9): a display name, federal state,
- * grade, the chosen companion and the voice consent. `ownerId` is the parent (guardian) it belongs
- * to; tenant and owner are internal and never leave the module's views.
+ * The minimum the product keeps about a child (vision.md: display name, federal state, grade), plus
+ * what the parent chose during setup from closed lists: interests, companion and controls. The
+ * parent owns it through `ownerId`.
  */
 export interface ChildProfile {
   readonly id: ChildProfileId;
   readonly tenantId: TenantId;
   readonly ownerId: ActorId;
   readonly displayName: string;
-  readonly federalState: ChildProfileFederalState;
-  readonly grade: number;
-  readonly companion: ChildProfileCompanion | null;
-  readonly voiceConsent: boolean;
+  readonly federalState: FederalState;
+  readonly grade: Grade;
+  readonly interests: readonly Interest[];
+  /** A selectable tutor of the catalog, or `null` while none is chosen. */
+  readonly tutorId: TutorId | null;
+  readonly controls: ParentControls;
+  readonly guardian: GuardianConfirmation | null;
+  /** The furthest step the parent has reached; only moves forward. */
+  readonly setupStep: SetupStep;
+  readonly setupCompletedAt: Date | null;
   readonly createdAt: Date;
-  readonly updatedAt: Date;
 }
 
-/** Raw input for a new child profile, before validation. */
-export interface ChildProfileDraftInput {
+/** Raw details of a child, before validation. */
+interface ChildDetailsInput {
   readonly displayName: string;
   readonly federalState: string;
   readonly grade: number;
-  readonly companion?: string | null | undefined;
-  /** Off unless the parent turns it on (#34). */
-  readonly voiceConsent?: boolean | undefined;
 }
 
-/** A validated child profile, ready to be stored. */
-export interface ChildProfileDraft {
+/** Validated details of a child. */
+export interface ChildDetails {
   readonly displayName: string;
-  readonly federalState: ChildProfileFederalState;
-  readonly grade: number;
-  readonly companion: ChildProfileCompanion | null;
-  readonly voiceConsent: boolean;
+  readonly federalState: FederalState;
+  readonly grade: Grade;
 }
 
-/** `undefined` leaves a field alone; `null` clears an optional one. */
-export interface ChildProfileChangesInput {
-  readonly displayName?: string | undefined;
-  readonly federalState?: string | undefined;
-  readonly grade?: number | undefined;
-  readonly companion?: string | null | undefined;
-  readonly voiceConsent?: boolean | undefined;
+function displayNameViolation(name: string): string | null {
+  const length = Array.from(name).length;
+  if (length < LEARNER_LIMITS.displayNameMin) {
+    return CODES.displayNameRequired;
+  }
+  if (length > LEARNER_LIMITS.displayNameMax) {
+    return CODES.displayNameTooLong;
+  }
+  return UNSAFE_NAME_CHARACTERS.test(name) ? CODES.displayNameInvalid : null;
 }
 
-export interface ChildProfileChanges {
-  readonly displayName?: string;
-  readonly federalState?: ChildProfileFederalState;
-  readonly grade?: number;
-  readonly companion?: ChildProfileCompanion | null;
-  readonly voiceConsent?: boolean;
-}
-
-/** Which field a text check reports on, and how long it may be. */
-interface TextRule {
-  readonly field: string;
-  readonly max: number;
-}
-
-function checkRequiredText(value: string, rule: TextRule, bag: FieldErrorBag): void {
-  if (value.length === 0) {
-    bag.add(rule.field, CODES.required);
-  } else if (value.length > rule.max) {
-    bag.add(rule.field, CODES.tooLong);
-  }
-}
-
-function readDisplayName(input: ChildProfileDraftInput, bag: FieldErrorBag): string {
-  const value = input.displayName.trim();
-  checkRequiredText(value, { field: 'displayName', max: CHILD_PROFILE_LIMITS.displayNameMax }, bag);
-  return value;
-}
-
-function readFederalState(
-  input: ChildProfileDraftInput,
-  bag: FieldErrorBag,
-): ChildProfileFederalState | null {
-  if (!isChildProfileFederalState(input.federalState)) {
-    bag.add('federalState', CODES.optionUnknown);
-    return null;
-  }
-  return input.federalState;
-}
-
-function readGrade(input: ChildProfileDraftInput, bag: FieldErrorBag): number {
-  const value = input.grade;
-  if (!isValidGrade(value)) {
-    bag.add('grade', CODES.numberInvalid);
-  }
-  return value;
-}
-
-function readCompanion(
-  input: ChildProfileDraftInput,
-  bag: FieldErrorBag,
-): ChildProfileCompanion | null {
-  const raw = input.companion ?? null;
-  if (raw === null) {
-    return null;
-  }
-  if (!isChildProfileCompanion(raw)) {
-    bag.add('companion', CODES.optionUnknown);
-    return null;
-  }
-  return raw;
-}
-
-function changeDisplayName(
-  input: ChildProfileChangesInput,
-  bag: FieldErrorBag,
-): ChildProfileChanges {
-  if (input.displayName === undefined) {
-    return {};
-  }
-  const value = input.displayName.trim();
-  checkRequiredText(value, { field: 'displayName', max: CHILD_PROFILE_LIMITS.displayNameMax }, bag);
-  return { displayName: value };
-}
-
-function changeFederalState(
-  input: ChildProfileChangesInput,
-  bag: FieldErrorBag,
-): ChildProfileChanges {
-  if (input.federalState === undefined) {
-    return {};
-  }
-  if (!isChildProfileFederalState(input.federalState)) {
-    bag.add('federalState', CODES.optionUnknown);
-    return {};
-  }
-  return { federalState: input.federalState };
-}
-
-function changeGrade(input: ChildProfileChangesInput, bag: FieldErrorBag): ChildProfileChanges {
-  if (input.grade === undefined) {
-    return {};
-  }
-  if (!isValidGrade(input.grade)) {
-    bag.add('grade', CODES.numberInvalid);
-  }
-  return { grade: input.grade };
-}
-
-function changeCompanion(input: ChildProfileChangesInput, bag: FieldErrorBag): ChildProfileChanges {
-  if (input.companion === undefined) {
-    return {};
-  }
-  if (input.companion === null) {
-    return { companion: null };
-  }
-  if (!isChildProfileCompanion(input.companion)) {
-    bag.add('companion', CODES.optionUnknown);
-    return {};
-  }
-  return { companion: input.companion };
-}
-
-function changeVoiceConsent(input: ChildProfileChangesInput): ChildProfileChanges {
-  if (input.voiceConsent === undefined) {
-    return {};
-  }
-  return { voiceConsent: input.voiceConsent };
-}
-
-/** The only way a new child profile enters the system. Reports every invalid field. */
-export function createChildProfileDraft(
-  input: ChildProfileDraftInput,
-): AppResult<ChildProfileDraft, ValidationAppError> {
+/** The only way a child's details enter the system. Reports every invalid field at once. */
+export function createChildDetails(
+  input: ChildDetailsInput,
+): AppResult<ChildDetails, ValidationAppError> {
   const bag = createLearnerErrorBag();
-  const displayName = readDisplayName(input, bag);
-  const federalState = readFederalState(input, bag);
-  const grade = readGrade(input, bag);
-  const companion = readCompanion(input, bag);
-  const voiceConsent = input.voiceConsent ?? false;
+  const displayName = input.displayName.trim();
 
-  if (bag.hasErrors || federalState === null) {
+  const nameViolation = displayNameViolation(displayName);
+  if (nameViolation !== null) {
+    bag.add('displayName', nameViolation);
+  }
+  const { federalState, grade } = input;
+  if (!isFederalState(federalState)) {
+    bag.add('federalState', CODES.federalStateInvalid);
+  }
+  if (!isGrade(grade)) {
+    bag.add('grade', CODES.gradeInvalid);
+  }
+
+  if (bag.hasErrors || !isFederalState(federalState) || !isGrade(grade)) {
     return err(bag.toError());
   }
-  return ok({ displayName, federalState, grade, companion, voiceConsent });
+  return ok({ displayName, federalState, grade });
 }
 
-/** Validates a partial update; only the fields that were provided are checked. */
-export function parseChildProfileChanges(
-  input: ChildProfileChangesInput,
-): AppResult<ChildProfileChanges, ValidationAppError> {
-  const bag = createLearnerErrorBag();
-  const changes: ChildProfileChanges = {
-    ...changeDisplayName(input, bag),
-    ...changeFederalState(input, bag),
-    ...changeGrade(input, bag),
-    ...changeCompanion(input, bag),
-    ...changeVoiceConsent(input),
-  };
-
-  return bag.hasErrors ? err(bag.toError()) : ok(changes);
+/** The profile as it is once the parent has finished the setup. */
+export function withSetupCompleted(profile: ChildProfile, completedAt: Date): ChildProfile {
+  return { ...profile, setupStep: 'done', setupCompletedAt: completedAt };
 }
 
-export function isEmptyChanges(changes: ChildProfileChanges): boolean {
-  return Object.keys(changes).length === 0;
+export function isSetupComplete(profile: ChildProfile): boolean {
+  return profile.setupCompletedAt !== null;
+}
+
+/**
+ * The guardian confirmation after a save of the controls at `now`: the first confirmation keeps its
+ * time while the statement is unchanged, a new statement version replaces it.
+ */
+export function confirmGuardian(
+  previous: GuardianConfirmation | null,
+  now: Date,
+): GuardianConfirmation {
+  return previous?.consentVersion === GUARDIAN_CONSENT_VERSION
+    ? previous
+    : { confirmedAt: now, consentVersion: GUARDIAN_CONSENT_VERSION };
+}
+
+/** Whether the guardian confirmed the statement that is current. */
+export function hasCurrentGuardianConfirmation(profile: ChildProfile): boolean {
+  return profile.guardian?.consentVersion === GUARDIAN_CONSENT_VERSION;
 }

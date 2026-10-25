@@ -7,13 +7,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch } from 'react-hook-form';
 
 import type { HortMood } from '@components/brand/hort';
+import { hortMoodOf } from '@components/brand/hort-mood';
 
 import { useRouter } from '@i18n';
 
 import { applyActionError } from '@lib/actions';
 
 import { signInAction } from '../actions/sign-in-action';
-import { hortMoodOf } from '../forms/hort-mood';
 import { signInSchema } from '../schemas/sign-in-schema';
 
 import { useAuthErrorText } from './use-auth-error-text';

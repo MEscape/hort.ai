@@ -1,3 +1,4 @@
+import { HortPanel } from '@components/shared/hort-panel';
 import { Button } from '@components/ui/button';
 
 import { Link } from '@i18n';
@@ -5,8 +6,6 @@ import { Link } from '@i18n';
 import { getTranslations } from '@i18n/server';
 
 import { authRoutes } from '../routes';
-
-import { AuthPanel } from './auth-panel';
 
 /**
  * Shown instead of the reset form when the page was opened without a usable token (an incomplete
@@ -16,7 +15,7 @@ export async function ResetPasswordLinkMissing() {
   const t = await getTranslations('auth');
 
   return (
-    <AuthPanel
+    <HortPanel
       mood="oops"
       title={t('resetPassword.missingTokenTitle')}
       description={t('resetPassword.missingToken')}
@@ -24,6 +23,6 @@ export async function ResetPasswordLinkMissing() {
       <Button asChild size="lg">
         <Link href={authRoutes.forgotPassword()}>{t('resetPassword.requestNew')}</Link>
       </Button>
-    </AuthPanel>
+    </HortPanel>
   );
 }

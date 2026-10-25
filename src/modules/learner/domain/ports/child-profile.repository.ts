@@ -1,60 +1,94 @@
-import type { ActorId, TenantId } from '@modules/auth';
-
-import type { InfrastructureAppError, NotFoundAppError } from '@lib/errors';
+import type { InfrastructureAppError } from '@lib/errors';
 import type { AppResultAsync } from '@lib/result';
 
-import type { ChildProfile, ChildProfileChanges, ChildProfileDraft } from '../models/child-profile';
-import type { ChildProfileId } from '../models/ids';
+import type { ChildDetails, ChildProfile, GuardianConfirmation } from '../models/child-profile';
+import type { ActorId, ChildProfileId, TenantId, TutorId } from '../models/ids';
+import type { Interest } from '../models/interests';
+import type { ParentControls } from '../models/parent-controls';
+import type { SetupStep } from '../models/setup-step';
 
-export interface NewChildProfile {
+/** What `saveUnfinished` stores: a parent's details of their child. */
+export interface UnfinishedProfileInput {
   readonly tenantId: TenantId;
-  /** The parent creating the profile: the authorized actor, never a request field. */
   readonly ownerId: ActorId;
-  readonly draft: ChildProfileDraft;
+  readonly details: ChildDetails;
+}
+
+/** Whose profiles an operation reaches: the signed-in parent's own, in their own tenant. */
+export interface ProfileOwner {
+  readonly tenantId: TenantId;
+  readonly ownerId: ActorId;
+}
+
+/** What a step of the setup stores: only the parts it names are written. */
+export interface ProfilePatch {
+  readonly interests?: readonly Interest[];
+  readonly tutorId?: TutorId;
+  readonly controls?: ParentControls;
+  readonly guardian?: GuardianConfirmation;
+}
+
+export interface SavedProfile {
+  readonly profile: ChildProfile;
+  /** Whether this call inserted the profile (`false`: it replaced the details of the existing one). */
+  readonly isNew: boolean;
 }
 
 /**
- * Persistence for child profiles. Every read and write takes the tenant and
- * matches on (id, tenantId), so another tenant's id behaves exactly like
- * an id that does not exist. Whether the parent owns the profile is checked by the use case on the
- * loaded record (`requireOnResource`); the list is pinned to the owner.
+ * Persistence for child profiles. Every read and write takes the owner and the tenant, so another
+ * parent's id behaves exactly like an id that does not exist.
  *
- * Finders return `null` for "absent"; deciding that absence is an error is
- * the use case's job. Adapters translate every driver failure into our own
- * error kinds before returning (errors.md).
+ * Finders return `null` for "absent"; deciding that absence is an error is the use case's job.
+ * Adapters translate every driver failure into our own error kinds (errors.md).
  */
-/** The tenant and parent a write is pinned to. */
-export interface ChildProfileOwner {
-  readonly tenantId: TenantId;
-  readonly ownerId: ActorId;
-}
-
 export interface ChildProfileRepository {
-  findById(
+  /** The parent's own profile, or `null` for an unknown id and for another parent's alike. */
+  findOwned(
     id: ChildProfileId,
+    ownerId: ActorId,
     tenantId: TenantId,
   ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
 
-  /** The owner's profiles. Bounded: never returns more than `limit` items (performance.md). */
+  /** The parent's profiles, oldest first. Bounded: never more than `limit`. */
   listByOwner(
-    tenantId: TenantId,
     ownerId: ActorId,
+    tenantId: TenantId,
     limit: number,
   ): AppResultAsync<readonly ChildProfile[], InfrastructureAppError>;
 
-  create(input: NewChildProfile): AppResultAsync<ChildProfile, InfrastructureAppError>;
+  /**
+   * Stores the details as the parent's one unfinished profile: inserts it, or replaces the details
+   * of the existing one. Repeated and concurrent calls never leave a second unfinished profile
+   * (a database constraint guards it). `null` when the parent's profile was finished meanwhile.
+   */
+  saveUnfinished(
+    input: UnfinishedProfileInput,
+  ): AppResultAsync<SavedProfile | null, InfrastructureAppError>;
 
-  /** Pinned to the owner: a write never reaches another parent's profile. */
-  update(
-    id: ChildProfileId,
-    owner: ChildProfileOwner,
-    changes: ChildProfileChanges,
-  ): AppResultAsync<ChildProfile, NotFoundAppError | InfrastructureAppError>;
+  /**
+   * Stores a step's `patch` on an unfinished profile and moves its step forward to at least
+   * `reaches` (never back, also under concurrency). Returns the stored profile, or `null` when the
+   * profile is finished or gone.
+   */
+  updateUnfinished(
+    profile: ChildProfile,
+    patch: ProfilePatch,
+    reaches: Exclude<SetupStep, 'child' | 'done'>,
+  ): AppResultAsync<ChildProfile | null, InfrastructureAppError>;
 
-  /** Idempotent: deleting a child profile that is already gone succeeds. */
-  deleteById(
-    id: ChildProfileId,
-    tenantId: TenantId,
-    ownerId: ActorId,
-  ): AppResultAsync<void, InfrastructureAppError>;
+  /**
+   * Deletes every profile of the owner, finished or not, and nothing of anyone else. Returns how
+   * many rows went; 0 is success (idempotent). Only the development reset uses it.
+   */
+  deleteAllOwned(owner: ProfileOwner): AppResultAsync<number, InfrastructureAppError>;
+
+  /**
+   * Finishes the setup of a profile that is at the `review` step, in one conditional statement.
+   * `false` when it was finished already or is not at `review` (another call won), so only one
+   * call ever reports having completed it.
+   */
+  markSetupCompleted(
+    profile: ChildProfile,
+    completedAt: Date,
+  ): AppResultAsync<boolean, InfrastructureAppError>;
 }
