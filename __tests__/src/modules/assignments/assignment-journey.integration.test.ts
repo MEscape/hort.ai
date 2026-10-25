@@ -4,6 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { CreateAssignment } from '@modules/assignments/application/commands/create-assignment';
 import { DeleteAssignment } from '@modules/assignments/application/commands/delete-assignment';
 import { UpdateAssignment } from '@modules/assignments/application/commands/update-assignment';
+import { GetAssignmentForHelp } from '@modules/assignments/application/queries/get-assignment-for-help';
 import { GetTeacherAssignmentOverview } from '@modules/assignments/application/queries/get-teacher-assignment-overview';
 import { ListChildAssignments } from '@modules/assignments/application/queries/list-child-assignments';
 import { ClassroomModuleAccess } from '@modules/assignments/infrastructure/classroom/classroom-module-access';
@@ -74,6 +75,7 @@ describe.skipIf(!isEnabled)('teacher assignments reach the children of the class
   const teacherB = actor('teacher-b', TEACHER_ROLE);
   const parentA = actor('parent-a', PARENT_ROLE);
   const parentB = actor('parent-b', PARENT_ROLE);
+  const parentC = actor('parent-c', PARENT_ROLE);
   const clock = { now: () => new Date() };
   const rateLimiter = createTestRateLimiter();
   const noAudit = { record: () => undefined };
@@ -128,6 +130,7 @@ describe.skipIf(!isEnabled)('teacher assignments reach the children of the class
       update: new UpdateAssignment(assignments),
       remove: new DeleteAssignment(assignments),
       childTasks: new ListChildAssignments(assignments),
+      forHelp: new GetAssignmentForHelp(assignments),
     };
   }
 
@@ -257,5 +260,42 @@ describe.skipIf(!isEnabled)('teacher assignments reach the children of the class
     expect(value(await parent.childTasks.execute(child)).map(({ id }) => id)).toEqual([posted.id]);
     value(await parent.leave.execute({ childProfileId: child }));
     expect(value(await parent.childTasks.execute(child))).toEqual([]);
+  });
+
+  it('gives the key for the help on an assignment only while the child is in the class (#33)', async () => {
+    const teacher = as(teacherA);
+    const created = await newClassroom('Klasse 3c');
+    const other = await newClassroom('Klasse 3d');
+    const posted = value(
+      await teacher.create.execute({
+        ...BLANK,
+        classroomId: created.classroom.id,
+        taskText: 'Rechne 36 + 47.',
+        solutionKey: '83',
+      }),
+    );
+    const elsewhere = value(
+      await teacher.create.execute({ ...BLANK, classroomId: other.classroom.id, solutionKey: '1' }),
+    );
+    const parent = as(parentC);
+    const child = await childOf(parentC, 'Emil');
+    const forHelp = (assignmentId: string, signedIn = parent) =>
+      signedIn.forHelp.execute({ childProfileId: child, assignmentId });
+
+    expect(codeOf(await forHelp(posted.id))).toBe('assignments.not_found');
+
+    value(await parent.join.execute({ childProfileId: child, inviteCode: created.inviteCode }));
+    expect(value(await forHelp(posted.id))).toEqual({
+      id: posted.id,
+      taskText: 'Rechne 36 + 47.',
+      solutionKey: '83',
+    });
+    // Another class's assignment, another parent, a teacher: refused.
+    expect(codeOf(await forHelp(elsewhere.id))).toBe('assignments.not_found');
+    expect(codeOf(await forHelp(posted.id, as(parentA)))).toBeDefined();
+    expect(codeOf(await forHelp(posted.id, teacher))).toBe('auth.permission_denied');
+
+    value(await parent.leave.execute({ childProfileId: child }));
+    expect(codeOf(await forHelp(posted.id))).toBe('assignments.not_found');
   });
 });

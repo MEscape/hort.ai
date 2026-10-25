@@ -4,6 +4,7 @@ import type { AssessmentResult } from '../../domain/ai-output/ai-output';
 import type { HelpSessionProgress } from '../../domain/models/help-session';
 import type { HintLevel } from '../../domain/models/hint-level';
 import type { HintSubject } from '../../domain/models/hint-subject';
+import type { SessionOpening } from '../../domain/topic/session-topic';
 
 /** One stored answer check, as ids and results only: never the child's answer text. */
 export interface AnswerCheckView {
@@ -20,6 +21,9 @@ export interface AnswerCheckView {
  */
 export interface HelpSessionView {
   readonly sessionId: string;
+  /** The teacher's assignment the session is on (#33), `null` for the child's own task. */
+  readonly assignmentId: string | null;
+  /** The child's own text, or the assignment's text. Never the solution key. */
   readonly task: string;
   readonly subject: HintSubject;
   readonly status: HelpSessionProgress;
@@ -30,6 +34,12 @@ export interface HelpSessionView {
   readonly answerChecks: readonly AnswerCheckView[];
   /** The comprehension question waiting for the child's reply, `null` when none is. */
   readonly openQuestion: FeedbackText | null;
+  /**
+   * How the session opens (#92): `clarify` asks one fixed question about the task, `redirect` answers
+   * small talk or a curiosity question with a fixed friendly text and no hint. `null`: help as usual.
+   * The texts are catalog texts (`guidance.opening.*`), never AI text.
+   */
+  readonly opening: SessionOpening | null;
   /** ISO instant of the last step. */
   readonly updatedAt: string;
 }

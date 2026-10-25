@@ -2,7 +2,7 @@ import type { ChildTaskText } from './child-task-text';
 import type { HintFallbackReason } from './hint-fallback-reason';
 import type { HintLevel } from './hint-level';
 import type { HintSubject } from './hint-subject';
-import type { StepRequestId } from './ids';
+import type { AssignmentId, StepRequestId } from './ids';
 import type { AssessmentResult } from '../ai-output/ai-output';
 
 /**
@@ -30,6 +30,8 @@ export type GivenHint =
  */
 export interface HintLadderState {
   readonly task: ChildTaskText;
+  /** The teacher's assignment the task came from (#33), `null` for the child's own task. */
+  readonly assignmentId: AssignmentId | null;
   readonly subject: HintSubject;
   readonly hints: readonly GivenHint[];
   readonly answers: ReadonlyArray<AssessmentResult | null>;

@@ -23,7 +23,13 @@ const hint = (level: HintLevel): GivenHint => ({
 const state = (
   levels: readonly HintLevel[],
   answers: HintLadderState['answers'] = [],
-): HintLadderState => ({ task: REQUEST.task, subject: 'math', hints: levels.map(hint), answers });
+): HintLadderState => ({
+  task: REQUEST.task,
+  assignmentId: null,
+  subject: 'math',
+  hints: levels.map(hint),
+  answers,
+});
 
 describe('nextHintLevel (#30)', () => {
   it.each<[readonly HintLevel[], HintLevel]>([

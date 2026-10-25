@@ -33,6 +33,16 @@ export interface ChildAssignmentView {
   readonly dueDate: string | null;
 }
 
+/**
+ * An assignment for the help on it (#33), as the guidance module reads it on the server. Carries the
+ * teacher's solution key: never put it into a browser response, a log or an audit event.
+ */
+export interface AssignmentForHelpView {
+  readonly id: string;
+  readonly taskText: string;
+  readonly solutionKey: string | null;
+}
+
 /** Teacher input. An empty due date or solution key means "none". */
 export interface AssignmentFieldsInput {
   readonly title: string;

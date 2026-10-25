@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'8f90a014cfc1c9c32a01d95dad6cd89b3515c3ca47dfd8ae078cd5e51ac97e79'>;
+  StorageHashBase<'df028899cf6d03459369581c0d338055d77b7232cf36e23c686f7b0e33287ceb'>;
 export type ExecutionHash =
   ExecutionHashBase<'5388a8400147d76b9e718711335599d04f7ca67a9c7f7b82d886bf9fb1c1aec5'>;
 export type ProfileHash =
@@ -461,11 +461,23 @@ type FieldTypeOverrides = {
         };
       };
       readonly HelpSession: {
+        readonly classifiedBy: {
+          readonly output: 'JEV' | 'FALLBACK';
+          readonly input: 'JEV' | 'FALLBACK';
+        };
         readonly currentHintLevel: {
           readonly output:
             'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
           readonly input:
             'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
+        };
+        readonly intent: {
+          readonly output: 'HOMEWORK' | 'CURIOSITY' | 'SMALL_TALK';
+          readonly input: 'HOMEWORK' | 'CURIOSITY' | 'SMALL_TALK';
+        };
+        readonly opening: {
+          readonly output: 'CLARIFY' | 'REDIRECT';
+          readonly input: 'CLARIFY' | 'REDIRECT';
         };
         readonly status: {
           readonly output: 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
@@ -736,11 +748,23 @@ type ColumnTypeOverrides = {
       };
     };
     readonly HelpSession: {
+      readonly classifiedBy: {
+        readonly output: 'JEV' | 'FALLBACK';
+        readonly input: 'JEV' | 'FALLBACK';
+      };
       readonly currentHintLevel: {
         readonly output:
           'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
         readonly input:
           'UNDERSTAND_TASK' | 'ACTIVATE_PRIOR_KNOWLEDGE' | 'NEXT_STEP' | 'SIMILAR_EXAMPLE';
+      };
+      readonly intent: {
+        readonly output: 'HOMEWORK' | 'CURIOSITY' | 'SMALL_TALK';
+        readonly input: 'HOMEWORK' | 'CURIOSITY' | 'SMALL_TALK';
+      };
+      readonly opening: {
+        readonly output: 'CLARIFY' | 'REDIRECT';
+        readonly input: 'CLARIFY' | 'REDIRECT';
       };
       readonly status: {
         readonly output: 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
@@ -939,9 +963,14 @@ export namespace Models {
   export type public_HelpSession = {
     assignmentId: FieldOutputTypes['public']['HelpSession']['assignmentId'];
     childProfileId: FieldOutputTypes['public']['HelpSession']['childProfileId'];
+    classifiedBy: FieldOutputTypes['public']['HelpSession']['classifiedBy'];
+    competencyCode: FieldOutputTypes['public']['HelpSession']['competencyCode'];
     currentHintLevel: FieldOutputTypes['public']['HelpSession']['currentHintLevel'];
     endedAt: FieldOutputTypes['public']['HelpSession']['endedAt'];
     id: FieldOutputTypes['public']['HelpSession']['id'];
+    intent: FieldOutputTypes['public']['HelpSession']['intent'];
+    openTopicLabel: FieldOutputTypes['public']['HelpSession']['openTopicLabel'];
+    opening: FieldOutputTypes['public']['HelpSession']['opening'];
     ownerId: FieldOutputTypes['public']['HelpSession']['ownerId'];
     startedAt: FieldOutputTypes['public']['HelpSession']['startedAt'];
     status: FieldOutputTypes['public']['HelpSession']['status'];
@@ -2016,6 +2045,18 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
+                readonly classifiedBy: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly competencyCode: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
                 readonly currentHintLevel: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
@@ -2032,6 +2073,24 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly intent: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly openTopicLabel: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly opening: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly ownerId: {
@@ -2583,9 +2642,17 @@ type ContractBase = Omit<
               readonly kind: 'valueSet';
               readonly values: readonly ['UPLOADED', 'PROCESSED', 'FAILED', 'DELETED'];
             };
+            readonly MessageIntent: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['HOMEWORK', 'CURIOSITY', 'SMALL_TALK'];
+            };
             readonly ProgressEventKind: {
               readonly kind: 'valueSet';
               readonly values: readonly ['daily_reward', 'learning'];
+            };
+            readonly SessionOpening: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['CLARIFY', 'REDIRECT'];
             };
             readonly SetupStep: {
               readonly kind: 'valueSet';
@@ -2601,6 +2668,10 @@ type ContractBase = Omit<
             readonly Subject: {
               readonly kind: 'valueSet';
               readonly values: readonly ['MATH', 'GERMAN', 'GENERAL_STUDIES', 'ENGLISH'];
+            };
+            readonly TopicClassifiedBy: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['JEV', 'FALLBACK'];
             };
           };
         };
@@ -3542,6 +3613,14 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly classifiedBy: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly competencyCode: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly currentHintLevel: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -3555,6 +3634,18 @@ type ContractBase = Omit<
               };
               readonly id: {
                 readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly intent: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly openTopicLabel: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly opening: {
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly ownerId: {
@@ -3672,9 +3763,14 @@ type ContractBase = Omit<
               readonly fields: {
                 readonly assignmentId: { readonly column: 'assignmentId' };
                 readonly childProfileId: { readonly column: 'childProfileId' };
+                readonly classifiedBy: { readonly column: 'classifiedBy' };
+                readonly competencyCode: { readonly column: 'competencyCode' };
                 readonly currentHintLevel: { readonly column: 'currentHintLevel' };
                 readonly endedAt: { readonly column: 'endedAt' };
                 readonly id: { readonly column: 'id' };
+                readonly intent: { readonly column: 'intent' };
+                readonly openTopicLabel: { readonly column: 'openTopicLabel' };
+                readonly opening: { readonly column: 'opening' };
                 readonly ownerId: { readonly column: 'ownerId' };
                 readonly startedAt: { readonly column: 'startedAt' };
                 readonly status: { readonly column: 'status' };
@@ -4094,11 +4190,26 @@ type ContractBase = Omit<
               { readonly name: 'DELETED'; readonly value: 'DELETED' },
             ];
           };
+          readonly MessageIntent: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'HOMEWORK'; readonly value: 'HOMEWORK' },
+              { readonly name: 'CURIOSITY'; readonly value: 'CURIOSITY' },
+              { readonly name: 'SMALL_TALK'; readonly value: 'SMALL_TALK' },
+            ];
+          };
           readonly ProgressEventKind: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
               { readonly name: 'daily_reward'; readonly value: 'daily_reward' },
               { readonly name: 'learning'; readonly value: 'learning' },
+            ];
+          };
+          readonly SessionOpening: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'CLARIFY'; readonly value: 'CLARIFY' },
+              { readonly name: 'REDIRECT'; readonly value: 'REDIRECT' },
             ];
           };
           readonly SetupStep: {
@@ -4119,6 +4230,13 @@ type ContractBase = Omit<
               { readonly name: 'GERMAN'; readonly value: 'GERMAN' },
               { readonly name: 'GENERAL_STUDIES'; readonly value: 'GENERAL_STUDIES' },
               { readonly name: 'ENGLISH'; readonly value: 'ENGLISH' },
+            ];
+          };
+          readonly TopicClassifiedBy: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'JEV'; readonly value: 'JEV' },
+              { readonly name: 'FALLBACK'; readonly value: 'FALLBACK' },
             ];
           };
         };
@@ -4199,9 +4317,18 @@ type ContractBase = Omit<
             { readonly name: 'FAILED'; readonly value: 'FAILED' },
             { readonly name: 'DELETED'; readonly value: 'DELETED' },
           ];
+          readonly MessageIntent: readonly [
+            { readonly name: 'HOMEWORK'; readonly value: 'HOMEWORK' },
+            { readonly name: 'CURIOSITY'; readonly value: 'CURIOSITY' },
+            { readonly name: 'SMALL_TALK'; readonly value: 'SMALL_TALK' },
+          ];
           readonly ProgressEventKind: readonly [
             { readonly name: 'daily_reward'; readonly value: 'daily_reward' },
             { readonly name: 'learning'; readonly value: 'learning' },
+          ];
+          readonly SessionOpening: readonly [
+            { readonly name: 'CLARIFY'; readonly value: 'CLARIFY' },
+            { readonly name: 'REDIRECT'; readonly value: 'REDIRECT' },
           ];
           readonly SetupStep: readonly [
             { readonly name: 'child'; readonly value: 'child' },
@@ -4216,6 +4343,10 @@ type ContractBase = Omit<
             { readonly name: 'GERMAN'; readonly value: 'GERMAN' },
             { readonly name: 'GENERAL_STUDIES'; readonly value: 'GENERAL_STUDIES' },
             { readonly name: 'ENGLISH'; readonly value: 'ENGLISH' },
+          ];
+          readonly TopicClassifiedBy: readonly [
+            { readonly name: 'JEV'; readonly value: 'JEV' },
+            { readonly name: 'FALLBACK'; readonly value: 'FALLBACK' },
           ];
         };
       };

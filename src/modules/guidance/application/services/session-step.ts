@@ -4,12 +4,13 @@ import type { RateLimitedAppError, ValidationAppError } from '@lib/errors';
 import type { RateLimitPolicy } from '@lib/rate-limit';
 import type { AppResult, AppResultAsync } from '@lib/result';
 
-import { fromRateLimitFailure } from '../../domain/errors/guidance-errors';
 import {
   parseChildProfileId,
   parseHelpSessionId,
   parseStepRequestId,
 } from '../../domain/models/ids';
+
+import { spendChildBudget } from './child-budget';
 
 import type { HintLadderState } from '../../domain/models/help-session-state';
 import type { HintLevel } from '../../domain/models/hint-level';
@@ -82,12 +83,7 @@ export function openOwnSession(
       childProfileId: child.id,
       sessionId: step.sessionId,
     };
-    return rateLimiter
-      .enforce({
-        policy,
-        subject: { kind: 'identifier', value: `child-profile:${actor.tenantId}:${child.id}` },
-      })
-      .mapErr(fromRateLimitFailure)
+    return spendChildBudget(rateLimiter, { actor, childProfileId: child.id, policy })
       .andThen(() => sessions.load(ref))
       .map((state) => ({ child, ref, state }));
   });
@@ -113,4 +109,27 @@ export async function groundInCurriculum(
     return [];
   }
   return found.value;
+}
+
+/**
+ * The teacher's solution key when the session is on an assignment (#33), `null` for the child's own
+ * task. Read anew for every step, so the assignments module checks the child's class membership each
+ * time and a key the teacher changed applies at once. When it cannot be read (the child left the
+ * class, the assignment was deleted, the store failed) the step still helps the child: the answer is
+ * assessed by the AI alone and the leak guard checks without the key. That is logged with its code.
+ */
+export async function solutionKeyOf(
+  { assignments, audit }: Pick<SessionStepDependencies, 'assignments' | 'audit'>,
+  { child, state }: OpenSession,
+  step: 'hint' | 'answer_check',
+): Promise<string | null> {
+  if (state.assignmentId === null) {
+    return null;
+  }
+  const found = await assignments.findForChild(child.id, state.assignmentId);
+  if (found.isErr()) {
+    audit.record({ type: 'guidance.solution_key_unavailable', step, code: found.error.code });
+    return null;
+  }
+  return found.value.solutionKey;
 }
